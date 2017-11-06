@@ -17,4 +17,6 @@ def write_file(path, dic, type='h5py'):
         f.attrs['info'] = dic['info'] if 'info' in dic else None
         f.close()
 
-
+def save_to_h5py(path, img_pair_list, info):
+    dic = {'data': img_pair_list, 'info': info}
+    write_file(path, dic, type='h5py')

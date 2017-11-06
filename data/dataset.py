@@ -40,21 +40,21 @@ from time import time
 class RegistrationDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, csv_file, root_dir, transform=None):
+    def __init__(self, data_dir, transform=None):
         """
         Args:
             csv_file (string): Path to the saved data file
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        dic = read_file(root_dir, type='h5py')
+        dic = read_file(data_dir, type='h5py')
         self.data = dic['data']
         self.info = dic['info']
-        self.root_dir = root_dir
+        self.root_dir = data_dir
         self.transform = transform
 
     def __len__(self):
-        return len(self.file_list)
+        return len(self.data)
 
     def __getitem__(self, idx):
         sample = {'image': self.data[idx]}
@@ -188,123 +188,6 @@ class ToTensor(object):
 #
 
 
-composed = transforms.Compose([ToTensor()])
 
-
-
-######################################################################
-# Iterating through the dataset
-# -----------------------------
-#
-# Let's put this all together to create a dataset with composed
-# transforms.
-# To summarize, every time this dataset is sampled:
-#
-# -  An image is read from the file on the fly
-# -  Transforms are applied on the read image
-# -  Since one of the transforms is random, data is augmentated on
-#    sampling
-#
-# We can iterate over the created dataset with a ``for i in range``
-# loop as before.
-#
-
-train_data_path = './train.h5py'
-val_data_path = './validation.h5py'
-sess_sel = {'train': train_data_path,'val': val_data_path}
-transformed_dataset = { x: RegistrationDataset(root_dir=sess_sel[x],
-                                           transform=composed) for x in sess_sel}
-
-dataset_sizes = {x: len(transformed_dataset[x]) for x in ['train', 'val']}
-######################################################################
-# However, we are losing a lot of features by using a simple ``for`` loop to
-# iterate over the data. In particular, we are missing out on:
-#
-# -  Batching the data
-# -  Shuffling the data
-# -  Load the data in parallel using ``multiprocessing`` workers.
-#
-# ``torch.utils.data.DataLoader`` is an iterator which provides all these
-# features. Parameters used below should be clear. One parameter of
-# interest is ``collate_fn``. You can specify how exactly the samples need
-# to be batched using ``collate_fn``. However, default collate should work
-# fine for most use cases.
-#
-
-dataloader = DataLoader(transformed_dataset, batch_size=4,
-                        shuffle=True, num_workers=4)
-
-
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
-    since = time.time()
-
-    best_model_wts = model.state_dict()
-    best_acc = 0.0
-
-    for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
-
-        # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
-            if phase == 'train':
-                scheduler.step()
-                model.train(True)  # Set model to training mode
-            else:
-                model.train(False)  # Set model to evaluate mode
-
-            running_loss = 0.0
-            running_corrects = 0
-
-            # Iterate over data.
-            for data in dataloders[phase]:
-                # get the inputs
-                inputs, labels = data
-
-                # wrap them in Variable
-                if use_gpu:
-                    inputs = Variable(inputs.cuda())
-                    labels = Variable(labels.cuda())
-                else:
-                    inputs, labels = Variable(inputs), Variable(labels)
-
-                # zero the parameter gradients
-                optimizer.zero_grad()
-
-                # forward
-                outputs = model(inputs)
-                _, preds = torch.max(outputs.data, 1)
-                loss = criterion(outputs, labels)
-
-                # backward + optimize only if in training phase
-                if phase == 'train':
-                    loss.backward()
-                    optimizer.step()
-
-                # statistics
-                running_loss += loss.data[0]
-                running_corrects += torch.sum(preds == labels.data)
-
-            epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects / dataset_sizes[phase]
-
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-                phase, epoch_loss, epoch_acc))
-
-            # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
-                best_acc = epoch_acc
-                best_model_wts = model.state_dict()
-
-        print()
-
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
-
-    # load best model weights
-    model.load_state_dict(best_model_wts)
-    return model
 
 
