@@ -51,7 +51,7 @@ class DataManager(object):
     def dataloaders(self, batch_size=20):
         train_data_path = self.train_h5_path
         val_data_path = self.save_h5_path
-        composed = transforms.Compose([ToTensor()])
+        composed = transforms.Compose([Normalize(), ToTensor()])
         sess_sel = {'train': train_data_path, 'val': val_data_path}
         transformed_dataset = {x: RegistrationDataset(data_dir=sess_sel[x], transform=composed) for x in sess_sel}
         dataloaders = {x: utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
@@ -60,6 +60,7 @@ class DataManager(object):
         self.dataset_sizes = dataset_sizes
 
         return dataloaders
+
 
 
 

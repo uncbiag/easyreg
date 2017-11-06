@@ -64,35 +64,6 @@ class RegistrationDataset(Dataset):
 
         return sample
 
-
-
-######################################################################
-# Transforms
-# ----------
-#
-# One issue we can see from the above is that the samples are not of the
-# same size. Most neural networks expect the images of a fixed size.
-# Therefore, we will need to write some prepocessing code.
-# Let's create three transforms:
-#
-# -  ``Rescale``: to scale the image
-# -  ``RandomCrop``: to crop from image randomly. This is data
-#    augmentation.
-# -  ``ToTensor``: to convert the numpy images to torch images (we need to
-#    swap axes).
-#
-# We will write them as callable classes instead of simple functions so
-# that parameters of the transform need not be passed everytime it's
-# called. For this, we just need to implement ``__call__`` method and
-# if required, ``__init__`` method. We can then use a transform like this:
-#
-# ::
-#
-#     tsfm = Transform(params)
-#     transformed_sample = tsfm(sample)
-#
-# Observe below how these transforms had to be applied both on the image and
-# landmarks.
 #
 
 class Rescale(object):
@@ -109,56 +80,37 @@ class Rescale(object):
         self.output_size = output_size
 
     def __call__(self, sample):
-        image = sample['image']
-
-        h, w = image.shape[:2]
-        if isinstance(self.output_size, int):
-            if h > w:
-                new_h, new_w = self.output_size * h / w, self.output_size
+        img_pair = sample['image']
+        for image in img_pair:
+            h, w = image.shape[:2]
+            if isinstance(self.output_size, int):
+                if h > w:
+                    new_h, new_w = self.output_size * h / w, self.output_size
+                else:
+                    new_h, new_w = self.output_size, self.output_size * w / h
             else:
-                new_h, new_w = self.output_size, self.output_size * w / h
-        else:
-            new_h, new_w = self.output_size
+                new_h, new_w = self.output_size
 
-        new_h, new_w = int(new_h), int(new_w)
+            new_h, new_w = int(new_h), int(new_w)
 
-        img = transform.resize(image, (new_h, new_w))
+            image[:] = transform.resize(image, (new_h, new_w))
 
         # h and w are swapped for landmarks because for images,
         # x and y axes are axis 1 and 0 respectively
 
-        return {'image': img}
+        return {'image': img_pair}
 
 
-class RandomCrop(object):
-    """Crop randomly the image in a sample.
-
-    Args:
-        output_size (tuple or int): Desired output size. If int, square crop
-            is made.
-    """
-
-    def __init__(self, output_size):
-        assert isinstance(output_size, (int, tuple))
-        if isinstance(output_size, int):
-            self.output_size = (output_size, output_size)
-        else:
-            assert len(output_size) == 2
-            self.output_size = output_size
+class Normalize(object):
 
     def __call__(self, sample):
-        image, landmarks = sample['image']
+        img_pair = sample['image']
+        for image in img_pair:
+            image[:]= 2*(image-np.min(image))/(np.max(image)-np.min(image)) -1
 
-        h, w = image.shape[:2]
-        new_h, new_w = self.output_size
+        return {'image': img_pair}
 
-        top = np.random.randint(0, h - new_h)
-        left = np.random.randint(0, w - new_w)
 
-        image = image[top: top + new_h,
-                left: left + new_w]
-
-        return {'image': image}
 
 
 class ToTensor(object):
@@ -174,18 +126,6 @@ class ToTensor(object):
         return {'image': torch.from_numpy(image)}
 
 
-######################################################################
-# Compose transforms
-# ~~~~~~~~~~~~~~~~~~
-#
-# Now, we apply the transforms on an sample.
-#
-# Let's say we want to rescale the shorter side of the image to 256 and
-# then randomly crop a square of size 224 from it. i.e, we want to compose
-# ``Rescale`` and ``RandomCrop`` transforms.
-# ``torchvision.transforms.Compose`` is a simple callable class which allows us
-# to do this.
-#
 
 
 
