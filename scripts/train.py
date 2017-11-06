@@ -2,20 +2,9 @@ from time import time
 import torch
 from torch.autograd import Variable
 from scripts.utils import *
-from data.dataset import  *
-
-def dataloader(train_path, val_path):
-    train_data_path = './train.h5py'
-    val_data_path = './validation.h5py'
-    composed = transforms.Compose([ToTensor()])
-    sess_sel = {'train': train_data_path, 'val': val_data_path}
-    transformed_dataset = {x: RegistrationDataset(data_dir=sess_sel[x], transform=composed) for x in sess_sel}
-    dataloaders = {x: utils.data.DataLoader(transformed_dataset[x], batch_size=4,
-                                                 shuffle=True, num_workers=4) for x in sess_sel}
-    dataset_sizes = {x: len(transformed_dataset[x]) for x in ['train', 'val']}
 
 
-    return dataloaders, dataset_sizes
+
 
 
 def get_criterion(sched):
