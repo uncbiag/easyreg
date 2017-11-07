@@ -5,6 +5,7 @@ import os
 from scipy import misc
 import numpy as np
 import h5py
+import skimage
 from data.data_utils import *
 import SimpleITK as sitk
 

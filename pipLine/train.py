@@ -4,7 +4,7 @@ from torch.autograd import Variable
 from pipLine.utils import *
 from models.networks import SimpleNet
 
-
+record_path ='../data/records/'
 
 
 def get_criterion(sched):
@@ -71,6 +71,9 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler, num_e
                 running_loss += loss.data[0]
 
             epoch_loss = running_loss / dataloaders['data_size'][phase]
+            if epoch%10 ==0:
+                appendix = 'epoch_'+str(epoch) + '_'+phase
+                save_result(record_path, appendix, moving, target, output)
 
             print('{} Loss: {:.4f}'.format(
                 phase, epoch_loss))
