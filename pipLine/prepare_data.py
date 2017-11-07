@@ -19,10 +19,11 @@ def prepare_data(save_path, img_type, path='./data',skip=True, sched='intra'):
 
 class DataManager(object):
     def __init__(self, sched='intra'):
-        self.train_data_path = '/home/hbg/cs_courses/2d_data_code/data'
-        self.val_data_path = '/home/hbg/cs_courses/2d_data_code/data'
-        self.test_data_path = '/home/hbg/cs_courses/2d_data_code/data'
+        self.train_data_path = '/home/hbg/cs_courses/2d_data_code/data/train'
+        self.val_data_path = '/home/hbg/cs_courses/2d_data_code/data/val'
+        self.test_data_path = '/home/hbg/cs_courses/2d_data_code/data/test'
         self.raw_data_path=[self.train_data_path,self.val_data_path,self.test_data_path]
+        self.sched = sched
 
 
         self.skip = True  # only in intra, True: (6month, 9 month)  (6month 12month)  (9 month 12month) False: (6 month 9 month) (9month 12month)
@@ -40,9 +41,9 @@ class DataManager(object):
 
     def prepare_data(self):
         for idx, path in enumerate(self.raw_data_path):
-            prepare_data(self.save_h5_path[idx], self.raw_img_type, self.raw_data_path[idx], sched=sched)
-            dic = read_file(save_path)
-            print('data saved: {}'.format(save_path))
+            prepare_data(self.save_h5_path[idx], self.raw_img_type, self.raw_data_path[idx], sched=self.sched)
+            dic = read_file(self.save_h5_path[idx])
+            print('data saved: {}'.format(self.save_h5_path[idx]))
             print(dic['info'])
             print(dic['data'].shape)
             print('finished')
@@ -50,11 +51,11 @@ class DataManager(object):
 
     def dataloaders(self, batch_size=20):
         train_data_path = self.train_h5_path
-        val_data_path = self.save_h5_path
-        composed = transforms.Compose([Normalize(), ToTensor()])
+        val_data_path = self.val_h5_path
+        composed = transforms.Compose([ToTensor()])
         sess_sel = {'train': train_data_path, 'val': val_data_path}
         transformed_dataset = {x: RegistrationDataset(data_dir=sess_sel[x], transform=composed) for x in sess_sel}
-        dataloaders = {x: utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
+        dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
                                                 shuffle=True, num_workers=4) for x in sess_sel}
         dataloaders['data_size'] = {x: len(transformed_dataset[x]) for x in ['train', 'val']}
 

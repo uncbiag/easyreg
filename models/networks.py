@@ -9,10 +9,11 @@ from torch.autograd import *
 from models.modules import *
 from functions.bilinear import *
 class SimpleNet(nn.Module):
-    def __init__(self, opt):
+    def __init__(self):
         super(SimpleNet,self).__init__()
         self.dense_gen = DisGen()
         self.bilinear = Bilinear()
-    def forward(self, input):
+    def forward(self, input, moving):
         disField = self.dense_gen(input)
-        x = self.bilinear(input,disField)
+        output = self.bilinear(moving,disField)
+        return output

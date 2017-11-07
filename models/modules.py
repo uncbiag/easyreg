@@ -55,7 +55,7 @@ class DisGen(nn.Module):
         super(DisGen, self).__init__()
 
         # Build a LSTM
-        self.conv1 = nn.Sequential(ConvBnRel(3, 64, 3, active_unit='elu', same_padding=True, bn=bn))
+        self.conv1 = nn.Sequential(ConvBnRel(2, 64, 3, active_unit='elu', same_padding=True, bn=bn))
         self.conv2 = nn.Sequential(ConvBnRel(64, 128, 3, active_unit='elu', same_padding=True, bn=bn),
                                    ConvBnRel(128, 128, 3, active_unit='elu', same_padding=True, bn=bn))
         self.conv3 = nn.Sequential(ConvBnRel(128, 2, 3, active_unit='elu', same_padding=True, bn=bn))

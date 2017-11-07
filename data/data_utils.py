@@ -88,7 +88,8 @@ def load_as_data(pair_list):
         else:
             check_same_size(img1,standard)
             check_same_size(img2,standard)
-
+        normalize_img(img1)
+        normalize_img(img2)
         img_pair_list += [(img1, img2)]
         img_pair_list += [(img2, img1)]
 
@@ -99,6 +100,10 @@ def load_as_data(pair_list):
 
 def check_same_size(img, standard):
     assert img.shape == standard, "img size must be the same"
+
+def normalize_img(image):
+    image[:] = 2 * (image - np.min(image)) / (np.max(image) - np.min(image)) - 1
+
 
 def read_img(path):
     itkimage = sitk.ReadImage(path)
