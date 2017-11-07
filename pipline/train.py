@@ -1,8 +1,8 @@
 from time import time
 import torch
 from torch.autograd import Variable
-from scripts.utils import *
-
+from pipline.utils import *
+from models.networks import SimpleNet
 
 
 
@@ -19,7 +19,7 @@ def get_criterion(sched):
 
 
 
-def train_model(model, dataloaders,dataset_sizes, criterion_sched, optimizer, scheduler, num_epochs=25):
+def train_model(model, dataloaders, criterion_sched, optimizer, scheduler, num_epochs=25):
     since = time.time()
 
     best_model_wts = model.state_dict()
@@ -47,13 +47,8 @@ def train_model(model, dataloaders,dataset_sizes, criterion_sched, optimizer, sc
                 input = organize_data(moving, target, sched='depth_concat')
 
                 # wrap them in Variable
-                if use_gpu:
-                    moving = Variable(input.cuda())
-                    target = Variable(target.cuda())
-                else:
-                    moving = Variable(input)
-                    target = Variable(target)
-
+                moving = Variable(input.cuda())
+                target = Variable(target.cuda())
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -72,7 +67,7 @@ def train_model(model, dataloaders,dataset_sizes, criterion_sched, optimizer, sc
                 # statistics
                 running_loss += loss.data[0]
 
-            epoch_loss = running_loss / dataset_sizes[phase]
+            epoch_loss = running_loss / dataloaders['data_size'][phase]
 
             print('{} Loss: {:.4f}'.format(
                 phase, epoch_loss))
