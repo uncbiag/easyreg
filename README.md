@@ -2,6 +2,7 @@
 net for image registration
 
 # Under developing
+* 11.7 add testing, tensorboard, run through
 * 11.7 add bilinear, run through the training pipline
 * 11.6 add inter- intra sampling, add dataManager
 * 11.5 add prepare_data,dataloader
