@@ -8,6 +8,8 @@ import torch.nn.functional as F
 from torch.autograd import *
 from models.modules import *
 from functions.bilinear import *
+
+
 class SimpleNet(nn.Module):
     def __init__(self, info):
         super(SimpleNet,self).__init__()

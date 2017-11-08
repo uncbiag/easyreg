@@ -52,8 +52,9 @@ class DataManager(object):
     def dataloaders(self, batch_size=20):
         train_data_path = self.train_h5_path
         val_data_path = self.val_h5_path
+        test_data_path= self.test_h5_path
         composed = transforms.Compose([ToTensor()])
-        sess_sel = {'train': train_data_path, 'val': val_data_path}
+        sess_sel = {'train': train_data_path, 'val': val_data_path, 'test': test_data_path}
         transformed_dataset = {x: RegistrationDataset(data_dir=sess_sel[x], transform=composed) for x in sess_sel}
         dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
                                                 shuffle=True, num_workers=4) for x in sess_sel}
