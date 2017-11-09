@@ -7,7 +7,7 @@ from models.networks import SimpleNet
 record_path ='../data/records/'
 model_path = None
 check_point_path = '../data/checkpoints'
-
+reg= 1e-4
 
 
 
@@ -20,7 +20,6 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
     start_epoch = 0
     global_step = {x:0 for x in ['train','val']}
     period_loss = {x: 0. for x in ['train', 'val']}
-    period_num = {x: 0. for x in ['train', 'val']}
     period =20
     if model_path is not None:
         start_epoch, best_loss =resume_train(model_path, model)
@@ -58,10 +57,11 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
                 optimizer.zero_grad()
 
                 # forward
-                output = model(input, moving)
+                output, gradField = model(input, moving)
                 #_, preds = torch.max(outputs.data, 1)
                 criterion = get_criterion(criterion_sched)
                 loss = criterion(output, target)
+                loss += reg * torch.sum(gradField)
 
                 # backward + optimize only if in training phase
                 if phase == 'train':
@@ -71,14 +71,12 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
                 # statistics
                 running_loss += loss.data[0]
                 period_loss[phase] += loss.data[0]
-                period_num[phase] += batch_size
                 # save for tensorboard, both train and val will be saved
                 global_step[phase] += 1
                 if global_step[phase] > 1 and global_step[phase]%period == 0:
-                    period_avg_loss = period_loss[phase] / (period_num[phase])
+                    period_avg_loss = period_loss[phase] / period
                     writer.add_scalar('loss/'+phase, period_avg_loss, global_step[phase])
                     period_loss[phase] = 0.
-                    period_num[phase]  = 0
 
 
 

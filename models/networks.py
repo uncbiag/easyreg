@@ -15,10 +15,12 @@ class SimpleNet(nn.Module):
         super(SimpleNet,self).__init__()
         self.info = info
         self.denseGen = DisGen()
+        self.jacobiField = JacobiField()
         self. denseAffineGrid= DenseAffineGridGen(self.info)
         self.bilinear = Bilinear()
     def forward(self, input, moving):
         disField = self.denseGen(input)
+        jacobDisField = self.jacobiField(disField)
         gridField = self.denseAffineGrid(disField)
         output = self.bilinear(moving,gridField)
-        return output
+        return output, jacobDisField

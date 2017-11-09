@@ -44,6 +44,7 @@ class Bilinear(Function):
         self.input1 = input1
         self.input2 = input2
         self.device_c = ffi.new("int *")
+        input1= (input1+1)/2
 
         output = torch.cuda.FloatTensor(input1.size()[0], input1.size()[1], input2.size()[2], input2.size()[3]).zero_()
 
@@ -51,6 +52,7 @@ class Bilinear(Function):
         self.device = torch.cuda.current_device()
         self.device_c[0] = self.device
         self.forward_stn(input1, input2, output, self.ndim, self.device_c)
+        output = output*2-1
         return output
 
     def backward(self, grad_output):
@@ -59,10 +61,12 @@ class Bilinear(Function):
         :param grad_output: grad output from previous "layer"
         :return: gradient
         """
+        grad_output= grad_output*2
         grad_input1 = torch.cuda.FloatTensor(self.input1.size()).zero_()
         grad_input2 = torch.cuda.FloatTensor(self.input2.size()).zero_()
         # print grad_output.view(1, -1).sum()
         # print('backward decice %d' % self.device)
         self.backward_stn(self.input1, self.input2, grad_input1, grad_input2, grad_output, self.ndim, self.device_c)
+        grad_input1 = grad_input1 / 2.
         return grad_input1, grad_input2
 
