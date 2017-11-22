@@ -2,10 +2,12 @@
 net for image registration
 
 # Under developing
+* 11.21 add recurrent structure, add itering mod
+* 11.8 fix bugs, add displacemet field constrains
 * 11.7 add testing, tensorboard, run through
 * 11.7 add bilinear, run through the training pipline
-* 11.6 add inter- intra sampling, add dataManager
-* 11.5 add prepare_data,dataloader
+* 11.6 add inter- intra sampling, add dataManager, add SimpleNet
+* 11.5 add prepare_data, dataloader
 * 11.4 add affine Generator, control pointers Generator
 
 

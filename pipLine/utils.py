@@ -18,6 +18,8 @@ def organize_data(moving, target, sched='depth_concat'):
         input = torch.cat([moving, target], dim=1)
     elif sched == 'width_concat':
         input = torch.cat((moving, target), dim=3)
+    elif sched =='list_concat':
+        input = [moving, target]
     return input
 
 
@@ -33,9 +35,9 @@ def save_result(path, appendix, moving, target, reproduce):
     if not os.path.exists(path):
         os.makedirs(path)
     for i in range(moving.size(0)):
-      save_image_with_scale(path+appendix+"_{:02d}_moving.tif".format(i), moving[i,0,...])
-      save_image_with_scale(path+appendix+"_{:02d}_target.tif".format(i), target[i,0,...])
-      save_image_with_scale(path+appendix+"_{:02d}_reproduce.tif".format(i),reproduce[i,0,...])
+      save_image_with_scale(path+appendix+"_b{:02d}_moving.tif".format(i), moving[i,0,...])
+      save_image_with_scale(path+appendix+"_b{:02d}_target.tif".format(i), target[i,0,...])
+      save_image_with_scale(path+appendix+"_b{:02d}_reproduce.tif".format(i),reproduce[i,0,...])
 
 
 def weights_init(m):
@@ -56,6 +58,19 @@ def save_checkpoint(state, is_best, path, prefix, filename='checkpoint.pth.tar')
     if is_best:
         torch.save(state, path + '/model_best.pth.tar')
 
+def CrossCorrelationLoss(input, target):
+    eps =1e-9
+    size_img = input.size()
+    input = input.view(size_img[0], size_img[1],-1)
+    target = target.view(size_img[0], size_img[1], -1)
+    m_input = input - torch.mean(input,dim=2, keepdim = True)
+    m_target = target - torch.mean(target, dim=2, keepdim = True)
+    cc = torch.sum(m_input * m_target, dim=2, keepdim=True)
+    norm = torch.sqrt(torch.sum(m_input**2, dim=2, keepdim=True)) * torch.sqrt(torch.sum(m_target**2, dim=2, keepdim=True))
+    ncc = cc/(norm +eps)
+    ncc = - torch.sum(ncc)/(size_img[0] * size_img[1])
+    return ncc
+
 
 
 def get_criterion(sched):
@@ -65,6 +80,8 @@ def get_criterion(sched):
          sched_sel = torch.nn.MSELoss()
     elif sched == "W-GAN":
         pass
+    elif sched == 'NCC-loss':
+        sched_sel = CrossCorrelationLoss
     else:
         raise ValueError(' the criterion is not implemented')
     return sched_sel
@@ -128,3 +145,16 @@ def resume_train(model_path, model):
     else:
         print("=> no checkpoint found at '{}'".format(model_path))
 
+def clip_gradient(model, clip_norm):
+    """Computes a gradient clipping coefficient based on gradient norm."""
+    totalnorm = 0
+    for p in model.parameters():
+        if p.requires_grad:
+            modulenorm = p.grad.data.norm()
+            totalnorm += modulenorm ** 2
+    totalnorm = np.sqrt(totalnorm)
+
+    norm = clip_norm / max(totalnorm, clip_norm)
+    for p in model.parameters():
+        if p.requires_grad:
+            p.grad.mul_(norm)

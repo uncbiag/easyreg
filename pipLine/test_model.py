@@ -4,7 +4,7 @@ from torch.autograd import Variable
 from pipLine.utils import *
 from models.networks import SimpleNet
 
-record_path ='../data/records/'
+record_path ='../data/records/learning/'
 
 
 def test_model(model, dataloaders, criterion_sched):

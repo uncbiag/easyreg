@@ -4,14 +4,14 @@ from torch.autograd import Variable
 from pipLine.utils import *
 from models.networks import SimpleNet
 
-record_path ='../data/records/'
+record_path ='../data/records/learning/'
 model_path = None
 check_point_path = '../data/checkpoints'
 reg= 1e-4
 
 
 
-def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer, num_epochs=25):
+def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer, num_epochs=25, clip_grad=False):
     since = time()
 
     best_model_wts = model.state_dict()
@@ -45,7 +45,7 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
             for data in dataloaders[phase]:
                 # get the inputs
                 moving, target = get_pair(data['image'], pair= True)
-                input = organize_data(moving, target, sched='depth_concat')
+                input = organize_data(moving, target, sched='list_concat')
                 batch_size = input.size(0)
 
                 # wrap them in Variable, remember to optimize this part, the cuda Variable should be warped in dataloader
@@ -66,6 +66,8 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
                 # backward + optimize only if in training phase
                 if phase == 'train':
                     loss.backward()
+                    if clip_grad:
+                        torch.nn.utils.clip_grad_norm(model.parameters(),1)
                     optimizer.step()
 
                 # statistics

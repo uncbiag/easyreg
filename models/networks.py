@@ -24,3 +24,20 @@ class SimpleNet(nn.Module):
         gridField = self.denseAffineGrid(disField)
         output = self.bilinear(moving,gridField)
         return output, jacobDisField
+
+
+
+class FlowNet(nn.Module):
+    def __init__(self, info):
+        super(SimpleNet,self).__init__()
+        self.info = info
+        self.momConv = MomConv()
+        self.jacobiField = JacobiField()
+        self.flowRnn= FlowRNN(self.info, bn=True)
+        self.bilinear = Bilinear()
+    def forward(self, input, moving):
+        x = self.momConv(input[0], input[1])
+        gridField, disField = self.flowRnn(x)
+        jacobDisField = self.jacobiField(disField)
+        output = self.bilinear(moving,gridField)
+        return output, jacobDisField
