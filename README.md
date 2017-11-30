@@ -2,6 +2,7 @@
 net for image registration
 
 # Under developing
+* 11.30 update dataloader 
 * 11.21 add recurrent structure, add itering mod
 * 11.8 fix bugs, add displacemet field constrains
 * 11.7 add testing, tensorboard, run through

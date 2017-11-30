@@ -12,8 +12,8 @@ def prepare_data(save_path, img_type, path='./data',skip=True, sched='intra'):
 
      '''
     pair_list = list_pairwise(path, img_type, skip,sched)
-    img_pair_list, info = load_as_data(pair_list)
-    save_to_h5py(save_path, img_pair_list, info)
+    img_pair_list, info, img_pair_path_list = load_as_data(pair_list)
+    save_to_h5py(save_path, img_pair_list, info, img_pair_path_list)
 
 
 
@@ -26,10 +26,10 @@ class DataManager(object):
         self.sched = sched
 
 
-        self.skip = True  # only in intra, True: (6month, 9 month)  (6month 12month)  (9 month 12month) False: (6 month 9 month) (9month 12month)
-        if sched == 'intra':
+        self.skip = True  # e.g [1,2,3,4] True:[1,2],[2,3],[3,4],[1,3],[1,4],[2,4]  False: [1,2],[2,3],[3,4]
+        if sched == 'intra': # filter the file
             self.raw_img_type= ['*a.mhd']
-        elif sched == 'inter':
+        elif sched == 'inter':  # filter the file
             self.raw_img_type = ['*_1_a.mhd', '*_2_a.mhd', '*_3_a.mhd']
         else:
             raise ValueError('the sampling schedule should be intra or inter')
@@ -42,11 +42,6 @@ class DataManager(object):
     def prepare_data(self):
         for idx, path in enumerate(self.raw_data_path):
             prepare_data(self.save_h5_path[idx], self.raw_img_type, self.raw_data_path[idx], sched=self.sched)
-            dic = read_file(self.save_h5_path[idx])
-            print('data saved: {}'.format(self.save_h5_path[idx]))
-            print(dic['info'])
-            print(dic['data'].shape)
-            print('finished')
 
 
     def dataloaders(self, batch_size=20):
@@ -68,7 +63,7 @@ class DataManager(object):
 
 if __name__ == "__main__":
 
-    path = '/home/hbg/cs_courses/2d_data_code/data'
+    path = '/home/hbg/cs_courses/2d_data_code/data/train'
     img_type = ['*a.mhd']
     skip = True
     sched = 'intra'
@@ -77,16 +72,17 @@ if __name__ == "__main__":
 
     prepare_data(save_path, img_type, path, skip, sched)
     dic= read_file(save_path)
-    print(dic['info'])
+    #print(dic['info'])
     print(dic['data'].shape)
     print('finished')
 
     img_type = ['*_1_a.mhd', '*_2_a.mhd', '*_3_a.mhd']
     sched='inter'
+    skip = False
     save_path = '../data/data_' + sched + '.h5py'
     prepare_data(save_path, img_type, path, skip, sched)
     dic = read_file(save_path)
-    print(dic['info'])
+    #print(dic['info'])
     print(dic['data'].shape)
     print('finished')
 

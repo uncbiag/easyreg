@@ -13,13 +13,16 @@ def get_pair(data, pair= True, target=None):
     else:
         return data[:,:,0], target
 
+
+
+
 def organize_data(moving, target, sched='depth_concat'):
     if sched == 'depth_concat':
         input = torch.cat([moving, target], dim=1)
     elif sched == 'width_concat':
         input = torch.cat((moving, target), dim=3)
     elif sched =='list_concat':
-        input = [moving, target]
+        input = torch.cat((moving.unsqueeze(0),target.unsqueeze(0)),dim=0)
     return input
 
 
@@ -79,7 +82,7 @@ def get_criterion(sched):
     elif sched == "L2-loss":
          sched_sel = torch.nn.MSELoss()
     elif sched == "W-GAN":
-        pass
+        raise ValueError(' not implemented')
     elif sched == 'NCC-loss':
         sched_sel = CrossCorrelationLoss
     else:

@@ -7,11 +7,11 @@ from models.networks import SimpleNet
 record_path ='../data/records/learning/'
 model_path = None
 check_point_path = '../data/checkpoints'
-reg= 1e-4
+reg= 1e-2
 
 
 
-def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer, num_epochs=25, clip_grad=False):
+def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer, num_epochs=50, clip_grad=False, experiment_name=''):
     since = time()
 
     best_model_wts = model.state_dict()
@@ -33,6 +33,7 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
+            save_per_epoch = 1
             if phase == 'train':
                 scheduler.step()
                 model.train(True)  # Set model to training mode
@@ -44,9 +45,11 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
             # Iterate over data.
             for data in dataloaders[phase]:
                 # get the inputs
+
                 moving, target = get_pair(data['image'], pair= True)
+                batch_size = moving.size(0)
                 input = organize_data(moving, target, sched='list_concat')
-                batch_size = input.size(0)
+
 
                 # wrap them in Variable, remember to optimize this part, the cuda Variable should be warped in dataloader
                 moving= Variable(moving.cuda())
@@ -61,13 +64,18 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
                 #_, preds = torch.max(outputs.data, 1)
                 criterion = get_criterion(criterion_sched)
                 loss = criterion(output, target)
-                loss += reg * torch.sum(gradField)
+                #loss += reg * torch.sum(gradField)
+
+                if epoch % 10 == 0 and save_per_epoch:
+                    save_per_epoch = 0
+                    appendix = 'epoch_' + str(epoch)
+                    save_result(record_path + phase + '_' + experiment_name+'/', appendix, moving, target, output)
 
                 # backward + optimize only if in training phase
                 if phase == 'train':
                     loss.backward()
                     if clip_grad:
-                        torch.nn.utils.clip_grad_norm(model.parameters(),1)
+                        torch.nn.utils.clip_grad_norm(model.parameters(),5)
                     optimizer.step()
 
                 # statistics
@@ -83,10 +91,6 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
 
 
             epoch_loss = running_loss / dataloaders['data_size'][phase]
-            if epoch%10 == 0:
-                appendix = 'epoch_'+str(epoch)
-                save_result(record_path+phase+'/', appendix, moving, target, output)
-
             print('{} Loss: {:.4f}'.format(
                 phase, epoch_loss))
 

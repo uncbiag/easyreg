@@ -22,18 +22,6 @@ from time import time
 # -  ``__len__`` so that ``len(dataset)`` returns the size of the dataset.
 # -  ``__getitem__`` to support the indexing such that ``dataset[i]`` can
 #    be used to get :math:`i`\ th sample
-#
-# Let's create a dataset class for our face landmarks dataset. We will
-# read the csv in ``__init__`` but leave the reading of images to
-# ``__getitem__``. This is memory efficient because all the images are not
-# stored in the memory at once but read as required.
-#
-# Sample of our dataset will be a dict
-# ``{'image': image, 'landmarks': landmarks}``. Our datset will take an
-# optional argument ``transform`` so that any required processing can be
-# applied on the sample. We will see the usefulness of ``transform`` in the
-# next section.
-#
 
 
 
@@ -102,7 +90,7 @@ class Rescale(object):
 
 
 class Normalize(object):
-    """-1,1 normalization , this method will not be used, normalization has been done when reading data"""
+    """-1,1 normalization , this method will not be used but remained, normalization has been done when reading data"""
     def __call__(self, sample):
         img_pair = sample['image']
         for image in img_pair:

@@ -32,28 +32,6 @@ class ConvBnRel(nn.Module):
         return x
 
 
-class ConvBnRel(nn.Module):
-    # conv + bn (optional) + relu
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, active_unit='relu', same_padding=False,
-                 bn=False):
-        super(ConvBnRel, self).__init__()
-        padding = int((kernel_size - 1) / 2) if same_padding else 0
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding)
-        self.bn = nn.BatchNorm2d(out_channels, eps=0.0001, momentum=0, affine=True) if bn else None
-        if active_unit == 'relu':
-            self.active_unit = nn.ReLU(inplace=True)
-        elif active_unit == 'elu':
-            self.active_unit = nn.ELU(inplace=True)
-        else:
-            self.active_unit = None
-
-    def forward(self, x):
-        x = self.conv(x)
-        if self.bn is not None:
-            x = self.bn(x)
-        if self.active_unit is not None:
-            x = self.active_unit(x)
-        return x
 
 class FcRel(nn.Module):
     # fc+ relu(option)

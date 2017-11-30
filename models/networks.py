@@ -22,6 +22,7 @@ class SimpleNet(nn.Module):
         disField = self.denseGen(input)
         jacobDisField = self.jacobiField(disField)
         gridField = self.denseAffineGrid(disField)
+        #gridField= torch.tanh(gridField)
         output = self.bilinear(moving,gridField)
         return output, jacobDisField
 
@@ -29,15 +30,16 @@ class SimpleNet(nn.Module):
 
 class FlowNet(nn.Module):
     def __init__(self, info):
-        super(SimpleNet,self).__init__()
+        super(FlowNet,self).__init__()
         self.info = info
-        self.momConv = MomConv()
+        self.momConv = MomConv(bn=False)
         self.jacobiField = JacobiField()
-        self.flowRnn= FlowRNN(self.info, bn=True)
+        self.flowRnn= FlowRNN(self.info, bn=False)
+        self.grid = grid_gen(info)
         self.bilinear = Bilinear()
     def forward(self, input, moving):
         x = self.momConv(input[0], input[1])
-        gridField, disField = self.flowRnn(x)
+        gridField, disField = self.flowRnn(self.grid,x, n_time=5)
         jacobDisField = self.jacobiField(disField)
         output = self.bilinear(moving,gridField)
         return output, jacobDisField
