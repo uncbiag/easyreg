@@ -21,7 +21,7 @@ def list_dic(path):
     return [dic for dic in listdir(path) if not isfile(join(path, dic))]
 
 
-def list_filename(path, img_type):
+def get_filename_list(path, img_type):
     """
      return the list of  paths of the image  [N,1]
     :param path:  path of the folder
@@ -35,22 +35,23 @@ def list_filename(path, img_type):
         if PYTHON_VERSION == 3:  # python3
             f_filter = glob(f_path, recursive=True)
         else:
-            f_filter = []
+            f_path_list = []
             import fnmatch
             for root, dirnames, filenames in os.walk(path):
                 for filename in fnmatch.filter(filenames, sub_type):
-                    f_filter.append(os.path.join(root, filename))
-    return f_filter
+                    f_path_list.append(os.path.join(root, filename))
+    return f_path_list, filenames
 
 
-def find_corr_map(file_path_list, label_path):
+def find_corr_map(file_path_list, label_path, label_switch = ('','')):
     """
     get the label path from the image path, assume the file name is the same
     :param file_path_list: the path list of the image
     :param label_path: the path of the label folder
     :return:
     """
-    return [[os.path.join(label_path, os.path.split(pth)[1]) for pth in file_path] for file_path in file_path_list]
+    fn_switch = lambda x: x.replace(label_switch[0], label_switch[1])
+    return [[os.path.join(label_path, fn_switch(os.path.split(pth)[1])) for pth in file_path] for file_path in file_path_list]
 
 
 def make_dir(path):

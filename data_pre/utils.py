@@ -439,7 +439,7 @@ def get_warped_label_map(label_map, phi, sched='nn'):
         # check if here should be add assert
         assert abs(torch.sum(warped_label_map.data -warped_label_map.data.round()))< 0.1, "nn interpolation is not precise"
     else:
-        raise ValueError(" the label warpping method is not implemented")
+        raise ValueError(" the la   bel warpping method is not implemented")
     return warped_label_map
 
 

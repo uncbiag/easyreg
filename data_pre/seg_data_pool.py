@@ -3,7 +3,8 @@ import progressbar as pb
 
 from torch.utils.data import Dataset
 
-from data_pre.reg_data_utils import *
+from data_pre.seg_data_utils import *
+from data_pre.transform import  Transform
 
 
 
@@ -85,10 +86,23 @@ class LabeledDataSet(BaseSegDataSet):
         BaseSegDataSet.__init__(self, name, file_type_list)
         self.label_path = None
         self.file_label_path_list=[]
+        self.label_switch = ('','')
+
 
 
     def set_label_path(self, path):
         self.label_path = path
+
+    def set_label_name_switch(self,label_switch):
+        self.label_switch = label_switch
+
+    def apply_transform(self):
+        tranform = Transform()
+
+
+    def crop_into_patches(self):
+        pass
+
 
 
 
@@ -103,33 +117,26 @@ class LabeledDataSet(BaseSegDataSet):
         :param normalized_sched: normalized the image
         """
         random.shuffle(self.file_path_list)
-        self.file_label_path_list = find_corr_map(self.file_path_list, self.label_path)
-        self.file_name_list = generate_file_name(self.file_path_list)
+        self.file_label_path_list = find_corr_map(self.file_path_list, self.label_path, self.label_switch)
         saving_path_list = divide_data_set(self.output_path, self.file_name_list, self.divided_ratio)
         img_size = ()
         info = None
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(self.file_path_list)).start()
         for i, file in enumerate(self.file_path_list):
-            img1, info1 = self.read_file(file[0])
-            img2, info2 = self.read_file(file[1])
-            label1, linfo1 = self.read_file(self.file_label_path_list[i][0], is_label=True)
-            label2, linfo2 = self.read_file(self.file_label_path_list[i][1], is_label=True)
+            img, info = self.read_file(file)
+            label, linfo = self.read_file(self.file_label_path_list[i][0], is_label=True)
             if i == 0:
-                img_size = img1.shape
-                check_same_size(img2, img_size)
-                check_same_size(label1, img_size)
-                check_same_size(label2, img_size)
+                img_size = img.shape
+                check_same_size(label, img_size)
             else:
-                check_same_size(img1, img_size)
-                check_same_size(img2, img_size)
-                check_same_size(label1, img_size)
-                check_same_size(label2, img_size)
+                check_same_size(img, img_size)
+                check_same_size(label, img_size)
                 # Normalized has been done in fileio, though additonal normalization can be done here
                 # normalize_img(img1, self.normalize_sched)
                 # normalize_img(img2, self.normalize_sched)
-            img_file = np.asarray([(img1, img2)])
-            label_file = np.asarray([(label1,label2)])
-            info = self.extract_file_info(info1, info2)
+            img_file = np.asarray([img])
+            label_file = np.asarray([label])
+            info = info
             save_to_h5py(saving_path_list[i], img_file, info, [self.file_name_list[i]], label_file, verbose=False)
             pbar.update(i + 1)
         pbar.finish()
@@ -142,7 +149,7 @@ class LabeledDataSet(BaseSegDataSet):
         """
         print("starting preapare data..........")
         print("the output file path is: {}".format(self.output_path))
-        self.file_path_list = self.generate_file_list()
+        self.file_path_list, self.file_name_list = get_filename_list(self.data_path, self.file_type_list)
         print("the total num of file is {}".format(self.get_file_num()))
         self.save_file()
         print("data preprocessing finished")
