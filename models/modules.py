@@ -63,10 +63,10 @@ class DisGen(nn.Module):
     def __init__(self, bn=False):
         super(DisGen, self).__init__()
         # Build a LSTM
-        self.conv1 = nn.Sequential(ConvBnRel(2, 64, 3, active_unit='elu', same_padding=True, bn=bn))
-        self.conv2 = nn.Sequential(ConvBnRel(64, 128, 3, active_unit='elu', same_padding=True, bn=bn),
-                                   ConvBnRel(128, 128, 3, active_unit='elu', same_padding=True, bn=bn))
-        self.conv3 = nn.Sequential(ConvBnRel(128, 2, 3, active_unit='elu', same_padding=True, bn=bn))
+        self.conv1 = nn.Sequential(ConvBnRel(2, 64, 3, active_unit='relu', same_padding=True, bn=bn))
+        self.conv2 = nn.Sequential(ConvBnRel(64, 128, 3, active_unit='relu', same_padding=True, bn=bn),
+                                   ConvBnRel(128, 128, 3, active_unit='relu', same_padding=True, bn=bn))
+        self.conv3 = nn.Sequential(ConvBnRel(128, 2, 3, active_unit='relu', same_padding=True, bn=bn))
 
 
 
@@ -148,7 +148,7 @@ class DenseAffineGridGen(nn.Module):
 class MomConv(nn.Module):
     def __init__(self, bn=False):
         super(MomConv,self).__init__()
-        self.encoder = self.mid_down_conv = nn.Sequential(
+        self.encoder = nn.Sequential(
             ConvBnRel(1, 32, kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False),
             ConvBnRel(32, 64,  kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False),
             ConvBnRel(64, 16,  kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False))

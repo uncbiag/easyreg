@@ -17,7 +17,7 @@ path = {}
 path['logdir'] = logdir
 path['check_point_path'] = check_point_path
 path['record_path'] = record_path
-model_name = 'FlowNet'
+model_name = 'SimpleNet'
 
 def selModel(mode_n):
     if mode_n == 'SimpleNet':
@@ -37,7 +37,7 @@ def setting_env():
 
 
 def pipline(prepare_data, mod, sched):
-    dataManager= DataManager('intra')
+    dataManager= DataManager('inter')
     if prepare_data:
         dataManager.prepare_data()
     dataloaders = dataManager.dataloaders(batch_size=10)

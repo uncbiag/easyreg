@@ -1,13 +1,17 @@
 from data_pre.reg_data_utils import *
-from os.path import join
+from torchvision import transforms
 import torch
-from data_pre.reg_data_loader import  *
-from data_pre.reg_data_pool import *
+import data_pre.reg_data_loader as  reg_loader
+from data_pre.reg_data_loader import ToTensor
+import data_pre.module_parameters as pars
+import  data_pre.reg_data_pool as reg_pool
+import data_pre.seg_data_loader as  seg_loader
+import  data_pre.seg_data_pool as seg_pool
 
 
 
 class DataManager(object):
-    def __init__(self, task_name, dataset_name, sched=''):
+    def __init__(self, task_name, dataset_name):
         """
         the class for easy data management
         including two part: 1. preprocess data   2. set dataloader
@@ -24,10 +28,12 @@ class DataManager(object):
         """
         self.task_name = task_name
         """name for easy recognition"""
+        self.task_type = None
+        """" the type of task 'reg','seg','mixed(to implement)'"""
         self.full_task_name = None
         """name of the output folder"""
         self.dataset_name = dataset_name
-        self.sched = sched
+        self.sched = ''
         """inter, intra"""
         self.data_path = None
         """path of the dataset"""
@@ -48,7 +54,12 @@ class DataManager(object):
         self.dataset = None
         self.task_path =None
         """train|val|test: dic task_root_path/train|val|test"""
+        self.transform_seq = []
+        self.seg_option = None
 
+
+    def set_task_type(self,task_type):
+        self.task_type = task_type
 
     def set_data_path(self, data_path):
         self.data_path = data_path
@@ -58,6 +69,12 @@ class DataManager(object):
 
     def set_label_path(self, label_path):
         self.label_path = label_path
+
+    def set_transform_seq(self,transform_seq):
+        self.transform_seq = transform_seq
+
+    def set_sched(self,sched):
+        self.sched = sched
 
     def set_slicing(self, slicing, axis):
         self.slicing = slicing
@@ -72,6 +89,9 @@ class DataManager(object):
     def set_full_task_name(self, full_task_name):
         self.full_task_name = full_task_name
 
+    def set_seg_option(self,option):
+        self.seg_option = option
+
     def get_full_task_name(self):
         return os.path.split(self.task_root_path)[1]
 
@@ -79,21 +99,38 @@ class DataManager(object):
         default_data_path = {'lpba':'/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm',
                              'oasis2d': '/playpen/zyshen/data/oasis',
                              'cumc':'/playpen/data/quicksilver_data/testdata/CUMC12/brain_affine_icbm',
-                             'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/brain_affine_icbm'}
+                             'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/brain_affine_icbm',
+                             'oai':'/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled'}
 
         default_label_path = {'lpba': '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm',
                              'oasis2d': 'None',
                              'cumc': '/playpen/data/quicksilver_data/testdata/CUMC12/label_affine_icbm',
-                             'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm'}
+                             'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm',
+                             'oai': '/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled'}
         if is_label:
             return default_label_path[self.dataset_name]
         else:
             return default_data_path[self.dataset_name]
 
+    def get_default_seg_option(self):
+        default_setting_path = {'oai': './settings/oai.json',
+                               'lpba': './settings/lpba.json',
+                               'cumc': './settings/cumc.json',
+                               'ibsr': './settings/ibsr.json',}
+
+        return default_setting_path[self.dataset_name]
+
+
+
+
     def generate_saving_path(self):
         slicing_info = '_slicing_{}_axis_{}'.format(self.slicing, self.axis) if self.slicing>0 else ''
         comb_info = '_full_comb' if self.full_comb else ''
-        full_task_name = self.task_name+'_'+self.sched+slicing_info+comb_info
+        transfrom_info=''
+        from functools import reduce
+        if len(self.transform_seq):
+            transfrom_info = reduce((lambda x,y: x+y),self.transform_seq)
+        full_task_name = self.task_name+'_'+self.task_type+'_'+self.sched+slicing_info+comb_info+transfrom_info
         self.set_full_task_name(full_task_name)
         self.task_root_path = os.path.join(self.output_path,full_task_name)
 
@@ -115,25 +152,50 @@ class DataManager(object):
         return self.task_path
 
 
-    def init_dataset(self):
+    def init_reg_dataset(self):
         if self.data_path is None:
             self.data_path = self.get_default_dataset_path(is_label=False)
         if self.label_path is None:
             self.label_path = self.get_default_dataset_path(is_label=True)
-
         if self.dataset_name =='oasis2d':
-            self.dataset = Oasis2DDataSet(name=self.task_name, sched=self.sched, full_comb= self.full_comb)
+            self.dataset = reg_pool.Oasis2DDataSet(name=self.task_name, sched=self.sched, full_comb= self.full_comb)
         elif self.dataset_name == 'lpba':
-            self.dataset =  LPBADataSet(name=self.task_name, full_comb=self.full_comb)
+            self.dataset = reg_pool.LPBADataSet(name=self.task_name, full_comb=self.full_comb)
             self.dataset.set_slicing(self.slicing, self.axis)
             self.dataset.set_label_path(self.label_path)
         elif self.dataset_name == 'ibsr':
-            self.dataset = IBSRDataSet(name=self.task_name, full_comb= self.full_comb)
+            self.dataset = reg_pool.IBSRDataSet(name=self.task_name, full_comb= self.full_comb)
             self.dataset.set_slicing(self.slicing, self.axis)
             self.dataset.set_label_path(self.label_path)
         elif self.dataset_name =='cmuc':
-            self.dataset = CUMCDataSet(name=self.task_name,full_comb= self.full_comb)
+            self.dataset = reg_pool.CUMCDataSet(name=self.task_name,full_comb= self.full_comb)
             self.dataset.set_slicing(self.slicing, self.axis)
+            self.dataset.set_label_path(self.label_path)
+
+        self.dataset.set_data_path(self.data_path)
+        self.dataset.set_output_path(self.task_root_path)
+        self.dataset.set_divided_ratio(self.divided_ratio)
+
+
+
+
+    def init_seg_dataset(self):
+        if self.data_path is None:
+            self.data_path = self.get_default_dataset_path(is_label=False)
+        if self.label_path is None:
+            self.label_path = self.get_default_dataset_path(is_label=True)
+        if self.seg_option is None:
+            option = pars.ParameterDict()
+        else:
+            option = self.seg_option
+        if self.dataset_name == 'lpba':
+            self.dataset = seg_pool.LPBADataSet(name=self.task_name, option=option)
+            self.dataset.set_label_path(self.label_path)
+        elif self.dataset_name == 'ibsr':
+            self.dataset = seg_pool.IBSRDataSet(name=self.task_name,option=option)
+            self.dataset.set_label_path(self.label_path)
+        elif self.dataset_name =='cmuc':
+            self.dataset = seg_pool.CUMCDataSet(name=self.task_name,option=option)
             self.dataset.set_label_path(self.label_path)
 
         self.dataset.set_data_path(self.data_path)
@@ -148,6 +210,23 @@ class DataManager(object):
         """
         self.dataset.prepare_data()
 
+    def init_dataset_type(self):
+        self.cur_dataset = reg_loader.RegistrationDataset if self.task_type=='reg' else seg_loader.SegmentationDataset
+
+    def init_dataset_loader(self,transformed_dataset,batch_size):
+        if self.task_type=='reg':
+            dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
+                                                      shuffle=False, num_workers=4) for x in self.task_path}
+        else:
+            dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset[self.task_path['train']],
+                                                                  batch_size=batch_size,shuffle=True, num_workers=4),
+                           'val': torch.utils.data.DataLoader(transformed_dataset[self.task_path['val']],
+                                                                batch_size=batch_size, shuffle=False, num_workers=4),
+                           'test': torch.utils.data.DataLoader(transformed_dataset[self.task_path['train']],
+                                                                batch_size=batch_size, shuffle=False, num_workers=4)
+                           }
+        return dataloaders
+
 
     def data_loaders(self, batch_size=20):
         """
@@ -156,12 +235,11 @@ class DataManager(object):
         :return:
         """
         composed = transforms.Compose([ToTensor()])
-        sess_sel = self.task_path
-        transformed_dataset = {x: RegistrationDataset(data_path=sess_sel[x], transform=composed) for x in sess_sel}
-        dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                shuffle=False, num_workers=4) for x in sess_sel}
+        self.init_dataset_type()
+        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x], transform=composed) for x in self.task_path}
+        dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
         dataloaders['data_size'] = {x: len(dataloaders[x]) for x in ['train', 'val','test']}
-        dataloaders['info'] = {x: transformed_dataset[x].pair_name_list for x in ['train', 'val','test']}
+        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in ['train', 'val','test']}
         print('dataloader is ready')
 
 
@@ -198,7 +276,7 @@ if __name__ == "__main__":
         data_manager.generate_saving_path()
         data_manager.generate_task_path()
 
-        data_manager.init_dataset()
+        data_manager.init_reg_dataset()
         data_manager.prepare_data()
 
     else:

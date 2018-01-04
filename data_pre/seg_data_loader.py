@@ -6,36 +6,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from data_pre.reg_data_utils import *
+from data_pre.seg_data_utils import *
 from time import time
 
 
-class RegistrationDataset(Dataset):
+class SegmentationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path, transform=None):
+    def __init__(self, data_path,is_train=True, transform=None):
         """
 
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
         """
         self.data_path = data_path
+        self.is_train = is_train
         self.transform = transform
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
+        self.transform = transform
 
     def get_file_list(self):
         """
         get the all files belonging to data_type from the data_path,
         :return: full file path list, file name list
         """
-        f_filter = []
-        import fnmatch
-        filenames=None
-        for root, dirnames, filenames in os.walk(self.data_path):
-            for filename in fnmatch.filter(filenames, self.data_type):
-                f_filter.append(os.path.join(root, filename))
-        return f_filter, [os.path.splitext(filename)[0] for filename in filenames]
+        f_filter = glob(self.data_path, recursive=True)
+        name_list = [get_file_name(f) for f in f_filter]
+        return f_filter,name_list
 
     def __len__(self):
         return len(self.name_list)
@@ -50,15 +48,13 @@ class RegistrationDataset(Dataset):
         :return: the processed data, return as type of dic
         """
         dic = read_h5py_file(self.path_list[idx])
-        sample = {'image': dic['data'][0], 'info': dic['info'], 'label':dic['label']}
+        sample = {'image': dic['data'], 'info': dic['info'], 'label':dic['label']}
         transformed={}
         if self.transform:
              transformed['image'] = self.transform(sample['image'])
              if sample['label'] is not None:
-                transformed['label'] = self.transform(sample['label'][0])
-             transformed['pair_path'] = self.retrieve_file_id(sample['info']['pair_path'][0])
-             transformed['spacing'] = self.transform(sample['info']['spacing'])
-
+                transformed['label'] = self.transform(sample['label'])
+             transformed['file_id'] = self.retrieve_file_id(sample['info']['file_id'])
         return transformed
 
 

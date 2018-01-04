@@ -48,7 +48,7 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
 
                 moving, target = get_pair(data['image'], pair= True)
                 batch_size = moving.size(0)
-                input = organize_data(moving, target, sched='list_concat')
+                input = organize_data(moving, target, sched='depth_concat')
 
 
                 # wrap them in Variable, remember to optimize this part, the cuda Variable should be warped in dataloader

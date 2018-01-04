@@ -3,7 +3,7 @@ from os.path import join
 import torch
 from data.dataset import  *
 
-def prepare_data(save_path, img_type, path='./data',skip=True, sched='intra'):
+def prepare_data(save_path, img_type, path='./data',skip=False, sched='intra'):
     '''
     default:
     path: './data'

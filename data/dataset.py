@@ -45,7 +45,7 @@ class RegistrationDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        sample = {'image': self.data[idx]}
+        sample = {'image': self.data[idx], 'path': self.info['pair_path'][idx]}
 
         if self.transform:
             sample = self.transform(sample)

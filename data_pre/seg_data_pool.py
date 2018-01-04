@@ -1,11 +1,14 @@
 from __future__ import print_function
 import progressbar as pb
+from multiprocessing import Pool, TimeoutError
+import data_pre.module_parameters as pars
 
 from torch.utils.data import Dataset
-
+from copy import deepcopy
 from data_pre.seg_data_utils import *
 from data_pre.transform import  Transform
-
+from data_pre.partition import partition
+number_of_workers=10
 
 
 class BaseSegDataSet(object):
@@ -80,13 +83,22 @@ class BaseSegDataSet(object):
 
 class LabeledDataSet(BaseSegDataSet):
     """
-    labeled dataset
+    labeled dataset  coordinate system is the same as the sitk
     """
-    def __init__(self, name, file_type_list):
+    def __init__(self, name, file_type_list, option,label_switch= ('',''), dim=3):
         BaseSegDataSet.__init__(self, name, file_type_list)
         self.label_path = None
-        self.file_label_path_list=[]
-        self.label_switch = ('','')
+        self.file_path_list=[]
+        self.file_name_list=[]
+        self.dim = dim
+        self.label_switch = label_switch
+        self.option = option[('data_pro',{},'settings for data_pro')]
+        self.option_trans = self.option[('transform',{},'settings for transform')]
+        self.option_p = self.option[('partition', {}, "settings for the partition")]
+
+        self.num_crop_per_class_per_train_img = self.option[('num_crop_per_class_per_train_img',100, 'num_crop_per_class_per_train_img')]
+        self.transform_name_seq = []
+        self.num_label = 0
 
 
 
@@ -96,51 +108,85 @@ class LabeledDataSet(BaseSegDataSet):
     def set_label_name_switch(self,label_switch):
         self.label_switch = label_switch
 
-    def apply_transform(self):
-        tranform = Transform()
+    def set_transform_name_seq(self,transform_name_seq):
+        self.transform_name_seq = transform_name_seq
+
+    def get_transform_seq(self,option_trans):
+        transform = Transform(self.dim,option_trans)
+        return transform.get_transform_seq(self.transform_name_seq)
 
 
-    def crop_into_patches(self):
-        pass
+    def apply_transform(self,sample, transform_seq):
+        for transform in transform_seq:
+            sample = transform(sample)
+        return sample
+
+    def get_num_label(self):
+        file_label_path_list = find_corr_map([self.file_path_list[0]], self.label_path, self.label_switch)
+        label, linfo = self.read_file(file_label_path_list[0], is_label=True)
+        label_list = list(np.unique(label))
+        num_label = len(label_list)
+        print('the num of the class: {}'.format(num_label))
+        self.option_trans['shared_info']['img_size'] = list(linfo['img_size'])
+        self.num_label = num_label
+        self.save_shared_info(linfo)
 
 
 
-
-    def save_file_to_file(self):
-        """
-        save the file into h5py
-        :param file_path_list: N*1  [[full_path_img1],[full_path_img2]]
-        :param file_name_list: N*1 : [fileName1, .....]
-        :param ratio:  divide dataset into training val and test, based on ratio, e.g [0.7, 0.1, 0.2]
-        :param saving_path_list: N*1 list of path for output files e.g [output_path/train/filename.h5py,.........]
-        :param info: dic including file information
-        :param normalized_sched: normalized the image
-        """
-        random.shuffle(self.file_path_list)
-        self.file_label_path_list = find_corr_map(self.file_path_list, self.label_path, self.label_switch)
-        saving_path_list = divide_data_set(self.output_path, self.file_name_list, self.divided_ratio)
-        img_size = ()
-        info = None
-        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(self.file_path_list)).start()
-        for i, file in enumerate(self.file_path_list):
-            img, info = self.read_file(file)
-            label, linfo = self.read_file(self.file_label_path_list[i][0], is_label=True)
-            if i == 0:
-                img_size = img.shape
-                check_same_size(label, img_size)
-            else:
-                check_same_size(img, img_size)
-                check_same_size(label, img_size)
-                # Normalized has been done in fileio, though additonal normalization can be done here
-                # normalize_img(img1, self.normalize_sched)
-                # normalize_img(img2, self.normalize_sched)
-            img_file = np.asarray([img])
-            label_file = np.asarray([label])
-            info = info
-            save_to_h5py(saving_path_list[i], img_file, info, [self.file_name_list[i]], label_file, verbose=False)
-            pbar.update(i + 1)
+    def train_data_processing(self,file_path_list):
+        option_trans_cp = deepcopy(self.option_trans)
+        option_trans_cp.print_settings_off()
+        file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
+        total = len(file_path_list)*self.num_crop_per_class_per_train_img*self.num_label
+        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=total).start()
+        count =0
+        for i, file_path in enumerate(file_path_list):
+            file_name = get_file_name(file_path)
+            img, info = self.read_file(file_path)
+            label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            label_list = list(np.unique(label))
+            label_density = np.bincount(label.reshape(-1).astype(np.int32))/len(label.reshape(-1))
+            option_trans_cp['shared_info']['label_list'] = label_list
+            option_trans_cp['shared_info']['label_density'] = label_density
+            num_label = len(label_list)
+            if self.num_label != num_label: # s37 in lpba40 has one more label than others
+                print("Warnning!!!!, The num of classes {} are not the same in file{}".format(num_label,file_path))
+            transform_seq = self.get_transform_seq(option_trans_cp)
+            sample = {'image':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
+            for _ in range(self.num_label):
+                for _ in range(self.num_crop_per_class_per_train_img):
+                    patch_transformed = self.apply_transform(sample, transform_seq)
+                    saving_patch_per_img(patch_transformed,self.saving_path_dic[file_name])
+                    count += 1
+                    pbar.update(count)
         pbar.finish()
-        self.save_shared_info(info)
+
+
+
+    def test_data_processing(self,file_path_list):
+        partition_ins = partition(self.option_p)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
+        for i, file_path in enumerate(file_path_list):
+            file_name = get_file_name(file_path)
+            img, info = self.read_file(file_path)
+            label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            sample = {'image':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
+            patches = partition_ins(sample)
+            saving_patches_per_img(patches,self.saving_path_dic[file_name])
+            
+
+    def get_file_list(self):
+        self.file_path_list= get_file_path_list(self.data_path, self.file_type_list)
+        random.shuffle(self.file_path_list)
+        self.file_name_list = [os.path.split(file_path)[1].split('.')[0]  for file_path in self.file_path_list]
+
+
+
+    def get_save_path_list(self):
+        self.saving_path_dic, self.file_path_dic = divide_data_set(self.output_path, self.file_path_list, self.divided_ratio)
+
+
+
 
     def prepare_data(self):
         """
@@ -149,9 +195,15 @@ class LabeledDataSet(BaseSegDataSet):
         """
         print("starting preapare data..........")
         print("the output file path is: {}".format(self.output_path))
-        self.file_path_list, self.file_name_list = get_filename_list(self.data_path, self.file_type_list)
-        print("the total num of file is {}".format(self.get_file_num()))
-        self.save_file()
+        self.get_file_list()
+        self.get_save_path_list()
+        self.get_num_label()
+        file_patitions = np.array_split(self.file_path_dic['train'], number_of_workers)
+        with Pool(processes=number_of_workers) as pool:
+            res = pool.map(self.train_data_processing,file_patitions)
+        file_patitions = np.array_split(self.file_path_dic['val']+self.file_path_dic['test'], number_of_workers)
+        with Pool(processes=number_of_workers) as pool:
+            res = pool.map(self.test_data_processing, file_patitions)
         print("data preprocessing finished")
 
 
@@ -160,26 +212,28 @@ class LabeledDataSet(BaseSegDataSet):
 
 
 
-
+class OAIDataSet(LabeledDataSet):
+    def __init__(self, name,option):
+        LabeledDataSet.__init__(self, name, ['*.nii'],option,label_switch=('image','label_all'))
 
 
 
 class LPBADataSet(LabeledDataSet):
-    def __init__(self, name):
-        LabeledDataSet.__init__(self, name, ['*.nii'])
+    def __init__(self, name,option):
+        LabeledDataSet.__init__(self, name, ['*.nii'],option)
 
 
 
 
 class IBSRDataSet(LabeledDataSet):
-    def __init__(self, name):
-        LabeledDataSet.__init__(self, name, ['*.nii'])
+    def __init__(self, name,option):
+        LabeledDataSet.__init__(self, name, ['*.nii'],option)
 
 
 
 class CUMCDataSet(LabeledDataSet):
-    def __init__(self, name):
-        LabeledDataSet.__init__(self, name, ['*.nii'])
+    def __init__(self, name,option):
+        LabeledDataSet.__init__(self, name, ['*.nii'],option)
 
 
 
@@ -220,26 +274,26 @@ if __name__ == "__main__":
 
 
 
-    # ###########################       LPBA TESTING           ###################################
-    # path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-    # label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    # file_type_list = ['*.nii']
-    # full_comb = False
-    # name = 'lpba'
-    # output_path = '/playpen/zyshen/data/' + name + '_pre'
-    # divided_ratio = (0.6, 0.2, 0.2)
-    #
-    # ###################################################
-    # #lpba testing
-    #
-    # sched= 'intra'
-    #
-    # lpba = LPBADataSet(name=name, full_comb=full_comb)
-    # lpba.set_data_path(path)
-    # lpba.set_output_path(output_path)
-    # lpba.set_divided_ratio(divided_ratio)
-    # lpba.set_label_path(label_path)
-    # lpba.prepare_data()
+    ###########################       LPBA TESTING           ###################################
+    path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
+    label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
+    file_type_list = ['*.nii']
+    full_comb = False
+    name = 'lpba'
+    output_path = '/playpen/zyshen/data/' + name + '_pre'
+    divided_ratio = (0.6, 0.2, 0.2)
+
+    ###################################################
+    #lpba testing
+
+    option = pars.ParameterDict()
+
+    lpba = LPBADataSet(name=name,option=option)
+    lpba.set_data_path(path)
+    lpba.set_output_path(output_path)
+    lpba.set_divided_ratio(divided_ratio)
+    lpba.set_label_path(label_path)
+    lpba.prepare_data()
 
 
     # ###########################       LPBA Slicing TESTING           ###################################

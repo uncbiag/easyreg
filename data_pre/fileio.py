@@ -5,7 +5,6 @@ Helper functions to take care of all the file IO
 import itk
 import os
 import nrrd
-import data_pre.utils as utils
 import torch
 import data_pre.image_manipulations as IM
 import numpy as np
@@ -41,6 +40,15 @@ class FileIO(object):
     def _convert_itk_matrix_to_numpy(self,M):
         return itk.GetArrayFromVnlMatrix(M.GetVnlMatrix().as_matrix())
 
+    def t2np(v):
+        """
+        Takes a torch array and returns it as a numpy array on the cpu
+
+        :param v: torch array
+        :return: numpy array
+        """
+        return (v.data).cpu().numpy()
+
     def _convert_data_to_numpy_if_needed(self,data):
         if ( type( data ) == torch.autograd.variable.Variable ) or \
                 (type(data) == torch.torch.nn.parameter.Parameter) or \
@@ -60,7 +68,7 @@ class FileIO(object):
                 (type(data) == torch.cuda.ShortTensor) or \
                 (type(data) == torch.cuda.IntTensor) or \
                 (type(data) == torch.cuda.LongTensor):
-            return utils.t2np(data)
+            return self.t2np(data)
         else:
             return data
 
@@ -300,9 +308,9 @@ class ImageIO(FileIO):
             im, hdr = self._convert_itk_image_to_numpy(im_itk)
 
 
-        if not hdr.has_key('spacing'):
+        if 'spacing' not in hdr:
             print('Image does not seem to have spacing information.')
-            if hdr.has_key('sizes'):
+            if 'sizes' in hdr:
                 dim_guess = len( hdr['sizes'] )
             else:
                 dim_guess = len( im.shape )
@@ -338,7 +346,8 @@ class ImageIO(FileIO):
         if self.intensity_normalize_image==True:
             im = IM.IntensityNormalizeImage().defaultIntensityNormalization(im)
         else:
-            print('WARNING: Image was NOT intensity normalized when loading.')
+            if verbose:
+                print('WARNING: Image was NOT intensity normalized when loading.')
 
         return im,hdr,spacing,normalized_spacing
 

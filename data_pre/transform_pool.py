@@ -4,6 +4,7 @@ import SimpleITK as sitk
 import numpy as np
 import torch
 import math
+from math import floor
 
 
 class Resample(object):
@@ -25,7 +26,7 @@ class Resample(object):
             self.voxel_size = voxel_size
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['segmentation']
+        img, seg = sample['image'], sample['seg']
 
         old_spacing = img.GetSpacing()
         old_size = img.GetSize()
@@ -52,7 +53,7 @@ class Resample(object):
         resampler.SetOutputOrigin(seg.GetOrigin())
         resampler.SetOutputDirection(seg.GetDirection())
         print("Resampling segmentation...")
-        sample['segmentation'] = resampler.Execute(seg)
+        sample['seg'] = resampler.Execute(seg)
 
         return sample
 
@@ -62,7 +63,7 @@ class Normalization(object):
     def __call__(self, sample):
         self.normalizeFilter = sitk.NormalizeImageFilter()
         print("Normalizing image...")
-        img, seg = sample['image'], sample['segmentation']
+        img, seg = sample['image'], sample['seg']
         sample['image'] = self.normalizeFilter.Execute(img)
 
         return sample
@@ -72,7 +73,7 @@ class SitkToTensor(object):
     """Convert sitk image to 4D Tensors with shape(1, D, H, W)"""
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['segmentation']
+        img, seg = sample['image'], sample['seg']
         img_np = sitk.GetArrayFromImage(img)
         seg_np = sitk.GetArrayFromImage(seg)
         # threshold image intensity to 0~1
@@ -84,7 +85,7 @@ class SitkToTensor(object):
         img_np = np.expand_dims(img_np, axis=0)  # expand the channel dimension
 
         sample['image'] = torch.from_numpy(img_np)
-        sample['segmentation'] = torch.from_numpy(seg_np)
+        sample['seg'] = torch.from_numpy(seg_np)
 
         return sample
 
@@ -107,7 +108,7 @@ class RandomBSplineTransform(object):
     def __call__(self, sample):
 
         if np.random.rand(1)[0] < self.ratio:
-            img, seg = sample['image'], sample['segmentation']
+            img, seg = sample['image'], sample['seg']
 
             # initialize a bspline transform
             bspline = sitk.BSplineTransformInitializer(img, self.mesh_size, self.bspline_order)
@@ -126,7 +127,7 @@ class RandomBSplineTransform(object):
             seg_trans = resample(seg, bspline, interpolator=sitk.sitkNearestNeighbor, default_value=0)
 
             sample['image'] = img_trans
-            sample['segmentation'] = seg_trans
+            sample['seg'] = seg_trans
 
         return sample
 
@@ -147,7 +148,7 @@ class RandomRigidTransform(object):
     def __call__(self, sample):
 
         if np.random.rand(1)[0] < self.ratio:
-            img, seg = sample['image'], sample['segmentation']
+            img, seg = sample['image'], sample['seg']
             image_size = img.GetSize()
             image_spacing = img.GetSpacing()
             if self.rotation_center:
@@ -186,7 +187,7 @@ class RandomRigidTransform(object):
                 raise ValueError('Wrong rigid transformation mode :{}!'.format(self.mode))
 
             sample['image'] = img_trans
-            sample['segmentation'] = seg_trans
+            sample['seg'] = seg_trans
 
         return sample
 
@@ -211,8 +212,8 @@ class GaussianBlur(object):
         self.maximumError = maximumError
 
     def __call__(self, sample):
-        if np.random.rand(1)[0] < self.ratio:
-            img, seg = sample['image'], sample['segmentation']
+        if np.random.rand() < self.ratio:
+            img, seg = sample['image'], sample['seg']
             sample['image'] = sitk.DiscreteGaussian(
                 img, variance=self.variance, maximumKernelWidth=self.maximumKernelWidth, maximumError=self.maximumError,
                 useImageSpacing=False)
@@ -227,7 +228,7 @@ class BilateralFilter(object):
 
     def __call__(self, sample):
         if np.random.rand(1)[0] < self.ratio:
-            img, _ = sample['image'], sample['segmentation']
+            img, _ = sample['image'], sample['seg']
             sample['image'] = sitk.Bilateral(img, domainSigma=self.domainSigma, rangeSigma=self.rangeSigma,
                                              numberOfRangeGaussianSamples=self.numberOfRangeGaussianSamples)
         return sample
@@ -254,7 +255,7 @@ class RandomCrop(object):
             self.random_state = np.random.RandomState()
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['segmentation']
+        img, seg = sample['image'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
 
@@ -296,7 +297,7 @@ class RandomCrop(object):
 
         img_crop = roiFilter.Execute(img)
         sample['image'] = img_crop
-        sample['segmentation'] = seg_crop
+        sample['seg'] = seg_crop
 
         return sample
 
@@ -333,7 +334,7 @@ class BalancedRandomCrop(object):
 
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['segmentation']
+        img, seg = sample['image'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
 
@@ -341,9 +342,6 @@ class BalancedRandomCrop(object):
 
         roiFilter = sitk.RegionOfInterestImageFilter()
         roiFilter.SetSize([size_new[0], size_new[1], size_new[2]])
-
-        # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
-        seg_np = sitk.GetArrayViewFromImage(seg)
 
         contain_label = False
 
@@ -396,7 +394,7 @@ class BalancedRandomCrop(object):
         img_crop = roiFilter.Execute(img)
 
         sample['image'] = img_crop
-        sample['segmentation'] = seg_crop
+        sample['seg'] = seg_crop
         sample['class'] = self.current_class
 
         # reset class tag
@@ -408,6 +406,79 @@ class BalancedRandomCrop(object):
 
 
 
+class MyRandomCrop(object):
+    """Crop randomly the image in a sample. This is usually used for data augmentation
+
+    Args:
+        output_size (tuple or int): Desired output size. If int, cubic crop
+            is made.
+    """
+
+    def __init__(self, output_size, nbg_threshold, crop_bg_ratio=0.1, bg_label=0,random_state=None):
+        self.bg_label=  bg_label
+        self.crop_bg_ratio = crop_bg_ratio
+        """ expect ratio of crop backgound, assume background domain other labels"""
+        self.nbg_threshold = nbg_threshold
+
+        assert isinstance(output_size, (int, tuple,list))
+        if isinstance(output_size, int):
+            self.output_size = (output_size, output_size, output_size)
+        else:
+            assert len(output_size) >1
+            self.output_size = output_size
+
+        if random_state:
+            self.random_state = random_state
+        else:
+            self.random_state = np.random.RandomState()
+
+
+
+    def __call__(self, sample):
+        img, seg = sample['image'], sample['seg']
+        size_old = img.GetSize()
+        size_new = self.output_size
+        roiFilter = sitk.RegionOfInterestImageFilter()
+        roiFilter.SetSize(size_new)
+        size_new = np.flipud(size_new)
+        size_old = np.flipud(size_old)
+
+        crop_once =  self.random_state.rand()< self.crop_bg_ratio
+        seg_np = sitk.GetArrayViewFromImage(seg)
+        contain_label = False
+        start_coord = None
+        nbg_ratio = 0 # ratio of non-bg label
+
+        # print(sample['name'])
+        while not contain_label :
+            # get the start crop coordinate in ijk
+            start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
+                                                              self.random_state)
+            seg_crop_np = cropping(seg_np,start_coord,size_new)
+            bg_ratio = np.sum(seg_crop_np==self.bg_label) / seg_crop_np.size
+            nbg_ratio =1.0- bg_ratio
+            if nbg_ratio > self.nbg_threshold:  # judge if the patch satisfy condition
+                contain_label = True
+            elif crop_once:
+                break
+
+        start_coord = np.flipud(start_coord).tolist()
+        roiFilter.SetIndex(start_coord)
+        seg_crop = roiFilter.Execute(seg)
+        img_crop = roiFilter.Execute(img)
+        trans_sample={}
+        trans_sample['img'] = img_crop
+        trans_sample['seg'] = seg_crop
+        trans_sample['label'] = -1
+        trans_sample['start_coord']= tuple(start_coord)
+        trans_sample['threshold'] = nbg_ratio
+
+        return trans_sample
+
+
+
+
+
 class MyBalancedRandomCrop(object):
     """Crop randomly the image in a sample. This is usually used for data augmentation
 
@@ -416,70 +487,91 @@ class MyBalancedRandomCrop(object):
             is made.
     """
 
-    def __init__(self, output_size, threshold=0.01, random_state=None, num_label=3):
-        assert isinstance(output_size, (int, tuple))
+    def __init__(self, output_size, threshold, random_state=None, label_list=()):
+        self.num_label=  len(label_list)
+        self.label_list = label_list
+        assert isinstance(output_size, (int, tuple,list))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size, output_size)
         else:
-            assert len(output_size) == 3
+            assert len(output_size) >1
             self.output_size = output_size
 
-        assert isinstance(threshold, (float, tuple))
+        assert isinstance(threshold, (float, tuple,list))
         if isinstance(threshold, float):
-            self.threshold = tuple([threshold]*num_label)
+            self.threshold = tuple([threshold]*self.num_label)
         else:
-            assert len(threshold) == num_label
+            #assert sum(np.array(threshold)!=0) == self.num_label
             self.threshold = threshold
 
         if random_state:
             self.random_state = random_state
         else:
             self.random_state = np.random.RandomState()
+        self.cur_label_id = 0
 
-        self.num_label = num_label
 
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['segmentation']
+        img, seg = sample['image'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
-        cur_label = np.floor(self.random_state.rand()*self.num_label)
 
+
+        #cur_label_id = self.random_state.randint(self.num_label)
+        cur_label_id = self.cur_label_id
+        cur_label = int(self.label_list[cur_label_id])
         roiFilter = sitk.RegionOfInterestImageFilter()
-        roiFilter.SetSize([size_new[0], size_new[1], size_new[2]])
+        roiFilter.SetSize(size_new)
+        size_new = np.flipud(size_new)
+        size_old = np.flipud(size_old)
 
         # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
         seg_np = sitk.GetArrayViewFromImage(seg)
         contain_label = False
-        img_crop = None
-        seg_crop = None
+        start_coord = None
+        label_ratio =0
 
         # print(sample['name'])
         while not contain_label:
             # get the start crop coordinate in ijk
-
-            start_i, start_j, start_k = random_3d_coordinates(np.array(size_old) - np.array(size_new),
+            start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
                                                               self.random_state)
-            roiFilter.SetIndex([start_i, start_j, start_k])
-
-            seg_crop = roiFilter.Execute(seg)
-
-            seg_crop_np = sitk.GetArrayViewFromImage(seg_crop)
-            if np.sum(seg_crop_np==cur_label) / seg_crop_np.size > self.threshold[cur_label]:  # judge if the patch satisfy condition
-                img_crop = roiFilter.Execute(img)
+            seg_crop_np = cropping(seg_np,start_coord,size_new)
+            label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
+            if label_ratio > self.threshold[cur_label]:  # judge if the patch satisfy condition
                 contain_label = True
 
 
-        sample['image'] = img_crop
-        sample['segmentation'] = seg_crop
-        sample['class'] = cur_label
+        start_coord = np.flipud(start_coord).tolist()
+        roiFilter.SetIndex(start_coord)
+        seg_crop = roiFilter.Execute(seg)
+        img_crop = roiFilter.Execute(img)
+        trans_sample={}
+        trans_sample['img'] = img_crop
+        trans_sample['seg'] = seg_crop
+        trans_sample['label'] = cur_label
+        trans_sample['start_coord']= tuple(start_coord)
+        trans_sample['threshold'] = label_ratio
+        self.cur_label_id = cur_label_id + 1
+        self.cur_label_id = self.cur_label_id if self.cur_label_id < self.num_label else 0
 
-        return sample
+        return trans_sample
 
 
 
+def cropping(img,start_coord,size_new):
+    if len(start_coord)==2:
+        return img[start_coord[0]:start_coord[0]+size_new[0],start_coord[1]:start_coord[1]+size_new[1]]
+    elif len(start_coord)==3:
+        return img[start_coord[0]:start_coord[0]+size_new[0],start_coord[1]:start_coord[1]+size_new[1],
+                    start_coord[2]: start_coord[2] + size_new[2]]
 
-
+def random_nd_coordinates(range_nd, random_state=None):
+    if not random_state:
+        random_state = np.random.RandomState()
+    dim = len(range_nd)
+    return [random_state.randint(0, range_nd[i]) for i in range(dim)]
 
 
 
@@ -489,139 +581,8 @@ def random_3d_coordinates(range_3d, random_state=None):
     if not random_state:
         random_state = np.random.RandomState()
 
-    start_i = np.random.randint(0, range_3d[0])
-    start_j = np.random.randint(0, range_3d[1])
-    start_k = np.random.randint(0, range_3d[2])
-    return start_i, start_j, start_k
+    return [random_state.randint(0, range_3d[i]) for i in range(3)]
 
 
-class Partition(object):
-    """partition a 3D volume into small 3D patches using the overlap tiling strategy described in paper:
-    "U-net: Convolutional networks for biomedical image segmentation." by Ronneberger, Olaf, Philipp Fischer, 
-    and Thomas Brox. In International Conference on Medical Image Computing and Computer-Assisted Intervention, 
-    pp. 234-241. Springer, Cham, 2015.
-    
-    Note: BE CAREFUL about the order of dimensions for image:
-            The simpleITK image are in order x, y, z
-            The numpy array/torch tensor are in order z, y, x 
-            
-    
-    :param tile_size (tuple of 3 or 1x3 np array): size of partitioned patches 
-    :param self.overlap_size (tuple of 3 or 1x3 np array): the size of overlapping region at both end of each dimension
-    :param padding_mode (tuple of 3 or 1x3 np array): the mode of numpy.pad when padding extra region for image
-    :param mode: "pred": only image is partitioned; "eval": both image and segmentation are partitioned TODO
-    """
 
-    def __init__(self, tile_size, overlap_size, padding_mode='reflect', mode="pred"):
-        self.tile_size = np.flipud(np.asarray(tile_size))  # flip the size order to match the numpy array(check the note)
-        self.overlap_size = np.flipud(np.asarray(overlap_size))
-        self.padding_mode = padding_mode
-        self.mode = mode
-
-    def __call__(self, sample):
-        """
-        :param image: (simpleITK image) 3D Image to be partitioned
-        :param seg: (simpleITK image) 3D segmentation label mask to be partitioned
-        :return: N partitioned image and label patches
-            {'image': torch.Tensor Nx1xDxHxW, 'label': torch.Tensor Nx1xDxHxW, 'name': str } 
-        """
-        # get numpy array from simpleITK images
-        image_np = sitk.GetArrayFromImage(sample['image'])
-        seg_np = sitk.GetArrayFromImage(sample['segmentation'])
-        self.image = sample['image']
-        self.name = sample['name']
-        self.image_size = np.array(image_np.shape)  # size of input image
-        self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
-        self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
-        self.padded_size = self.effective_size * self.tiles_grid_size + self.overlap_size * 2 - self.image_size # size difference of padded image with original image
-
-
-        image_padded = np.pad(image_np,
-                              pad_width=((self.overlap_size[0], self.padded_size[0] - self.overlap_size[0]),
-                                         (self.overlap_size[1], self.padded_size[1] - self.overlap_size[1]),
-                                         (self.overlap_size[2], self.padded_size[2] - self.overlap_size[2])),
-                              mode=self.padding_mode)
-
-        if self.mode == 'eval':
-            seg_padded = np.pad(seg_np,
-                                  pad_width=((self.overlap_size[0], self.padded_size[0] - self.overlap_size[0]),
-                                             (self.overlap_size[1], self.padded_size[1] - self.overlap_size[1]),
-                                             (self.overlap_size[2], self.padded_size[2] - self.overlap_size[2])),
-                                  mode=self.padding_mode)
-
-        image_tile_list = []
-        seg_tile_list = []
-        for i in range(self.tiles_grid_size[0]):
-            for j in range(self.tiles_grid_size[1]):
-                for k in range(self.tiles_grid_size[2]):
-                    image_tile_temp = image_padded[i * self.effective_size[0]:i * self.effective_size[0] + self.tile_size[0],
-                                      j * self.effective_size[1]:j * self.effective_size[1] + self.tile_size[1],
-                                      k * self.effective_size[2]:k * self.effective_size[2] + self.tile_size[2]]
-                    image_tile_list.append(image_tile_temp)
-
-                    if self.mode == 'eval':
-                        seg_tile_temp = seg_padded[i * self.effective_size[0]:i * self.effective_size[0] + self.tile_size[0],
-                                          j * self.effective_size[1]:j * self.effective_size[1] + self.tile_size[1],
-                                          k * self.effective_size[2]:k * self.effective_size[2] + self.tile_size[2]]
-                        seg_tile_list.append(seg_tile_temp)
-
-        # sample['image'] = np.stack(image_tile_list, 0)
-        # sample['segmentation'] = np.stack(seg_tile_list, 0)
-
-        sample['image'] = torch.from_numpy(np.expand_dims(np.stack(image_tile_list, 0), axis=1))
-        if self.mode == 'pred':
-            sample['segmentation'] = torch.from_numpy(np.expand_dims(seg_np, axis=0))
-        else:
-            sample['segmentation'] = torch.from_numpy(np.expand_dims(np.stack(seg_tile_list, 0), axis=1))
-
-        return sample
-
-    def assemble(self, tiles, is_vote=False):
-        """
-        Assembles segmentation of small patches into the original size
-        :param tiles: Nxhxdxw tensor contains N small patches of size hxdxw
-        :param is_vote: 
-        :return: a segmentation information
-        """
-        tiles = tiles.numpy()
-
-        if is_vote:
-            label_class= np.unique(tiles)
-            seg_vote_array = np.zeros(np.insert(self.effective_size * self.tiles_grid_size + self.overlap_size * 2, 0, label_class.size), dtype=int)
-            for i in range(self.tiles_grid_size[0]):
-                for j in range(self.tiles_grid_size[1]):
-                    for k in range(self.tiles_grid_size[2]):
-                        ind = i * self.tiles_grid_size[1] * self.tiles_grid_size[2] + j * self.tiles_grid_size[2] + k
-                        for label in label_class:
-                            local_ind = np.where(tiles[ind]==label)  # get the coordinates in local patch of each class
-                            global_ind = (local_ind[0] + i * self.effective_size[0],
-                                          local_ind[1] + j * self.effective_size[1],
-                                          local_ind[2] + k * self.effective_size[2])  # transfer into global coordinates
-                            seg_vote_array[label][global_ind] += 1  # vote for each glass
-
-            seg_reassemble = np.argmax(seg_vote_array, axis=0)[
-                                       self.overlap_size[0]:self.overlap_size[0] + self.image_size[0],
-                                       self.overlap_size[1]:self.overlap_size[1] + self.image_size[1],
-                                       self.overlap_size[2]:self.overlap_size[2] + self.image_size[2]].astype(np.uint8)
-
-            pass
-
-        else:
-            seg_reassemble = np.zeros(self.effective_size * self.tiles_grid_size)
-            for i in range(self.tiles_grid_size[0]):
-                for j in range(self.tiles_grid_size[1]):
-                    for k in range(self.tiles_grid_size[2]):
-                        ind = i * self.tiles_grid_size[1] * self.tiles_grid_size[2] + j * self.tiles_grid_size[2] + k
-                        seg_reassemble[i * self.effective_size[0]:(i+1) * self.effective_size[0],
-                        j * self.effective_size[1]:(j+1) * self.effective_size[1],
-                        k * self.effective_size[2]:(k+1) * self.effective_size[2]] = \
-                            tiles[ind][self.overlap_size[0]:self.tile_size[0]-self.overlap_size[0],
-                              self.overlap_size[1]:self.tile_size[1]-self.overlap_size[1],
-                              self.overlap_size[2]:self.tile_size[2]-self.overlap_size[2]]
-            seg_reassemble = seg_reassemble[:self.image_size[0], :self.image_size[1], :self.image_size[2]]
-
-        seg_image = sitk.GetImageFromArray(seg_reassemble)
-        seg_image.CopyInformation(self.image)
-
-        return seg_image
 
