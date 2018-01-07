@@ -125,8 +125,8 @@ class ContextNet(BaseModel):
         return OrderedDict([('Blurred_Train', real_A), ('Restored_Train', fake_B), ('Sharp_Train', real_B)])
 
     def save(self, label):
-        self.save_network(self.netG, 'G', label, self.gpu_ids)
-        self.save_network(self.netD, 'D', label, self.gpu_ids)
+        self.save_network(self.net_f, 'f', label, self.gpu_ids)
+        self.save_network(self.net_s, 's', label, self.gpu_ids)
 
     def update_learning_rate(self):
         lrd = self.opt.lr / self.opt.niter_decay

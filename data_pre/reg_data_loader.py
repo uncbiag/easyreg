@@ -22,20 +22,18 @@ class RegistrationDataset(Dataset):
         self.data_path = data_path
         self.transform = transform
         self.data_type = '*.h5py'
-        self.path_list , self.name_list= self.get_file_list()
+        self.get_file_list()
 
     def get_file_list(self):
         """
         get the all files belonging to data_type from the data_path,
         :return: full file path list, file name list
         """
-        f_filter = []
-        import fnmatch
-        filenames=None
-        for root, dirnames, filenames in os.walk(self.data_path):
-            for filename in fnmatch.filter(filenames, self.data_type):
-                f_filter.append(os.path.join(root, filename))
-        return f_filter, [os.path.splitext(filename)[0] for filename in filenames]
+        self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
+        self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+        if len(self.name_list)==0:
+            self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
+
 
     def __len__(self):
         return len(self.name_list)
@@ -49,26 +47,23 @@ class RegistrationDataset(Dataset):
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
-        dic = read_h5py_file(self.path_list[idx])
-        sample = {'image': dic['data'][0], 'info': dic['info'], 'label':dic['label']}
-        transformed={}
+        pair_path = self.path_list[idx]
+        filename = self.name_list[idx]
+        pair_dic = [read_h5py_file(pt) for pt in pair_path]
+        sample = {'image': np.asarray([pair_dic[0]['data'],pair_dic[1]['data']]),
+                  'info': pair_dic[0]['info']}
+        if pair_dic[0]['label'] is not None:
+            sample ['label']= np.asarray([pair_dic[0]['label'], pair_dic[1]['label']])
+        else:
+            sample['label'] = None
         if self.transform:
-             transformed['image'] = self.transform(sample['image'])
-             if sample['label'] is not None:
-                transformed['label'] = self.transform(sample['label'][0])
-             transformed['pair_path'] = self.retrieve_file_id(sample['info']['pair_path'][0])
-             transformed['spacing'] = self.transform(sample['info']['spacing'])
+            sample['image'] = self.transform(sample['image'])
+            if sample['label'] is not None:
+                 sample['label'] = self.transform(sample['label'])
+        sample['pair_path'] = self.retrieve_file_id(filename)
+        sample['spacing'] = self.transform(sample['info']['spacing'])
+        return sample
 
-        return transformed
-
-
-class Normalize(object):
-    """-1,1 normalization , this method will not be used but remained, normalization has been done when reading data"""
-    def __call__(self, sample):
-        img_pair = sample['image']
-        for image in img_pair:
-            image[:]= 2*(image-np.min(image))/(np.max(image)-np.min(image)) -1
-        return {'image': img_pair}
 
 
 

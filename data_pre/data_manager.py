@@ -34,7 +34,7 @@ class DataManager(object):
         """name of the output folder"""
         self.dataset_name = dataset_name
         self.sched = ''
-        """inter, intra"""
+        """reg: inter, intra    seg:'patched' 'nopatched'"""
         self.data_path = None
         """path of the dataset"""
         self.output_path= None
@@ -151,25 +151,26 @@ class DataManager(object):
         self.task_path = {x:os.path.join(task_root_path,x) for x in ['train','val', 'test']}
         return self.task_path
 
+    def init_dataset(self):
+        if self.task_type == 'reg':
+            self.init_reg_dataset()
+        elif self.task_type == 'seg':
+            self.init_seg_dataset()
+        else:
+            raise(ValueError,"not implemented")
+
+
 
     def init_reg_dataset(self):
         if self.data_path is None:
             self.data_path = self.get_default_dataset_path(is_label=False)
         if self.label_path is None:
             self.label_path = self.get_default_dataset_path(is_label=True)
-        if self.dataset_name =='oasis2d':
-            self.dataset = reg_pool.Oasis2DDataSet(name=self.task_name, sched=self.sched, full_comb= self.full_comb)
-        elif self.dataset_name == 'lpba':
-            self.dataset = reg_pool.LPBADataSet(name=self.task_name, full_comb=self.full_comb)
+
+        self.dataset = reg_pool.RegDatasetPool().create_dataset(self.dataset_name,self.sched, self.full_comb)
+        if 'set_slicing' in dir(self.dataset):
             self.dataset.set_slicing(self.slicing, self.axis)
-            self.dataset.set_label_path(self.label_path)
-        elif self.dataset_name == 'ibsr':
-            self.dataset = reg_pool.IBSRDataSet(name=self.task_name, full_comb= self.full_comb)
-            self.dataset.set_slicing(self.slicing, self.axis)
-            self.dataset.set_label_path(self.label_path)
-        elif self.dataset_name =='cmuc':
-            self.dataset = reg_pool.CUMCDataSet(name=self.task_name,full_comb= self.full_comb)
-            self.dataset.set_slicing(self.slicing, self.axis)
+        if 'set_label_path' in dir(self.dataset):
             self.dataset.set_label_path(self.label_path)
 
         self.dataset.set_data_path(self.data_path)
@@ -186,17 +187,12 @@ class DataManager(object):
             self.label_path = self.get_default_dataset_path(is_label=True)
         if self.seg_option is None:
             option = pars.ParameterDict()
+            ###############################################
+            # need to add get_default_option
         else:
             option = self.seg_option
-        if self.dataset_name == 'lpba':
-            self.dataset = seg_pool.LPBADataSet(name=self.task_name, option=option)
-            self.dataset.set_label_path(self.label_path)
-        elif self.dataset_name == 'ibsr':
-            self.dataset = seg_pool.IBSRDataSet(name=self.task_name,option=option)
-            self.dataset.set_label_path(self.label_path)
-        elif self.dataset_name =='cmuc':
-            self.dataset = seg_pool.CUMCDataSet(name=self.task_name,option=option)
-            self.dataset.set_label_path(self.label_path)
+        self.dataset = seg_pool.SegDatasetPool().create_dataset(self.dataset_name,option, self.sched)
+        self.dataset.set_label_path(self.label_path)
 
         self.dataset.set_data_path(self.data_path)
         self.dataset.set_output_path(self.task_root_path)
@@ -216,13 +212,13 @@ class DataManager(object):
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                      shuffle=False, num_workers=4) for x in self.task_path}
+                                                      shuffle=False, num_workers=4) for x in ['train','val','test']}
         else:
-            dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset[self.task_path['train']],
+            dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),
-                           'val': torch.utils.data.DataLoader(transformed_dataset[self.task_path['val']],
+                           'val': torch.utils.data.DataLoader(transformed_dataset['val'],
                                                                 batch_size=batch_size, shuffle=False, num_workers=4),
-                           'test': torch.utils.data.DataLoader(transformed_dataset[self.task_path['train']],
+                           'test': torch.utils.data.DataLoader(transformed_dataset['test'],
                                                                 batch_size=batch_size, shuffle=False, num_workers=4)
                            }
         return dataloaders
@@ -251,40 +247,45 @@ if __name__ == "__main__":
 
     prepare_data = True
 
-    dataset_name = 'lpba'
-    task_name = 'lpba'
     task_path = '/playpen/zyshen/data/lpba__slicing90'
+    task_type = 'seg'
 
-    if prepare_data:
-        data_path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-        label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-        dataset_name = 'lpba'
-        task_name = 'lpba'
-        full_comb = False
-        output_path = '/playpen/zyshen/data/'
-        divided_ratio = (0.6, 0.2, 0.2)
-        slicing = 90
-        axis = 1
+    dataset_name = 'lpba'
+    task_name = 'debugging'
+    full_comb = False
+    output_path = '/playpen/zyshen/data/'
+    divided_ratio = (0.6, 0.2, 0.2)
+    slicing = -1
+    sched ='patched'
+    axis = 1
+    switch_to_exist_task = False
+    prepare_data = False
+
+    if switch_to_exist_task:
+        data_manager = DataManager(task_name=task_name, dataset_name=dataset_name)
+        data_manager.set_task_type(task_type)
+        data_manager.manual_set_task_root_path(task_path)
+    else:
 
         data_manager = DataManager(task_name=task_name, dataset_name=dataset_name)
-        data_manager.set_data_path(data_path)
+        data_manager.set_task_type(task_type)
+        data_manager.set_sched(sched)
         data_manager.set_output_path(output_path)
-        data_manager.set_label_path(label_path)
         data_manager.set_full_comb(full_comb)
         data_manager.set_slicing(slicing, axis)
         data_manager.set_divided_ratio(divided_ratio)
         data_manager.generate_saving_path()
         data_manager.generate_task_path()
 
-        data_manager.init_reg_dataset()
-        data_manager.prepare_data()
-
-    else:
-        data_manager = DataManager(task_name=task_name, dataset_name=dataset_name)
-        data_manager.manual_set_task_root_path(task_path)
+        data_manager.init_dataset()
+        if prepare_data:
+            data_manager.prepare_data()
 
 
-    dataloaders = data_manager.data_loaders(batch_size=20)
+
+    dataloaders = data_manager.data_loaders(batch_size=3)
+    for data in dataloaders['test']:
+        pass
 
 
 

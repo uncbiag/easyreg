@@ -132,40 +132,30 @@ def intra_pair(path, dic_list, type, full_comb, mirrored=False):
     return pair_list
 
 
-def load_as_data(pair_list):
+def get_file_path_list(path, img_type):
     """
-    :param pair_list:  pair_list is the list of the path of the paired image
-    :return: img_pair_list, type: numpy, size: (2N,2,img_h,img_w)    2N contains the N pair and N reversed pair
-             info, type: dic, items: img_h, img_w, pair_num, pair_path
+     return the list of  paths of the image  [N,1]
+    :param path:  path of the folder
+    :param img_type: filter and get the image of certain type
+    :param full_comb: if full_comb, return all possible files, if not, return files in increasing order
+    :param sched: sched can be inter personal or intra personal
+    :return:
     """
-    img_pair_list = []
-    img_pair_path_list = []
-    standard=()
-
-    for i, pair in enumerate(pair_list):
-        img1 =read_itk_img(pair[0])
-        img2 =read_itk_img(pair[1])
-
-        # check img size
-        if i==0:
-            standard = img1.shape
-            check_same_size(img2, standard)
+    f_filter=[]
+    for sub_type in img_type:
+        if PYTHON_VERSION == 3:  # python3
+            f_path = join(path, '**', sub_type)
+            f_filter = glob(f_path, recursive=True)
         else:
-            check_same_size(img1,standard)
-            check_same_size(img2,standard)
-        normalize_img(img1)
-        normalize_img(img2)
-        img_pair_list += [(img1, img2)]
-        img_pair_list += [(img2, img1)]
-        img_pair_path_list += [[pair[0],pair[1]]]
-        img_pair_path_list += [[pair[1], pair[0]]]
-
-    assert len(img_pair_list) == 2*len(pair_list)
-    info = {'img_h': standard[0], 'img_w': standard[1], 'pair_num': len(img_pair_list)}
-    return np.asarray(img_pair_list), info, img_pair_path_list
+            f_filter = []
+            import fnmatch
+            for root, dirnames, filenames in os.walk(path):
+                for filename in fnmatch.filter(filenames, sub_type):
+                    f_filter.append(os.path.join(root, filename))
+    return f_filter
 
 
-def find_corr_map(pair_path_list, label_path):
+def find_corr_pair_map(pair_path_list, label_path):
     """
     get the label path from the image path, assume the file name is the same
     :param pair_path_list: the path list of the image
@@ -174,7 +164,15 @@ def find_corr_map(pair_path_list, label_path):
     """
     return [[os.path.join(label_path, os.path.split(pth)[1]) for pth in pair_path] for pair_path in pair_path_list]
 
-
+def find_corr_map(file_path_list, label_path, label_switch = ('','')):
+    """
+    get the label path from the image path
+    :param file_path_list: the path list of the image
+    :param label_path: the path of the label folder
+    :return:
+    """
+    fn_switch = lambda x: x.replace(label_switch[0], label_switch[1])
+    return [os.path.join(label_path, fn_switch(os.path.split(file_path)[1])) for file_path in file_path_list]
 
 def make_dir(path):
     is_exist = os.path.exists(path)
@@ -182,31 +180,94 @@ def make_dir(path):
         os.makedirs(path)
     return is_exist
 
-def divide_data_set(root_path, pair_name_list, ratio):
+# def divide_data_set(root_path, pair_name_list, ratio):
+#     """
+#     divide the dataset into root_path/train root_path/val root_path/test
+#     :param root_path: the root path for saving the task_dataset
+#     :param pair_name_list: list of name of the saved pair  like img1_img2
+#     :param ratio: tuple of (train_ratio, val_ratio, test_ratio) from all the pairs
+#     :return:  full path of each file
+#
+#     """
+#     train_ratio = ratio[0]
+#     val_ratio = ratio[1]
+#     pair_num = len(pair_name_list)
+#     sub_path = {x:os.path.join(root_path,x) for x in ['train', 'val', 'test']}
+#     nt = [make_dir(sub_path[key]) for key in sub_path]
+#     if sum(nt):
+#         raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n" \
+#                          "manually delete the folder to reprepare the data")
+#     train_num = int(train_ratio * pair_num)
+#     val_num = int(val_ratio*pair_num)
+#     pair_name_sub_list={}
+#     pair_name_sub_list['train'] = pair_name_list[:train_num]
+#     pair_name_sub_list['val'] = pair_name_list[train_num: train_num+val_num]
+#     pair_name_sub_list['test'] = pair_name_list[train_num+val_num:]
+#     saving_path_list = [os.path.join(sub_path[x],pair_name+'.h5py') for x in ['train', 'val', 'test'] for pair_name in pair_name_sub_list[x] ]
+#     return saving_path_list
+
+def divide_data_set(root_path, pair_num,ratio):
     """
     divide the dataset into root_path/train root_path/val root_path/test
     :param root_path: the root path for saving the task_dataset
-    :param pair_name_list: list of name of the saved pair  like img1_img2
+    :param pair_num: num of pair
     :param ratio: tuple of (train_ratio, val_ratio, test_ratio) from all the pairs
     :return:  full path of each file
 
     """
     train_ratio = ratio[0]
     val_ratio = ratio[1]
-    pair_num = len(pair_name_list)
-    sub_path = {x:os.path.join(root_path,x) for x in ['train', 'val', 'test']}
-    nt = [make_dir(sub_path[key]) for key in sub_path]
-    if sum(nt):
-        raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n" \
-                         "manually delete the folder to reprepare the data")
+    sub_folder_dic = {x:os.path.join(root_path,x) for x in ['train', 'val', 'test']}
+    nt = [make_dir(sub_folder_dic[key]) for key in sub_folder_dic]
+    # if sum(nt):
+    #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n" \
+    #                      "manually delete the folder to reprepare the data")
     train_num = int(train_ratio * pair_num)
     val_num = int(val_ratio*pair_num)
-    pair_name_sub_list={}
-    pair_name_sub_list['train'] = pair_name_list[:train_num]
-    pair_name_sub_list['val'] = pair_name_list[train_num: train_num+val_num]
-    pair_name_sub_list['test'] = pair_name_list[train_num+val_num:]
-    saving_path_list = [os.path.join(sub_path[x],pair_name+'.h5py') for x in ['train', 'val', 'test'] for pair_name in pair_name_sub_list[x] ]
-    return saving_path_list
+    file_id_dic={}
+    file_id_dic['train'] = list(range(train_num))
+    file_id_dic['val'] = list(range(train_num, train_num+val_num))
+    file_id_dic['test'] = list(range(train_num+val_num,pair_num))
+    return sub_folder_dic, file_id_dic
+
+def get_divided_dic(file_id_dic, pair_path_list, pair_name_list):
+    divided_path_dic = {}
+    sesses = ['train','val','test']
+    divided_path_dic['pair_path_list'] ={sess:[pair_path_list[idx] for idx in file_id_dic[sess]] for sess in sesses}
+    divided_path_dic['pair_name_list'] ={sess:[pair_name_list[idx] for idx in file_id_dic[sess]] for sess in sesses}
+    return divided_path_dic
+
+
+def saving_pair_info(sub_folder_dic, divided_path_dic):
+    for sess, sub_folder_path in sub_folder_dic.items():
+        for item, list_to_write in divided_path_dic.items():
+            file_path = os.path.join(sub_folder_path,item+'.txt')
+            write_list_into_txt(file_path, list_to_write[sess])
+
+
+def write_list_into_txt(file_path, list_to_write):
+    assert len(list_to_write)>0
+    with open(file_path, 'w') as f:
+        if isinstance(list_to_write[0],(float, int, str)):
+            f.write("\n".join(list_to_write))
+        elif isinstance(list_to_write[0],(list, tuple)):
+            new_list = ["     ".join(sub_list) for sub_list in list_to_write]
+            f.write("\n".join(new_list))
+        else:
+            raise(ValueError,"not implemented yet")
+
+def read_txt_into_list(file_path):
+    lists= []
+    with open(file_path,'r') as f:
+        content = f.read().splitlines()
+        if len(content)>0:
+            lists= [line.split('     ') for line in content]
+        lists= [item[0] if len(item)==1 else item for item in lists]
+    return lists
+
+def get_file_name(file_path):
+    return os.path.split(file_path)[1].split('.')[0]
+
 
 
 
@@ -262,43 +323,6 @@ def check_same_size(img, standard):
 
 
 
-def normalize_img(image, sched='tp'):
-    """
-    normalize image,
-    warning, default [-1,1], which would be tricky when dealing with the bilinear,
-    which default background is 0
-    :param sched: 'ntp': percentile 0.95 then normalized to [-1,1] 'tp': percentile then [0,1], 'p' percentile
-\   :return: normalized image
-    """
-    if sched == 'ntp':
-        image[:] = image / np.percentile(image, 95) * 0.95
-        image[:] = 2 * (image - np.min(image)) / (np.max(image) - np.min(image)) - 1
-    elif sched == 'tp':
-        image[:] = image / np.percentile(image, 95) * 0.95
-        image[:] = (image - np.min(image)) / (np.max(image) - np.min(image))
-    elif sched == 'p':
-        image[:] = image / np.percentile(image, 95) * 0.95
-    elif sched == 't':
-        image[:] = (image - np.min(image)) / (np.max(image) - np.min(image))
-
-def read_images(source_image_name,target_image_name, normalize_spacing=True, normalize_intensities=True, squeeze_image=True):
-
-    I0,hdr0,spacing0,normalized_spacing0 = fileio.ImageIO().read_to_nc_format(source_image_name, intensity_normalize=normalize_intensities, squeeze_image=squeeze_image)
-    I1,hdr1,spacing1,normalized_spacing1 = fileio.ImageIO().read_to_nc_format(target_image_name, intensity_normalize=normalize_intensities, squeeze_image=squeeze_image)
-
-    assert (np.all( spacing0 == spacing1) )
-    # TODO: do a better test for equality for the images here
-
-    if normalize_spacing:
-        spacing = normalized_spacing0
-    else:
-        spacing = spacing0
-
-    print('Spacing = ' + str(spacing))
-
-    return I0, I1, spacing, hdr0, hdr1
-
-
 def file_io_read_img(path, is_label, normalize_spacing=True, normalize_intensities=True, squeeze_image=True, adaptive_padding=4):
     normalize_intensities = False if is_label else normalize_intensities
     im, hdr, spacing, normalized_spacing = fileio.ImageIO().read(path, normalize_intensities, squeeze_image,adaptive_padding)
@@ -345,37 +369,6 @@ def file_io_read_img_slice(path, slicing, axis, is_label, normalize_spacing=True
 
 
 
-def read_itk_img(path):
-    """
-    :param path:
-    :return: numpy image
-    """
-    itkimage = sitk.ReadImage(path)
-    # Convert the image to a  numpy array first and then shuffle the dimensions to get axis in the order z,y,x
-    ct_scan = sitk.GetArrayFromImage(itkimage)
-    info = {'img_size': ct_scan.shape}
-    return np.squeeze(ct_scan), info
-
-def read_itk_img_slice(path, slicing, axis):
-    """
-    :param path:
-    :return: numpy image
-    """
-    itkimage = sitk.ReadImage(path)
-    # Convert the image to a  numpy array first and then shuffle the dimensions to get axis in the order z,y,x
-    im = np.squeeze(sitk.GetArrayFromImage(itkimage))
-    if axis == 1:
-        slice = im[slicing]
-    elif axis == 2:
-        slice = im[:,slicing,:]
-    elif axis == 3:
-        slice = im[:,:,slicing]
-    else:
-        raise ValueError("slicing axis exceed, should be 1-3")
-    info = {'img_size': slice.shape}
-    return slice, info
-
-
 def save_sz_sp_to_json(info, output_path):
     """
     save img size and img spacing info into json
@@ -391,9 +384,10 @@ def save_sz_sp_to_json(info, output_path):
 
 
 
+
 def read_h5py_file(path, type='h5py'):
     """
-    return dictionary contain 'data' and   'info': img_h, img_w, pair_num, pair_path
+    return dictionary contain 'data' and   'info': start_coord, end_coord, file_path
     :param path:
     :param type:
     :return:
@@ -402,59 +396,60 @@ def read_h5py_file(path, type='h5py'):
         f = h5py.File(path, 'r')
         data = f['data'][:]
         info = {}
-        label= None
+        label = None
         if '/label' in f:
             label = f['label'][:]
         for key in f.attrs:
-            info[key]= f.attrs[key]
-        info['pair_path'] = f['pair_path'][:]
+            info[key] = f.attrs[key]
+        #info['file_id'] = f['file_id'][:]
         f.close()
-        return {'data':data, 'info': info, 'label':label}
+        return {'data': data, 'info': info, 'label': label}
 
 
 def write_file(path, dic, type='h5py'):
     """
 
     :param path: file path
-    :param dic:  which has three item : numpy 'data', numpy 'label'if exists,  dic 'info' , string list 'pair_path',
+    :param dic:  which has three item : numpy 'data', numpy 'label'if exists,  dic 'info' , string list 'file_path',
     :param type:
     :return:
     """
     if type == 'h5py':
         f = h5py.File(path, 'w')
-        f.create_dataset('data',data=dic['data'])
+        f.create_dataset('data', data=dic['data'])
         if dic['label'] is not None:
-            f.create_dataset('label', data= dic['label'] )
+            f.create_dataset('label', data=dic['label'])
         for key, value in dic['info'].items():
             f.attrs[key] = value
-        #asciiList = [[path.encode("ascii", "ignore") for path in pair] for pair in dic['pair_path']]
-        asciiList = [path.encode("ascii", "ignore") for path in dic['pair_path']]
-        string_dt = h5py.special_dtype(vlen=str)
-        f.create_dataset('pair_path', data=asciiList,dtype=string_dt)
+        # asciiList = [[path.encode("ascii", "ignore") for path in file] for file in dic['file_path']]
+        # asciiList = dic['file_id'].encode("ascii", "ignore")
+        # string_dt = h5py.special_dtype(vlen=str)
+        # f.create_dataset('file_id', data=asciiList, dtype=string_dt)
         f.close()
     else:
         raise ValueError('only h5py supported currently')
 
 
 
-def save_to_h5py(path, img_pair_list, info, img_pair_path_list, label_pair_list=None,verbose=True):
+
+def save_to_h5py(path, img,label,file_id, info, verbose=True):
     """
 
     :param path:  path for saving file
-    :param img_pair_list: list of image pair
+    :param img_file_list: list of image file
     :param info: additional info
-    :param img_pair_path_list:  list of path/name of image pair
-    :param img_pair_path_list:  list of path/name of corresponded label pair
+    :param img_file_path_list:  list of path/name of image file
+    :param img_file_path_list:  list of path/name of corresponded label file
 
     :return:
     """
-    dic = {'data': img_pair_list, 'info': info, 'pair_path':img_pair_path_list, 'label': label_pair_list}
+    info['file_id'] =file_id
+    dic = {'data': img, 'info': info, 'label': label}
     write_file(path, dic, type='h5py')
     if verbose:
         print('data saved: {}'.format(path))
         print(dic['info'])
-        print("the shape of pair{}".format(dic['data'][:].shape))
-        print('the location of the first file pair\n{}'.format(img_pair_path_list[0]))
+        print("the shape of file{}".format(dic['data'][:].shape))
 
 
 

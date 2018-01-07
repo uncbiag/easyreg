@@ -44,12 +44,12 @@ class Partition(object):
         :param image: (simpleITK image) 3D Image to be partitioned
         :param seg: (simpleITK image) 3D segmentation label mask to be partitioned
         :return: N partitioned image and label patches
-            {'image':  Nx1xDxHxW, 'label':  Nx1xDxHxW }
+            {'img':  Nx1xDxHxW, 'label':  Nx1xDxHxW }
         """
         # get numpy array from simpleITK images
-        image_np = sitk.GetArrayFromImage(sample['image'])
+        image_np = sitk.GetArrayFromImage(sample['img'])
         seg_np = sitk.GetArrayFromImage(sample['seg'])
-        self.image = sample['image']
+        self.image = sample['img']
         self.image_size = np.array(image_np.shape)  # size of input image
         self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
         self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
@@ -86,7 +86,7 @@ class Partition(object):
                                         k * self.effective_size[2]:k * self.effective_size[2] + self.tile_size[2]]
                         seg_tile_list.append(seg_tile_temp)
 
-        # sample['image'] = np.stack(image_tile_list, 0)
+        # sample['img'] = np.stack(image_tile_list, 0)
         # sample['segmentation'] = np.stack(seg_tile_list, 0)
         trans_sample ={}
 

@@ -31,7 +31,7 @@ class SegmentationDataset(Dataset):
         get the all files belonging to data_type from the data_path,
         :return: full file path list, file name list
         """
-        f_filter = glob(self.data_path, recursive=True)
+        f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
         name_list = [get_file_name(f) for f in f_filter]
         return f_filter,name_list
 
@@ -48,23 +48,14 @@ class SegmentationDataset(Dataset):
         :return: the processed data, return as type of dic
         """
         dic = read_h5py_file(self.path_list[idx])
+        fname  = self.name_list[idx]
         sample = {'image': dic['data'], 'info': dic['info'], 'label':dic['label']}
-        transformed={}
         if self.transform:
-             transformed['image'] = self.transform(sample['image'])
-             if sample['label'] is not None:
-                transformed['label'] = self.transform(sample['label'])
-             transformed['file_id'] = self.retrieve_file_id(sample['info']['file_id'])
-        return transformed
-
-
-class Normalize(object):
-    """-1,1 normalization , this method will not be used but remained, normalization has been done when reading data"""
-    def __call__(self, sample):
-        img_pair = sample['image']
-        for image in img_pair:
-            image[:]= 2*(image-np.min(image))/(np.max(image)-np.min(image)) -1
-        return {'image': img_pair}
+            sample['image'] = self.transform(sample['image'])
+            if sample['label'] is not None:
+                 sample['label'] = self.transform(sample['label'])
+        sample['file_id'] = self.retrieve_file_id(fname)
+        return sample
 
 
 
@@ -73,4 +64,7 @@ class ToTensor(object):
 
     def __call__(self, sample):
 
-        return torch.from_numpy(sample)
+        n_tensor= torch.from_numpy(sample)
+        if n_tensor.shape[1]!=1:
+            n_tensor.unsqueeze_(1)
+        return n_tensor

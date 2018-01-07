@@ -2,8 +2,8 @@ import torch
 import os
 from models.networks import *
 from pipLine.prepare_data import DataManager
-from pipLine.train_model import train_model
-from pipLine.test_model import test_model
+from pipLine.train_model_reg import train_model
+from pipLine.test_model_reg import test_model
 from pipLine.iter_model import iter_model
 from tensorboardX import SummaryWriter
 

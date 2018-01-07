@@ -9,7 +9,7 @@ from data_pre.reg_data_utils import *
 
 class BaseRegDataSet(object):
 
-    def __init__(self, name, dataset_type, file_type_list, sched=None):
+    def __init__(self, dataset_type, file_type_list, sched=None):
         """
 
         :param name: name of data set
@@ -17,11 +17,12 @@ class BaseRegDataSet(object):
         :param file_type_list: the file types to be filtered, like [*1_a.bmp, *2_a.bmp]
         :param data_path: path of the dataset
         """
-        self.name = name
+
         self.data_path = None
         """path of the dataset"""
         self.output_path = None
         """path of the output directory"""
+        self.pro_data_path = None
         self.pair_name_list = []
         self.pair_path_list = []
         self.file_type_list = file_type_list
@@ -76,9 +77,11 @@ class BaseRegDataSet(object):
     def save_shared_info(self,info):
         save_sz_sp_to_json(info, self.output_path)
 
-    def save_pair_to_file(self):
+    def save_pair_to_txt(self):
         pass
 
+    def save_file_to_h5py(self):
+        pass
 
     def prepare_data(self):
         """
@@ -87,9 +90,10 @@ class BaseRegDataSet(object):
         """
         print("starting preapare data..........")
         print("the output file path is: {}".format(self.output_path))
+        self.save_file_to_h5py()
         self.pair_path_list = self.generate_pair_list()
+        self.save_pair_to_txt()
         print("the total num of pair is {}".format(self.get_file_num()))
-        self.save_pair_to_file()
         print("data preprocessing finished")
 
 
@@ -98,63 +102,10 @@ class UnlabeledDataSet(BaseRegDataSet):
     """
     unlabeled dataset
     """
-    def __init__(self, name, dataset_type, file_type_list, sched=None):
-        BaseRegDataSet.__init__(self,name, dataset_type, file_type_list,sched)
+    def __init__(self,dataset_type, file_type_list, sched=None):
+        BaseRegDataSet.__init__(self,dataset_type, file_type_list,sched)
 
-    def save_pair_to_file(self):
-        """
-        save the file into h5py
-        :param pair_path_list: N*2  [[full_path_img1, full_path_img2],[full_path_img2, full_path_img3]
-        :param pair_name_list: N*1 for 'mix': [folderName1_sliceName1_folderName2_sliceName2, .....]  for custom: [sliceName1_sliceName2, .....]
-        :param ratio:  divide dataset into training val and test, based on ratio, e.g [0.7, 0.1, 0.2]
-        :param saving_path_list: N*1 list of path for output files e.g [ouput_path/train/sliceName1_sliceName2.h5py,.........]
-        :param info: dic including pair name information
-        :param normalized_sched: normalized the image
-        """
-        random.shuffle(self.pair_path_list)
-        self.pair_name_list = generate_pair_name(self.pair_path_list, sched=self.dataset_type)
-        saving_path_list = divide_data_set(self.output_path, self.pair_name_list, self.divided_ratio)
-        img_size = ()
-        info = None
-        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(self.pair_path_list)).start()
-        for i, pair in enumerate(self.pair_path_list):
-            img1, info1 = self.read_file(pair[0])
-            img2, info2 = self.read_file(pair[1])
-            if i == 0:
-                img_size = img1.shape
-                check_same_size(img2, img_size)
-            else:
-                check_same_size(img1, img_size)
-                check_same_size(img2, img_size)
-                # Normalized has been done in fileio, though additonal normalization can be done here
-                # normalize_img(img1, self.normalize_sched)
-                # normalize_img(img2, self.normalize_sched)
-            img_pair = np.asarray([(img1, img2)])
-            info = self.extract_pair_info(info1, info2)
-            save_to_h5py(saving_path_list[i], img_pair, info, [self.pair_name_list[i]], verbose=False)
-            pbar.update(i+1)
-        pbar.finish()
-        self.save_shared_info(info)
-
-
-
-
-class LabeledDataSet(BaseRegDataSet):
-    """
-    labeled dataset
-    """
-    def __init__(self, name, dataset_type, file_type_list, sched=None):
-        BaseRegDataSet.__init__(self, name, dataset_type, file_type_list,sched)
-        self.label_path = None
-        self.pair_label_path_list=[]
-
-
-    def set_label_path(self, path):
-        self.label_path = path
-
-
-
-    def save_pair_to_file(self):
+    def save_pair_to_txt(self):
         """
         save the file into h5py
         :param pair_path_list: N*2  [[full_path_img1, full_path_img2],[full_path_img2, full_path_img3]
@@ -165,34 +116,101 @@ class LabeledDataSet(BaseRegDataSet):
         :param normalized_sched: normalized the image
         """
         random.shuffle(self.pair_path_list)
-        self.pair_label_path_list = find_corr_map(self.pair_path_list, self.label_path)
         self.pair_name_list = generate_pair_name(self.pair_path_list, sched=self.dataset_type)
-        saving_path_list = divide_data_set(self.output_path, self.pair_name_list, self.divided_ratio)
+        self.num_pair = len(self.pair_path_list)
+        sub_folder_dic, file_id_dic = divide_data_set(self.output_path, self.num_pair, self.divided_ratio)
+        divided_path_dic = get_divided_dic(file_id_dic, self.pair_path_list, self.pair_name_list)
+        saving_pair_info(sub_folder_dic,divided_path_dic)
+
+
+
+    def save_file_to_h5py(self):
+        file_path_list =  get_file_path_list(self.data_path, self.file_type_list)
+        file_name_list = [get_file_name(pt) for pt in file_path_list]
+        self.pro_data_path = os.path.join(self.output_path,'data')
+        pro_data_path_list = [fp.replace(self.data_path,self.pro_data_path) for fp in file_path_list]
+        self.pro_data_path_list =[os.path.join(os.path.split(fp)[0],file_name_list[idx]+'.h5py') for idx, fp in enumerate(pro_data_path_list)]
+        make_dir(self.pro_data_path)
         img_size = ()
         info = None
-        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(self.pair_path_list)).start()
-        for i, pair in enumerate(self.pair_path_list):
-            img1, info1 = self.read_file(pair[0])
-            img2, info2 = self.read_file(pair[1])
-            label1, linfo1 = self.read_file(self.pair_label_path_list[i][0], is_label=True)
-            label2, linfo2 = self.read_file(self.pair_label_path_list[i][1], is_label=True)
+        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(file_path_list)).start()
+        for i, file in enumerate(file_path_list):
+            img, info = self.read_file(file)
+            f_name = file_name_list[i]
             if i == 0:
-                img_size = img1.shape
-                check_same_size(img2, img_size)
-                check_same_size(label1, img_size)
-                check_same_size(label2, img_size)
+                img_size = img.shape
             else:
-                check_same_size(img1, img_size)
-                check_same_size(img2, img_size)
-                check_same_size(label1, img_size)
-                check_same_size(label2, img_size)
-                # Normalized has been done in fileio, though additonal normalization can be done here
-                # normalize_img(img1, self.normalize_sched)
-                # normalize_img(img2, self.normalize_sched)
-            img_pair = np.asarray([(img1, img2)])
-            label_pair = np.asarray([(label1,label2)])
-            info = self.extract_pair_info(info1, info2)
-            save_to_h5py(saving_path_list[i], img_pair, info, [self.pair_name_list[i]], label_pair, verbose=False)
+                check_same_size(img, img_size)
+            saving_path = self.pro_data_path_list[i]
+            make_dir(os.path.split(saving_path)[0])
+            save_to_h5py(saving_path, img, None, f_name, info, verbose=False)
+            pbar.update(i + 1)
+        pbar.finish()
+        self.save_shared_info(info)
+
+
+
+
+class LabeledDataSet(BaseRegDataSet):
+    """
+    labeled dataset
+    """
+    def __init__(self, dataset_type, file_type_list, sched=None):
+        BaseRegDataSet.__init__(self,dataset_type, file_type_list,sched)
+        self.label_path = None
+        self.pair_label_path_list=[]
+
+
+    def set_label_path(self, path):
+        self.label_path = path
+
+
+
+
+    def save_pair_to_txt(self):
+        """
+        save the file into h5py
+        :param pair_path_list: N*2  [[full_path_img1, full_path_img2],[full_path_img2, full_path_img3]
+        :param pair_name_list: N*1 for 'mix': [folderName1_sliceName1_folderName2_sliceName2, .....]  for custom: [sliceName1_sliceName2, .....]
+        :param ratio:  divide dataset into training val and test, based on ratio, e.g [0.7, 0.1, 0.2]
+        :param saving_path_list: N*1 list of path for output files e.g [ouput_path/train/sliceName1_sliceName2.h5py,.........]
+        :param info: dic including pair information
+        :param normalized_sched: normalized the image
+        """
+        random.shuffle(self.pair_path_list)
+        self.pair_name_list = generate_pair_name(self.pair_path_list, sched=self.dataset_type)
+        self.num_pair = len(self.pair_path_list)
+        sub_folder_dic, file_id_dic = divide_data_set(self.output_path, self.num_pair, self.divided_ratio)
+        divided_path_dic = get_divided_dic(file_id_dic, self.pair_path_list, self.pair_name_list)
+        saving_pair_info(sub_folder_dic,divided_path_dic)
+
+
+
+    def save_file_to_h5py(self):
+        file_path_list =  get_file_path_list(self.data_path, self.file_type_list)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path)
+        file_name_list = [get_file_name(pt) for pt in file_path_list]
+        self.pro_data_path = os.path.join(self.output_path,'data')
+        pro_data_path_list = [fp.replace(self.data_path, self.pro_data_path) for fp in file_path_list]
+        self.pro_data_path_list = [os.path.join(os.path.split(fp)[0], file_name_list[idx] + '.h5py') for idx, fp in
+                                   enumerate(pro_data_path_list)]
+        make_dir(self.pro_data_path)
+        img_size = ()
+        info = None
+        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(file_path_list)).start()
+        for i, file in enumerate(file_path_list):
+            img, info = self.read_file(file)
+            f_name = file_name_list[i]
+            label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            if i == 0:
+                img_size = img.shape
+                check_same_size(label, img_size)
+            else:
+                check_same_size(img, img_size)
+                check_same_size(label, img_size)
+            saving_path = self.pro_data_path_list[i]
+            make_dir(os.path.split(saving_path)[0])
+            save_to_h5py(saving_path, img, label, f_name, info, verbose=False)
             pbar.update(i + 1)
         pbar.finish()
         self.save_shared_info(info)
@@ -205,8 +223,8 @@ class CustomDataSet(BaseRegDataSet):
     """
     dataset format that orgnized as data_path/slice1, slic2, slice3 .......
     """
-    def __init__(self,name, dataset_type, file_type_list,full_comb=False):
-        BaseRegDataSet.__init__(self, name, dataset_type, file_type_list)
+    def __init__(self,dataset_type, file_type_list,full_comb=False):
+        BaseRegDataSet.__init__(self, dataset_type, file_type_list)
         self.full_comb = full_comb
 
 
@@ -215,7 +233,7 @@ class CustomDataSet(BaseRegDataSet):
         :param sched:
         :return:
         """
-        pair_path_list = inter_pair(self.data_path, self.file_type_list, self.full_comb, mirrored=True)
+        pair_path_list = inter_pair(self.pro_data_path,  ['*.h5py'], self.full_comb, mirrored=True)
         return pair_path_list
 
 
@@ -223,8 +241,8 @@ class VolumetricDataSet(BaseRegDataSet):
     """
     3D dataset
     """
-    def __init__(self,name, dataset_type, file_type_list):
-        BaseRegDataSet.__init__(self, name, dataset_type, file_type_list)
+    def __init__(self,dataset_type, file_type_list):
+        BaseRegDataSet.__init__(self, dataset_type, file_type_list)
         self.slicing = -1
         self.axis = -1
 
@@ -258,8 +276,8 @@ class MixedDataSet(BaseRegDataSet):
     """
      include inter-personal and intra-personal data, which is orgnized as oasis2d, root/patient1_folder/slice1,slice2...
     """
-    def __init__(self, name, dataset_type, file_type_list, sched, full_comb=False):
-        BaseRegDataSet.__init__(self, name,dataset_type, file_type_list, sched=sched)
+    def __init__(self, dataset_type, file_type_list, sched, full_comb=False):
+        BaseRegDataSet.__init__(self, dataset_type, file_type_list, sched=sched)
         self.full_comb = full_comb
 
 
@@ -273,9 +291,9 @@ class MixedDataSet(BaseRegDataSet):
         """
         if self.sched == 'intra':
             dic_list = list_dic(self.data_path)
-            pair_path_list = intra_pair(self.data_path, dic_list, self.file_type_list, self.full_comb, mirrored=True)
+            pair_path_list = intra_pair(self.pro_data_path, dic_list, ['*.h5py'], self.full_comb, mirrored=True)
         elif self.sched == 'inter':
-            pair_path_list = inter_pair(self.data_path, self.file_type_list, self.full_comb, mirrored=True)
+            pair_path_list = inter_pair(self.pro_data_path,  ['*.h5py'], self.full_comb, mirrored=True)
         else:
             raise ValueError("schedule should be 'inter' or 'intra'")
 
@@ -283,47 +301,46 @@ class MixedDataSet(BaseRegDataSet):
 
 
 
+
+
+
+
+class RegDatasetPool(object):
+    def create_dataset(self,dataset_name, sched, full_comb):
+        self.dataset_dic = {'oasis2d':Oasis2DDataSet,
+                                   'lpba':VolLabCusDataSet,
+                                    'ibsr':VolLabCusDataSet,
+                                     'cumc':VolLabCusDataSet}
+
+        dataset = self.dataset_dic[dataset_name](sched, full_comb)
+        return dataset
+
 class Oasis2DDataSet(UnlabeledDataSet, MixedDataSet):
     """"
     sched:  'inter': inter_personal,  'intra': intra_personal
     """
-    def __init__(self, name, sched, full_comb=False):
+    def __init__(self, sched, full_comb=False):
         file_type_list = ['*a.mhd'] if sched == 'intra' else ['*_1_a.mhd', '*_2_a.mhd', '*_3_a.mhd']
-        UnlabeledDataSet.__init__(self, name, 'mixed', file_type_list, sched)
-        MixedDataSet.__init__(self, name, 'mixed', file_type_list, sched, full_comb)
+        UnlabeledDataSet.__init__(self, 'mixed', file_type_list, sched)
+        MixedDataSet.__init__(self, 'mixed', file_type_list, sched, full_comb)
 
 
 
 
-class LPBADataSet(VolumetricDataSet, LabeledDataSet, CustomDataSet):
-    def __init__(self, name, full_comb=True):
-        VolumetricDataSet.__init__(self, name, 'custom', ['*.nii'])
-        LabeledDataSet.__init__(self, name, 'custom', ['*.nii'])
-        CustomDataSet.__init__(self,name, 'custom', ['*.nii'], full_comb)
+class VolLabCusDataSet(VolumetricDataSet, LabeledDataSet, CustomDataSet):
+    def __init__(self, sched, full_comb=True):
+        VolumetricDataSet.__init__(self, 'custom', ['*.nii'])
+        LabeledDataSet.__init__(self, 'custom', ['*.nii'])
+        CustomDataSet.__init__(self,'custom', ['*.nii'], full_comb)
 
 
 
-
-class IBSRDataSet(VolumetricDataSet, LabeledDataSet, CustomDataSet):
-    def __init__(self, name, full_comb=True):
-        VolumetricDataSet.__init__(self, name, 'custom', ['*.nii'])
-        LabeledDataSet.__init__(self, name, 'custom', ['*.nii'])
-        CustomDataSet.__init__(self, name, 'custom', ['*.nii'], full_comb)
-
-
-
-class CUMCDataSet(VolumetricDataSet, LabeledDataSet, CustomDataSet):
-    def __init__(self, name, full_comb=True):
-        VolumetricDataSet.__init__(self, name, 'custom', ['*.nii'])
-        LabeledDataSet.__init__(self, name, 'custom', ['*.nii'])
-        CustomDataSet.__init__(self, name, 'custom', ['*.nii'], full_comb)
 
 
 
 
 if __name__ == "__main__":
-    pass
-
+    print('debugging')
     # #########################       OASIS TESTING           ###################################3
     #
     # path = '/playpen/zyshen/data/oasis'
@@ -379,25 +396,25 @@ if __name__ == "__main__":
     # lpba.prepare_data()
 
 
-    # ###########################       LPBA Slicing TESTING           ###################################
-    # path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-    # label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    # full_comb = False
-    # name = 'lpba'
-    # output_path = '/playpen/zyshen/data/' + name + '_pre_slicing'
-    # divided_ratio = (0.6, 0.2, 0.2)
-    #
-    # ###################################################
-    # #lpba testing
-    #
-    #
-    # lpba = LPBADataSet(name=name, full_comb=full_comb)
-    # lpba.set_slicing(90,1)
-    # lpba.set_data_path(path)
-    # lpba.set_output_path(output_path)
-    # lpba.set_divided_ratio(divided_ratio)
-    # lpba.set_label_path(label_path)
-    # lpba.prepare_data()
+    ###########################       LPBA Slicing TESTING           ###################################
+    path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
+    label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
+    full_comb = False
+    name = 'lpba'
+    output_path = '/playpen/zyshen/data/' + name + '_pre_slicing'
+    divided_ratio = (0.6, 0.2, 0.2)
+
+    ###################################################
+    #lpba testing
+
+
+    lpba = VolLabCusDataSet(sched='', full_comb=full_comb)
+    lpba.set_slicing(90,1)
+    lpba.set_data_path(path)
+    lpba.set_output_path(output_path)
+    lpba.set_divided_ratio(divided_ratio)
+    lpba.set_label_path(label_path)
+    lpba.prepare_data()
 
 
 

@@ -30,6 +30,7 @@ def get_file_path_list(path, img_type):
     :param sched: sched can be inter personal or intra personal
     :return:
     """
+    f_filter=[]
     for sub_type in img_type:
         if PYTHON_VERSION == 3:  # python3
             f_path = join(path, '**', sub_type)
@@ -121,27 +122,25 @@ def extract_test_patch_info(patches_dic):
 
     return {'sf_sz':effective_size}
 
+
 def gen_fn_from_info(info):
-    from functools import reduce
     info_list = ['_'+key+'_'+str(value) for key,value in info.items()]
-    file_name = str_concat(info_list)
+    file_name = str_concat(info_list) if len(info_list) else ''
     return file_name
 
 
 
 def get_patch_saving_path(file_path,info, saving_by_patch=True):
     img_name = get_file_name(file_path)
+    file_name = gen_fn_from_info(info)
+    file_name = img_name + file_name
     if saving_by_patch:
-        file_name = gen_fn_from_info(info)
-        file_name =img_name+ file_name
         label_str = info['l']
         folder_path=os.path.join(file_path,label_str)
         make_dir(folder_path)
         full_path = os.path.join(folder_path,file_name+'.h5py')
         file_id = file_name
     else:
-        file_name = gen_fn_from_info(info)
-        file_name = img_name + file_name
         make_dir(file_path)
         full_path = os.path.join(file_path,file_name+'.h5py')
         file_id = file_name
@@ -163,6 +162,13 @@ def saving_patches_per_img(patches,file_path):
     patches_seg = patches['seg']
     saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
     save_to_h5py(saving_path,patches_img, patches_seg ,file_id,info,verbose=False)
+
+def saving_per_img(sample,file_path):
+    info = {}
+    img = sitk_to_np(sample['img'])
+    seg = sitk_to_np(sample['seg'])
+    saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
+    save_to_h5py(saving_path,img, seg,file_id,info,verbose=False)
 
 
 
@@ -254,7 +260,7 @@ def read_h5py_file(path, type='h5py'):
             label = f['label'][:]
         for key in f.attrs:
             info[key] = f.attrs[key]
-        info['file_id'] = f['file_id'][:]
+        #info['file_id'] = f['file_id'][:]
         f.close()
         return {'data': data, 'info': info, 'label': label}
 

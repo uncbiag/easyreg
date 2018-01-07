@@ -26,7 +26,7 @@ class Resample(object):
             self.voxel_size = voxel_size
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['seg']
+        img, seg = sample['img'], sample['seg']
 
         old_spacing = img.GetSpacing()
         old_size = img.GetSize()
@@ -47,7 +47,7 @@ class Resample(object):
         resampler.SetOutputOrigin(img.GetOrigin())
         resampler.SetOutputDirection(img.GetDirection())
         print("Resampling image...")
-        sample['image'] = resampler.Execute(img)
+        sample['img'] = resampler.Execute(img)
 
         # resample on segmentation
         resampler.SetOutputOrigin(seg.GetOrigin())
@@ -63,8 +63,8 @@ class Normalization(object):
     def __call__(self, sample):
         self.normalizeFilter = sitk.NormalizeImageFilter()
         print("Normalizing image...")
-        img, seg = sample['image'], sample['seg']
-        sample['image'] = self.normalizeFilter.Execute(img)
+        img, seg = sample['img'], sample['seg']
+        sample['img'] = self.normalizeFilter.Execute(img)
 
         return sample
 
@@ -73,7 +73,7 @@ class SitkToTensor(object):
     """Convert sitk image to 4D Tensors with shape(1, D, H, W)"""
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['seg']
+        img, seg = sample['img'], sample['seg']
         img_np = sitk.GetArrayFromImage(img)
         seg_np = sitk.GetArrayFromImage(seg)
         # threshold image intensity to 0~1
@@ -84,7 +84,7 @@ class SitkToTensor(object):
         seg_np = np.uint8(seg_np)
         img_np = np.expand_dims(img_np, axis=0)  # expand the channel dimension
 
-        sample['image'] = torch.from_numpy(img_np)
+        sample['img'] = torch.from_numpy(img_np)
         sample['seg'] = torch.from_numpy(seg_np)
 
         return sample
@@ -108,7 +108,7 @@ class RandomBSplineTransform(object):
     def __call__(self, sample):
 
         if np.random.rand(1)[0] < self.ratio:
-            img, seg = sample['image'], sample['seg']
+            img, seg = sample['img'], sample['seg']
 
             # initialize a bspline transform
             bspline = sitk.BSplineTransformInitializer(img, self.mesh_size, self.bspline_order)
@@ -126,7 +126,7 @@ class RandomBSplineTransform(object):
             img_trans = resample(img, bspline, interpolator=self.interpolator, default_value=0.1)
             seg_trans = resample(seg, bspline, interpolator=sitk.sitkNearestNeighbor, default_value=0)
 
-            sample['image'] = img_trans
+            sample['img'] = img_trans
             sample['seg'] = seg_trans
 
         return sample
@@ -148,7 +148,7 @@ class RandomRigidTransform(object):
     def __call__(self, sample):
 
         if np.random.rand(1)[0] < self.ratio:
-            img, seg = sample['image'], sample['seg']
+            img, seg = sample['img'], sample['seg']
             image_size = img.GetSize()
             image_spacing = img.GetSpacing()
             if self.rotation_center:
@@ -186,7 +186,7 @@ class RandomRigidTransform(object):
             else:
                 raise ValueError('Wrong rigid transformation mode :{}!'.format(self.mode))
 
-            sample['image'] = img_trans
+            sample['img'] = img_trans
             sample['seg'] = seg_trans
 
         return sample
@@ -213,8 +213,8 @@ class GaussianBlur(object):
 
     def __call__(self, sample):
         if np.random.rand() < self.ratio:
-            img, seg = sample['image'], sample['seg']
-            sample['image'] = sitk.DiscreteGaussian(
+            img, seg = sample['img'], sample['seg']
+            sample['img'] = sitk.DiscreteGaussian(
                 img, variance=self.variance, maximumKernelWidth=self.maximumKernelWidth, maximumError=self.maximumError,
                 useImageSpacing=False)
         return sample
@@ -228,8 +228,8 @@ class BilateralFilter(object):
 
     def __call__(self, sample):
         if np.random.rand(1)[0] < self.ratio:
-            img, _ = sample['image'], sample['seg']
-            sample['image'] = sitk.Bilateral(img, domainSigma=self.domainSigma, rangeSigma=self.rangeSigma,
+            img, _ = sample['img'], sample['seg']
+            sample['img'] = sitk.Bilateral(img, domainSigma=self.domainSigma, rangeSigma=self.rangeSigma,
                                              numberOfRangeGaussianSamples=self.numberOfRangeGaussianSamples)
         return sample
 
@@ -255,7 +255,7 @@ class RandomCrop(object):
             self.random_state = np.random.RandomState()
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['seg']
+        img, seg = sample['img'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
 
@@ -296,7 +296,7 @@ class RandomCrop(object):
                 contain_label = True
 
         img_crop = roiFilter.Execute(img)
-        sample['image'] = img_crop
+        sample['img'] = img_crop
         sample['seg'] = seg_crop
 
         return sample
@@ -334,7 +334,7 @@ class BalancedRandomCrop(object):
 
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['seg']
+        img, seg = sample['img'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
 
@@ -393,7 +393,7 @@ class BalancedRandomCrop(object):
         seg_crop = roiFilter.Execute(seg)
         img_crop = roiFilter.Execute(img)
 
-        sample['image'] = img_crop
+        sample['img'] = img_crop
         sample['seg'] = seg_crop
         sample['class'] = self.current_class
 
@@ -435,7 +435,7 @@ class MyRandomCrop(object):
 
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['seg']
+        img, seg = sample['img'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
         roiFilter = sitk.RegionOfInterestImageFilter()
@@ -513,7 +513,7 @@ class MyBalancedRandomCrop(object):
 
 
     def __call__(self, sample):
-        img, seg = sample['image'], sample['seg']
+        img, seg = sample['img'], sample['seg']
         size_old = img.GetSize()
         size_new = self.output_size
 

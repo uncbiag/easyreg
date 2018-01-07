@@ -3,7 +3,7 @@ import SimpleITK as sitk
 import numpy as np
 
 class Transform(object):
-    def __init__(self,dim,option):
+    def __init__(self,option, dim=3):
         self.transform_seq = []
         self.dim = dim
         self.option = option
@@ -29,7 +29,7 @@ class Transform(object):
 
 
     def default_train_sched(self):
-        self.transform_seq = [self.my_random_crop()]
+        self.transform_seq = [self.identity_trans()]
         option_default = self.option[('default', {}, 'get default transform setting')]
         using_bspline_deform = option_default[('using_bspline_deform',False, 'using bspline transform')]
 
@@ -58,6 +58,11 @@ class Transform(object):
         sample_threshold = option_brc[('sample_threshold',[1]+[0.1]* (len(label_list)-1), 'sample threshold for each class')]
         balanced_random_crop = bio_transform.BalancedRandomCrop(self.patch_size, threshold=sample_threshold)
         return balanced_random_crop
+
+    def identity_trans(self):
+
+        identity_trans = bio_transform.IdentityTransform()
+        return identity_trans
 
 
     def my_random_crop(self):
