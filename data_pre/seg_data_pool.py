@@ -36,7 +36,7 @@ class BaseSegDataSet(object):
         """divided the data into train, val, test set"""
         self.dim = dim
         self.label_switch = label_switch
-        self.option = option[('data_pro', {}, 'settings for data_pro')]
+        self.option = option
         self.option_trans = self.option[('transform', {}, 'settings for transform')]
         self.transform_name_seq = []
         self.num_label = 0
@@ -92,7 +92,7 @@ class BaseSegDataSet(object):
             sample = transform(sample)
         return sample
 
-    def get_num_label(self):
+    def initialize_info(self):
         file_label_path_list = find_corr_map([self.file_path_list[0]], self.label_path, self.label_switch)
         label, linfo = self.read_file(file_label_path_list[0], is_label=True)
         label_list = list(np.unique(label))
@@ -100,6 +100,7 @@ class BaseSegDataSet(object):
         print('the num of the class: {}'.format(num_label))
         self.option_trans['shared_info']['img_size'] = list(linfo['img_size'])
         self.num_label = num_label
+        linfo['num_label'] = num_label
         self.save_shared_info(linfo)
 
     def get_file_list(self):
@@ -134,7 +135,7 @@ class BaseSegDataSet(object):
         print("the output file path is: {}".format(self.output_path))
         self.get_file_list()
         self.get_save_path_list()
-        self.get_num_label()
+        self.initialize_info()
         file_patitions = np.array_split(self.file_path_dic['train'], number_of_workers)
         # with Pool(processes=number_of_workers) as pool:
         #     res = pool.map(self.train_data_processing,file_patitions)
@@ -158,7 +159,9 @@ class PatchedDataSet(BaseSegDataSet):
         BaseSegDataSet.__init__(self, file_type_list,option,label_switch, dim)
 
         self.num_crop_per_class_per_train_img = self.option[('num_crop_per_class_per_train_img',100, 'num_crop_per_class_per_train_img')]
+        self.option_trans['patch_size'] =self.option['patch_size']
         self.option_p = self.option[('partition', {}, "settings for the partition")]
+        self.option_p['patch_size'] = self.option['patch_size']
         self.transform_name_seq = ['my_random_crop']
 
 

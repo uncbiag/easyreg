@@ -8,10 +8,10 @@ class BaseModel():
 
     def initialize(self, opt):
         self.opt = opt
-        self.gpu_ids = opt.gpu_ids
-        self.isTrain = opt.isTrain
+        self.gpu_ids = opt['tsk_set']['gpu_ids']
+        self.isTrain = opt['tsk_set']['train']
         self.Tensor = torch.cuda.FloatTensor if self.gpu_ids else torch.Tensor
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
+        self.save_dir = opt['tsk_set']['check_point_path']
 
     def set_input(self, input):
         self.input = input
@@ -52,9 +52,4 @@ class BaseModel():
         save_path = os.path.join(self.save_dir, save_filename)
         network.load_state_dict(torch.load(save_path))
 
-    # update learning rate (called once every epoch)
-    def update_learning_rate(self):
-        for scheduler in self.schedulers:
-            scheduler.step()
-        lr = self.optimizers[0].param_groups[0]['lr']
-        print('learning rate = %.7f' % lr)
+

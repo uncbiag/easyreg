@@ -5,7 +5,7 @@ import SimpleITK as sitk
 def partition(option_p):
     overlap_size = option_p[('overlap_size',tuple([16,16,8]), 'overlap_size')]
     padding_mode = option_p[('padding_mode', 'reflect', 'padding_mode')]
-    mode = option_p[('mode', 'eval', 'eval or pred')]
+    mode = option_p[('mode', 'pred', 'eval or pred')]
     patch_size = option_p[('patch_size', [128, 128, 32], 'patch size')]
     partition = Partition(patch_size, overlap_size, padding_mode=padding_mode, mode=mode)
     return partition
@@ -95,7 +95,9 @@ class Partition(object):
             trans_sample['seg'] = np.expand_dims(seg_np, axis=0)
         else:
             trans_sample['seg'] = np.expand_dims(np.stack(seg_tile_list, 0), axis=1)
-        trans_sample['effective_size'] = self.effective_size
+        trans_sample['tile_size'] = self.tile_size
+        trans_sample['overlap_size'] = self.overlap_size
+        trans_sample['padding_mode'] = self.padding_mode
 
         return trans_sample
 
@@ -144,9 +146,9 @@ class Partition(object):
                             tiles[ind][self.overlap_size[0]:self.tile_size[0] - self.overlap_size[0],
                             self.overlap_size[1]:self.tile_size[1] - self.overlap_size[1],
                             self.overlap_size[2]:self.tile_size[2] - self.overlap_size[2]]
-            seg_reassemble = seg_reassemble[:self.image_size[0], :self.image_size[1], :self.image_size[2]]
+            #seg_reassemble = seg_reassemble[:self.image_size[0], :self.image_size[1], :self.image_size[2]]
 
-        seg_image = sitk.GetImageFromArray(seg_reassemble)
-        seg_image.CopyInformation(self.image)
+        # seg_image = sitk.GetImageFromArray(seg_reassemble)
+        # seg_image.CopyInformation(self.image)
 
-        return seg_image
+        return seg_reassemble

@@ -1,12 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.nn import init
-import functools
-import torch.autograd as autograd
 import numpy as np
 import torchvision.models as models
-import util.util as util
-from util.image_pool import ImagePool
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F

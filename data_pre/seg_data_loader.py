@@ -64,7 +64,7 @@ class ToTensor(object):
 
     def __call__(self, sample):
 
-        n_tensor= torch.from_numpy(sample)
+        n_tensor= torch.from_numpy(sample).cuda()
         if n_tensor.shape[1]!=1:
             n_tensor.unsqueeze_(1)
         return n_tensor

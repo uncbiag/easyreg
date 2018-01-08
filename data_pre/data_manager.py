@@ -213,13 +213,13 @@ class DataManager(object):
         if self.task_type=='reg':
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
                                                       shuffle=False, num_workers=4) for x in ['train','val','test']}
-        else:
+        elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),
                            'val': torch.utils.data.DataLoader(transformed_dataset['val'],
-                                                                batch_size=batch_size, shuffle=False, num_workers=4),
+                                                                batch_size=1, shuffle=False, num_workers=4),
                            'test': torch.utils.data.DataLoader(transformed_dataset['test'],
-                                                                batch_size=batch_size, shuffle=False, num_workers=4)
+                                                                batch_size=1, shuffle=False, num_workers=4)
                            }
         return dataloaders
 
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     sched ='patched'
     axis = 1
     switch_to_exist_task = False
-    prepare_data = False
+    prepare_data = True
 
     if switch_to_exist_task:
         data_manager = DataManager(task_name=task_name, dataset_name=dataset_name)

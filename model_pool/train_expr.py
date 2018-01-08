@@ -11,21 +11,26 @@ reg= 1e-2
 
 
 
-def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer, num_epochs=50, clip_grad=False, experiment_name=''):
+def train_model(opt,model, dataloaders,writer):
     since = time()
-
+    experiment_name = opt['tsk_set']['tsk_name']
+    period = opt['tsk_set'][('print_step', 10, 'num of steps to print')]
+    num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
+    resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
+    model_path = opt['tsk_set'][('model_path', '', 'if continue_train, given the model path')]
+    record_path = opt['tsk_set']['path'][('record_path', '', 'path of record')]
     best_model_wts = model.state_dict()
     best_loss = 0
     model = model.cuda()
     start_epoch = 0
     global_step = {x:0 for x in ['train','val']}
     period_loss = {x: 0. for x in ['train', 'val']}
-    period =20
-    if model_path is not None:
+
+
+    if resume_training:
         start_epoch, best_loss =resume_train(model_path, model)
     # else:
     #     model.apply(weights_init)
-
 
     for epoch in range(start_epoch, num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -35,7 +40,6 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
         for phase in ['train', 'val']:
             save_per_epoch = 1
             if phase == 'train':
-                scheduler.step()
                 model.train(True)  # Set model to training mode
             else:
                 model.train(False)  # Set model to evaluate mode
@@ -47,15 +51,19 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
                 # get the inputs
 
                 model.set_input(data)
-                model.optimize_parameters()
+                if phase == 'train':
+                    model.optimize_parameters()
+                elif phase =='val':
+                    model.cal_val_errors()
+
                 loss = model.get_current_errors()
 
                 if epoch % 10 == 0 and save_per_epoch:
                     save_per_epoch = 0
                     appendix = 'epoch_' + str(epoch)
-                    save_result(record_path + phase + '_' + experiment_name+'/', appendix, moving, target, output)
+                    #save_result(record_path + phase + '_' + experiment_name+'/', appendix)
 
-                # backward + optimize only if in training phase
+                #backward + optimize only if in training phase
 
 
                 # statistics
@@ -87,7 +95,6 @@ def train_model(model, dataloaders, criterion_sched, optimizer, scheduler,writer
             if phase == 'val':
                 save_checkpoint({'epoch': epoch,'state_dict': model.state_dict(),
                              'best_loss': best_loss}, is_best, check_point_path, 'epoch_'+str(epoch), 'reg_net')
-
 
         print()
 

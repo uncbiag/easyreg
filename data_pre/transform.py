@@ -35,7 +35,7 @@ class Transform(object):
 
         if using_bspline_deform:
             deform_target = option_default[('deform_target', 'padded','deform mode: global, local or padded')]
-            deform_scale =  self.option[('deform_scale', 1.0, 'deform scale')]
+            deform_scale =  option_default[('deform_scale', 1.0, 'deform scale')]
             self.option['bspline_trans']['deform_scale'] = deform_scale
 
             if using_bspline_deform:
@@ -109,7 +109,7 @@ class Transform(object):
     def random_rigid_transform(self):
 
 
-        option_rrt = self.option[('bal_rand_crop', {}, 'settins for random_rigid_transform')]
+        option_rrt = self.option[('rand_rigid_trans', {}, 'settins for random_rigid_transform')]
         transition = option_rrt[('transition',list([0.5]*self.dim), 'transtion for each dimension')]
         rotation = option_rrt[('rotation',list([0.0]*self.dim), 'rotation for each dimension')]
         rigid_ratio = option_rrt[('rigid_ratio',0.5, 'rigid ratio')]

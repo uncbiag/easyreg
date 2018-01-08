@@ -117,10 +117,13 @@ def extract_train_patch_info(patch_dic):
     return {'l':label, 'sc':start_coord,'th':label_threshold}
 
 def extract_test_patch_info(patches_dic):
-    effective_size = patches_dic['effective_size']
-    effective_size = str_concat(effective_size)
+    tile_size = patches_dic['tile_size']
+    tile_size = str_concat(tile_size)
+    overlap_size = patches_dic['overlap_size']
+    overlap_size = str_concat(overlap_size)
+    padding_mode = patches_dic['padding_mode']
 
-    return {'sf_sz':effective_size}
+    return {'tile_size':tile_size, 'overlap_size':overlap_size,'padding_mode':padding_mode}
 
 
 def gen_fn_from_info(info):
@@ -241,6 +244,7 @@ def save_sz_sp_to_json(info, output_path):
     par[('info', {}, 'shared information of data')]
     par['info'][('img_sz', info['img_size'], 'size of image')]
     par['info'][('spacing', info['spacing'].tolist(), 'size of image')]
+    par['info'][('num_label', info['num_label'], 'num of label')]
     par.write_JSON(os.path.join(output_path, 'info.json'))
 
 
