@@ -71,5 +71,7 @@ class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, sample):
-
-        return torch.from_numpy(sample)
+        n_tensor = torch.from_numpy(sample)
+        if n_tensor.shape[0] != 1:
+            n_tensor.unsqueeze_(0)
+        return n_tensor

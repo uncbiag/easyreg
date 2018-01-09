@@ -8,7 +8,7 @@ from copy import deepcopy
 from data_pre.seg_data_utils import *
 from data_pre.transform import  Transform
 from data_pre.partition import partition
-number_of_workers=10
+number_of_workers=20
 
 
 class BaseSegDataSet(object):
@@ -40,6 +40,7 @@ class BaseSegDataSet(object):
         self.option_trans = self.option[('transform', {}, 'settings for transform')]
         self.transform_name_seq = []
         self.num_label = 0
+        self.standard_label_index=[]
 
     def generate_file_list(self):
         pass
@@ -92,15 +93,34 @@ class BaseSegDataSet(object):
             sample = transform(sample)
         return sample
 
+    def convert_to_standard_label_map(self,label_map,file_path):
+
+        cur_label_list = list(np.unique(label_map))
+        num_label = len(cur_label_list)
+        if self.num_label != num_label:  # s37 in lpba40 has one more label than others
+            print("Warnning!!!!, The num of classes {} are not the same in file{}".format(num_label, file_path))
+
+        for l_id in cur_label_list:
+            if l_id in self.standard_label_index:
+                st_index = self.standard_label_index.index(l_id)
+            else:
+                # assume background label is 0
+                st_index = 0
+                print("warning label: is not in standard label index, and would be convert to 0".format(l_id))
+            label_map[np.where(label_map==l_id)]=st_index
+
     def initialize_info(self):
         file_label_path_list = find_corr_map([self.file_path_list[0]], self.label_path, self.label_switch)
         label, linfo = self.read_file(file_label_path_list[0], is_label=True)
         label_list = list(np.unique(label))
         num_label = len(label_list)
+        self.standard_label_index = tuple([int(item) for item in label_list])
+        print('the standard label index is :{}'.format(self.standard_label_index))
         print('the num of the class: {}'.format(num_label))
         self.option_trans['shared_info']['img_size'] = list(linfo['img_size'])
         self.num_label = num_label
         linfo['num_label'] = num_label
+        linfo['standard_label_index']= self.standard_label_index
         self.save_shared_info(linfo)
 
     def get_file_list(self):
@@ -137,8 +157,8 @@ class BaseSegDataSet(object):
         self.get_save_path_list()
         self.initialize_info()
         file_patitions = np.array_split(self.file_path_dic['train'], number_of_workers)
-        # with Pool(processes=number_of_workers) as pool:
-        #     res = pool.map(self.train_data_processing,file_patitions)
+        with Pool(processes=number_of_workers) as pool:
+            res = pool.map(self.train_data_processing,file_patitions)
         file_patitions = np.array_split(self.file_path_dic['val']+self.file_path_dic['test'], number_of_workers)
         with Pool(processes=number_of_workers) as pool:
             res = pool.map(self.test_data_processing, file_patitions)
@@ -179,13 +199,11 @@ class PatchedDataSet(BaseSegDataSet):
             file_name = get_file_name(file_path)
             img, info = self.read_file(file_path)
             label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            self.convert_to_standard_label_map(label,file_path)
             label_list = list(np.unique(label))
             label_density = np.bincount(label.reshape(-1).astype(np.int32))/len(label.reshape(-1))
             option_trans_cp['shared_info']['label_list'] = label_list
             option_trans_cp['shared_info']['label_density'] = label_density
-            num_label = len(label_list)
-            if self.num_label != num_label: # s37 in lpba40 has one more label than others
-                print("Warnning!!!!, The num of classes {} are not the same in file{}".format(num_label,file_path))
             transform_seq = self.get_transform_seq(option_trans_cp)
             sample = {'img':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
             for _ in range(self.num_label):
@@ -205,6 +223,7 @@ class PatchedDataSet(BaseSegDataSet):
             file_name = get_file_name(file_path)
             img, info = self.read_file(file_path)
             label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            self.convert_to_standard_label_map(label,file_path)
             sample = {'img':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
             patches = partition_ins(sample)
             saving_patches_per_img(patches,self.saving_path_dic[file_name])
@@ -229,6 +248,7 @@ class NoPatchedDataSet(BaseSegDataSet):
             file_name = get_file_name(file_path)
             img, info = self.read_file(file_path)
             label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            self.convert_to_standard_label_map(label,file_path)
             transform_seq = self.get_transform_seq(option_trans_cp)
             sample = {'img': np_to_sitk(img, info), 'seg': np_to_sitk(label, info)}
             img_transformed = self.apply_transform(sample, transform_seq)

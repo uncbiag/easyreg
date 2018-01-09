@@ -35,7 +35,7 @@ class Initializer():
         task_root_path = par_dataset['datapro']['switch']['task_root_path']
     
         # work on current task
-        dataset_name = par_dataset['datapro']['dataset']['name']
+        dataset_name = par_dataset['datapro']['dataset']['dataset_name']
         data_pro_task_name = par_dataset['datapro']['dataset']['task_name']
         prepare_data = par_dataset['datapro']['dataset']['prepare_data']
         data_path = par_dataset['datapro']['dataset']['data_path']
@@ -52,7 +52,7 @@ class Initializer():
         reg_slicing = par_dataset['datapro']['reg']['slicing']
         reg_axis = par_dataset['datapro']['reg']['axis']
     
-        seg_option = par_dataset['seg']
+        seg_option = par_dataset['datapro']['seg']
         seg_transform_seq  = par_dataset['datapro']['seg']['transform']['transform_seq']
     
         self.data_manager = DataManager(task_name=data_pro_task_name, dataset_name=dataset_name)
@@ -78,7 +78,8 @@ class Initializer():
             if prepare_data:
                 self.data_manager.init_dataset()
                 self.data_manager.prepare_data()
-                par_dataset.write_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))
+                par_dataset.load_JSON(setting_path)
+                par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))
             task_root_path = self.data_manager.get_task_root_path()
 
         self.task_root_path = task_root_path
@@ -87,9 +88,10 @@ class Initializer():
     def get_info_dic(self):
         data_info = pars.ParameterDict()
         data_info.load_JSON(os.path.join(self.task_root_path, 'info.json'))
-        return data_info
+        return data_info['info']
 
-    def get_data_loader(self, batch_size=5):
+    def get_data_loader(self):
+        batch_size = self.task_opt['tsk_set']['batch_sz']
         return self.data_manager.data_loaders(batch_size=batch_size)
 
 
@@ -108,8 +110,8 @@ class Initializer():
         check_point_path =os.path.join(os.path.join(self.task_root_path,self.task_name),'checkpoints')
         record_path = os.path.join(os.path.join(self.task_root_path,self.task_name),'records')
         self.writer = SummaryWriter(logdir, self.task_name)
-        self.task_opt['tsk_set']['path'] = [('path',{},'record paths')]
-        self.task_opt['tsk_set']['path']['logdir'] = logdir
+        self.task_opt['tsk_set'][('path',{},'record paths')]
+        self.task_opt['tsk_set']['path']['logdir'] =logdir
         self.task_opt['tsk_set']['path']['check_point_path'] = check_point_path
         self.task_opt['tsk_set']['path']['record_path'] = record_path
         self.path = {'logdir':logdir,'check_point_path': check_point_path,'record_path':record_path}

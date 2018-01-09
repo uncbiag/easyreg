@@ -63,6 +63,18 @@ class ParameterDict(object):
                 print('Writing parameter file = ' + fileName )
             json.dump(self.int, outfile, indent=4, sort_keys=True)
 
+    def write_ext_JSON(self, fileName):
+        """
+        Writes the JSON configuration to a file
+
+        :param fileName: filename to write the configuration to
+        """
+
+        with open(fileName, 'w') as outfile:
+            if self.printSettings:
+                print('Writing parameter file = ' + fileName)
+            json.dump(self.ext, outfile, indent=4, sort_keys=True)
+
     def write_JSON_comments(self, fileNameComments):
         """
         Writes the JSON commments file. This file will not contain any actual values, but

@@ -1,6 +1,9 @@
+import torch
 def create_model(opt):
     model = None
-    model_name = opt['model']
+    model_name = opt['tsk_set']['model']
+    gpu_id = opt['tsk_set']['gpu_ids']
+    torch.cuda.set_device(gpu_id)
     print(model_name)
     if model_name == 'context_net':
         from .context_net import ContextNet

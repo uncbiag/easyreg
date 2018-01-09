@@ -101,13 +101,20 @@ class Partition(object):
 
         return trans_sample
 
-    def assemble(self, tiles, is_vote=False):
+    def assemble(self, tiles,image_size=None, is_vote=False):
         """
         Assembles segmentation of small patches into the original size
         :param tiles: Nxhxdxw tensor contains N small patches of size hxdxw
         :param is_vote:
         :return: a segmentation information
+
         """
+        if image_size is not None:
+            self.image_size = image_size
+        self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
+        self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
+        self.padded_size = self.effective_size * self.tiles_grid_size + self.overlap_size * 2 - self.image_size  # size difference of padded image with original image
+
         tiles = tiles.numpy()
 
         if is_vote:
@@ -146,7 +153,7 @@ class Partition(object):
                             tiles[ind][self.overlap_size[0]:self.tile_size[0] - self.overlap_size[0],
                             self.overlap_size[1]:self.tile_size[1] - self.overlap_size[1],
                             self.overlap_size[2]:self.tile_size[2] - self.overlap_size[2]]
-            #seg_reassemble = seg_reassemble[:self.image_size[0], :self.image_size[1], :self.image_size[2]]
+            seg_reassemble = seg_reassemble[:self.image_size[0], :self.image_size[1], :self.image_size[2]]
 
         # seg_image = sitk.GetImageFromArray(seg_reassemble)
         # seg_image.CopyInformation(self.image)

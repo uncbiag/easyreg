@@ -2,7 +2,7 @@ from data_pre.reg_data_utils import *
 from torchvision import transforms
 import torch
 import data_pre.reg_data_loader as  reg_loader
-from data_pre.reg_data_loader import ToTensor
+from data_pre.seg_data_loader import ToTensor
 import data_pre.module_parameters as pars
 import  data_pre.reg_data_pool as reg_pool
 import data_pre.seg_data_loader as  seg_loader
@@ -126,11 +126,13 @@ class DataManager(object):
     def generate_saving_path(self):
         slicing_info = '_slicing_{}_axis_{}'.format(self.slicing, self.axis) if self.slicing>0 else ''
         comb_info = '_full_comb' if self.full_comb else ''
+        reg_info = slicing_info+comb_info
         transfrom_info=''
         from functools import reduce
         if len(self.transform_seq):
             transfrom_info = reduce((lambda x,y: x+y),self.transform_seq)
-        full_task_name = self.task_name+'_'+self.task_type+'_'+self.sched+slicing_info+comb_info+transfrom_info
+        extend_info = reg_info if self.task_type=='reg' else transfrom_info
+        full_task_name = self.task_name+'_'+self.task_type+'_'+self.sched+extend_info
         self.set_full_task_name(full_task_name)
         self.task_root_path = os.path.join(self.output_path,full_task_name)
 
@@ -217,9 +219,9 @@ class DataManager(object):
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),
                            'val': torch.utils.data.DataLoader(transformed_dataset['val'],
-                                                                batch_size=1, shuffle=False, num_workers=4),
+                                                                batch_size=1, shuffle=False, num_workers=1),
                            'test': torch.utils.data.DataLoader(transformed_dataset['test'],
-                                                                batch_size=1, shuffle=False, num_workers=4)
+                                                                batch_size=1, shuffle=False, num_workers=1)
                            }
         return dataloaders
 

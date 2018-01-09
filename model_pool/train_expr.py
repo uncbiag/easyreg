@@ -1,34 +1,29 @@
 from time import time
-import torch
-from torch.autograd import Variable
 from pipLine.utils import *
-from models.networks import SimpleNet
 
-record_path ='../data/records/learning/'
-model_path = None
-check_point_path = '../data/checkpoints'
-reg= 1e-2
 
 
 
 def train_model(opt,model, dataloaders,writer):
     since = time()
-    experiment_name = opt['tsk_set']['tsk_name']
+    experiment_name = opt['tsk_set']['task_name']
     period = opt['tsk_set'][('print_step', 10, 'num of steps to print')]
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
     resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set'][('model_path', '', 'if continue_train, given the model path')]
-    record_path = opt['tsk_set']['path'][('record_path', '', 'path of record')]
-    best_model_wts = model.state_dict()
+    record_path = opt['tsk_set']['path']['record_path']
+    check_point_path = opt['tsk_set']['path']['check_point_path']
+    max_batch_num_per_epoch = opt['tsk_set']['max_batch_num_per_epoch']
+    best_model_wts = model.network.state_dict()
     best_loss = 0
-    model = model.cuda()
+    model.network = model.network.cuda()
     start_epoch = 0
     global_step = {x:0 for x in ['train','val']}
     period_loss = {x: 0. for x in ['train', 'val']}
 
 
     if resume_training:
-        start_epoch, best_loss =resume_train(model_path, model)
+        start_epoch, best_loss =resume_train(model_path, model.network)
     # else:
     #     model.apply(weights_init)
 
@@ -40,61 +35,53 @@ def train_model(opt,model, dataloaders,writer):
         for phase in ['train', 'val']:
             save_per_epoch = 1
             if phase == 'train':
-                model.train(True)  # Set model to training mode
+                model.network.train(True)  # Set model to training mode
             else:
-                model.train(False)  # Set model to evaluate mode
+                model.network.train(False)  # Set model to evaluate mode
 
-            running_loss = 0.0
+            running_val_loss =0.0
 
             # Iterate over data.
             for data in dataloaders[phase]:
                 # get the inputs
+                is_train = True if phase == 'train' else False
+                model.set_input(data,is_train)
 
-                model.set_input(data)
                 if phase == 'train':
                     model.optimize_parameters()
+                    loss = model.get_current_errors()
+
                 elif phase =='val':
                     model.cal_val_errors()
+                    loss= model.get_val_res()
+                    running_val_loss += loss
 
-                loss = model.get_current_errors()
-
-                if epoch % 10 == 0 and save_per_epoch:
-                    save_per_epoch = 0
-                    appendix = 'epoch_' + str(epoch)
-                    #save_result(record_path + phase + '_' + experiment_name+'/', appendix)
-
-                #backward + optimize only if in training phase
-
-
-                # statistics
-                running_loss += loss.data[0]
-                period_loss[phase] += loss.data[0]
+                period_loss[phase] += loss
                 # save for tensorboard, both train and val will be saved
                 global_step[phase] += 1
-                if global_step[phase] > 1 and global_step[phase]%period == 0:
+                if global_step[phase] > 1 and global_step[phase] % period == 0:
                     period_avg_loss = period_loss[phase] / period
-                    writer.add_scalar('loss/'+phase, period_avg_loss, global_step[phase])
+                    writer.add_scalar('loss/' + phase, period_avg_loss, global_step[phase])
+                    print("global_step:{}, {} lossing is{}".format(global_step[phase], phase, loss))
                     period_loss[phase] = 0.
 
+                if phase=='train' and global_step['train'] % max_batch_num_per_epoch == 0:
+                    break
 
 
-            epoch_loss = running_loss / dataloaders['data_size'][phase]
-            print('{} Loss: {:.4f}'.format(
-                phase, epoch_loss))
-
-            # deep copy the model
-            if epoch == 0:
-                best_loss = epoch_loss
-            is_best =False
-            if phase == 'val' and epoch_loss < best_loss:
-                is_best = True
-                best_loss = epoch_loss
-                best_model_wts = model.state_dict()
-            # save check point every epoch
-            # only train phase would be saved
             if phase == 'val':
-                save_checkpoint({'epoch': epoch,'state_dict': model.state_dict(),
-                             'best_loss': best_loss}, is_best, check_point_path, 'epoch_'+str(epoch), 'reg_net')
+                epoch_val_loss = running_val_loss / min(max_batch_num_per_epoch, dataloaders['data_size'][phase])
+                print('{} epoch_val_loss: {:.4f}'.format(epoch, epoch_val_loss))
+
+                if epoch == 0:
+                    best_loss = epoch_val_loss
+                is_best = False
+                if  epoch_val_loss > best_loss:
+                    is_best = True
+                    best_loss = epoch_val_loss
+                    best_model_wts = model.network.state_dict()
+                save_checkpoint({'epoch': epoch,'state_dict': model.network.state_dict(),
+                             'best_loss': best_loss}, is_best, check_point_path, 'epoch_'+str(epoch), '')
 
         print()
 

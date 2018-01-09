@@ -1,3 +1,4 @@
+# coding=utf-8
 import torch
 import torch.nn as nn
 import numpy as np
@@ -11,19 +12,32 @@ import torch.nn.functional as F
 # Functions
 ###############################################################################
 
-class ContentLoss():
-    def initialize(self, loss):
-        self.criterion = loss
+class Loss(object):
+    def __init__(self,opt):
+        super(Loss,self).__init__()
+        class_num = opt['tsk_set']['extra_info']['num_label']
+        cont_loss_type = opt['tsk_set']['loss']
+        if cont_loss_type == 'l1':
+            self.criterion = nn.L1Loss()
+        elif cont_loss_type == 'mse':
+            self.criterion = nn.MSELoss()
+        elif cont_loss_type =='ce':
+            self.criterion = CrossEntropyLoss(class_num)
+        elif cont_loss_type == 'focal_loss':
+            focal_loss = FocalLoss().initialize(class_num, alpha=None, gamma=2, size_average=True)
+            self.criterion = focal_loss
+        elif cont_loss_type == 'dice_loss':
+            self.criterion = DiceLoss()
+        else:
+            raise ValueError("Model [%s] not recognized." % opt.model)
 
     def get_loss(self,output, gt):
         return self.criterion(output, gt)
 
 
 
-
-
 class FocalLoss(nn.Module):
-    r"""
+    """
         This criterion is a implemenation of Focal Loss, which is proposed in
         Focal Loss for Dense Object Detection.
 
@@ -55,7 +69,7 @@ class FocalLoss(nn.Module):
         N = inputs.size(0)
         print(N)
         C = inputs.size(1)
-        P = F.softmax(inputs)
+        P = F.softmax(inputs,dim=1)
 
         class_mask = inputs.data.new(N, C).fill_(0)
         class_mask = Variable(class_mask)
@@ -122,8 +136,8 @@ class DiceLoss(nn.Module):
         from functools import reduce
         extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
         targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim)
-        targ_one_hot.scatter_(1,target.view(in_sz[0],in_sz[1],extra_dim),1)
-        targ_one_hot = targ_one_hot.view(in_sz).contiguous()
+        targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1)
+        target = targ_one_hot.view(in_sz).contiguous()
         assert input.size() == target.size(), "Input sizes must be equal."
         uniques = np.unique(target.numpy())
         assert set(list(uniques)) <= set([0, 1]), "target must only contain zeros and ones"
@@ -149,51 +163,17 @@ class DiceLoss(nn.Module):
         return dice_total
 
 
-class PerceptualLoss():
-    def contentFunc(self):
-        conv_3_3_layer = 14
-        #################################################################33
-        #  should be replaced by 3D medical network
-        cnn = models.vgg19(pretrained=True).features
-        cnn = cnn.cuda()
-        model = nn.Sequential()
-        model = model.cuda()
-        for i, layer in enumerate(list(cnn)):
-            model.add_module(str(i), layer)
-            if i == conv_3_3_layer:
-                break
-        return model
 
-    def initialize(self, loss):
-        self.criterion = loss
-        self.contentFunc = self.contentFunc()
-
-    def get_loss(self, fakeIm, realIm):
-        f_fake = self.contentFunc.forward(fakeIm)
-        f_real = self.contentFunc.forward(realIm)
-        f_real_no_grad = f_real.detach()
-        loss = self.criterion(f_fake, f_real_no_grad)
-        return loss
+class CrossEntropyLoss(nn.Module):
+    def __init__(self, class_num):
+        super(CrossEntropyLoss,self).__init__()
+        self.loss_fn = nn.CrossEntropyLoss()
+        self.n_class = class_num
+    def forward(self, input, gt):
+        output_flat = input.permute(0, 2, 3, 4, 1).contiguous().view(-1, self.n_class)
+        truths_flat = gt.view(-1)
+        return self.loss_fn(output_flat,truths_flat)
 
 
 
-def init_loss(opt):
-    disc_loss = None
-    cont_loss_type = opt.cont_loss_type
-    content_loss = ContentLoss()
-    if cont_loss_type == 'l1':
-        content_loss.initialize(nn.L1Loss())
-    elif cont_loss_type == 'l2':
-        content_loss.initialize(nn.MSELoss())
-    elif cont_loss_type =='ce':
-        content_loss.initialize(nn.CrossEntropyLoss())
-    elif cont_loss_type == 'focal_loss':
-        class_num = opt.class_num
-        focal_loss = FocalLoss().initialize(class_num, alpha=None, gamma=2, size_average=True)
-        content_loss = focal_loss
-    elif cont_loss_type == 'dice_loss':
-        content_loss = DiceLoss()
-    else:
-        raise ValueError("Model [%s] not recognized." % opt.model)
 
-    return disc_loss, content_loss
