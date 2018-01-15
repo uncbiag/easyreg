@@ -24,7 +24,8 @@ class Loss(object):
         elif cont_loss_type =='ce':
             self.criterion = CrossEntropyLoss(class_num)
         elif cont_loss_type == 'focal_loss':
-            focal_loss = FocalLoss().initialize(class_num, alpha=None, gamma=2, size_average=True)
+            focal_loss = FocalLoss()
+            focal_loss.initialize(class_num, alpha=None, gamma=2, size_average=True)
             self.criterion = focal_loss
         elif cont_loss_type == 'dice_loss':
             self.criterion = DiceLoss()
@@ -66,15 +67,22 @@ class FocalLoss(nn.Module):
         self.size_average = size_average
 
     def forward(self, inputs, targets):
+        """
+
+        :param inputs: Bxn_classxXxYxZ
+        :param targets: Bx.....  , range(0,n_class)
+        :return:
+        """
+        inputs = inputs.permute(0, 2, 3, 4, 1).contiguous().view(-1, inputs.size(1))
+        targets = targets.view(-1)
         N = inputs.size(0)
-        print(N)
         C = inputs.size(1)
         P = F.softmax(inputs,dim=1)
 
         class_mask = inputs.data.new(N, C).fill_(0)
         class_mask = Variable(class_mask)
         ids = targets.view(-1, 1)
-        class_mask.scatter_(1, ids.data, 1.)
+        class_mask.scatter_(1, ids, 1.)
         # print(class_mask)
 
         if inputs.is_cuda and not self.alpha.is_cuda:
@@ -130,7 +138,7 @@ class DiceLoss(nn.Module):
     def forward(self,input, target):
         """
         input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
-        target is a 1-hot representation of the groundtruth, shoud have same size as the input, which means the value in target should be 0,1....N_label
+        target is a Bx....   range 0,1....N_label
         """
         in_sz = input.size()
         from functools import reduce
@@ -143,17 +151,17 @@ class DiceLoss(nn.Module):
         assert set(list(uniques)) <= set([0, 1]), "target must only contain zeros and ones"
 
         probs = F.softmax(input)
-        num = probs * target  # b,c,h,w--p*g
+        num = probs * target
         num = num.view(num.shape[0],num.shape[1],-1)
-        num = torch.sum(num, dim=2)  # b,c,h
+        num = torch.sum(num, dim=2)
 
-        den1 = probs * probs  # --p^2
+        den1 = probs * probs
         den1 = den1.view(den1.shape[0], den1.shape[1], -1)
-        den1 = torch.sum(den1, dim=2)  # b,c,h
+        den1 = torch.sum(den1, dim=2)
 
-        den2 = target * target  # --g^2
+        den2 = target * target
         den2 = den1.view(den2.shape[0], den2.shape[1], -1)
-        den2 = torch.sum(den2, dim=2)  # b,c,hb,c
+        den2 = torch.sum(den2, dim=2)
 
         dice = 2 * (num / (den1 + den2))
         dice_eso = dice[:, 1:]  # we ignore bg dice val, and take the fg
@@ -170,6 +178,11 @@ class CrossEntropyLoss(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
         self.n_class = class_num
     def forward(self, input, gt):
+        """
+        :param inputs: Bxn_classxXxYxZ
+        :param targets: Bx.....  , range(0,n_class)
+        :return:
+        """
         output_flat = input.permute(0, 2, 3, 4, 1).contiguous().view(-1, self.n_class)
         truths_flat = gt.view(-1)
         return self.loss_fn(output_flat,truths_flat)

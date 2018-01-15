@@ -1,0 +1,96 @@
+{
+    "datapro": {
+        "dataset": {
+            "data_path": {},
+            "dataset_name": "lpba",
+            "divided_ratio": [
+                0.8,
+                0.1,
+                0.1
+            ],
+            "label_path": {},
+            "output_path": "/playpen/zyshen/data/",
+            "prepare_data": false,
+            "task_name": "bg_0.1"
+        },
+        "reg": {
+            "all_comb": false,
+            "axis": 1,
+            "sched": "inter",
+            "slicing": 117
+        },
+        "seg": {
+            "num_crop_per_class_per_train_img": 100,
+            "partition": {
+                "mode": "pred",
+                "overlap_size": [
+                    16,
+                    16,
+                    8
+                ],
+                "padding_mode": "reflect"
+            },
+            "patch_size": [
+                128,
+                128,
+                32
+            ],
+            "sched": "patched",
+            "transform": {
+                "bal_rand_crop": {},
+                "bilateral_filter": {
+                    "bilateral_ratio": 1.0,
+                    "domain_sigma": 0.2,
+                    "range_sigma": 0.06
+                },
+                "bspline_trans": {
+                    "bspline_order": 3,
+                    "deform_ratio": 0.5,
+                    "deform_scale": 1.0,
+                    "interpolator": "BSpline"
+                },
+                "default": {
+                    "deform_scale": 1.0,
+                    "deform_target": "padded",
+                    "using_bspline_deform": false
+                },
+                "gaussian_blur": {
+                    "blur_ratio": 1.0,
+                    "gaussian_var": 0.5,
+                    "gaussian_width": 1,
+                    "maximumError": 0.9
+                },
+                "my_bal_rand_crop": {
+                    "scale_ratio": 0.2
+                },
+                "my_rand_crop": {
+                    "bg_label": 0,
+                    "crop_bg_ratio": 0.1,
+                    "scale_ratio": 0.05
+                },
+                "rand_rigid_trans": {
+                    "rigid_mode": "both",
+                    "rigid_ratio": 0.5,
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "transition": [
+                        0.5,
+                        0.5,
+                        0.5
+                    ]
+                },
+                "shared_info": {},
+                "transform_seq": [
+                    ""
+                ]
+            }
+        },
+        "switch": {
+            "switch_to_exist_task": true,
+            "task_root_path": "/playpen/zyshen/data/bg_0.1_oai_seg_patchedmy_balanced_random_crop"
+        }
+    }
+}

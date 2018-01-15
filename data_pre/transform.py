@@ -91,7 +91,7 @@ class Transform(object):
         scale_dim = [img_size[i]/self.patch_size[i] for i in range(self.dim)]
         scale = reduce(lambda x,y:x*y, scale_dim)
         sample_threshold = label_density * scale * scale_ratio
-        np.clip(sample_threshold,0,0.95,out=sample_threshold)
+        np.clip(sample_threshold,0,0.1,out=sample_threshold)
         my_balanced_random_crop = bio_transform.MyBalancedRandomCrop(self.patch_size, threshold=sample_threshold.tolist(),label_list =label_list )
         return my_balanced_random_crop
 

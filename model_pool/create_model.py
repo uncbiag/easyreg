@@ -11,6 +11,9 @@ def create_model(opt):
     elif model_name == 'unet':
         from .unet import Unet
         model = Unet()
+    elif model_name == 'reg_net':
+        from .reg_net import RegNet
+        model = RegNet()
     elif opt.model == 'test':
         # from .test_model import TestModel
         # model = TestModel()

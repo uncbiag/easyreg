@@ -81,7 +81,7 @@ def divide_data_set(root_path, file_path_list, ratio):
     val_ratio = ratio[1]
     file_name_list = [get_file_name(fp) for fp in file_path_list]
     file_num = len(file_name_list)
-    sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test']}
+    sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test','debug']}
     nt = [make_dir(sub_path[key]) for key in sub_path]
     if sum(nt):
         raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
@@ -93,13 +93,16 @@ def divide_data_set(root_path, file_path_list, ratio):
     file_name_sub_list['train'] = file_name_list[:train_num]
     file_name_sub_list['val'] = file_name_list[train_num: train_num + val_num]
     file_name_sub_list['test'] = file_name_list[train_num + val_num:]
+    file_name_sub_list['debug'] = file_name_list[: val_num]
     fp_sub_list['train'] = file_path_list[:train_num]
     fp_sub_list['val'] = file_path_list[train_num: train_num + val_num]
     fp_sub_list['test'] = file_path_list[train_num + val_num:]
-    saving_path_list = [os.path.join(sub_path[x], file_name) for x in ['train', 'val', 'test'] for file_name
+    fp_sub_list['debug'] = file_path_list[: val_num]
+    saving_path_list = [os.path.join(sub_path[x], file_name) for x in ['train', 'val', 'test','debug'] for file_name
                         in file_name_sub_list[x]]
     saving_path_dic= {fn: saving_path_list[i] for i, fn in enumerate (file_name_list)}
-    #file_info_dic = {file_name_list[i]: os.path.split(os.path.split(sp)[0])[1] for i, sp in enumerate (saving_path_list)}
+    saving_path_debug_dic = {fn+'_debug': os.path.join(sub_path['debug'], fn) for fn in file_name_sub_list['debug']}
+    saving_path_dic.update(saving_path_debug_dic)
     return saving_path_dic, fp_sub_list
 
 

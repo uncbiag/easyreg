@@ -25,7 +25,7 @@ __device__ void getTopLeft(float x, int width, int& point, float& weight)
    weight = 1 - (xcoord - point);
 }
 
-__device__ bool between(int value, int lowerBound, int upperBound)
+__device__ bool between_2D(int value, int lowerBound, int upperBound)
 {
    return (value >= lowerBound && value <= upperBound);
 }
@@ -101,10 +101,10 @@ __global__ void bilinearSamplingFromGrid_2D(float* inputImages_data, int inputIm
    float inBottomLeft=0;
    float inBottomRight=0;
 
-   bool topLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-   bool topRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-   bool bottomLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
-   bool bottomRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
+   bool topLeftIsIn = between_2D(xInTopLeft, 0, inputImages_width-1) && between_2D(yInTopLeft, 0, inputImages_height-1);
+   bool topRightIsIn = between_2D(xInTopLeft+1, 0, inputImages_width-1) && between_2D(yInTopLeft, 0, inputImages_height-1);
+   bool bottomLeftIsIn = between_2D(xInTopLeft, 0, inputImages_width-1) && between_2D(yInTopLeft+1, 0, inputImages_height-1);
+   bool bottomRightIsIn = between_2D(xInTopLeft+1, 0, inputImages_width-1) && between_2D(yInTopLeft+1, 0, inputImages_height-1);
 
    // interpolation happens here
    for(int t=0; t<inputImages_channels; t++)
@@ -172,10 +172,10 @@ template<bool onlyGrid> __global__ void backwardBilinearSampling_2D(float* input
       float bottomLeftDotProduct = 0;
       float bottomRightDotProduct = 0;
 
-      bool topLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-      bool topRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-      bool bottomLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
-      bool bottomRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
+      bool topLeftIsIn = between_2D(xInTopLeft, 0, inputImages_width-1) && between_2D(yInTopLeft, 0, inputImages_height-1);
+      bool topRightIsIn = between_2D(xInTopLeft+1, 0, inputImages_width-1) && between_2D(yInTopLeft, 0, inputImages_height-1);
+      bool bottomLeftIsIn = between_2D(xInTopLeft, 0, inputImages_width-1) && between_2D(yInTopLeft+1, 0, inputImages_height-1);
+      bool bottomRightIsIn = between_2D(xInTopLeft+1, 0, inputImages_width-1) && between_2D(yInTopLeft+1, 0, inputImages_height-1);
 
       /*
          In that loop we accumulate
@@ -189,7 +189,7 @@ template<bool onlyGrid> __global__ void backwardBilinearSampling_2D(float* input
       {
         int tch = t*gradInputImages_strideChannels;
          float gradOutValue = gradOutput_data[gradOutputAddress + t*gradOutput_strideChannels];
-         // bool between(int value, int lowerBound, int upperBound)
+         // bool between_2D(int value, int lowerBound, int upperBound)
          if(topLeftIsIn)
          {
             float inTopLeft = inputImages_data[inTopLeftAddress + tch];
@@ -252,7 +252,7 @@ int BilinearSamplerBCWH_updateOutput_cuda_kernel_2D(/*output->size[2]*/int szw,
   // batch channel x y
   //  0      1     2 3 
    //dim3 blocks((output->size[2]+15)/16, output->size[1], output->size[0]);
-   dim3 blocks((ih+bdx-1)/bdx, (iw+bdy-1)/bdy, sz3);
+   dim3 blocks((oh+bdx-1)/bdx, (ow+bdy-1)/bdy, sz3);
    dim3 threads(bdx,bdy);
    //printf(" iw, ih, ow, oh  %d %d %d %d",iw,ih,ow,oh);
 
@@ -318,7 +318,7 @@ int BilinearSamplerBCWH_updateGradInput_cuda_kernel_2D(/*gradOutput->size[2]*/in
 //  THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 6, "torch.CudaTensor");
 
    //dim3 blocks((gradOutput->size[2]+15)/16, gradOutput->size[1], gradOutput->size[0]);
-   dim3 blocks((ih+bdx-1)/bdx, (iw+bdy-1)/bdy, sz3);
+   dim3 blocks((goh+bdx-1)/bdx, (gow+bdy-1)/bdy, sz3);
    dim3 threads(bdx,bdy);
    //int grids_channels=2;
    //printf("ow %d gsh %d  gsc %d osh %d osc %d\n",ow,gsh,gsc,osh,osc);
@@ -388,7 +388,7 @@ int BilinearSamplerBCWH_updateGradInputOnlyGrid_cuda_kernel_2D(
 //  THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 6, "torch.CudaTensor");
 
    //dim3 blocks((gradOutput->size[2]+15)/16, gradOutput->size[1], gradOutput->size[0]);
-   dim3 blocks((ih+bdx-1)/bdx, (iw+bdy-1)/bdy, sz3);
+   dim3 blocks((goh+bdx-1)/bdx, (gow+bdy-1)/bdy, sz3);
    dim3 threads(bdx,bdy);
    //int grids_channels=2;
    //printf("ow %d gsh %d  gsc %d osh %d osc %d\n",ow,gsh,gsc,osh,osc);

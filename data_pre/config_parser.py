@@ -35,9 +35,10 @@ def get_task_settings( task_settings_filename = None ):
     task_params.load_JSON( task_settings_filename )
     task_params[('tsk_set',{},'settings for task')]
     task_params['tsk_set'][('batch_sz',4,'batch size')]
-    task_params['tsk_set'][('task_name','','task_name')]
+    task_params['tsk_set'][('task_name','debugging','task_name')]
     task_params['tsk_set'][('train',True,'if training')]
     task_params['tsk_set'][('model','unet','model name, currently only support unet')]
+    task_params['tsk_set'][('print_val_detail',False,'print details of validation results')]
     task_params['tsk_set'][('loss','ce','loss name, {ce,mse,l1_loss,focal_loss, dice_loss}')]
     task_params['tsk_set'][('epoch',100,'num of epoch')]
     task_params['tsk_set'][('criticUpdates',1,'criticUpdates')]
@@ -46,7 +47,8 @@ def get_task_settings( task_settings_filename = None ):
     task_params['tsk_set'][('continue_train',False,'continue to train')]
     task_params['tsk_set'][('model_path','','if continue_train, given the model path')]
     task_params['tsk_set'][('which_epoch','','if continue_train, given the epoch')]
-    task_params['tsk_set'][('max_batch_num_per_epoch',100,'num of the batches per epoch')]
+    task_params['tsk_set'][('max_batch_num_per_epoch',[100,2],'num of the batches per epoch')]
+    task_params['tsk_set'][('check_best_model_period',5,'check and save the best model every save_model_period')]
 
     task_params['tsk_set'][('optim',{},'settings for adam')]
     task_params['tsk_set']['optim'][('optim_type','adam','settings for adam')]
@@ -61,7 +63,7 @@ def get_task_settings( task_settings_filename = None ):
     task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('threshold',0.01,'settings fort plateau scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('min_lr',1e-6,'settings fort plateau scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler'][('custom',{},'settings for custom scheduler')]
-    task_params['tsk_set']['optim']['lr_scheduler']['custom'][('step_size',10,'steps to decay learning rate')]
+    task_params['tsk_set']['optim']['lr_scheduler']['custom'][('step_size',200,'steps to decay learning rate')]
     task_params['tsk_set']['optim']['lr_scheduler']['custom'][('gamma',0.5,'factor to decay learning rate')]
 
     return task_params
@@ -114,7 +116,7 @@ def get_datapro_settings(datapro_settings_filename = None ):
     datapro_params['datapro']['seg']['partition'][('padding_mode', 'reflect', 'padding_mode')]
     datapro_params['datapro']['seg']['partition'][('mode', 'pred', 'eval or pred')]
 
-    datapro_params['datapro']['seg']['transform']['transform_seq',[],"transform seqence list"]
+    datapro_params['datapro']['seg']['transform']['transform_seq',['my_random_crop'],"transform seqence list"]
     datapro_params['datapro']['seg']['transform'][('shared_info', {},'info shared by different transformers')]
     datapro_params['datapro']['seg']['transform'][('default', {}, 'only used when transform_seq is not given, get default transform setting')]
     datapro_params['datapro']['seg']['transform']['default'][('using_bspline_deform',False, 'using bspline transform')]

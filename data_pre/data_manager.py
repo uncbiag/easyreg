@@ -132,12 +132,12 @@ class DataManager(object):
         if len(self.transform_seq):
             transfrom_info = reduce((lambda x,y: x+y),self.transform_seq)
         extend_info = reg_info if self.task_type=='reg' else transfrom_info
-        full_task_name = self.task_name+'_'+self.task_type+'_'+self.sched+extend_info
+        full_task_name = self.task_name+'_'+self.dataset_name+ '_'+ self.task_type+'_'+self.sched+extend_info
         self.set_full_task_name(full_task_name)
         self.task_root_path = os.path.join(self.output_path,full_task_name)
 
     def generate_task_path(self):
-        self.task_path = {x:os.path.join(self.task_root_path,x) for x in ['train','val', 'test']}
+        self.task_path = {x:os.path.join(self.task_root_path,x) for x in ['train','val', 'test','debug']}
         return self.task_path
 
     def get_task_root_path(self):
@@ -150,7 +150,7 @@ class DataManager(object):
         :return:
         """
         self.task_root_path = task_root_path
-        self.task_path = {x:os.path.join(task_root_path,x) for x in ['train','val', 'test']}
+        self.task_path = {x:os.path.join(task_root_path,x) for x in ['train','val', 'test','debug']}
         return self.task_path
 
     def init_dataset(self):
@@ -214,14 +214,16 @@ class DataManager(object):
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                      shuffle=False, num_workers=4) for x in ['train','val','test']}
+                                                      shuffle=False, num_workers=4) for x in ['train','val','test','debug']}
         elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),
                            'val': torch.utils.data.DataLoader(transformed_dataset['val'],
                                                                 batch_size=1, shuffle=False, num_workers=1),
                            'test': torch.utils.data.DataLoader(transformed_dataset['test'],
-                                                                batch_size=1, shuffle=False, num_workers=1)
+                                                                batch_size=1, shuffle=False, num_workers=1),
+                           'debug': torch.utils.data.DataLoader(transformed_dataset['debug'],
+                                                               batch_size=1, shuffle=False, num_workers=1)
                            }
         return dataloaders
 
@@ -236,8 +238,8 @@ class DataManager(object):
         self.init_dataset_type()
         transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x], transform=composed) for x in self.task_path}
         dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
-        dataloaders['data_size'] = {x: len(dataloaders[x]) for x in ['train', 'val','test']}
-        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in ['train', 'val','test']}
+        dataloaders['data_size'] = {x: len(dataloaders[x]) for x in ['train', 'val','test','debug']}
+        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in ['train', 'val','test','debug']}
         print('dataloader is ready')
 
 

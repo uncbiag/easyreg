@@ -83,6 +83,11 @@ class BaseRegDataSet(object):
     def save_file_to_h5py(self):
         pass
 
+    def initialize_info(self):
+        pass
+
+
+
     def prepare_data(self):
         """
         preprocessig  data for each dataset
@@ -90,6 +95,7 @@ class BaseRegDataSet(object):
         """
         print("starting preapare data..........")
         print("the output file path is: {}".format(self.output_path))
+        self.initialize_info()
         self.save_file_to_h5py()
         self.pair_path_list = self.generate_pair_list()
         self.save_pair_to_txt()
@@ -146,7 +152,6 @@ class UnlabeledDataSet(BaseRegDataSet):
             save_to_h5py(saving_path, img, None, f_name, info, verbose=False)
             pbar.update(i + 1)
         pbar.finish()
-        self.save_shared_info(info)
 
 
 
@@ -164,7 +169,35 @@ class LabeledDataSet(BaseRegDataSet):
     def set_label_path(self, path):
         self.label_path = path
 
+    def convert_to_standard_label_map(self,label_map,file_path):
 
+        cur_label_list = list(np.unique(label_map))
+        num_label = len(cur_label_list)
+        if self.num_label != num_label:  # s37 in lpba40 has one more label than others
+            print("Warnning!!!!, The num of classes {} are not the same in file{}".format(num_label, file_path))
+
+        for l_id in cur_label_list:
+            if l_id in self.standard_label_index:
+                st_index = self.standard_label_index.index(l_id)
+            else:
+                # assume background label is 0
+                st_index = 0
+                print("warning label: is not in standard label index, and would be convert to 0".format(l_id))
+            label_map[np.where(label_map==l_id)]=st_index
+
+    def initialize_info(self):
+        file_path_list = get_file_path_list(self.data_path, self.file_type_list)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path)
+        label, linfo = self.read_file(file_label_path_list[0], is_label=True)
+        label_list = list(np.unique(label))
+        num_label = len(label_list)
+        self.standard_label_index = tuple([int(item) for item in label_list])
+        print('the standard label index is :{}'.format(self.standard_label_index))
+        print('the num of the class: {}'.format(num_label))
+        self.num_label = num_label
+        linfo['num_label'] = num_label
+        linfo['standard_label_index']= self.standard_label_index
+        self.save_shared_info(linfo)
 
 
     def save_pair_to_txt(self):
@@ -202,6 +235,7 @@ class LabeledDataSet(BaseRegDataSet):
             img, info = self.read_file(file)
             f_name = file_name_list[i]
             label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            self.convert_to_standard_label_map(label, file_label_path_list[i])
             if i == 0:
                 img_size = img.shape
                 check_same_size(label, img_size)
@@ -213,7 +247,6 @@ class LabeledDataSet(BaseRegDataSet):
             save_to_h5py(saving_path, img, label, f_name, info, verbose=False)
             pbar.update(i + 1)
         pbar.finish()
-        self.save_shared_info(info)
 
 
 

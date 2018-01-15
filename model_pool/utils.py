@@ -7,10 +7,7 @@ import torchvision.utils as utils
 from skimage import color
 
 def get_pair(data, pair= True, target=None):
-    if pair:
-        return data[:,:,0], data[:,:,1]
-    else:
-        return data[:,:,0], target
+     return data['image'][:,:,1], data['image'][:,:,1],data['label'][:,:,1],data['label'][:,:,1]
 
 
 
@@ -160,3 +157,58 @@ def clip_gradient(model, clip_norm):
     for p in model.parameters():
         if p.requires_grad:
             p.grad.mul_(norm)
+
+
+def t2np(v):
+    """
+    Takes a torch array and returns it as a numpy array on the cpu
+
+    :param v: torch array
+    :return: numpy array
+    """
+
+    if type(v) == torch.autograd.variable.Variable:
+        return (v.data).cpu().numpy()
+    else:
+        return v.cpu().numpy()
+
+
+def make_dir(path):
+    is_exist = os.path.exists(path)
+    if not is_exist:
+        os.makedirs(path)
+    return is_exist
+
+
+def show_current_images_3d(iS,iT):
+    import matplotlib.pyplot as plt
+    import model_pool.viewers as viewers
+    fig, ax = plt.subplots(2,3)
+    plt.setp(plt.gcf(), 'facecolor', 'white')
+    plt.style.use('bmh')
+
+    ivsx = viewers.ImageViewer3D_Sliced(ax[0][0], iS, 0, 'source X', True)
+    ivsy = viewers.ImageViewer3D_Sliced(ax[0][1], iS, 1, 'source Y', True)
+    ivsz = viewers.ImageViewer3D_Sliced(ax[0][2], iS, 2, 'source Z', True)
+
+    ivtx = viewers.ImageViewer3D_Sliced(ax[1][0], iT, 0, 'target X', True)
+    ivty = viewers.ImageViewer3D_Sliced(ax[1][1], iT, 1, 'target Y', True)
+    ivtz = viewers.ImageViewer3D_Sliced(ax[1][2], iT, 2, 'target Z', True)
+
+
+    feh = viewers.FigureEventHandler(fig)
+    feh.add_axes_event('button_press_event', ax[0][0], ivsx.on_mouse_press, ivsx.get_synchronize, ivsx.set_synchronize)
+    feh.add_axes_event('button_press_event', ax[0][1], ivsy.on_mouse_press, ivsy.get_synchronize, ivsy.set_synchronize)
+    feh.add_axes_event('button_press_event', ax[0][2], ivsz.on_mouse_press, ivsz.get_synchronize, ivsz.set_synchronize)
+
+    feh.add_axes_event('button_press_event', ax[1][0], ivtx.on_mouse_press, ivtx.get_synchronize, ivtx.set_synchronize)
+    feh.add_axes_event('button_press_event', ax[1][1], ivty.on_mouse_press, ivty.get_synchronize, ivty.set_synchronize)
+    feh.add_axes_event('button_press_event', ax[1][2], ivtz.on_mouse_press, ivtz.get_synchronize, ivtz.set_synchronize)
+
+    feh.synchronize([ax[0][0], ax[1][0]])
+    feh.synchronize([ax[0][1], ax[1][1]])
+    feh.synchronize([ax[0][2], ax[1][2]])
+
+
+
+

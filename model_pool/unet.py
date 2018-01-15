@@ -10,6 +10,10 @@ from .losses import Loss
 from .metrics import get_multi_metric
 import torch.optim.lr_scheduler as lr_scheduler
 from data_pre.partition import Partition
+from model_pool.utils import weights_init
+from model_pool.utils import *
+import torch.nn as nn
+import matplotlib.pyplot as plt
 
 
 
@@ -22,15 +26,14 @@ class Unet(BaseModel):
         n_in_channel = 1
         self.n_class = opt['tsk_set']['extra_info']['num_label']
         which_epoch = opt['tsk_set']['which_epoch']
-        self.img_sz = opt['tsk_set']['extra_info']['img_sz']
-        continue_train = opt['tsk_set']['continue_train']
+        self.print_val_detail = opt['tsk_set']['print_val_detail']
+
         tile_sz =  opt['dataset']['tile_size']
         overlap_size = opt['dataset']['overlap_size']
         padding_mode = opt['dataset']['padding_mode']
-        self.iter_count = 0
         self.network = UNet3D(n_in_channel,self.n_class)
-        self.criticUpdates = opt['tsk_set']['criticUpdates']
-        if continue_train:
+        #self.network.apply(weights_init)
+        if self.continue_train:
             self.load_network(self.network,'unet',which_epoch)
         self.loss_fn = Loss(opt)
         self.init_optim(opt['tsk_set']['optim'])
@@ -41,41 +44,15 @@ class Unet(BaseModel):
             networks.print_network(self.network)
         print('-----------------------------------------------')
 
-    def init_optim(self,opt):
-        optimize_name = opt['optim_type']
-        lr = opt['lr']
-        beta = opt['adam']['beta']
-        lr_sched_opt = opt['lr_scheduler']
-        self.lr_sched_type = lr_sched_opt['type']
-        if optimize_name =='adam':
-            self.optimizer = torch.optim.Adam(self.network.parameters(), lr=lr, betas= (beta, 0.999))
-        else:
-            self.optimzer =  torch.optim.SGD(self.network.parameters(),lr=lr)
-        self.optimizer.zero_grad()
-        self.lr_scheduler=None
-        self.exp_lr_scheduler = None
-        if self.lr_sched_type=='custom':
-            step_size = lr_sched_opt['custom']['step_size']
-            gamma = lr_sched_opt['custom']['gamma']
-            self.lr_scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=step_size, gamma=gamma)
-        elif self.lr_sched_type == 'plateau':
-            patience = lr_sched_opt['plateau']['patience']
-            factor = lr_sched_opt['plateau']['factor']
-            threshold = lr_sched_opt['plateau']['threshold']
-            min_lr = lr_sched_opt['plateau']['min_lr']
-            self.exp_lr_scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', patience=patience, factor=factor, verbose=True,
-                                                       threshold=threshold, min_lr=min_lr)
-
-
 
 
     def set_input(self, input, is_train=True):
         if is_train:
-            self.input = Variable(input['image']).cuda()
+            self.input = Variable(input[0]['image']).cuda()
         else:
-            self.input = Variable(input['image'],volatile=True).cuda()
-        self.gt = Variable(input['label']).long().cuda()
-        self.fname = input['file_id']
+            self.input = Variable(input[0]['image'],volatile=True).cuda()
+        self.gt = Variable(input[0]['label']).long().cuda()
+        self.fname_list = list(input[1])
 
 
     def forward(self,input=None):
@@ -86,13 +63,16 @@ class Unet(BaseModel):
 
 
     def cal_loss(self):
-
+        """"
+        output should be B x n_class x ...
+        gt    should be B x 1 x.......
+        """
         return self.loss_fn.get_loss(self.output,self.gt)
 
 
     # get image paths
     def get_image_paths(self):
-        return self.fname
+        return self.fname_list
 
     def backward_net(self):
         self.loss.backward()
@@ -122,18 +102,37 @@ class Unet(BaseModel):
         pred_patched =  torch.cat(output, dim=0)
         pred_patched = torch.max(pred_patched.data,1)[1]
         self.output = self.partition.assemble(pred_patched, self.img_sz)
-        print('debugging')
+
+
 
     def get_evaluation(self):
-        gt= self.gt.data.cpu().numpy()
-        self.val_res_dic = get_multi_metric(np.expand_dims(self.output,0),gt,rm_bg=False)
-        print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+        self.gt_np= self.gt.data.cpu().numpy()
+        self.val_res_dic = get_multi_metric(np.expand_dims(self.output,0), self.gt_np,rm_bg=False)
+        if not self.print_val_detail:
+            print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+        else:
+            print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
+            print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
 
+
+    def save_val_fig(self,mode):
+        show_current_images_3d(self.output,np.squeeze(self.gt_np))
+        fig=None
+        if True:
+            fig = plt.gcf()
+            folder_name = os.path.join(self.record_path, mode)
+            make_dir(folder_name)
+            file_name = self.fname_list[0] + '_iter_' + str(self.iter_count)
+            fig.savefig(os.path.join(folder_name, file_name), dpi=500)
+        if False:
+            plt.show()
+        fig.clf()
+        plt.clf()
 
     def cal_val_errors(self):
         self.cal_test_errors()
         if self.exp_lr_scheduler is not None:
-            self.exp_lr_scheduler.step(self.loss.data[0])
+            self.exp_lr_scheduler.step(self.get_val_res())
 
     def cal_test_errors(self):
         self.get_assamble_pred()

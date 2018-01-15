@@ -2,12 +2,22 @@ import data_pre.module_parameters as pars
 from data_pre.data_manager import DataManager
 import os
 from tensorboardX import SummaryWriter
-
+import sys
 
 
 class Initializer():
+    class Logger(object):
+        def __init__(self, task_path):
+            self.terminal = sys.stdout
+            self.log = open(os.path.join(task_path, "logfile.log"), "a")
 
+        def write(self, message):
+            self.terminal.write(message)
+            self.log.write(message)
 
+        def flush(self):
+            # this flush method is needed for python 3 compatibility.
+            pass
 
     def init_task_option(self, setting_path='../settings/task_settings.json'):
         self.task_opt = pars.ParameterDict()
@@ -101,19 +111,24 @@ class Initializer():
     def setting_folder(self):
         for item in self.path:
             if not os.path.exists(self.path[item]):
-                os.mkdir(self.path[item])
+                os.makedirs(self.path[item])
 
 
     
     def initialize_log_env(self,):
-        logdir =os.path.join(os.path.join(self.task_root_path,self.task_name),'log')
-        check_point_path =os.path.join(os.path.join(self.task_root_path,self.task_name),'checkpoints')
-        record_path = os.path.join(os.path.join(self.task_root_path,self.task_name),'records')
-        self.writer = SummaryWriter(logdir, self.task_name)
+        self.cur_task_path = os.path.join(self.task_root_path,self.task_name)
+        logdir =os.path.join(self.cur_task_path,'log')
+        check_point_path =os.path.join(self.cur_task_path,'checkpoints')
+        record_path = os.path.join(self.cur_task_path,'records')
         self.task_opt['tsk_set'][('path',{},'record paths')]
+        self.task_opt['tsk_set']['path']['expr_path'] =self.cur_task_path
         self.task_opt['tsk_set']['path']['logdir'] =logdir
         self.task_opt['tsk_set']['path']['check_point_path'] = check_point_path
         self.task_opt['tsk_set']['path']['record_path'] = record_path
         self.path = {'logdir':logdir,'check_point_path': check_point_path,'record_path':record_path}
         self.setting_folder()
+        self.task_opt.write_ext_JSON(os.path.join(self.cur_task_path,'task_settings.json'))
+        sys.stdout = self.Logger(self.cur_task_path)
+        print('start logging:')
+        self.writer = SummaryWriter(logdir, self.task_name)
         return self.writer

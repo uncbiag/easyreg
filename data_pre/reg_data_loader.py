@@ -38,10 +38,6 @@ class RegistrationDataset(Dataset):
     def __len__(self):
         return len(self.name_list)
 
-    def retrieve_file_id(self, filename):
-        """ get the index of the file in the filelist"""
-        return self.name_list.index(filename)
-
     def __getitem__(self, idx):
         """
         :param idx: id of the items
@@ -60,9 +56,8 @@ class RegistrationDataset(Dataset):
             sample['image'] = self.transform(sample['image'])
             if sample['label'] is not None:
                  sample['label'] = self.transform(sample['label'])
-        sample['pair_path'] = self.retrieve_file_id(filename)
         sample['spacing'] = self.transform(sample['info']['spacing'])
-        return sample
+        return sample,filename
 
 
 

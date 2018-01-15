@@ -112,14 +112,13 @@ class SPPLayer(nn.Module):
         return x
 
 
-def grid_gen(img_sz):
-    height= img_sz[0]
-    width = img_sz[1]
+def grid_gen(info):
+    height, width = info['img_h'], info['img_w']
     grid = np.zeros([2, height, width], dtype=np.float32)
     grid[0, ...] = np.expand_dims(
-        np.repeat(np.expand_dims(np.arange(-1, 1, 2.0 / height)[:height], 0), repeats=width, axis=0).T, 0)
+        np.repeat(np.expand_dims(np.arange(-1, 1, 2.0 / height), 0), repeats=width, axis=0).T, 0)
     grid[1, ...] = np.expand_dims(
-        np.repeat(np.expand_dims(np.arange(-1, 1, 2.0 / width)[:width], 0), repeats=height, axis=0), 0)
+        np.repeat(np.expand_dims(np.arange(-1, 1, 2.0 / width), 0), repeats=height, axis=0), 0)
     # self.grid[:,:,2] = np.ones([self.height, self.width])
     return Variable(torch.from_numpy(grid.astype(np.float32)).cuda())
 
@@ -128,11 +127,11 @@ class DenseAffineGridGen(nn.Module):
     """
     given displacement field,  add displacement on grid field
     """
-    def __init__(self, img_sz):
+    def __init__(self, info):
         super(DenseAffineGridGen, self).__init__()
-        self.height =img_sz[0]
-        self.width =img_sz[1]
-        self.grid = grid_gen(img_sz)
+        self.height = info['img_h']
+        self.width = info['img_w']
+        self.grid = grid_gen(info)
 
 
 

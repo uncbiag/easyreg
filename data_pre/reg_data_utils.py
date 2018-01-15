@@ -217,8 +217,11 @@ def divide_data_set(root_path, pair_num,ratio):
     """
     train_ratio = ratio[0]
     val_ratio = ratio[1]
-    sub_folder_dic = {x:os.path.join(root_path,x) for x in ['train', 'val', 'test']}
+    sub_folder_dic = {x:os.path.join(root_path,x) for x in ['train', 'val', 'test','debug']}
+    # debug details maybe added later
+    make_dir(os.path.join(root_path,'debug'))
     nt = [make_dir(sub_folder_dic[key]) for key in sub_folder_dic]
+
     # if sum(nt):
     #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n" \
     #                      "manually delete the folder to reprepare the data")
@@ -228,11 +231,12 @@ def divide_data_set(root_path, pair_num,ratio):
     file_id_dic['train'] = list(range(train_num))
     file_id_dic['val'] = list(range(train_num, train_num+val_num))
     file_id_dic['test'] = list(range(train_num+val_num,pair_num))
+    file_id_dic['debug'] = list(range(train_num))
     return sub_folder_dic, file_id_dic
 
 def get_divided_dic(file_id_dic, pair_path_list, pair_name_list):
     divided_path_dic = {}
-    sesses = ['train','val','test']
+    sesses = ['train','val','test','debug']
     divided_path_dic['pair_path_list'] ={sess:[pair_path_list[idx] for idx in file_id_dic[sess]] for sess in sesses}
     divided_path_dic['pair_name_list'] ={sess:[pair_name_list[idx] for idx in file_id_dic[sess]] for sess in sesses}
     return divided_path_dic
@@ -377,10 +381,14 @@ def save_sz_sp_to_json(info, output_path):
     :return:
     """
     par = pars.ParameterDict()
-    par[('info',{},'shared information of data')]
-    par['info'][('img_sz',info['img_size'], 'size of image')]
-    par['info'][('spacing',info['spacing'].tolist(), 'size of image')]
-    par.write_JSON(os.path.join(output_path,'info.json'))
+    par[('info', {}, 'shared information of data')]
+    par['info'][('img_sz', info['img_size'], 'size of image')]
+    par['info'][('spacing', info['spacing'].tolist(), 'size of image')]
+    if 'num_label' in info:
+        par['info'][('num_label', info['num_label'], 'num of label')]
+    if 'standard_label_index' in info:
+        par['info'][('standard_label_index', info['standard_label_index'], 'standard_label_index')]
+    par.write_JSON(os.path.join(output_path, 'info.json'))
 
 
 

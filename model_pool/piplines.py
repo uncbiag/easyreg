@@ -1,10 +1,17 @@
+import os
+import sys
+sys.path.insert(0,os.path.abspath('.'))
+sys.path.insert(0,os.path.abspath('..'))
+sys.path.insert(0,os.path.abspath('../model_pool'))
+
+
 from model_pool.initializer import Initializer
-from pipLine.train_model_reg import train_model
 from model_pool.create_model import create_model
 from model_pool.train_expr import train_model
 
 
-class pipline():
+
+class Pipline():
     def initialize(self):
         initializer = Initializer()
         initializer.initialize_data_manager(task_type='seg')
@@ -17,15 +24,20 @@ class pipline():
     def run_task(self):
         if self.tsk_opt['tsk_set']['train']:
             train_model(self.tsk_opt, self.model, self.data_loaders,self.writer)
-        else:
-            test_expr(self.tsk_opt, self.data_loaders)
+        # else:
+        #     test_expr(self.tsk_opt, self.data_loaders)
 
 
-if __name__ == '__main__':
-    pipline= pipline()
+def run_one_task():
+    pipline = Pipline()
     pipline.initialize()
     pipline.run_task()
 
+
+if __name__ == '__main__':
+    pipline= Pipline()
+    pipline.initialize()
+    pipline.run_task()
 
 
 

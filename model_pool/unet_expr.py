@@ -32,12 +32,6 @@ class UNet3D(nn.Module):
         # self.weights_init()
 
 
-    def weights_init(self):
-        for m in self.modules():
-            classname = m.__class__.__name__
-            if classname.find('Conv') != -1:
-                nn.init.xavier_normal(m.weight.data)
-                nn.init.xavier_normal(m.bias.data)
 
     def encoder(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1,
                 bias=True, batchnorm=False):

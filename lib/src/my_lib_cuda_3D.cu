@@ -12,7 +12,7 @@ const int bdy = 16;
 // we assume BHWD format in inputImages
 // we assume BHW(YX) format on grids
 
-__device__ void getTopLeft(float x, int width, int& point, float& weight)
+__device__ void getTopLeftFront(float x, int width, int& point, float& weight)
 {
    /* for interpolation :
       stores in point and weight :
@@ -25,7 +25,7 @@ __device__ void getTopLeft(float x, int width, int& point, float& weight)
    weight = 1 - (xcoord - point);
 }
 
-__device__ bool between(int value, int lowerBound, int upperBound)
+__device__ bool between_3D(int value, int lowerBound, int upperBound)
 {
    return (value >= lowerBound && value <= upperBound);
 }
@@ -83,9 +83,9 @@ __global__ void bilinearSamplingFromGrid_3D(float* inputImages_data, int inputIm
       return;
    int zInTopLeft, yInTopLeft, xInTopLeft;  // zInTopFrontLeft
    float zWeightTopLeft, yWeightTopLeft, xWeightTopLeft;
-   getTopLeft(xf, inputImages_width, xInTopLeft, xWeightTopLeft);
-   getTopLeft(yf, inputImages_height, yInTopLeft, yWeightTopLeft);
-   getTopLeft(zf, inputImages_depth, zInTopLeft, zWeightTopLeft);
+   getTopLeftFront(xf, inputImages_width, xInTopLeft, xWeightTopLeft);
+   getTopLeftFront(yf, inputImages_height, yInTopLeft, yWeightTopLeft);
+   getTopLeftFront(zf, inputImages_depth, zInTopLeft, zWeightTopLeft);
    
    const int outAddress = output_strideBatch * batchIdx + output_strideDepth * dOut + output_strideHeight * hOut + output_strideWidth * wOut;  // here assume the channel will be calculated later
    const int inTopLeftFrontAddress = inputImages_strideBatch * batchIdx + inputImages_strideDepth*zInTopLeft+ inputImages_strideHeight * yInTopLeft + inputImages_strideWidth * xInTopLeft;
@@ -109,20 +109,20 @@ __global__ void bilinearSamplingFromGrid_3D(float* inputImages_data, int inputIm
    float inBottomLeftBehind=0;
    float inBottomRightBehind=0;
 
-   //bool topLeftIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-   //bool topRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-   //bool bottomLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
-   //bool bottomRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
+   //bool topLeftIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+   //bool topRightIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1);
+   //bool bottomLeftIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1);
+   //bool bottomRightIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1);
 
 
-    bool topLeftFrontIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-    bool topRightFrontIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-    bool bottomLeftFrontIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-    bool bottomRightFrontIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-    bool topLeftBehindIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-    bool topRightBehindIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-    bool bottomLeftBehindIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-    bool bottomRightBehindIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
+    bool topLeftFrontIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+    bool topRightFrontIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+    bool bottomLeftFrontIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+    bool bottomRightFrontIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+    bool topLeftBehindIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+    bool topRightBehindIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+    bool bottomLeftBehindIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+    bool bottomRightBehindIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
 
 
 
@@ -202,9 +202,9 @@ template<bool onlyGrid> __global__ void backwardBilinearSampling_3D(float* input
       
       int zInTopLeft, yInTopLeft, xInTopLeft;  // zInTopFrontLeft
       float zWeightTopLeft, yWeightTopLeft, xWeightTopLeft;
-      getTopLeft(xf, inputImages_width, xInTopLeft, xWeightTopLeft);
-      getTopLeft(yf, inputImages_height, yInTopLeft, yWeightTopLeft);
-      getTopLeft(zf, inputImages_depth, zInTopLeft, zWeightTopLeft);
+      getTopLeftFront(xf, inputImages_width, xInTopLeft, xWeightTopLeft);
+      getTopLeftFront(yf, inputImages_height, yInTopLeft, yWeightTopLeft);
+      getTopLeftFront(zf, inputImages_depth, zInTopLeft, zWeightTopLeft);
       
       //const int outAddress = output_strideBatch * batchIdx + output_strideDepth * dOut + output_strideHeight * hOut + output_strideWidth * wOut;  // here assume the channel will be calculated later
       const int inTopLeftFrontAddress = inputImages_strideBatch * batchIdx + inputImages_strideDepth*zInTopLeft+ inputImages_strideHeight * yInTopLeft + inputImages_strideWidth * xInTopLeft;
@@ -238,24 +238,24 @@ template<bool onlyGrid> __global__ void backwardBilinearSampling_3D(float* input
       float TopRightBehindDP=0;
       float BottomLeftBehindDP=0;
       float BottomRightBehindDP=0;
-      //bool topLeftFrontIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
+      //bool topLeftFrontIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
       // here discard all the pointed outside the boundary , a little strong constrains than the original ones
 
 
-      bool topLeftFrontIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-      bool topRightFrontIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-      bool bottomLeftFrontIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-      bool bottomRightFrontIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft, 0, inputImages_depth-1);
-      bool topLeftBehindIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-      bool topRightBehindIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-      bool bottomLeftBehindIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
-      bool bottomRightBehindIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1)&& between(zInTopLeft+1, 0, inputImages_depth-1);
+      bool topLeftFrontIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+      bool topRightFrontIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+      bool bottomLeftFrontIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+      bool bottomRightFrontIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft, 0, inputImages_depth-1);
+      bool topLeftBehindIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+      bool topRightBehindIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+      bool bottomLeftBehindIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
+      bool bottomRightBehindIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1)&& between_3D(zInTopLeft+1, 0, inputImages_depth-1);
 
 
-      /*bool topLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-      bool topRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft, 0, inputImages_height-1);
-      bool bottomLeftIsIn = between(xInTopLeft, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
-      bool bottomRightIsIn = between(xInTopLeft+1, 0, inputImages_width-1) && between(yInTopLeft+1, 0, inputImages_height-1);
+      /*bool topLeftIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1);
+      bool topRightIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft, 0, inputImages_height-1);
+      bool bottomLeftIsIn = between_3D(xInTopLeft, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1);
+      bool bottomRightIsIn = between_3D(xInTopLeft+1, 0, inputImages_width-1) && between_3D(yInTopLeft+1, 0, inputImages_height-1);
 */
       /*
          In that loop we accumulate
@@ -277,7 +277,7 @@ template<bool onlyGrid> __global__ void backwardBilinearSampling_3D(float* input
       {
         int tch = t*gradInputImages_strideChannels;
         float gradOutValue = gradOutput_data[gradOutputAddress + t*gradOutput_strideChannels];
-         // bool between(int value, int lowerBound, int upperBound)
+         // bool between_3D(int value, int lowerBound, int upperBound)
          if(topLeftFrontIsIn)
          {
             float inTopLeftFront = inputImages_data[inTopLeftFrontAddress + tch];
@@ -407,7 +407,7 @@ int BilinearSamplerBCWHD_updateOutput_cuda_kernel_3D(/*output->size[2]*/int szw,
   // batch channel x y  z
   //  0      1     2 3  4
    //dim3 blocks((output->size[2]+15)/16, output->size[1], output->size[0]);
-   dim3 blocks((id+bdx-1)/bdx, (ih+bdy-1)/bdy, szw*szb);
+   dim3 blocks((od+bdx-1)/bdx, (oh+bdy-1)/bdy, szw*szb);
    dim3 threads(bdx,bdy);
    //printf(" gsh %d  gsc %d osh %d osc %d  ic %d id %d ih %d\n!!!!",gsh,gsc,osh,osc,ic,id,ih);
 
@@ -468,7 +468,7 @@ int BilinearSamplerBCWHD_updateGradInput_cuda_kernel_3D(/*gradOutput->size[2]*/i
 //  THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 6, "torch.CudaTensor");
 
    //dim3 blocks((gradOutput->size[2]+15)/16, gradOutput->size[1], gradOutput->size[0]);
-   dim3 blocks((id+bdx-1)/bdx, (ih+bdy-1)/bdy, szw*szb);
+   dim3 blocks((od+bdx-1)/bdx, (oh+bdy-1)/bdy, szw*szb);
    dim3 threads(bdx,bdy);
    //float count =0;
    //int grids_channels=2;
@@ -531,7 +531,7 @@ int BilinearSamplerBCWHD_updateGradInputOnlyGrid_cuda_kernel_3D(/*gradOutput->si
 //  THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 6, "torch.CudaTensor");
 
    //dim3 blocks((gradOutput->size[2]+15)/16, gradOutput->size[1], gradOutput->size[0]);
-   dim3 blocks((id+bdx-1)/bdx, (ih+bdy-1)/bdy, szw*szb);
+   dim3 blocks((od+bdx-1)/bdx, (oh+bdy-1)/bdy, szw*szb);
    dim3 threads(bdx,bdy);
    //float* count;
 

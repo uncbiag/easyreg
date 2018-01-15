@@ -1,0 +1,43 @@
+{
+    "tsk_set": {
+        "batch_sz": 4,
+        "check_best_model_period": 5,
+        "continue_train": false,
+        "criticUpdates": 1,
+        "epoch": 40,
+        "gpu_ids": 2,
+        "loss": "mse",
+        "max_batch_num_per_epoch": [
+            10,
+            5,
+            1
+        ],
+        "model": "unet",
+        "model_path": "",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 0.05,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.8,
+                    "step_size": 600
+                },
+                "plateau": {
+                    "factor": 0.2,
+                    "min_lr": 1e-06,
+                    "patience": 20,
+                    "threshold": 0.01
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "print_step": 10,
+        "print_val_detail": true,
+        "task_name": "reg_debug",
+        "train": true,
+        "which_epoch": ""
+    }
+}

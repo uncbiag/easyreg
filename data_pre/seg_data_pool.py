@@ -38,7 +38,7 @@ class BaseSegDataSet(object):
         self.label_switch = label_switch
         self.option = option
         self.option_trans = self.option[('transform', {}, 'settings for transform')]
-        self.transform_name_seq = []
+        self.transform_name_seq = self.option['transform']['transform_seq']
         self.num_label = 0
         self.standard_label_index=[]
 
@@ -162,6 +162,10 @@ class BaseSegDataSet(object):
         file_patitions = np.array_split(self.file_path_dic['val']+self.file_path_dic['test'], number_of_workers)
         with Pool(processes=number_of_workers) as pool:
             res = pool.map(self.test_data_processing, file_patitions)
+        file_patitions = np.array_split(self.file_path_dic['debug'], number_of_workers)
+        from functools import partial
+        with Pool(processes=number_of_workers) as pool:
+            res = pool.map(partial(self.test_data_processing,debug=True), file_patitions)
         print("data preprocessing finished")
 
 
@@ -182,8 +186,6 @@ class PatchedDataSet(BaseSegDataSet):
         self.option_trans['patch_size'] =self.option['patch_size']
         self.option_p = self.option[('partition', {}, "settings for the partition")]
         self.option_p['patch_size'] = self.option['patch_size']
-        self.transform_name_seq = ['my_random_crop']
-
 
 
 
@@ -216,7 +218,7 @@ class PatchedDataSet(BaseSegDataSet):
 
 
 
-    def test_data_processing(self,file_path_list):
+    def test_data_processing(self,file_path_list,debug=False):
         partition_ins = partition(self.option_p)
         file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
         for i, file_path in enumerate(file_path_list):
@@ -226,7 +228,10 @@ class PatchedDataSet(BaseSegDataSet):
             self.convert_to_standard_label_map(label,file_path)
             sample = {'img':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
             patches = partition_ins(sample)
-            saving_patches_per_img(patches,self.saving_path_dic[file_name])
+            if not debug:
+                saving_patches_per_img(patches,self.saving_path_dic[file_name])
+            else:
+                saving_patches_per_img(patches, self.saving_path_dic[file_name+'_debug'])
             
 
 
@@ -237,7 +242,7 @@ class NoPatchedDataSet(BaseSegDataSet):
     def __init__(self, file_type_list, option,label_switch= ('',''), dim=3):
         BaseSegDataSet.__init__(self,file_type_list,option,label_switch, dim)
 
-    def train_data_processing(self,file_path_list):
+    def train_data_processing(self,file_path_list,debug=False):
         option_trans_cp = deepcopy(self.option_trans)
         option_trans_cp.print_settings_off()
         file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
@@ -252,14 +257,17 @@ class NoPatchedDataSet(BaseSegDataSet):
             transform_seq = self.get_transform_seq(option_trans_cp)
             sample = {'img': np_to_sitk(img, info), 'seg': np_to_sitk(label, info)}
             img_transformed = self.apply_transform(sample, transform_seq)
-            saving_per_img(img_transformed, self.saving_path_dic[file_name])
+            if not debug:
+                saving_per_img(img_transformed, self.saving_path_dic[file_name])
+            else:
+                saving_per_img(img_transformed, self.saving_path_dic[file_name+'_debug'])
             count += 1
             pbar.update(count)
         pbar.finish()
 
 
-    def test_data_processing(self,file_path_list):
-        return self.train_data_processing(file_path_list)
+    def test_data_processing(self,file_path_list,debug=False):
+        return self.train_data_processing(file_path_list,debug=debug)
 
 
 
@@ -290,11 +298,11 @@ class SegDatasetPool(object):
 
 class OAIPatchedDataSet(PatchedDataSet):
     def __init__(self,option):
-        PatchedDataSet.__init__(self, ['*.nii'],option,label_switch=('image','label_all'))
+        PatchedDataSet.__init__(self, ['*_image.nii.gz'],option,label_switch=('image','label_all'))
 
 class OAINoPatchedDataSet(NoPatchedDataSet):
     def __init__(self,option):
-        NoPatchedDataSet.__init__(self, ['*.nii'],option,label_switch=('image','label_all'))
+        NoPatchedDataSet.__init__(self, ['*_image.nii.gz'],option,label_switch=('image','label_all'))
 
 
 

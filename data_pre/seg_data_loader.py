@@ -38,9 +38,6 @@ class SegmentationDataset(Dataset):
     def __len__(self):
         return len(self.name_list)
 
-    def retrieve_file_id(self, filename):
-        """ get the index of the file in the filelist"""
-        return self.name_list.index(filename)
 
     def __getitem__(self, idx):
         """
@@ -54,8 +51,7 @@ class SegmentationDataset(Dataset):
             sample['image'] = self.transform(sample['image'])
             if sample['label'] is not None:
                  sample['label'] = self.transform(sample['label'])
-        sample['file_id'] = self.retrieve_file_id(fname)
-        return sample
+        return sample,fname
 
 
 
