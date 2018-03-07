@@ -465,7 +465,10 @@ class MyRandomCrop(object):
         start_coord = np.flipud(start_coord).tolist()
         roiFilter.SetIndex(start_coord)
         seg_crop = roiFilter.Execute(seg)
-        img_crop = roiFilter.Execute(img)
+        if not isinstance(img,list):
+            img_crop = roiFilter.Execute(img)
+        else:
+            img_crop = [roiFilter.Execute(im) for im in img]
         trans_sample={}
         trans_sample['img'] = img_crop
         trans_sample['seg'] = seg_crop
@@ -479,12 +482,91 @@ class MyRandomCrop(object):
 
 
 
+
+
+
+
+class FlickerCrop(object):
+    """Crop randomly the image in a sample. This is usually used for data augmentation
+
+    Args:
+        output_size (tuple or int): Desired output size. If int, cubic crop
+            is made.
+    """
+
+    def __init__(self, output_size, adopt_bg_ratio,  bg_label=0,random_state=None):
+        self.bg_label=  bg_label
+        self.adopt_bg_ratio = adopt_bg_ratio
+        """ expect ratio of crop backgound, assume background domain other labels"""
+
+        assert isinstance(output_size, (int, tuple,list))
+        if isinstance(output_size, int):
+            self.output_size = (output_size, output_size, output_size)
+        else:
+            assert len(output_size) >1
+            self.output_size = output_size
+
+        if random_state:
+            self.random_state = random_state
+        else:
+            self.random_state = np.random.RandomState()
+
+
+
+    def __call__(self, sample):
+        img, seg = sample['img'], sample['seg']
+        if not isinstance(img,list):
+            size_old = img.GetSize()
+        else:
+            size_old = img[0].GetSize()
+
+        size_new = self.output_size
+        roiFilter = sitk.RegionOfInterestImageFilter()
+        roiFilter.SetSize(size_new)
+        size_new = np.flipud(size_new)
+        size_old = np.flipud(size_old)
+
+        crop_once =  self.random_state.rand()< self.adopt_bg_ratio
+        seg_np = sitk.GetArrayViewFromImage(seg)
+        contain_label = False
+        start_coord = None
+        nbg_ratio = 0 # ratio of non-bg label
+
+        # print(sample['name'])
+        while not contain_label :
+            # get the start crop coordinate in ijk
+            start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
+                                                              self.random_state)
+            seg_crop_np = cropping(seg_np,start_coord,size_new)
+            bg_ratio = np.sum(seg_crop_np==self.bg_label) / seg_crop_np.size
+            nbg_ratio =1.0- bg_ratio
+            if nbg_ratio > self.nbg_threshold:  # judge if the patch satisfy condition
+                contain_label = True
+            elif crop_once:
+                break
+
+        start_coord = np.flipud(start_coord).tolist()
+        roiFilter.SetIndex(start_coord)
+        seg_crop = roiFilter.Execute(seg)
+        img_crop = roiFilter.Execute(img)
+        trans_sample={}
+        trans_sample['img'] = img_crop
+        trans_sample['seg'] = seg_crop
+        trans_sample['label'] = -1
+        trans_sample['start_coord']= tuple(start_coord)
+        trans_sample['threshold'] = nbg_ratio
+
+        return trans_sample
+
+
+
 class MyBalancedRandomCrop(object):
     """Crop randomly the image in a sample. This is usually used for data augmentation
 
     Args:
         output_size (tuple or int): Desired output size. If int, cubic crop
             is made.
+
     """
 
     def __init__(self, output_size, threshold, random_state=None, label_list=()):
@@ -513,8 +595,16 @@ class MyBalancedRandomCrop(object):
 
 
     def __call__(self, sample):
+        """
+
+        :param sample:if the img in sample is a list, then return a list of img list otherwise return single image
+        :return:
+        """
         img, seg = sample['img'], sample['seg']
-        size_old = img.GetSize()
+        if not isinstance(img,list):
+            size_old = img.GetSize()
+        else:
+            size_old = img[0].GetSize()
         size_new = self.output_size
 
 
@@ -546,7 +636,10 @@ class MyBalancedRandomCrop(object):
         start_coord = np.flipud(start_coord).tolist()
         roiFilter.SetIndex(start_coord)
         seg_crop = roiFilter.Execute(seg)
-        img_crop = roiFilter.Execute(img)
+        if not isinstance(img,list):
+            img_crop = roiFilter.Execute(img)
+        else:
+            img_crop = [roiFilter.Execute(im) for im in img]
         trans_sample={}
         trans_sample['img'] = img_crop
         trans_sample['seg'] = seg_crop

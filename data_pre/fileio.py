@@ -284,7 +284,24 @@ class ImageIO(FileIO):
         new_img = np.lib.pad(im, padding_loc, 'edge')
         return new_img
 
-    def read(self, filename, intensity_normalize=False, squeeze_image=False, adaptive_padding=-1, verbose=False):
+
+    def _do_adaptive_shrinking(self, im):
+        """
+        padding the img to favored size, (divided by certain number, here is 4), here using default 4 , favored by cuda fft
+        :param im:
+        :return:
+        """
+        im_sz = list(im.shape)
+        dim = len(im_sz)
+        dim_to_pad = [dim_sz%self.adaptive_padding!=0 and dim_sz>3 for dim_sz in im_sz]
+        dim_rem = [dim_sz//self.adaptive_padding for dim_sz in im_sz]
+        new_dim_sz = [(dim_rem[i])*self.adaptive_padding if dim_to_pad[i] else im_sz[i] for i in range(dim)]
+        before_id = [(-new_dim_sz[i] +im_sz[i]+1)//2 for i in range(dim)]
+        after_id = [new_dim_sz[i] +  before_id[i] for i in range(dim)]
+        new_img = im[before_id[0]:after_id[0],before_id[1]:after_id[1],before_id[2]:after_id[2]].copy()
+        return new_img
+
+    def read(self, filename, intensity_normalize=False, squeeze_image=False, adaptive_padding=-1,inverse=False, verbose=False):
         """
         Reads the image assuming and converts it to NxCxXxYxC format if needed 
         :param filename: filename to be read
@@ -341,7 +358,11 @@ class ImageIO(FileIO):
                 print('Normalized spacing = ' + str(normalized_spacing))
 
         if adaptive_padding>0:
-            im = self._do_adaptive_padding(im)
+            if not inverse:
+                im = self._do_adaptive_padding(im)
+            else:
+                im = self._do_adaptive_shrinking(im)
+
 
         if self.intensity_normalize_image==True:
             im = IM.IntensityNormalizeImage().defaultIntensityNormalization(im)

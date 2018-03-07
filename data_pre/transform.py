@@ -16,6 +16,7 @@ class Transform(object):
                               'gaussian_blur': self.gaussian_blur,
                               'bilateral_filter':self.bilateral_filter
                               }
+        self.buffer={}
 
 
     def get_transform_seq(self, transform_name_seq):
@@ -80,9 +81,27 @@ class Transform(object):
         return my_random_crop
 
 
+
+    def flicker_crop(self):
+        option_fp = self.option[('flicker_crop', {}, 'settings for flicker_crop')]
+        bg_label = option_fp[('bg_label', 0, 'background label')]
+        adopt_bg_ratio = option_fp[('adopt_bg_ratio', 0.1, 'ratio of background crops')]
+        img_size = self.option['shared_info']['img_size']
+        from functools import reduce
+        scale_dim = [img_size[i]/self.patch_size[i] for i in range(self.dim)]
+        scale = reduce(lambda x,y:x*y, scale_dim)
+        my_random_crop = bio_transform.FlickerCrop(self.patch_size, adopt_bg_ratio, bg_label=bg_label)
+        return my_random_crop
+
+
+
+
+
+
     def my_balanced_random_crop(self):
         option_mbrc = self.option[('my_bal_rand_crop', {}, 'settings for balanced random crop')]
         scale_ratio = option_mbrc[('scale_ratio', 0.1, 'scale_ratio for patch sampling')]
+        bg_th_ratio = option_mbrc[('bg_th_ratio', 0.0, 'th_ratio for bg ')]
 
         label_list = self.option['shared_info']['label_list']
         label_density = self.option['shared_info']['label_density']
@@ -91,9 +110,12 @@ class Transform(object):
         scale_dim = [img_size[i]/self.patch_size[i] for i in range(self.dim)]
         scale = reduce(lambda x,y:x*y, scale_dim)
         sample_threshold = label_density * scale * scale_ratio
-        np.clip(sample_threshold,0,0.1,out=sample_threshold)
+        #np.clip(sample_threshold,0,0.06,out=sample_threshold)
+        sample_threshold[0] = bg_th_ratio
         my_balanced_random_crop = bio_transform.MyBalancedRandomCrop(self.patch_size, threshold=sample_threshold.tolist(),label_list =label_list )
         return my_balanced_random_crop
+
+
 
 
 

@@ -1,28 +1,47 @@
 {
     "tsk_set": {
-        "batch_sz": 4,
-        "check_best_model_period": 5,
+        "batch_sz": 10,
         "continue_train": false,
         "criticUpdates": 1,
-        "epoch": 40,
-        "gpu_ids": 2,
-        "loss": "mse",
+        "epoch": 50,
+        "gpu_ids": 1,
+        "old_gpu_ids":0,
+        "loss": {
+            "ce": {
+                "no_bg": false,
+                "weighted": true
+            },
+            "dice_loss": {
+                "no_bg": false,
+                "weighted": true
+            },
+            "type": "mse",
+            "update_epoch": -1,
+            "residue_weight_on": false,
+            "density_weight_on": false,
+            "residue_weight_momentum": 0.1,
+            "continuous_update": false,
+            "log_update": false,
+            "only_resid_update":false,
+            "focal_loss_weight_on": false,
+            "activate_epoch": 1
+        },
         "max_batch_num_per_epoch": [
-            10,
-            5,
+            25,
+            2,
             1
         ],
-        "model": "unet",
+        "model": "reg_net",
         "model_path": "",
         "optim": {
             "adam": {
                 "beta": 0.9
             },
-            "lr": 0.05,
+            "lr": 0.001,
             "lr_scheduler": {
                 "custom": {
                     "gamma": 0.8,
-                    "step_size": 600
+                    "step_size": 250
                 },
                 "plateau": {
                     "factor": 0.2,
@@ -34,10 +53,13 @@
             },
             "optim_type": "adam"
         },
-        "print_step": 10,
-        "print_val_detail": true,
-        "task_name": "reg_debug",
+        "print_step": [10,1,1],
+        "print_val_detail": false,
+        "save_val_fig_epoch": 10,
+        "save_fig_on": true,
+        "task_name": "net_dev_2",
         "train": true,
-        "which_epoch": ""
+        "which_epoch": "",
+        "check_best_model_period": 5
     }
 }

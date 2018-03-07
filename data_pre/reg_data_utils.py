@@ -329,7 +329,9 @@ def check_same_size(img, standard):
 
 def file_io_read_img(path, is_label, normalize_spacing=True, normalize_intensities=True, squeeze_image=True, adaptive_padding=4):
     normalize_intensities = False if is_label else normalize_intensities
-    im, hdr, spacing, normalized_spacing = fileio.ImageIO().read(path, normalize_intensities, squeeze_image,adaptive_padding)
+    ################################################################################################################################################
+    im, hdr, spacing, normalized_spacing = fileio.ImageIO().read(path, False, squeeze_image,adaptive_padding)
+    ################################################################################################################################################
     if normalize_spacing:
         spacing = normalized_spacing
     else:

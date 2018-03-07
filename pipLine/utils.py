@@ -135,18 +135,39 @@ def labels2colors(labels, images=None, overlap=False):
 
     return torch.Tensor(np.transpose(np.stack(colors, 0), (0, 3, 1, 2))).cuda()
 
-def resume_train(model_path, model):
+
+
+def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
     if os.path.isfile(model_path):
         print("=> loading checkpoint '{}'".format(model_path))
-        checkpoint = torch.load(model_path)
-        start_epoch = checkpoint['epoch']
-        best_prec1 = checkpoint['best_prec1']
+        checkpoint = torch.load(model_path,map_location={'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
+        start_epoch = 0
+        best_prec1 = 0.0
+        if 'start_epoch' in checkpoint:
+            start_epoch = checkpoint['epoch']
+        else:
+            start_epoch=0
+        if 'best_prec1' in checkpoint:
+            best_prec1 = checkpoint['best_loss']
+        else:
+            best_prec1=0.
+        if 'global_step' in checkpoint:
+            global_step =checkpoint['global_step']
+        else:
+            phases = ['train', 'val', 'debug']
+            global_step = {x: 0 for x in phases}
+
         model.load_state_dict(checkpoint['state_dict'])
-        print("=> loaded checkpoint '{}' (epoch {})"
-              .format(model_path, checkpoint['epoch']))
-        return  start_epoch, best_prec1
+        print("=> succeed load model '{}'".format(model_path))
+        if 'optimizer' in checkpoint:
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            print("=> succeed load optimizer '{}'".format(model_path))
+        return  start_epoch  , best_prec1, global_step
     else:
         print("=> no checkpoint found at '{}'".format(model_path))
+
+get_test_model = resume_train
+
 
 def clip_gradient(model, clip_norm):
     """Computes a gradient clipping coefficient based on gradient norm."""

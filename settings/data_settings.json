@@ -4,14 +4,15 @@
             "data_path": {},
             "dataset_name": "lpba",
             "divided_ratio": [
-                0.8,
+                0.7,
                 0.1,
-                0.1
+                0.2
             ],
             "label_path": {},
             "output_path": "/playpen/zyshen/data/",
             "prepare_data": false,
-            "task_name": "bg_0.1"
+            "task_name": "",
+            "using_normalize": true
         },
         "reg": {
             "all_comb": false,
@@ -20,7 +21,7 @@
             "slicing": 117
         },
         "seg": {
-            "num_crop_per_class_per_train_img": 100,
+            "num_crop_per_class_per_train_img": 20,
             "partition": {
                 "mode": "pred",
                 "overlap_size": [
@@ -61,7 +62,8 @@
                     "maximumError": 0.9
                 },
                 "my_bal_rand_crop": {
-                    "scale_ratio": 0.2
+                    "bg_th_ratio": 0.0,
+                    "scale_ratio": 0.1
                 },
                 "my_rand_crop": {
                     "bg_label": 0,
@@ -84,13 +86,14 @@
                 },
                 "shared_info": {},
                 "transform_seq": [
-                    ""
+                    "my_random_crop"
                 ]
             }
         },
         "switch": {
             "switch_to_exist_task": true,
-            "task_root_path": "/playpen/zyshen/data/bg_0.1_oai_seg_patchedmy_balanced_random_crop"
-        }
+            "task_root_path": "/playpen/zyshen/data/hist_lpba_reg_inter_slicing_117_axis_1"
+        },
+        "task_type": "reg"
     }
 }

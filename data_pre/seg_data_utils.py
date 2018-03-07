@@ -44,6 +44,12 @@ def get_file_path_list(path, img_type):
     return f_filter
 
 
+
+
+def get_multi_mode_path(path, multi_mode_list):
+    return  [path.replace(multi_mode_list[0],mode) for mode in multi_mode_list]
+
+
 def find_corr_map(file_path_list, label_path, label_switch = ('','')):
     """
     get the label path from the image path
@@ -52,7 +58,10 @@ def find_corr_map(file_path_list, label_path, label_switch = ('','')):
     :return:
     """
     fn_switch = lambda x: x.replace(label_switch[0], label_switch[1])
-    return [os.path.join(label_path, fn_switch(os.path.split(file_path)[1])) for file_path in file_path_list]
+    if len(label_path):
+        return [os.path.join(label_path, fn_switch(os.path.split(file_path)[1])) for file_path in file_path_list]
+    else:
+        return [fn_switch(file_path) for file_path in file_path_list]
 
 
 def make_dir(path):
@@ -63,12 +72,16 @@ def make_dir(path):
 
 
 
-def get_file_name(file_path):
-    return os.path.split(file_path)[1].split('.')[0]
+def get_file_name(file_path,last_ocur=False):
+    if not last_ocur:
+        name= os.path.split(file_path)[1].split('.')[0]
+    else:
+        name = os.path.split(file_path)[1].rsplit('.',1)[0]
+    return name
 
 
 
-def divide_data_set(root_path, file_path_list, ratio):
+def divide_data_set(root_path, file_path_list, ratio, m_mod=None):
     """
     divide the dataset into root_path/train root_path/val root_path/test
     :param root_path: the root path for saving the task_dataset
@@ -98,25 +111,77 @@ def divide_data_set(root_path, file_path_list, ratio):
     fp_sub_list['val'] = file_path_list[train_num: train_num + val_num]
     fp_sub_list['test'] = file_path_list[train_num + val_num:]
     fp_sub_list['debug'] = file_path_list[: val_num]
-    saving_path_list = [os.path.join(sub_path[x], file_name) for x in ['train', 'val', 'test','debug'] for file_name
+    if m_mod is None:
+        saving_path_list = [os.path.join(sub_path[x], file_name) for x in ['train', 'val', 'test','debug'] for file_name
                         in file_name_sub_list[x]]
+    else:
+        saving_path_list = [os.path.join(os.path.join(sub_path[x], m_mod),file_name) for x in ['train', 'val', 'test', 'debug'] for
+                            file_name in file_name_sub_list[x]]
+
     saving_path_dic= {fn: saving_path_list[i] for i, fn in enumerate (file_name_list)}
     saving_path_debug_dic = {fn+'_debug': os.path.join(sub_path['debug'], fn) for fn in file_name_sub_list['debug']}
     saving_path_dic.update(saving_path_debug_dic)
     return saving_path_dic, fp_sub_list
 
 
-def str_concat(lists):
+def load_file_path_from_txt(root_path,file_path_list, txt_path):
+    """
+     return the list of  paths of the image  [N,1]
+    :param path:  path of the folder
+    :param img_type: filter and get the image of certain type
+    :param full_comb: if full_comb, return all possible files, if not, return files in increasing order
+    :param sched: sched can be inter personal or intra personal
+    :return:
+    """
+    sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test', 'debug']}
+    nt = [make_dir(sub_path[key]) for key in sub_path]
+    if sum(nt):
+        raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
+                         "manually delete the folder to reprepare the data")
+    file_name_sub_list = {}
+    sesses = ['train','val','test','debug']
+    fp_sub_list = {}
+    file_path_dic = {get_file_name(fp):fp for fp in file_path_list}
+    for sess in sesses:
+        file_name_sub_list[sess]= read_txt_into_list(os.path.join(txt_path, sess+'.txt'))
+        fp_sub_list[sess] = [file_path_dic[fp] for fp in file_name_sub_list[sess]]
+
+    saving_path_dic={file_name:os.path.join(sub_path[x], file_name) for x in ['train', 'val', 'test'] for file_name
+                        in file_name_sub_list[x]}
+    saving_path_debug_dic = {fn+'_debug': os.path.join(sub_path['debug'], fn) for fn in file_name_sub_list['debug']}
+    saving_path_dic.update(saving_path_debug_dic)
+    return saving_path_dic, fp_sub_list
+
+
+
+def read_txt_into_list(file_path):
+    """
+    acutally design for read oai txt
+    :param file_path:
+    :return:
+    """
+    lists= []
+    with open(file_path,'r') as f:
+        content = f.read().splitlines()
+        if len(content)>0:
+            lists= [line.split(',') for line in content]
+        paths=[item[0] for item in lists]
+        file_name_list = [os.path.split(path)[1] for path in paths]
+        lists= [item.split('.')[0] for item in file_name_list]
+    return lists
+
+
+def str_concat(lists,linker='_'):
     from functools import reduce
-    str_concated = reduce((lambda x,y:str(x)+'_'+str(y)), lists)
+    str_concated = reduce((lambda x,y:str(x)+linker+str(y)), lists)
     return str_concated
 
 
 
 def extract_train_patch_info(patch_dic):
-    label = str(patch_dic['label'])
-    start_coord = str_concat(patch_dic['start_coord'])
-    label_threshold = "{:.5f}".format(patch_dic['threshold'])
+    label = str(patch_dic['label']) if 'label' in patch_dic else str(-1)
+    start_coord = str_concat(patch_dic['start_coord']) if 'start_coord' in patch_dic else str_concat((-1,-1,-1))
+    label_threshold = "{:.5f}".format(patch_dic['threshold']) if 'threshold' in patch_dic else str(-1)
     return {'l':label, 'sc':start_coord,'th':label_threshold}
 
 def extract_test_patch_info(patches_dic):
@@ -153,11 +218,14 @@ def get_patch_saving_path(file_path,info, saving_by_patch=True):
 
     return full_path, file_id
 
-def saving_patch_per_img(patch,file_path):
+def saving_patch_per_img(patch,file_path,itk_img=True):
 
     info = extract_train_patch_info(patch)
-    patch_img = sitk_to_np(patch['img'])
-    patch_seg = sitk_to_np(patch['seg'])
+    patch_img = sitk_to_np(patch['img']) if itk_img else patch['img']
+    if 'seg' in patch:
+        patch_seg = sitk_to_np(patch['seg']) if itk_img else patch['seg']
+    else:
+        patch_seg = np.array([-1])
     saving_path, patch_id = get_patch_saving_path(file_path,info)
     save_to_h5py(saving_path,patch_img, patch_seg,patch_id,info,verbose=False)
 
@@ -165,14 +233,20 @@ def saving_patches_per_img(patches,file_path):
 
     info = extract_test_patch_info(patches)
     patches_img = patches['img']
-    patches_seg = patches['seg']
+    if 'seg' in patches:
+        patches_seg = patches['seg']
+    else:
+        patches_seg= np.array([-1])
     saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
     save_to_h5py(saving_path,patches_img, patches_seg ,file_id,info,verbose=False)
 
 def saving_per_img(sample,file_path):
     info = {}
     img = sitk_to_np(sample['img'])
-    seg = sitk_to_np(sample['seg'])
+    if 'seg' in sample:
+        seg = sitk_to_np(sample['seg'])
+    else:
+        seg = np.array([-1])
     saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
     save_to_h5py(saving_path,img, seg,file_id,info,verbose=False)
 
@@ -189,14 +263,34 @@ def check_same_size(img, standard):
 
 
 def np_to_sitk(img, info=None):
-    sitk_img = sitk.GetImageFromArray(img)
+    """
+
+    :param img: a list or a single numpy imge
+    :param info:
+    :return: if the input image is a list, then return a list of sitk img other wise return single sitk image
+    """
+    if not isinstance(img,list):
+        sitk_img = sitk.GetImageFromArray(img)
+    else:
+        sitk_img =[sitk.GetImageFromArray(im) for im in img]
     if info is not None:
         pass   # will implemented later
     return sitk_img
 
 
 def sitk_to_np(img, info=None):
-    np_img = sitk.GetArrayViewFromImage(img)
+    """
+
+    :param img:   img is either a list  or a single itk image
+    :param info:
+    :return: if the input image is a list, then return a list of numpy image otherwise return single numpy image
+    """
+
+    if not isinstance(img, list):
+        np_img = [sitk.GetArrayViewFromImage(img)]
+    else:
+        np_img = [sitk.GetArrayViewFromImage(im) for im in img]
+    np_img = np.stack(np_img,0)
     if info is not None:
         pass   # will implemented later
     return np_img
@@ -224,14 +318,17 @@ def normalize_img(image, sched='tp'):
 
 
 def file_io_read_img(path, is_label, normalize_spacing=True, normalize_intensities=True, squeeze_image=True,
-                     adaptive_padding=4):
+                     adaptive_padding=16):
+    ##########################################################################################
     normalize_intensities = False if is_label else normalize_intensities
+    ##########################################################################################
     im, hdr, spacing, normalized_spacing = fileio.ImageIO().read(path, normalize_intensities, squeeze_image,
-                                                                 adaptive_padding)
+                                                                 adaptive_padding, inverse=True)
     if normalize_spacing:
         spacing = normalized_spacing
     else:
         spacing = spacing
+
     info = {'spacing': spacing, 'img_size': im.shape}
     return im, info
 
@@ -248,7 +345,10 @@ def save_sz_sp_to_json(info, output_path):
     par['info'][('img_sz', info['img_size'], 'size of image')]
     par['info'][('spacing', info['spacing'].tolist(), 'size of image')]
     par['info'][('num_label', info['num_label'], 'num of label')]
+    par['info'][('label_density', info['label_density'], 'label_density')]
     par['info'][('standard_label_index', info['standard_label_index'], 'standard_label_index')]
+    par['info'][('sample_data_path',info['sample_data_path'],'sample_data_path')]
+    par['info'][('sample_label_path',info['sample_label_path'],'sample_label_path')]
     par.write_JSON(os.path.join(output_path, 'info.json'))
 
 
@@ -275,7 +375,6 @@ def read_h5py_file(path, type='h5py'):
 
 def write_file(path, dic, type='h5py'):
     """
-
     :param path: file path
     :param dic:  which has three item : numpy 'data', numpy 'label'if exists,  dic 'info' , string list 'file_path',
     :param type:

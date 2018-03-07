@@ -7,10 +7,24 @@ import torchvision.utils as utils
 from skimage import color
 
 def get_pair(data, pair= True, target=None):
-     return data['image'][:,:,1], data['image'][:,:,1],data['label'][:,:,1],data['label'][:,:,1]
+     return data['image'][:,:,0]*2-1, data['image'][:,:,1]*2-1,data['label'][:,:,0],data['label'][:,:,1]
 
 
+def sigmoid_explode(ep, static =5, k=5):
+    static = static
+    if ep < static:
+        return 1.
+    else:
+        ep = ep - static
+        return (k + np.exp(ep / k))/k
 
+def sigmoid_decay(ep, static =5, k=5):
+    static = static
+    if ep < static:
+        return 1.
+    else:
+        ep = ep - static
+        return k/(k + np.exp(ep / k))
 
 def organize_data(moving, target, sched='depth_concat'):
     if sched == 'depth_concat':
@@ -39,13 +53,19 @@ def save_result(path, appendix, moving, target, reproduce):
       save_image_with_scale(path+appendix+"_b{:02d}_reproduce.tif".format(i),reproduce[i,0,...])
 
 
-def weights_init(m):
+def unet_weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
         if not m.weight is None:
             nn.init.xavier_normal(m.weight.data)
         if not m.bias is None:
             nn.init.xavier_normal(m.bias.data)
+
+def vnet_weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv3d') != -1:
+        nn.init.kaiming_normal(m.weight)
+        m.bias.data.zero_()
 
 
 def save_checkpoint(state, is_best, path, prefix, filename='checkpoint.pth.tar'):

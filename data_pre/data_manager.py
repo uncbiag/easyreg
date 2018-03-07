@@ -91,22 +91,25 @@ class DataManager(object):
 
     def set_seg_option(self,option):
         self.seg_option = option
+    def get_data_path(self):
+        return self.data_path
 
     def get_full_task_name(self):
         return os.path.split(self.task_root_path)[1]
 
     def get_default_dataset_path(self,is_label):
-        default_data_path = {'lpba':'/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm',
+        default_data_path = {'lpba':'/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis',
                              'oasis2d': '/playpen/zyshen/data/oasis',
                              'cumc':'/playpen/data/quicksilver_data/testdata/CUMC12/brain_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/brain_affine_icbm',
-                             'oai':'/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled'}
+                             'oai':'/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',
+                             'brats':'/playpen/zyshen/data/miccia_brats'}
 
         default_label_path = {'lpba': '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm',
                              'oasis2d': 'None',
                              'cumc': '/playpen/data/quicksilver_data/testdata/CUMC12/label_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm',
-                             'oai': '/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled'}
+                             'brats': ''}
         if is_label:
             return default_label_path[self.dataset_name]
         else:
@@ -115,6 +118,7 @@ class DataManager(object):
     def get_default_seg_option(self):
         default_setting_path = {'oai': './settings/oai.json',
                                'lpba': './settings/lpba.json',
+                               'brats': './settings/brats.json',
                                'cumc': './settings/cumc.json',
                                'ibsr': './settings/ibsr.json',}
 
@@ -189,8 +193,6 @@ class DataManager(object):
             self.label_path = self.get_default_dataset_path(is_label=True)
         if self.seg_option is None:
             option = pars.ParameterDict()
-            ###############################################
-            # need to add get_default_option
         else:
             option = self.seg_option
         self.dataset = seg_pool.SegDatasetPool().create_dataset(self.dataset_name,option, self.sched)
@@ -217,14 +219,16 @@ class DataManager(object):
                                                       shuffle=False, num_workers=4) for x in ['train','val','test','debug']}
         elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
-                                                                  batch_size=batch_size,shuffle=True, num_workers=4),
+                                                                  batch_size=batch_size,shuffle=True, num_workers=20),
                            'val': torch.utils.data.DataLoader(transformed_dataset['val'],
-                                                                batch_size=1, shuffle=False, num_workers=1),
+                                                                batch_size=1, shuffle=True, num_workers=4),
                            'test': torch.utils.data.DataLoader(transformed_dataset['test'],
-                                                                batch_size=1, shuffle=False, num_workers=1),
+                                                                batch_size=1, shuffle=False, num_workers=3),
                            'debug': torch.utils.data.DataLoader(transformed_dataset['debug'],
-                                                               batch_size=1, shuffle=False, num_workers=1)
+                                                               batch_size=1, shuffle=False, num_workers=3)
                            }
+        elif self.task_type=='seg_pq':
+            dataloaders={}
         return dataloaders
 
 

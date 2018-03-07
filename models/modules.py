@@ -64,9 +64,11 @@ class DisGen(nn.Module):
         super(DisGen, self).__init__()
         # Build a LSTM
         self.conv1 = nn.Sequential(ConvBnRel(2, 64, 3, active_unit='relu', same_padding=True, bn=bn))
+
         self.conv2 = nn.Sequential(ConvBnRel(64, 128, 3, active_unit='relu', same_padding=True, bn=bn),
-                                   ConvBnRel(128, 128, 3, active_unit='relu', same_padding=True, bn=bn))
-        self.conv3 = nn.Sequential(ConvBnRel(128, 2, 3, active_unit='relu', same_padding=True, bn=bn))
+                                  ConvBnRel(128, 64, 3, active_unit='relu', same_padding=True, bn=bn),
+                                   ConvBnRel(64, 32, 3, active_unit='None', same_padding=True, bn=bn))
+        self.conv3 = nn.Sequential(ConvBnRel(32, 2, 3, active_unit='None', same_padding=True, bn=bn))
 
 
 
@@ -74,6 +76,7 @@ class DisGen(nn.Module):
         x = self.conv1(im_data)
         x = self.conv2(x)
         x = self.conv3(x)
+
 
         return x
 
@@ -150,13 +153,13 @@ class MomConv(nn.Module):
     def __init__(self, bn=False):
         super(MomConv,self).__init__()
         self.encoder = nn.Sequential(
-            ConvBnRel(1, 32, kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False),
-            ConvBnRel(32, 64,  kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False),
-            ConvBnRel(64, 16,  kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False))
+            ConvBnRel(1, 8, kernel_size=3, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False),
+            ConvBnRel(8, 16,  kernel_size=3, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False),
+            ConvBnRel(16, 2,  kernel_size=3, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=False))
         self.decoder = nn.Sequential(
-            ConvBnRel(32, 64, kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=True),
-            ConvBnRel(64, 64, kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=True),
-            ConvBnRel(64, 1, kernel_size=4, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=True))
+            ConvBnRel(4, 16, kernel_size=3, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=True),
+            ConvBnRel(16, 16, kernel_size=3, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=True),
+            ConvBnRel(16, 1, kernel_size=3, stride=2, active_unit='elu', same_padding=True, bn=bn, reverse=True))
     def forward(self, input1, input2):
         x1 = self.encoder(input1)
         x2 = self.encoder(input2)
@@ -171,11 +174,11 @@ class FlowRNN(nn.Module):
 
         #low_linker(self, coder_output, phi)
         self.low_conv1 = nn.Sequential(
-            ConvBnRel(1, 64, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=False),
-            ConvBnRel(64, 8, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True))
+            ConvBnRel(1, 16, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=False),
+            ConvBnRel(16, 8, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True))
         self.low_conv2 = nn.Sequential(
-            ConvBnRel(2, 64, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=False),
-            ConvBnRel(64, 8, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True))
+            ConvBnRel(2, 16, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=False),
+            ConvBnRel(16, 8, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True))
         self.low_linker = nn.Sequential(
             ConvBnRel(16, 1, kernel_size=3, stride=1, active_unit='relu', same_padding=True, bn=bn, reverse=False))
 
@@ -185,13 +188,13 @@ class FlowRNN(nn.Module):
             ConvBnRel(64, 64,  kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=False),
             ConvBnRel(64, 8,  kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=False))
         self.mid_up_conv = nn.Sequential(
-            ConvBnRel(8, 64, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True),
-            ConvBnRel(64, 64, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True),
-            ConvBnRel(64, 2, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True))
+            ConvBnRel(8, 16, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True),
+            ConvBnRel(16, 16, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True),
+            ConvBnRel(16, 2, kernel_size=4, stride=2, active_unit='relu', same_padding=True, bn=bn, reverse=True))
         #high_linker(self, vec_prev, coder_output)
         self.high_linker = nn.Sequential(
-            ConvBnRel(4, 32, kernel_size=3, stride=1, active_unit='relu', same_padding=True, bn=bn, reverse=False),
-            ConvBnRel(32, 2, kernel_size=3, stride=1, active_unit='relu', same_padding=True, bn=bn, reverse=False))
+            ConvBnRel(4, 16, kernel_size=3, stride=1, active_unit='relu', same_padding=True, bn=bn, reverse=False),
+            ConvBnRel(16, 2, kernel_size=3, stride=1, active_unit='relu', same_padding=True, bn=bn, reverse=False))
 
         self.gird = DenseAffineGridGen(info)
 

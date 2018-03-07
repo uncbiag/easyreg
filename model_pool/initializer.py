@@ -30,15 +30,17 @@ class Initializer():
         self.task_opt['dataset']['tile_size'] = par_dataset['datapro']['seg']['patch_size']
         self.task_opt['dataset']['overlap_size'] = par_dataset['datapro']['seg']['partition']['overlap_size']
         self.task_opt['dataset']['padding_mode'] = par_dataset['datapro']['seg']['partition']['padding_mode']
+        self.task_opt['dataset']['raw_data_path'] = par_dataset['datapro']['dataset']['data_path']
         return self.task_opt
 
     def get_task_option(self):
         return self.task_opt
 
     
-    def initialize_data_manager(self,task_type, setting_path='../settings/data_settings.json'):
+    def initialize_data_manager(self, setting_path='../settings/data_settings.json'):
         par_dataset = pars.ParameterDict()
         par_dataset.load_JSON(setting_path)
+        task_type = par_dataset['datapro']['task_type']
 
         # switch to exist task
         switch_to_exist_task = par_dataset['datapro']['switch']['switch_to_exist_task']
@@ -89,6 +91,7 @@ class Initializer():
                 self.data_manager.init_dataset()
                 self.data_manager.prepare_data()
                 par_dataset.load_JSON(setting_path)
+                par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_data_path()
                 par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))
             task_root_path = self.data_manager.get_task_root_path()
 
@@ -120,10 +123,12 @@ class Initializer():
         logdir =os.path.join(self.cur_task_path,'log')
         check_point_path =os.path.join(self.cur_task_path,'checkpoints')
         record_path = os.path.join(self.cur_task_path,'records')
+        model_path = self.task_opt['tsk_set'][('model_path', '', 'if continue_train, given the model path')]
         self.task_opt['tsk_set'][('path',{},'record paths')]
         self.task_opt['tsk_set']['path']['expr_path'] =self.cur_task_path
         self.task_opt['tsk_set']['path']['logdir'] =logdir
         self.task_opt['tsk_set']['path']['check_point_path'] = check_point_path
+        self.task_opt['tsk_set']['path']['model_load_path'] = model_path
         self.task_opt['tsk_set']['path']['record_path'] = record_path
         self.path = {'logdir':logdir,'check_point_path': check_point_path,'record_path':record_path}
         self.setting_folder()

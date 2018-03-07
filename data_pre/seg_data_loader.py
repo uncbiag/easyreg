@@ -24,7 +24,6 @@ class SegmentationDataset(Dataset):
         self.transform = transform
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
-        self.transform = transform
 
     def get_file_list(self):
         """
@@ -32,7 +31,7 @@ class SegmentationDataset(Dataset):
         :return: full file path list, file name list
         """
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
-        name_list = [get_file_name(f) for f in f_filter]
+        name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
         return f_filter,name_list
 
     def __len__(self):
@@ -48,9 +47,9 @@ class SegmentationDataset(Dataset):
         fname  = self.name_list[idx]
         sample = {'image': dic['data'], 'info': dic['info'], 'label':dic['label']}
         if self.transform:
-            sample['image'] = self.transform(sample['image'])
+            sample['image'] = self.transform(sample['image'].astype(np.float32))
             if sample['label'] is not None:
-                 sample['label'] = self.transform(sample['label'])
+                 sample['label'] = self.transform(sample['label'].astype(np.int32))
         return sample,fname
 
 
@@ -58,9 +57,14 @@ class SegmentationDataset(Dataset):
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
-    def __call__(self, sample):
+    def __call__(self, sample, old_version=False):
 
-        n_tensor= torch.from_numpy(sample)
-        if n_tensor.shape[0]!=1:
-            n_tensor.unsqueeze_(0)
-        return n_tensor
+        # older version
+        if old_version:
+            n_tensor= torch.from_numpy(sample)
+            if n_tensor.shape[0]!=1:
+                n_tensor.unsqueeze_(0)
+            return n_tensor
+        else:
+            n_tensor = torch.from_numpy(sample)
+            return n_tensor

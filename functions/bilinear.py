@@ -8,6 +8,7 @@ import torch
 from torch.autograd import Function
 from lib._ext import  my_lib_1D,my_lib_2D,my_lib_3D
 from cffi import FFI
+from torch.autograd import Variable
 
 ffi = FFI()
 
@@ -52,6 +53,7 @@ class Bilinear(Function):
         :param input2: spatial transform in BdimXYZ format
         :return: spatially transformed image in BCXYZ format
         """
+        input1 = (input1+1)/2
         self.input1 = input1
         self.input2 = input2
         self.device_c = ffi.new("int *")
@@ -69,7 +71,7 @@ class Bilinear(Function):
         self.device = torch.cuda.current_device()
         self.device_c[0] = self.device
         self.forward_stn(input1, input2, output, self.ndim, self.device_c)
-        return output
+        return output*2-1
 
     def backward(self, grad_output):
         """
@@ -77,12 +79,12 @@ class Bilinear(Function):
         :param grad_output: grad output from previous "layer"
         :return: gradient
         """
-        grad_output= grad_output
+        grad_output= grad_output*2.
         grad_input1 = torch.cuda.FloatTensor(self.input1.size()).zero_()
         grad_input2 = torch.cuda.FloatTensor(self.input2.size()).zero_()
         # print grad_output.view(1, -1).sum()
         # print('backward decice %d' % self.device)
         self.backward_stn(self.input1, self.input2, grad_input1, grad_input2, grad_output, self.ndim, self.device_c)
-        grad_input1 = grad_input1
-        return grad_input1, grad_input2
+        #print(torch.max(grad_input1), torch.max(grad_input2))
+        return grad_input1 / 2., grad_input2
 

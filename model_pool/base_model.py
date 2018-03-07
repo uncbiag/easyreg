@@ -18,6 +18,7 @@ class BaseModel():
         self.img_sz = opt['tsk_set']['extra_info']['img_sz']
         self.continue_train = opt['tsk_set']['continue_train']
         self.criticUpdates = opt['tsk_set']['criticUpdates']
+        self.optimizer= None
 
         self.iter_count = 0
         self.dim = len(self.img_sz)
@@ -58,7 +59,7 @@ class BaseModel():
         if optimize_name == 'adam':
             self.optimizer = torch.optim.Adam(self.network.parameters(), lr=lr, betas=(beta, 0.999))
         else:
-            self.optimzer = torch.optim.SGD(self.network.parameters(), lr=lr)
+            self.optimizer = torch.optim.SGD(self.network.parameters(), lr=lr)
         self.optimizer.zero_grad()
         self.lr_scheduler = None
         self.exp_lr_scheduler = None

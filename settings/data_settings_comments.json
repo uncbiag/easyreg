@@ -13,7 +13,8 @@
             },
             "output_path": "the path to save the processed data",
             "prepare_data": "prepare the data ",
-            "task_name": "task name for data process"
+            "task_name": "task name for data process",
+            "using_normalize": "normalized the data "
         },
         "reg": {
             "__doc__": "general settings for dataset",
@@ -66,6 +67,7 @@
                 },
                 "my_bal_rand_crop": {
                     "__doc__": "settings for balanced random crop",
+                    "bg_th_ratio": "threshold for background ratio",
                     "scale_ratio": "scale_ratio for patch sampling"
                 },
                 "my_rand_crop": {
@@ -90,6 +92,7 @@
         "switch": {
             "switch_to_exist_task": "switch to existed task without modify other datapro settings",
             "task_root_path": "path of existed processed data"
-        }
+        },
+        "task_type": "task type seg or reg"
     }
 }

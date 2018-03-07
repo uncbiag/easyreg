@@ -39,7 +39,6 @@ def get_task_settings( task_settings_filename = None ):
     task_params['tsk_set'][('train',True,'if training')]
     task_params['tsk_set'][('model','unet','model name, currently only support unet')]
     task_params['tsk_set'][('print_val_detail',False,'print details of validation results')]
-    task_params['tsk_set'][('loss','ce','loss name, {ce,mse,l1_loss,focal_loss, dice_loss}')]
     task_params['tsk_set'][('epoch',100,'num of epoch')]
     task_params['tsk_set'][('criticUpdates',1,'criticUpdates')]
     task_params['tsk_set'][('print_step',10,'num of steps to print')]
@@ -47,8 +46,10 @@ def get_task_settings( task_settings_filename = None ):
     task_params['tsk_set'][('continue_train',False,'continue to train')]
     task_params['tsk_set'][('model_path','','if continue_train, given the model path')]
     task_params['tsk_set'][('which_epoch','','if continue_train, given the epoch')]
-    task_params['tsk_set'][('max_batch_num_per_epoch',[100,2],'num of the batches per epoch')]
-    task_params['tsk_set'][('check_best_model_period',5,'check and save the best model every save_model_period')]
+    task_params['tsk_set'][('max_batch_num_per_epoch',[200,2,1],'num of the batches per epoch')]
+    task_params['tsk_set'][('check_best_model_period',5,'num of epoch to check the best model')]
+    task_params['tsk_set'][('save_val_fig_epoch',5,'epoch to save val fig')]
+
 
     task_params['tsk_set'][('optim',{},'settings for adam')]
     task_params['tsk_set']['optim'][('optim_type','adam','settings for adam')]
@@ -60,11 +61,28 @@ def get_task_settings( task_settings_filename = None ):
     task_params['tsk_set']['optim']['lr_scheduler'][('plateau',{},'settings fort plateau scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('patience',20,'settings fort plateau scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('factor',0.2,'settings fort plateau scheduler')]
-    task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('threshold',0.01,'settings fort plateau scheduler')]
+    task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('threshold',0.001,'settings fort plateau scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler']['plateau'][('min_lr',1e-6,'settings fort plateau scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler'][('custom',{},'settings for custom scheduler')]
     task_params['tsk_set']['optim']['lr_scheduler']['custom'][('step_size',200,'steps to decay learning rate')]
     task_params['tsk_set']['optim']['lr_scheduler']['custom'][('gamma',0.5,'factor to decay learning rate')]
+
+
+    task_params['tsk_set'][('loss', {}, 'settings for adam')]
+    task_params['tsk_set']['loss'][('type','ce','loss name, {ce,mse,l1_loss,focal_loss, dice_loss}')]
+    task_params['tsk_set']['loss'][('update_epoch',1,'update the loss strategy every num epoch')]
+    task_params['tsk_set']['loss'][('residue_weight_on',False,'using residue weight')]
+    task_params['tsk_set']['loss'][('ce', {}, 'settings for ce')]
+    task_params['tsk_set']['loss']['ce'][('weighted', False, 'using weighted ce')]
+    task_params['tsk_set']['loss']['ce'][('no_bg', False, 'exclude bg value')]
+    task_params['tsk_set']['loss'][('dice_loss', {}, 'settings for dice_loss')]
+    task_params['tsk_set']['loss']['dice_loss'][('weighted', False, 'using weighted ce')]
+    task_params['tsk_set']['loss']['dice_loss'][('no_bg', False, 'exclude bg value')]
+
+
+
+
+
 
     return task_params
 
@@ -82,6 +100,7 @@ def get_datapro_settings(datapro_settings_filename = None ):
 
     datapro_params.load_JSON( datapro_settings_filename )
     datapro_params[('datapro',{},'settings for the data process')]
+    datapro_params['datapro'][('task_type', 'seg','task type seg or reg')]
 
     datapro_params['datapro'][('dataset', {}, 'general settings for dataset')]
     datapro_params['datapro']['dataset'][('dataset_name', 'lpba', 'name of the dataset: oasis2d, lpba, ibsr, cmuc')]
@@ -90,7 +109,8 @@ def get_datapro_settings(datapro_settings_filename = None ):
     datapro_params['datapro']['dataset'][('label_path', None, "data path of the  dataset, default settings are in datamanger")]
     datapro_params['datapro']['dataset'][('output_path', '/playpen/zyshen/data/', "the path to save the processed data")]
     datapro_params['datapro']['dataset'][('prepare_data', False, 'prepare the data ')]
-    datapro_params['datapro']['dataset'][('divided_ratio', (0.8, 0.1, 0.1), 'divided the dataset into train, val and test set by the divided_ratio')]
+    datapro_params['datapro']['dataset'][('using_normalize', True, 'normalized the data ')]
+    datapro_params['datapro']['dataset'][('divided_ratio', (0.7, 0.2, 0.1), 'divided the dataset into train, val and test set by the divided_ratio')]
     datapro_params['datapro']['switch'][('switch_to_exist_task', False, 'switch to existed task without modify other datapro settings')]
     datapro_params['datapro']['switch'][('task_root_path', '/playpen/zyshen/data/oasis_inter_slicing90', 'path of existed processed data')]
 
@@ -100,13 +120,13 @@ def get_datapro_settings(datapro_settings_filename = None ):
     datapro_params['datapro'][('reg', {}, 'general settings for dataset')]
     datapro_params['datapro']['reg'][('sched', 'inter', "['inter'|'intra'], inter-personal or intra-personal")]
     datapro_params['datapro']['reg'][('all_comb', False, 'all possible pair combination ')]
-    datapro_params['datapro']['reg'][('slicing', 100, 'the index to be sliced from the 3d image dataset, support lpba, ibsr, cmuc')]
-    datapro_params['datapro']['reg'][('axis', 3, 'which axis needed to be sliced')]
+    datapro_params['datapro']['reg'][('slicing', -1, 'the index to be sliced from the 3d image dataset, support lpba, ibsr, cmuc')]
+    datapro_params['datapro']['reg'][('axis', -1, 'which axis needed to be sliced')]
 
 
 
     datapro_params['datapro'][('seg', {}, 'general settings for dataset')]
-    datapro_params['datapro']['seg'][('num_crop_per_class_per_train_img',100, 'num_crop_per_class_per_train_img')]
+    datapro_params['datapro']['seg'][('num_crop_per_class_per_train_img',20, 'num_crop_per_class_per_train_img')]
     datapro_params['datapro']['seg'][('patch_size',[128, 128, 32], 'patch size')]
     datapro_params['datapro']['seg'][('sched', 'patched', "['patched'|'nopatched'], patched or whole image")]
     datapro_params['datapro']['seg'][('partition', {}, "settings for the partition")]
@@ -129,6 +149,7 @@ def get_datapro_settings(datapro_settings_filename = None ):
     datapro_params['datapro']['seg']['transform']['my_rand_crop'][('crop_bg_ratio', 0.1, 'ratio of background crops')]
     datapro_params['datapro']['seg']['transform'][('my_bal_rand_crop', {}, 'settings for balanced random crop')]
     datapro_params['datapro']['seg']['transform']['my_bal_rand_crop'][('scale_ratio', 0.1, 'scale_ratio for patch sampling')]
+    datapro_params['datapro']['seg']['transform']['my_bal_rand_crop'][('bg_th_ratio', 0.0, 'threshold for background ratio')]
     datapro_params['datapro']['seg']['transform'][('rand_rigid_trans', {}, 'settins for random_rigid_transform')]
     datapro_params['datapro']['seg']['transform']['rand_rigid_trans'][('transition',list([0.5]*3), 'transtion for each dimension')]
     datapro_params['datapro']['seg']['transform']['rand_rigid_trans'][('rotation',list([0.0]*3), 'rotation for each dimension')]

@@ -2,12 +2,25 @@
     "tsk_set": {
         "__doc__": "settings for task",
         "batch_sz": "batch size",
-        "check_best_model_period": "check and save the best model every save_model_period",
         "continue_train": "continue to train",
         "criticUpdates": "criticUpdates",
         "epoch": "num of epoch",
         "gpu_ids": "gpu id, currently not support data parallel",
-        "loss": "loss name, {ce,mse,l1_loss,focal_loss, dice_loss}",
+        "loss": {
+            "__doc__": "settings for adam",
+            "ce": {
+                "__doc__": "settings for ce",
+                "no_bg": "exclude bg value",
+                "weighted": "using weighted ce"
+            },
+            "dice_loss": {
+                "__doc__": "settings for dice_loss",
+                "no_bg": "exclude bg value",
+                "weighted": "using weighted ce"
+            },
+            "type": "loss name, {ce,mse,l1_loss,focal_loss, dice_loss}",
+            "update_epoch": "update the loss strategy every num epoch"
+        },
         "max_batch_num_per_epoch": "num of the batches per epoch",
         "model": "model name, currently only support unet",
         "model_path": "if continue_train, given the model path",
@@ -38,6 +51,7 @@
         },
         "print_step": "num of steps to print",
         "print_val_detail": "print details of validation results",
+        "save_val_fig_epoch": "epoch to save val fig",
         "task_name": "task_name",
         "train": "if training",
         "which_epoch": "if continue_train, given the epoch"

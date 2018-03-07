@@ -2,12 +2,13 @@ import numpy as np
 import SimpleITK as sitk
 
 
-def partition(option_p):
+def partition(option_p,mode=None, flicker_on=False, flicker_mode='rand'):
     overlap_size = option_p[('overlap_size',tuple([16,16,8]), 'overlap_size')]
     padding_mode = option_p[('padding_mode', 'reflect', 'padding_mode')]
-    mode = option_p[('mode', 'pred', 'eval or pred')]
+    mode = mode if mode is not None else option_p[('mode', 'pred', 'eval or pred')]
     patch_size = option_p[('patch_size', [128, 128, 32], 'patch size')]
-    partition = Partition(patch_size, overlap_size, padding_mode=padding_mode, mode=mode)
+    flicker_range = option_p[('flicker_range', 0, 'flicker range')]
+    partition = Partition(patch_size, overlap_size, padding_mode=padding_mode, mode=mode,flicker_on=flicker_on,flicker_range=flicker_range, flicker_mode=flicker_mode)
     return partition
 
 
@@ -30,16 +31,19 @@ class Partition(object):
     :param mode: "pred": only image is partitioned; "eval": both image and segmentation are partitioned TODO
     """
 
-    def __init__(self, tile_size, overlap_size, padding_mode='reflect', mode="pred"):
+    def __init__(self, tile_size, overlap_size, padding_mode='reflect', mode="pred",flicker_on=False,flicker_range=0,flicker_mode='rand'):
         self.tile_size = np.flipud(
             np.asarray(tile_size))  # flip the size order to match the numpy array(check the note)
         self.overlap_size = np.flipud(np.asarray(overlap_size))
         self.padding_mode = padding_mode
         self.mode = mode
+        self.flicker_on=flicker_on
+        self.flicker_range = flicker_range
+        self.flicker_mode= flicker_mode
 
 
 
-    def __call__(self, sample):
+    def __call__(self, sample,disp=0):
         """
         :param image: (simpleITK image) 3D Image to be partitioned
         :param seg: (simpleITK image) 3D segmentation label mask to be partitioned
@@ -47,57 +51,82 @@ class Partition(object):
             {'img':  Nx1xDxHxW, 'label':  Nx1xDxHxW }
         """
         # get numpy array from simpleITK images
-        image_np = sitk.GetArrayFromImage(sample['img'])
-        seg_np = sitk.GetArrayFromImage(sample['seg'])
-        self.image = sample['img']
-        self.image_size = np.array(image_np.shape)  # size of input image
+        images_itk = sample['img']
+        if 'seg' in sample:
+            seg_np = sitk.GetArrayFromImage(sample['seg'])
+        #self.image = sample['img']
+        if not isinstance(images_itk,list):
+            images = [sitk.GetArrayFromImage(images_itk)]
+        else:
+            images = [ sitk.GetArrayFromImage(image) for image in images_itk]
+        self.image_size = np.array(images[0].shape)
         self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
         self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
         self.padded_size = self.effective_size * self.tiles_grid_size + self.overlap_size * 2 - self.image_size  # size difference of padded image with original image
-
-        image_padded = np.pad(image_np,
-                              pad_width=((self.overlap_size[0], self.padded_size[0] - self.overlap_size[0]),
-                                         (self.overlap_size[1], self.padded_size[1] - self.overlap_size[1]),
-                                         (self.overlap_size[2], self.padded_size[2] - self.overlap_size[2])),
-                              mode=self.padding_mode)
+        #print("partitioning, the padded size is {}".format(self.padded_size))
+        if self.flicker_on:
+            pp = self.flicker_range
+        else:
+            pp=0
 
         if self.mode == 'eval':
             seg_padded = np.pad(seg_np,
-                                pad_width=((self.overlap_size[0], self.padded_size[0] - self.overlap_size[0]),
-                                           (self.overlap_size[1], self.padded_size[1] - self.overlap_size[1]),
-                                           (self.overlap_size[2], self.padded_size[2] - self.overlap_size[2])),
+                                pad_width=((self.overlap_size[0]+pp, self.padded_size[0] - self.overlap_size[0]+pp),
+                                           (self.overlap_size[1]+pp, self.padded_size[1] - self.overlap_size[1]+pp),
+                                           (self.overlap_size[2]+pp, self.padded_size[2] - self.overlap_size[2]+pp)),
                                 mode=self.padding_mode)
 
         image_tile_list = []
+        start_coord_list = []
         seg_tile_list = []
+        image_padded_list = [np.pad(image_np,
+                              pad_width=((self.overlap_size[0] + pp, self.padded_size[0] - self.overlap_size[0] + pp),
+                                         (self.overlap_size[1] + pp, self.padded_size[1] - self.overlap_size[1] + pp),
+                                         (self.overlap_size[2] + pp, self.padded_size[2] - self.overlap_size[2] + pp)),
+                              mode=self.padding_mode) for image_np in images]
+
         for i in range(self.tiles_grid_size[0]):
             for j in range(self.tiles_grid_size[1]):
                 for k in range(self.tiles_grid_size[2]):
-                    image_tile_temp = image_padded[
-                                      i * self.effective_size[0]:i * self.effective_size[0] + self.tile_size[0],
-                                      j * self.effective_size[1]:j * self.effective_size[1] + self.tile_size[1],
-                                      k * self.effective_size[2]:k * self.effective_size[2] + self.tile_size[2]]
-                    image_tile_list.append(image_tile_temp)
+                    if self.flicker_on:
+                        if self.flicker_mode=='rand':
+                            ri, rj, rk = [np.random.randint(-self.flicker_range,self.flicker_range) for _ in range(3)]
+                        elif self.flicker_mode =='ensemble':
+                            ri,rj,rk = disp
+                    else:
+                        ri,rj,rk= 0, 0, 0
+                    image_tile_temp_list = [image_padded[
+                                      i * self.effective_size[0]+ri+pp:i * self.effective_size[0] + self.tile_size[0]+ri+pp,
+                                      j * self.effective_size[1]+rj+pp:j * self.effective_size[1] + self.tile_size[1]+rj+pp,
+                                      k * self.effective_size[2]+rk+pp:k * self.effective_size[2] + self.tile_size[2]+rk+pp]
+                                            for image_padded in image_padded_list]
+                    image_tile_list.append(np.stack(image_tile_temp_list,0))
+                    start_coord_list.append((i * self.effective_size[0]+ri,j * self.effective_size[1]+rj,k * self.effective_size[2]+rk))
 
                     if self.mode == 'eval':
                         seg_tile_temp = seg_padded[
-                                        i * self.effective_size[0]:i * self.effective_size[0] + self.tile_size[0],
-                                        j * self.effective_size[1]:j * self.effective_size[1] + self.tile_size[1],
-                                        k * self.effective_size[2]:k * self.effective_size[2] + self.tile_size[2]]
-                        seg_tile_list.append(seg_tile_temp)
+                                        i * self.effective_size[0]+ri+pp:i * self.effective_size[0] + self.tile_size[0]+ri+pp,
+                                        j * self.effective_size[1]+rj+pp:j * self.effective_size[1] + self.tile_size[1]+rj+pp,
+                                        k * self.effective_size[2]+rk+pp:k * self.effective_size[2] + self.tile_size[2]+rk+pp]
+                        seg_tile_list.append(np.expand_dims(seg_tile_temp))
 
         # sample['img'] = np.stack(image_tile_list, 0)
         # sample['segmentation'] = np.stack(seg_tile_list, 0)
         trans_sample ={}
 
-        trans_sample['img'] = np.expand_dims(np.stack(image_tile_list, 0), axis=1)
-        if self.mode == 'pred':
-            trans_sample['seg'] = np.expand_dims(seg_np, axis=0)
-        else:
-            trans_sample['seg'] = np.expand_dims(np.stack(seg_tile_list, 0), axis=1)
+        trans_sample['img'] = np.stack(image_tile_list, 0) # N*C*xyz
+        if 'seg'in sample:
+            if self.mode == 'pred':
+                trans_sample['seg'] = np.expand_dims(seg_np, axis=0)  #1*XYZ
+            else:
+                trans_sample['seg'] = np.stack(seg_tile_list, 0)  # N*1*xyz
         trans_sample['tile_size'] = self.tile_size
         trans_sample['overlap_size'] = self.overlap_size
         trans_sample['padding_mode'] = self.padding_mode
+        trans_sample['flicker_on'] = self.flicker_on
+        trans_sample['disp'] = disp
+        trans_sample['num_crops_per_img'] = len(image_tile_list)
+        trans_sample['start_coord_list'] = start_coord_list
 
         return trans_sample
 
@@ -109,6 +138,7 @@ class Partition(object):
         :return: a segmentation information
 
         """
+
         if image_size is not None:
             self.image_size = image_size
         self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping

@@ -17,8 +17,10 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False):
     batch_avg_res{iou: 1x#label , dice: 1x#label...} ,
     label_list: the labels contained by batch
     """
-    # pred = pred.cpu().data.numpy()
-    # gt = gt.cpu().data.numpy()
+
+    if not isinstance(pred, (np.ndarray, np.generic)):
+        pred = pred.cpu().data.numpy()
+        gt = gt.cpu().data.numpy()
     label_list = np.unique(gt).tolist()
     if rm_bg:
         label_list = label_list[1:]
@@ -34,6 +36,10 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False):
     batch_avg_res = {metric: np.zeros([1, num_label]) for metric in metrics}
     batch_label_avg_res ={metric: np.zeros(1) for metric in metrics}
     label_batch_avg_res ={metric: np.zeros(1) for metric in metrics}
+    if num_label==0:
+        print("Warning, there is no label in current img")
+        return {'multi_metric_res': multi_metric_res, 'label_avg_res': label_avg_res, 'batch_avg_res': batch_avg_res,
+            'label_list': label_list, 'batch_label_avg_res':batch_label_avg_res,'label_batch_avg_res':label_batch_avg_res}
 
     for l in range(num_label):
         label_pred = (pred == label_list[l]).astype(np.int32)
@@ -53,6 +59,7 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False):
             no_n_index = np.where(multi_metric_res[metric][:, l] != -1)
             batch_avg_res[metric][:, l] = float(np.mean(multi_metric_res[metric][:, l][no_n_index]))
         label_batch_avg_res[metric] = float(np.mean(batch_avg_res[metric]))
+
 
     return {'multi_metric_res': multi_metric_res, 'label_avg_res': label_avg_res, 'batch_avg_res': batch_avg_res,
             'label_list': label_list, 'batch_label_avg_res':batch_label_avg_res,'label_batch_avg_res':label_batch_avg_res}

@@ -4,12 +4,12 @@ import os
 from collections import OrderedDict
 from torch.autograd import Variable
 from .base_model import BaseModel
-from .reg_net_expr import SimpleNet
+from .reg_net_expr import *
 from . import networks
 from .losses import Loss
 from .metrics import get_multi_metric
 from data_pre.partition import Partition
-from model_pool.utils import weights_init
+#from model_pool.utils import weights_init
 from model_pool.utils import *
 import torch.nn as nn
 import matplotlib.pyplot as plt
@@ -28,7 +28,8 @@ class RegNet(BaseModel):
         BaseModel.initialize(self,opt)
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        self.network = SimpleNet(self.img_sz)
+        self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
+        self.network = FlowNet(self.img_sz, self.spacing)
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         if self.continue_train:
@@ -46,7 +47,7 @@ class RegNet(BaseModel):
 
     def set_input(self, data, is_train=True):
         moving, target, l_moving,l_target = get_pair(data[0])
-        input = organize_data(moving, target, sched='depth_concat')
+        input = organize_data(moving, target, sched='list_concat')
         volatile = not is_train
         self.moving = Variable(moving.cuda(),volatile=volatile)
         self.target = Variable(target.cuda(),volatile=volatile)
@@ -77,17 +78,22 @@ class RegNet(BaseModel):
         self.loss.backward()
 
 
+
     def optimize_parameters(self):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        self.output, self.phi = self.forward()
+        self.output, self.phi, self.disp = self.forward()
         self.loss = self.cal_loss()
+        # criterion = nn.MSELoss()
+        # self.loss = criterion(self.output, self.target)
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()
             self.optimizer.zero_grad()
 
+    def update_loss(self,epoch, end_of_epoch):
+        pass
 
     def get_current_errors(self):
         return self.loss.data[0]
@@ -104,27 +110,29 @@ class RegNet(BaseModel):
 
     def cal_val_errors(self):
         self.cal_test_errors()
-        if self.exp_lr_scheduler is not None:
-            self.exp_lr_scheduler.step(self.get_val_res())
 
     def cal_test_errors(self):
         self.get_evaluation()
 
     def get_evaluation(self):
-        self.output, self.phi = self.forward()
-        warped_label_map_np = self.get_warped_label_map(self.l_moving,self.phi).data.cpu().numpy()
+        self.output, self.phi, self.disp= self.forward()
+        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+        warped_label_map_np= self.warped_label_map.data.cpu().numpy()
         self.l_target_np= self.l_target.data.cpu().numpy()
 
         self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-        if not self.print_val_detail:
-            print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
-        else:
-            print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
-            print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+        # if not self.print_val_detail:
+        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+        # else:
+        #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
+        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
 
 
     def get_val_res(self):
         return self.val_res_dic['batch_label_avg_res']['dice']
+
+    def get_test_res(self):
+        return self.get_val_res()
 
 
 
@@ -132,17 +140,13 @@ class RegNet(BaseModel):
     def save(self, label):
         self.save_network(self.network, 'unet', label, self.gpu_ids)
 
-    def save_fig(self):
-        if self.dim == 2:
-            self.save_fig_2D()
-        else:
-            self.save_fig_3D()
 
-    def save_fig_3D(self):
+
+    def save_fig_3D(self,phase):
         saving_folder_path = os.path.join(self.record_path, '3D')
         make_dir(saving_folder_path)
         for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_iter_" + str(self.iter_count)
+            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
             saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
             output = sitk.GetImageFromArray(self.moving[i, 0, ...])
             output.SetSpacing(self.spacing)
@@ -156,15 +160,30 @@ class RegNet(BaseModel):
             output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
 
-    def save_fig_2D(self):
+    def save_fig_2D(self,phase):
         saving_folder_path = os.path.join(self.record_path, '2D')
         make_dir(saving_folder_path)
 
         for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_iter_" + str(self.iter_count)
+            appendix = self.fname_list[i] + "_"+phase+"_iter_" + str(self.iter_count)
             save_image_with_scale(saving_folder_path + '/' + appendix + "_moving.tif", self.moving[i, 0, ...])
             save_image_with_scale(saving_folder_path + '/' + appendix + "_target.tif", self.target[i, 0, ...])
             save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
+
+    def save_fig(self,phase):
+        from model_pool.visualize_registration_results import  save_current_images
+        visual_param={}
+        visual_param['visualize'] = False
+        visual_param['save_fig'] = True
+        visual_param['save_fig_path'] = self.record_path
+        visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
+        visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
+        visual_param['save_fig_num'] = 5
+        visual_param['pair_path'] = self.fname_list
+        visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
+        disp = ((self.disp[:,...]**2).sum(1))**0.5
+        save_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
+                            disp, 'disp', self.phi, visual_param=visual_param)
 
 
 

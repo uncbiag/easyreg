@@ -6,29 +6,29 @@ class UNet3D(nn.Module):
         self.in_channel = in_channel
         self.n_classes = n_classes
         super(UNet3D, self).__init__()
-        self.ec0 = self.encoder(self.in_channel, 32, bias=False, batchnorm=False)
-        self.ec1 = self.encoder(32, 64, bias=False, batchnorm=False)
-        self.ec2 = self.encoder(64, 64, bias=False, batchnorm=False)
-        self.ec3 = self.encoder(64, 128, bias=False, batchnorm=False)
-        self.ec4 = self.encoder(128, 128, bias=False, batchnorm=False)
-        self.ec5 = self.encoder(128, 256, bias=False, batchnorm=False)
-        self.ec6 = self.encoder(256, 256, bias=False, batchnorm=False)
-        self.ec7 = self.encoder(256, 512, bias=False, batchnorm=False)
+        self.ec0 = self.encoder(self.in_channel, 32, bias=True, batchnorm=True)
+        self.ec1 = self.encoder(32, 64, bias=True, batchnorm=True)
+        self.ec2 = self.encoder(64, 64, bias=True, batchnorm=True)
+        self.ec3 = self.encoder(64, 128, bias=True, batchnorm=True)
+        self.ec4 = self.encoder(128, 128, bias=True, batchnorm=True)
+        self.ec5 = self.encoder(128, 256, bias=True, batchnorm=True)
+        self.ec6 = self.encoder(256, 256, bias=True, batchnorm=True)
+        self.ec7 = self.encoder(256, 512, bias=True, batchnorm=True)
 
         self.pool0 = nn.MaxPool3d(2)
         self.pool1 = nn.MaxPool3d(2)
         self.pool2 = nn.MaxPool3d(2)
 
-        self.dc9 = self.decoder(512, 512, kernel_size=2, stride=2, bias=False)
-        self.dc8 = self.decoder(256 + 512, 256, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dc7 = self.decoder(256, 256, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dc6 = self.decoder(256, 256, kernel_size=2, stride=2, bias=False)
-        self.dc5 = self.decoder(128 + 256, 128, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dc4 = self.decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dc3 = self.decoder(128, 128, kernel_size=2, stride=2, bias=False)
-        self.dc2 = self.decoder(64 + 128, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dc1 = self.decoder(64, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dc0 = self.decoder(64, n_classes, kernel_size=1, stride=1, bias=False)
+        self.dc9 = self.decoder(512, 512, kernel_size=2, stride=2, bias=True,batchnorm=True)
+        self.dc8 = self.decoder(256 + 512, 256, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=False)
+        self.dc7 = self.decoder(256, 256, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
+        self.dc6 = self.decoder(256, 256, kernel_size=2, stride=2, bias=True,batchnorm=True)
+        self.dc5 = self.decoder(128 + 256, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=False)
+        self.dc4 = self.decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
+        self.dc3 = self.decoder(128, 128, kernel_size=2, stride=2, bias=True,batchnorm=True)
+        self.dc2 = self.decoder(64 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=False)
+        self.dc1 = self.decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
+        self.dc0 = self.decoder(128, n_classes, kernel_size=1, stride=1, bias=True,batchnorm=False)
         # self.weights_init()
 
 
@@ -48,11 +48,18 @@ class UNet3D(nn.Module):
 
 
     def decoder(self, in_channels, out_channels, kernel_size, stride=1, padding=0,
-                output_padding=0, bias=True):
-        layer = nn.Sequential(
-            nn.ConvTranspose3d(in_channels, out_channels, kernel_size, stride=stride,
-                               padding=padding, output_padding=output_padding, bias=bias),
-            nn.ReLU())
+                output_padding=0, bias=True,batchnorm=False):
+        if  batchnorm:
+            layer = nn.Sequential(
+                nn.ConvTranspose3d(in_channels, out_channels, kernel_size, stride=stride,
+                                   padding=padding, output_padding=output_padding, bias=bias),
+                nn.BatchNorm3d(out_channels),
+                nn.ReLU())
+        else:
+            layer = nn.Sequential(
+                nn.ConvTranspose3d(in_channels, out_channels, kernel_size, stride=stride,
+                                   padding=padding, output_padding=output_padding, bias=bias),
+                nn.ReLU())
         return layer
 
     def forward(self, x):

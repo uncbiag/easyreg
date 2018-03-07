@@ -1,25 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6276e5ba-c766-4737-8ef1-b118f0ca9119" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/my_lib_2D/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/my_lib_2D/_my_lib_2D.so" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/my_lib_3D/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/my_lib_3D/_my_lib_3D.so" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/my_lib_nd/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/_ext/my_lib_nd/_my_lib_nd.so" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/data_utils.py" afterPath="$PROJECT_DIR$/data/data_utils.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/dataset.py" afterPath="$PROJECT_DIR$/data/dataset.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/modules.py" afterPath="$PROJECT_DIR$/models/modules.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/net_utils.py" afterPath="$PROJECT_DIR$/models/net_utils.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/networks.py" afterPath="$PROJECT_DIR$/models/networks.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pipLine/pipline.py" afterPath="$PROJECT_DIR$/pipLine/pipline.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pipLine/prepare_data.py" afterPath="$PROJECT_DIR$/pipLine/prepare_data.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pipLine/train_model.py" afterPath="$PROJECT_DIR$/pipLine/train_model.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pipLine/utils.py" afterPath="$PROJECT_DIR$/pipLine/utils.py" />
+    <list default="true" id="6276e5ba-c766-4737-8ef1-b118f0ca9119" name="Default" comment="'update reg data procss strategy, add networks, add multi-dice, add focal loss'">
+      <change beforePath="" afterPath="$PROJECT_DIR$/data_pre/multi_mod_txt_gen.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/data_pre/priority_loader.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/data_pre/priority_sampler.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/data_pre/seg_data_loader_eh.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/analysis_result.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/debug.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/debug_expr.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/finite_differences.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/forward_models.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/reg_net_pool.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/rungekutta_integrators.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/task_pool2.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/test_expr.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr0.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr10_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr11_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr12_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr13_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr14_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr15_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr16_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr17_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr18_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr2.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr3.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_ens.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_ens_ful_res.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_ens_nr.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test2.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test3.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test4.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test5.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test6.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test7.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test8.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr4_test9.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr5.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr5_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr5_ens.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr6_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr7_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr8_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr9_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr_bon.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/unet_expr_bon_s.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/visualize_registration_results.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/vnet_expr.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/model_pool/zhenlin_net.py" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/settings/base_data_settings.json" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change beforePath="$PROJECT_DIR$/.idea/registration_net.iml" afterPath="$PROJECT_DIR$/.idea/registration_net.iml" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/data_pre/config_parser.py" afterPath="$PROJECT_DIR$/data_pre/config_parser.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/data_manager.py" afterPath="$PROJECT_DIR$/data_pre/data_manager.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/fileio.py" afterPath="$PROJECT_DIR$/data_pre/fileio.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/partition.py" afterPath="$PROJECT_DIR$/data_pre/partition.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/reg_data_utils.py" afterPath="$PROJECT_DIR$/data_pre/reg_data_utils.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/seg_data_loader.py" afterPath="$PROJECT_DIR$/data_pre/seg_data_loader.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/seg_data_pool.py" afterPath="$PROJECT_DIR$/data_pre/seg_data_pool.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/seg_data_utils.py" afterPath="$PROJECT_DIR$/data_pre/seg_data_utils.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/transform.py" afterPath="$PROJECT_DIR$/data_pre/transform.py" />
+      <change beforePath="$PROJECT_DIR$/data_pre/transform_pool.py" afterPath="$PROJECT_DIR$/data_pre/transform_pool.py" />
+      <change beforePath="$PROJECT_DIR$/functions/bilinear.py" afterPath="$PROJECT_DIR$/functions/bilinear.py" />
+      <change beforePath="$PROJECT_DIR$/help_codes/unet_train.py" afterPath="$PROJECT_DIR$/help_codes/unet_train.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/base_model.py" afterPath="$PROJECT_DIR$/model_pool/base_model.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/create_model.py" afterPath="$PROJECT_DIR$/model_pool/create_model.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/initializer.py" afterPath="$PROJECT_DIR$/model_pool/initializer.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/losses.py" afterPath="$PROJECT_DIR$/model_pool/losses.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/metrics.py" afterPath="$PROJECT_DIR$/model_pool/metrics.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/modules.py" afterPath="$PROJECT_DIR$/model_pool/modules.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/piplines.py" afterPath="$PROJECT_DIR$/model_pool/piplines.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/reg_net.py" afterPath="$PROJECT_DIR$/model_pool/reg_net.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/reg_net_expr.py" afterPath="$PROJECT_DIR$/model_pool/reg_net_expr.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/task_pool.py" afterPath="$PROJECT_DIR$/model_pool/task_pool.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/train_expr.py" afterPath="$PROJECT_DIR$/model_pool/train_expr.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/unet.py" afterPath="$PROJECT_DIR$/model_pool/unet.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/unet_expr.py" afterPath="$PROJECT_DIR$/model_pool/unet_expr.py" />
+      <change beforePath="$PROJECT_DIR$/model_pool/utils.py" afterPath="$PROJECT_DIR$/model_pool/utils.py" />
+      <change beforePath="$PROJECT_DIR$/models/modules.py" afterPath="$PROJECT_DIR$/models/modules.py" />
+      <change beforePath="$PROJECT_DIR$/pipLine/utils.py" afterPath="$PROJECT_DIR$/pipLine/utils.py" />
+      <change beforePath="$PROJECT_DIR$/settings/base_task_settings.json" afterPath="$PROJECT_DIR$/settings/base_task_settings.json" />
+      <change beforePath="$PROJECT_DIR$/settings/data_settings.json" afterPath="$PROJECT_DIR$/settings/data_settings.json" />
+      <change beforePath="$PROJECT_DIR$/settings/data_settings_comments.json" afterPath="$PROJECT_DIR$/settings/data_settings_comments.json" />
+      <change beforePath="$PROJECT_DIR$/settings/task_settings.json" afterPath="$PROJECT_DIR$/settings/task_settings.json" />
+      <change beforePath="$PROJECT_DIR$/settings/task_settings_comments.json" afterPath="$PROJECT_DIR$/settings/task_settings_comments.json" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -28,103 +98,98 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/registration_net$train_expr.coverage" NAME="train_expr Coverage Results" MODIFIED="1515440154010" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$task_pool.coverage" NAME="task_pool Coverage Results" MODIFIED="1518327358529" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$priority_sampler.coverage" NAME="priority_sampler Coverage Results" MODIFIED="1519491173233" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$debug.coverage" NAME="debug Coverage Results" MODIFIED="1518555928712" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$pipline__2_.coverage" NAME="pipline (2) Coverage Results" MODIFIED="1514864121107" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pipLine" />
+    <SUITE FILE_PATH="coverage/registration_net$multi_mod_txt_gen.coverage" NAME="multi_mod_txt_gen Coverage Results" MODIFIED="1520032040016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$task_pool2.coverage" NAME="task_pool2 Coverage Results" MODIFIED="1520461213144" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$vnet_expr.coverage" NAME="vnet_expr Coverage Results" MODIFIED="1516419017705" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$reg_data_pool.coverage" NAME="reg_data_pool Coverage Results" MODIFIED="1515188798215" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$seg_data_pool.coverage" NAME="seg_data_pool Coverage Results" MODIFIED="1515186700923" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$unet.coverage" NAME="unet Coverage Results" MODIFIED="1516080944682" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$piplines.coverage" NAME="piplines Coverage Results" MODIFIED="1516573613675" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="/playpen/zyshen/registration_net/model_pool" />
+    <SUITE FILE_PATH="coverage/registration_net$config_parser.coverage" NAME="config_parser Coverage Results" MODIFIED="1516214006873" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$seg_data_utils.coverage" NAME="seg_data_utils Coverage Results" MODIFIED="1514864468642" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$data_manager.coverage" NAME="data_manager Coverage Results" MODIFIED="1515346373999" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$analysis_result.coverage" NAME="analysis_result Coverage Results" MODIFIED="1520462401552" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_TABLE_DETAILS" value="true" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <expand />
+    <select />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="registration_net" />
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="networks.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/networks.py">
+      <file leaf-file-name="unet.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/model_pool/unet.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="38" column="0" lean-forward="false" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
+            <state relative-caret-position="649">
+              <caret line="367" column="47" lean-forward="true" selection-start-line="367" selection-start-column="47" selection-end-line="367" selection-end-column="47" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="prepare_data.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pipLine/prepare_data.py">
+      <file leaf-file-name="train_expr.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_pool/train_expr.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1100">
-              <caret line="58" column="0" lean-forward="false" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+            <state relative-caret-position="1618">
+              <caret line="113" column="0" lean-forward="false" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="pipline.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/pipLine/pipline.py">
+      <file leaf-file-name="utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_pool/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="140">
-              <caret line="56" column="50" lean-forward="false" selection-start-line="56" selection-start-column="50" selection-end-line="56" selection-end-column="50" />
+            <state relative-caret-position="0">
+              <caret line="195" column="4" lean-forward="false" selection-start-line="195" selection-start-column="4" selection-end-line="195" selection-end-column="4" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="zhenlin_net.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_pool/zhenlin_net.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="935">
+              <caret line="768" column="52" lean-forward="false" selection-start-line="768" selection-start-column="46" selection-end-line="768" selection-end-column="52" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="analysis_result.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_pool/analysis_result.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="308">
+              <caret line="14" column="42" lean-forward="false" selection-start-line="14" selection-start-column="26" selection-end-line="14" selection-end-column="42" />
               <folding>
-                <element signature="e#0#12#0" expanded="true" />
+                <element signature="e#0#18#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="apport_python_hook.py" pinned="false" current-in-tab="false">
-        <entry file="file:///usr/lib/python3/dist-packages/apport_python_hook.py">
+      <file leaf-file-name="reg_data_utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/data_pre/reg_data_utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1479">
-              <caret line="48" column="0" lean-forward="false" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="train_model.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pipLine/train_model.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="620">
-              <caret line="119" column="25" lean-forward="false" selection-start-line="119" selection-start-column="10" selection-end-line="119" selection-end-column="25" />
-              <folding>
-                <element signature="e#0#21#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="dataset.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/dataset.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="3" column="9" lean-forward="false" selection-start-line="3" selection-start-column="9" selection-end-line="3" selection-end-column="9" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/README.md">
-          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="SPLIT">
-              <first_editor relative-caret-position="300">
-                <caret line="15" column="31" lean-forward="false" selection-start-line="15" selection-start-column="31" selection-end-line="15" selection-end-column="31" />
-                <folding />
-              </first_editor>
-              <second_editor />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="net_utils.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/net_utils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1286">
-              <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="51" selection-end-column="16" />
-              <folding>
-                <element signature="e#0#12#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="data_utils.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/data_utils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1780">
-              <caret line="89" column="24" lean-forward="false" selection-start-line="89" selection-start-column="24" selection-end-line="89" selection-end-column="24" />
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding>
                 <element signature="e#0#22#0" expanded="true" />
               </folding>
@@ -132,12 +197,44 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="numeric.py" pinned="false" current-in-tab="false">
-        <entry file="file:///usr/local/lib/python3.5/dist-packages/numpy/core/numeric.py">
+      <file leaf-file-name="seg_data_pool.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/data_pre/seg_data_pool.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="256">
-              <caret line="530" column="0" lean-forward="false" selection-start-line="530" selection-start-column="0" selection-end-line="530" selection-end-column="0" />
+            <state relative-caret-position="306">
+              <caret line="176" column="86" lean-forward="true" selection-start-line="176" selection-start-column="25" selection-end-line="176" selection-end-column="87" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="seg_data_utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/data_pre/seg_data_utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="188">
+              <caret line="138" column="62" lean-forward="false" selection-start-line="138" selection-start-column="61" selection-end-line="138" selection-end-column="62" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fromnumeric.py" pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/numpy/core/fromnumeric.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="2221" column="4" lean-forward="false" selection-start-line="2221" selection-start-column="4" selection-end-line="2221" selection-end-column="4" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="unet_expr.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_pool/unet_expr.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -153,15 +250,51 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ssp</find>
-      <find>fcRel</find>
-      <find>lr</find>
-      <find>optim</find>
-      <find>save_to_h5py</find>
+      <find>get_default_dataset_path</find>
+      <find>get_evaluation</find>
+      <find>file_label_path_list</find>
+      <find>seg_np</find>
+      <find>sample</find>
+      <find>global_step</find>
+      <find>load</find>
+      <find>criticUpdates</find>
+      <find>val_res_dic</find>
+      <find>loss_buffer</find>
+      <find>104</find>
+      <find>task 104</find>
+      <find>output_size</find>
+      <find>get_file_name</find>
+      <find>_worker_loop</find>
+      <find>queue</find>
+      <find>random</find>
+      <find>_use_shared_memory</find>
+      <find>re</find>
+      <find>numpy_type_map</find>
+      <find>string_classes</find>
+      <find>sample_iter</find>
+      <find>_process_next_batch</find>
+      <find>backward</find>
+      <find>105</find>
+      <find>106</find>
+      <find>self.output</find>
+      <find>iter_count</find>
+      <find>detach</find>
+      <find>sample_label_path</find>
     </findStrings>
     <replaceStrings>
       <replace>spp</replace>
       <replace>FcRel</replace>
+      <replace>BaseSegDataSet</replace>
+      <replace>file</replace>
+      <replace>transfrom</replace>
+      <replace>list</replace>
+      <replace>transform</replace>
+      <replace>which_model_net_f</replace>
+      <replace>option_gen</replace>
+      <replace>'img'</replace>
+      <replace>self.data_manager</replace>
+      <replace>task</replace>
+      <replace>self.criterion</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -170,50 +303,71 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/demo.py" />
-        <option value="$PROJECT_DIR$/scripts/evaluate.py" />
-        <option value="$PROJECT_DIR$/help_codes/prediction_network_2d.py" />
-        <option value="$PROJECT_DIR$/help_codes/train_T1T1_2d.py" />
-        <option value="$PROJECT_DIR$/test/h5py_test.py" />
-        <option value="$PROJECT_DIR$/scripts/utils.py" />
-        <option value="$PROJECT_DIR$/test/test_data_loader.py" />
-        <option value="$PROJECT_DIR$/data/file_filter.py" />
-        <option value="$PROJECT_DIR$/scripts/train.py" />
-        <option value="$PROJECT_DIR$/scripts/prepare_data.py" />
-        <option value="$PROJECT_DIR$/functions/affine.py" />
-        <option value="$PROJECT_DIR$/models/DIRNet.py" />
-        <option value="$PROJECT_DIR$/pipline/prepare_data.py" />
-        <option value="$PROJECT_DIR$/pipline/train.py" />
-        <option value="$PROJECT_DIR$/pipline/pipline.py" />
-        <option value="$PROJECT_DIR$/pipp/pipline.py" />
-        <option value="$PROJECT_DIR$/help_codes/unet_train.py" />
-        <option value="$PROJECT_DIR$/models/functions.py" />
-        <option value="$PROJECT_DIR$/pipLine/test.py" />
-        <option value="$PROJECT_DIR$/functions/bilinear.py" />
-        <option value="$PROJECT_DIR$/models/addition.py" />
-        <option value="$PROJECT_DIR$/pipLine/train.py" />
-        <option value="$PROJECT_DIR$/pipLine/iter.py" />
-        <option value="$PROJECT_DIR$/pipLine/iter_model.py" />
-        <option value="$PROJECT_DIR$/pipLine/test_model.py" />
-        <option value="$PROJECT_DIR$/models/net_utils.py" />
-        <option value="$PROJECT_DIR$/models/modules.py" />
-        <option value="$PROJECT_DIR$/models/networks.py" />
-        <option value="$PROJECT_DIR$/pipLine/train_model.py" />
-        <option value="/usr/local/lib/python3.5/dist-packages/torch/optim/__init__.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr7_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr5_ens.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr10_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr11_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test5.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr13_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test4.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test6.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr8_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr9_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr12_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr16s_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/reg_net.py" />
+        <option value="$PROJECT_DIR$/model_pool/test_expr.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr17_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr14_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test3.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr18_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr15_bon.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test7.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test8.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr16_bon.py" />
+        <option value="$PROJECT_DIR$/settings/task_settings.json" />
+        <option value="$PROJECT_DIR$/model_pool/unet_expr4_test9.py" />
+        <option value="$PROJECT_DIR$/data_pre/transform.py" />
+        <option value="$PROJECT_DIR$/settings/base_data_settings.json" />
+        <option value="$PROJECT_DIR$/model_pool/task_pool.py" />
+        <option value="$PROJECT_DIR$/data_pre/fileio.py" />
+        <option value="$PROJECT_DIR$/data_pre/transform_pool.py" />
+        <option value="$PROJECT_DIR$/data_pre/seg_data_pool.py" />
         <option value="$PROJECT_DIR$/pipLine/utils.py" />
-        <option value="$PROJECT_DIR$/pipLine/prepare_data.py" />
-        <option value="$PROJECT_DIR$/data/dataset.py" />
-        <option value="$PROJECT_DIR$/data/data_utils.py" />
-        <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/pipLine/pipline.py" />
+        <option value="$PROJECT_DIR$/data_pre/partition.py" />
+        <option value="$PROJECT_DIR$/model_pool/initializer.py" />
+        <option value="$PROJECT_DIR$/data_pre/seg_data_utils.py" />
+        <option value="$PROJECT_DIR$/data_pre/seg_data_loader_eh.py" />
+        <option value="$PROJECT_DIR$/data_pre/priority_loader.py" />
+        <option value="$PROJECT_DIR$/data_pre/priority_sampler.py" />
+        <option value="$PROJECT_DIR$/model_pool/metrics.py" />
+        <option value="$PROJECT_DIR$/model_pool/losses.py" />
+        <option value="$PROJECT_DIR$/model_pool/piplines.py" />
+        <option value="$PROJECT_DIR$/model_pool/cas_net.py" />
+        <option value="$PROJECT_DIR$/model_pool/debug_expr.py" />
+        <option value="$PROJECT_DIR$/data_pre/data_manager.py" />
+        <option value="$PROJECT_DIR$/settings/base_task_settings.json" />
+        <option value="$PROJECT_DIR$/model_pool/train_expr.py" />
+        <option value="$PROJECT_DIR$/data_pre/seg_data_loader.py" />
+        <option value="$PROJECT_DIR$/model_pool/zhenlin_net.py" />
+        <option value="$PROJECT_DIR$/data_pre/multi_mod_txt_gen.py" />
+        <option value="$PROJECT_DIR$/model_pool/task_pool2.py" />
+        <option value="$PROJECT_DIR$/model_pool/unet.py" />
+        <option value="$PROJECT_DIR$/model_pool/analysis_result.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="65" />
-    <option name="y" value="-4" />
-    <option name="width" value="1855" />
-    <option name="height" value="1084" />
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="234" />
+    <option name="y" value="265" />
+    <option name="width" value="1389" />
+    <option name="height" value="748" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -252,138 +406,37 @@
     <panes>
       <pane id="ProjectPane">
         <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pipLine" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="models" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="help_codes" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="functions" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="demo" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="registration_net" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="data" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
+          <expand>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="data_pre" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="model_pool" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="models" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="settings" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+          </expand>
+          <select />
         </subPane>
       </pane>
       <pane id="Scope" />
@@ -392,12 +445,32 @@
   </component>
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../mermaid" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../OAI_segmentation/unet_3d" />
     <property name="SearchEverywhereHistoryKey" value="mnist&#9;null&#9;null&#10;imagenet&#9;null&#9;null" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="registration_net" is-module-sdk="true">
+        <option name="myUseModuleSdk" value="true" />
+        <option name="myModuleName" value="registration_net" />
+      </console-settings>
+    </option>
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/test" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/data_pre" />
+      <recent name="$PROJECT_DIR$/model_pool" />
+      <recent name="$PROJECT_DIR$/settings" />
+      <recent name="$PROJECT_DIR$/parsers" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -412,96 +485,101 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.pipline (2)">
-    <configuration default="false" name="pipline" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.analysis_result">
+    <configuration name="analysis_result" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pipline" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model_pool" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="registration_net" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipline/pipline.py" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model_pool/analysis_result.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
-      <method />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration default="false" name="pipline (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="debug" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pipp" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model_pool" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="registration_net" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipp/pipline.py" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model_pool/debug.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
-      <method />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration default="false" name="pipline (2)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="multi_mod_txt_gen" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pipLine" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data_pre" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="registration_net" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipLine/pipline.py" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data_pre/multi_mod_txt_gen.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
-      <method />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration default="false" name="addition" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="priority_sampler" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/models" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data_pre" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="registration_net" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test/addition.py" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data_pre/priority_sampler.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
-      <method />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration default="false" name="prepare_data (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="task_pool2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pipLine" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model_pool" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="registration_net" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipLine/prepare_data.py" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model_pool/task_pool2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
-      <method />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -562,26 +640,26 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="registration_net" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_regexPattern" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
       <option name="_new_target" value="&quot;.&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
-      <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python.pipline" />
-      <item index="1" class="java.lang.String" itemvalue="Python.pipline (1)" />
-      <item index="2" class="java.lang.String" itemvalue="Python.pipline (2)" />
-      <item index="3" class="java.lang.String" itemvalue="Python.addition" />
-      <item index="4" class="java.lang.String" itemvalue="Python.prepare_data (1)" />
+      <item index="0" class="java.lang.String" itemvalue="Python.debug" />
+      <item index="1" class="java.lang.String" itemvalue="Python.task_pool2" />
+      <item index="2" class="java.lang.String" itemvalue="Python.multi_mod_txt_gen" />
+      <item index="3" class="java.lang.String" itemvalue="Python.priority_sampler" />
+      <item index="4" class="java.lang.String" itemvalue="Python.analysis_result" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.pipline (2)" />
-        <item index="1" class="java.lang.String" itemvalue="Python.prepare_data (1)" />
-        <item index="2" class="java.lang.String" itemvalue="Python.pipline (1)" />
-        <item index="3" class="java.lang.String" itemvalue="Python.addition" />
-        <item index="4" class="java.lang.String" itemvalue="Python.pipline" />
+        <item index="0" class="java.lang.String" itemvalue="Python.analysis_result" />
+        <item index="1" class="java.lang.String" itemvalue="Python.task_pool2" />
+        <item index="2" class="java.lang.String" itemvalue="Python.multi_mod_txt_gen" />
+        <item index="3" class="java.lang.String" itemvalue="Python.priority_sampler" />
+        <item index="4" class="java.lang.String" itemvalue="Python.debug" />
       </list>
     </recent_temporary>
   </component>
@@ -599,67 +677,186 @@
       <option name="presentableId" value="Default" />
       <updated>1509649831943</updated>
     </task>
+    <task id="LOCAL-00001" summary="'seg data preprocess&#10;'">
+      <created>1514668327980</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1514668327980</updated>
+    </task>
+    <task id="LOCAL-00002" summary="'add seg settings'">
+      <created>1514699643615</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1514699643615</updated>
+    </task>
+    <task id="LOCAL-00003" summary="'add data management for both reg and seg task,&#10;add context net'">
+      <created>1515043309915</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1515043309915</updated>
+    </task>
+    <task id="LOCAL-00004" summary="'update reg data procss strategy, add networks, add multi-dice, add focal loss'">
+      <created>1515302759886</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1515302759886</updated>
+    </task>
+    <task id="LOCAL-00005" summary="'add settings, add initializer, add train, add whole img version val'">
+      <created>1515377682808</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1515377682808</updated>
+    </task>
+    <task id="LOCAL-00006" summary="'add label correction, add evaluation, update structure">
+      <created>1515478588568</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1515478588568</updated>
+    </task>
+    <task id="LOCAL-00007" summary="add task_pool, add log,  add analysis, add debug mode, update framework">
+      <created>1515993597689</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1515993597689</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
+    <frame x="234" y="265" width="3777" height="2172" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30458817" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3361169" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33010754" sideWeight="0.49806523" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30099502" sideWeight="0.32662913" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27412936" sideWeight="0.68731564" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.49806523" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32885572" sideWeight="0.49585405" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.17311828" sideWeight="0.7921504" order="2" side_tool="false" content_ui="tabs" x="111" y="808" width="1809" height="228" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3268817" sideWeight="0.4936429" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32946378" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.101904" sideWeight="0.49740162" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32946378" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="SciView" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.02520783" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32985386" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30897704" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32946378" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Concurrent Activities Diagram" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32686567" sideWeight="0.4990614" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.08091724" sideWeight="0.50259835" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30099502" sideWeight="0.6733709" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32925585" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32815966" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32888147" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33010754" sideWeight="0.49806523" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5041459" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3361169" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32985386" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30458817" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24193548" sideWeight="0.49359658" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21612903" sideWeight="0.4665561" order="2" side_tool="false" content_ui="tabs" x="111" y="808" width="1809" height="228" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.49806523" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32885572" sideWeight="0.49585405" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32794458" sideWeight="0.49806523" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32946378" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26810393" sideWeight="0.49740162" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32925585" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32946378" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32815966" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="SciView" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.106371194" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30897704" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32946378" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Concurrent Activities Diagram" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3268817" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30107528" sideWeight="0.46684635" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.08091724" sideWeight="0.50259835" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32888147" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
     </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="'seg data preprocess&#10;'" />
+    <MESSAGE value="'add seg settings'" />
+    <MESSAGE value="'add data management for both reg and seg task,&#10;add context net'" />
+    <MESSAGE value="'update reg data procss strategy, add networks, add multi-dice, add focal loss'" />
+    <MESSAGE value="'add settings, add initializer, add train, add whole img version val'" />
+    <MESSAGE value="'add label correction, add evaluation, update structure" />
+    <MESSAGE value="add task_pool, add log,  add analysis, add debug mode, update framework" />
+    <option name="LAST_COMMIT_MESSAGE" value="add task_pool, add log,  add analysis, add debug mode, update framework" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/test/addition.py</url>
           <line>17</line>
           <option name="timeStamp" value="101" />
         </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/data_pre/reg_data_pool.py</url>
+          <line>342</line>
+          <option name="timeStamp" value="364" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/data_pre/reg_data_pool.py</url>
+          <line>348</line>
+          <option name="timeStamp" value="365" />
+        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/data/data_utils.py</url>
-          <line>89</line>
-          <option name="timeStamp" value="181" />
+          <url>file://$PROJECT_DIR$/model_pool/vnet_expr.py</url>
+          <line>171</line>
+          <option name="timeStamp" value="694" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/model_pool/vnet_expr.py</url>
+          <line>126</line>
+          <option name="timeStamp" value="697" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/model_pool/unet_expr5.py</url>
+          <line>162</line>
+          <option name="timeStamp" value="744" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/model_pool/unet_expr4_test.py</url>
+          <line>118</line>
+          <option name="timeStamp" value="754" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/model_pool/losses.py</url>
+          <line>45</line>
+          <option name="timeStamp" value="960" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/model_pool/analysis_result.py</url>
+          <line>11</line>
+          <option name="timeStamp" value="992" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -669,392 +866,391 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="182" />
+      <option name="time" value="993" />
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="output[1,0].cpu().numpy()" language="Python" />
-        <watch expression="FlowNet" language="Python" />
-        <watch expression="reg * torch.sum(gradField)" language="Python" />
-      </configuration>
-    </watches-manager>
+    <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/test/test_data_loader.py">
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/python-skeletons/multiprocessing/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="3" column="13" lean-forward="false" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/1444366916/queue.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2520">
+          <caret line="142" column="0" lean-forward="false" selection-start-line="142" selection-start-column="0" selection-end-line="142" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/1444366916/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5544">
+          <caret line="308" column="0" lean-forward="false" selection-start-line="308" selection-start-column="0" selection-end-line="308" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/seg_data_loader_eh.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="18" column="57" lean-forward="true" selection-start-line="18" selection-start-column="57" selection-end-line="18" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/transform_pool.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2063">
+          <caret line="512" column="0" lean-forward="true" selection-start-line="512" selection-start-column="0" selection-end-line="512" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/priority_sampler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-144">
+          <caret line="61" column="11" lean-forward="true" selection-start-line="61" selection-start-column="11" selection-end-line="61" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/metrics.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="5" column="4" lean-forward="false" selection-start-line="5" selection-start-column="4" selection-end-line="5" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/torch/utils/data/dataloader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="361">
+          <caret line="178" column="0" lean-forward="false" selection-start-line="178" selection-start-column="0" selection-end-line="178" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/torch/utils/data/sampler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="118" column="0" lean-forward="false" selection-start-line="118" selection-start-column="0" selection-end-line="118" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/priority_loader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="576">
+          <caret line="41" column="68" lean-forward="false" selection-start-line="41" selection-start-column="33" selection-end-line="41" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/create_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/lib/python3/dist-packages/h5py/_hl/files.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/initializer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5120">
-          <caret line="266" column="0" lean-forward="false" selection-start-line="266" selection-start-column="0" selection-end-line="266" selection-end-column="0" />
+        <state relative-caret-position="2322">
+          <caret line="133" column="29" lean-forward="false" selection-start-line="133" selection-start-column="29" selection-end-line="133" selection-end-column="29" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/optim/lr_scheduler.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/test_expr.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torchvision/transforms.py">
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/torch/autograd/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="325">
-          <caret line="34" column="0" lean-forward="false" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
+        <state relative-caret-position="1638">
+          <caret line="98" column="0" lean-forward="false" selection-start-line="98" selection-start-column="0" selection-end-line="98" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/lib/python3.5/multiprocessing/process.py">
+    <entry file="file://$PROJECT_DIR$/pipLine/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="248" column="0" lean-forward="false" selection-start-line="248" selection-start-column="0" selection-end-line="248" selection-end-column="0" />
+        <state relative-caret-position="2250">
+          <caret line="132" column="16" lean-forward="false" selection-start-line="132" selection-start-column="16" selection-end-line="132" selection-end-column="16" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/lib/python3.5/multiprocessing/popen_fork.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr13_bon.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="19" column="0" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+        <state relative-caret-position="-1944">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/lib/python3.5/multiprocessing/context.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="266" column="0" lean-forward="false" selection-start-line="266" selection-start-column="0" selection-end-line="266" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/functions.py" />
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/utils/data/dataloader.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="194" column="0" lean-forward="false" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/lib/python3.5/multiprocessing/queues.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="185">
-          <caret line="342" column="0" lean-forward="false" selection-start-line="342" selection-start-column="0" selection-end-line="342" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/lib/python3.5/shutil.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="6" column="0" lean-forward="true" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torchvision/utils.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr12_bon.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/help_codes/unet_train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3100">
-          <caret line="173" column="35" lean-forward="false" selection-start-line="173" selection-start-column="0" selection-end-line="174" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/tensorboardX/writer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4980">
-          <caret line="262" column="0" lean-forward="false" selection-start-line="262" selection-start-column="0" selection-end-line="262" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/nn/init.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4540">
-          <caret line="231" column="0" lean-forward="false" selection-start-line="231" selection-start-column="0" selection-end-line="231" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/functions/affine.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="820">
-          <caret line="44" column="0" lean-forward="false" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/h5py_test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="3" column="35" lean-forward="false" selection-start-line="3" selection-start-column="35" selection-end-line="3" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/optim/sgd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="151">
-          <caret line="55" column="0" lean-forward="false" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/optim/optimizer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="151">
-          <caret line="27" column="0" lean-forward="false" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/__init__.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr4_test4.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr4_test7.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/demo.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr4_test8.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="100">
-          <caret line="6" column="20" lean-forward="false" selection-start-line="6" selection-start-column="20" selection-end-line="6" selection-end-column="20" />
+        <state relative-caret-position="3690">
+          <caret line="207" column="28" lean-forward="false" selection-start-line="207" selection-start-column="18" selection-end-line="207" selection-end-column="28" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/addition.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr4_test9.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="11" column="62" lean-forward="false" selection-start-line="11" selection-start-column="52" selection-end-line="11" selection-end-column="62" />
+        <state relative-caret-position="666">
+          <caret line="39" column="37" lean-forward="false" selection-start-line="39" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr4_test3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr14_bon.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr17_bon.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/debug_expr.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/reg_net.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3006">
+          <caret line="183" column="12" lean-forward="false" selection-start-line="183" selection-start-column="8" selection-end-line="183" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/piplines.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="504">
+          <caret line="29" column="18" lean-forward="false" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/task_pool.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="71082">
+          <caret line="3949" column="63" lean-forward="false" selection-start-line="3949" selection-start-column="49" selection-end-line="3949" selection-end-column="63" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/losses.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="990">
+          <caret line="62" column="0" lean-forward="false" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/torch/nn/modules/module.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6066">
+          <caret line="344" column="0" lean-forward="false" selection-start-line="344" selection-start-column="0" selection-end-line="344" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/settings/base_task_settings.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="20" column="41" lean-forward="false" selection-start-line="20" selection-start-column="41" selection-end-line="20" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/networks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1278">
+          <caret line="77" column="29" lean-forward="false" selection-start-line="77" selection-start-column="29" selection-end-line="77" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/multi_mod_txt_gen.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1566">
+          <caret line="89" column="41" lean-forward="true" selection-start-line="89" selection-start-column="41" selection-end-line="89" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/seg_data_loader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="900">
+          <caret line="59" column="48" lean-forward="false" selection-start-line="59" selection-start-column="48" selection-end-line="59" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/task_pool2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="22032">
+          <caret line="1224" column="40" lean-forward="false" selection-start-line="1224" selection-start-column="40" selection-end-line="1224" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/module_parameters.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3348">
+          <caret line="186" column="0" lean-forward="false" selection-start-line="186" selection-start-column="0" selection-end-line="186" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/image_manipulations.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/data_manager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="221" column="116" lean-forward="false" selection-start-line="221" selection-start-column="116" selection-end-line="221" selection-end-column="116" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/base_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="32" column="0" lean-forward="false" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/transform.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="98" column="0" lean-forward="false" selection-start-line="98" selection-start-column="0" selection-end-line="98" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/partition.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="102" column="43" lean-forward="false" selection-start-line="102" selection-start-column="43" selection-end-line="102" selection-end-column="43" />
           <folding>
             <element signature="e#0#18#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/my_lib_cuda_2D.cu">
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/numpy/core/fromnumeric.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1940">
-          <caret line="97" column="10" lean-forward="false" selection-start-line="97" selection-start-column="9" selection-end-line="97" selection-end-column="10" />
+        <state relative-caret-position="0">
+          <caret line="2221" column="4" lean-forward="false" selection-start-line="2221" selection-start-column="4" selection-end-line="2221" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/my_lib_nd.c">
+    <entry file="file://$PROJECT_DIR$/model_pool/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="12" column="34" lean-forward="false" selection-start-line="12" selection-start-column="34" selection-end-line="12" selection-end-column="34" />
+        <state relative-caret-position="0">
+          <caret line="195" column="4" lean-forward="false" selection-start-line="195" selection-start-column="4" selection-end-line="195" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/functions/bilinear.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1380">
-          <caret line="72" column="0" lean-forward="false" selection-start-line="72" selection-start-column="0" selection-end-line="72" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/evaluate.py" />
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/nn/modules/loss.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-11991">
-          <caret line="26" column="6" lean-forward="false" selection-start-line="26" selection-start-column="6" selection-end-line="26" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/iter_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="7" column="17" lean-forward="false" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/test_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="40">
-          <caret line="6" column="39" lean-forward="false" selection-start-line="6" selection-start-column="39" selection-end-line="6" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/nn/modules/container.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1240">
-          <caret line="66" column="0" lean-forward="false" selection-start-line="66" selection-start-column="0" selection-end-line="66" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/nn/modules/conv.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4960">
-          <caret line="253" column="0" lean-forward="false" selection-start-line="253" selection-start-column="0" selection-end-line="253" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/nn/functional.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="760">
-          <caret line="51" column="0" lean-forward="false" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/nn/modules/module.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="240" column="0" lean-forward="false" selection-start-line="240" selection-start-column="0" selection-end-line="240" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/autograd/variable.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-383">
-          <caret line="896" column="0" lean-forward="false" selection-start-line="896" selection-start-column="0" selection-end-line="896" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/autograd/_functions/tensor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6200">
-          <caret line="316" column="0" lean-forward="false" selection-start-line="316" selection-start-column="0" selection-end-line="316" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/__init__.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/unet_expr.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/modules.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3940">
-          <caret line="205" column="42" lean-forward="false" selection-start-line="205" selection-start-column="42" selection-end-line="205" selection-end-column="42" />
-          <folding>
-            <element signature="e#0#38#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/torch/optim/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="11" column="22" lean-forward="false" selection-start-line="11" selection-start-column="22" selection-end-line="11" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="402">
-          <caret line="1581" column="12" lean-forward="false" selection-start-line="1581" selection-start-column="12" selection-end-line="1581" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-646">
-          <caret line="63" column="23" lean-forward="false" selection-start-line="63" selection-start-column="23" selection-end-line="63" selection-end-column="23" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/lib/python3/dist-packages/apport_python_hook.py">
+    <entry file="file://$PROJECT_DIR$/data_pre/seg_data_utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1479">
-          <caret line="48" column="0" lean-forward="false" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+        <state relative-caret-position="188">
+          <caret line="138" column="62" lean-forward="false" selection-start-line="138" selection-start-column="61" selection-end-line="138" selection-end-column="62" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/lib/python3.5/dist-packages/numpy/core/numeric.py">
+    <entry file="file://$PROJECT_DIR$/data_pre/seg_data_pool.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="256">
-          <caret line="530" column="0" lean-forward="false" selection-start-line="530" selection-start-column="0" selection-end-line="530" selection-end-column="0" />
+        <state relative-caret-position="306">
+          <caret line="176" column="86" lean-forward="true" selection-start-line="176" selection-start-column="25" selection-end-line="176" selection-end-column="87" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/net_utils.py">
+    <entry file="file://$PROJECT_DIR$/data_pre/reg_data_utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1286">
-          <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="51" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/networks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="38" column="0" lean-forward="false" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/prepare_data.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1100">
-          <caret line="58" column="0" lean-forward="false" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data/data_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1780">
-          <caret line="89" column="24" lean-forward="false" selection-start-line="89" selection-start-column="24" selection-end-line="89" selection-end-column="24" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#22#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data/dataset.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/zhenlin_net.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="3" column="9" lean-forward="false" selection-start-line="3" selection-start-column="9" selection-end-line="3" selection-end-column="9" />
+        <state relative-caret-position="935">
+          <caret line="768" column="52" lean-forward="false" selection-start-line="768" selection-start-column="46" selection-end-line="768" selection-end-column="52" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="300">
-            <caret line="15" column="31" lean-forward="false" selection-start-line="15" selection-start-column="31" selection-end-line="15" selection-end-column="31" />
-            <folding />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/train_model.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/analysis_result.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="119" column="25" lean-forward="false" selection-start-line="119" selection-start-column="10" selection-end-line="119" selection-end-column="25" />
+        <state relative-caret-position="308">
+          <caret line="14" column="42" lean-forward="false" selection-start-line="14" selection-start-column="26" selection-end-line="14" selection-end-column="42" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pipLine/pipline.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/train_expr.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="56" column="50" lean-forward="false" selection-start-line="56" selection-start-column="50" selection-end-line="56" selection-end-column="50" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="1618">
+          <caret line="113" column="0" lean-forward="false" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/unet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="649">
+          <caret line="367" column="47" lean-forward="true" selection-start-line="367" selection-start-column="47" selection-end-line="367" selection-end-column="47" />
+          <folding />
         </state>
       </provider>
     </entry>

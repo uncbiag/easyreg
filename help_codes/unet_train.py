@@ -26,7 +26,7 @@ sys.path.append(os.path.realpath(".."))
 
 import utils.transforms as bio_transform
 import utils.datasets as data3d
-from model import UNet3D
+from model_pool import UNet3D
 import utils.evalMetrics as metrics
 
 
