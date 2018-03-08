@@ -5,15 +5,25 @@ import SimpleITK as sitk
 
 from data_pre.seg_data_utils import make_dir
 from model_pool.metrics import get_multi_metric
+from multiprocessing import Pool, TimeoutError
 
 
 def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_period_result=True, debug=False):
     f_path = os.path.join(data_path, '**', '*'+file_mid_tag+'*'+post_type)
     f_filter = glob(f_path, recursive=True)
     fname_full_list = [os.path.split(file)[1].split(file_end_tag)[0] for file in f_filter]
-    fname_set = set(fname_full_list)
+    fname_set = list(set(fname_full_list))
     saving_folder_path = os.path.join(os.path.split(data_path)[0], 'voting')
     make_dir(saving_folder_path)
+
+    file_patitions = np.array_split(fname_set,number_of_workers)
+    from functools import partial
+    with Pool(processes=number_of_workers) as pool:
+        pool.map(partial(period_analysis,saving_folder_path=saving_folder_path,post_type=post_type,data_path=data_path, file_mid_tag=file_mid_tag,gt_tag=gt_tag, debug=debug), file_patitions)
+    #period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_tag,gt_tag, debug)
+
+
+def period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_tag,gt_tag, debug):
     for fname in fname_set:
         txt_path = saving_folder_path + '/' + fname+'.txt'
         if not debug:
@@ -31,7 +41,7 @@ def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_per
             print("Warning, no label was founded when dealing with image {}".format(fname), file=text_file)
             break
         imgs=[]
-        print('****************************************   period result  ************************************************************')
+        print('****************************************   period result  ************************************************************',file=text_file)
 
         for f in f_filter:
             image = sitk.ReadImage(f)
@@ -46,7 +56,7 @@ def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_per
             print('batch_label_avg_res:{}'.format(val_res_dic['batch_label_avg_res']['dice']), file=text_file)
         imgs = np.stack(imgs,0)
 
-        print('#########################################  voting   ########################################################################')
+        print('#########################################  voting   ########################################################################',file=text_file)
         print("the image {} has {} period record".format(fname, imgs.shape[0]), file=text_file)
 
         for i in range(imgs.shape[0]):
@@ -56,7 +66,7 @@ def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_per
             print('the voting result of file{}  from period  {}:'.format(fname,i), file=text_file)
             print('batch_avg_res{}'.format(val_res_dic['batch_avg_res']['dice']), file=text_file)
             print('batch_label_avg_res:{}'.format(val_res_dic['batch_label_avg_res']['dice']), file=text_file)
-            print()
+            print(file=text_file)
 
             period_voting_map = sitk.GetImageFromArray(period_voting_map)
             period_voting_map.CopyInformation(gt_itk)
@@ -65,8 +75,6 @@ def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_per
             sitk.WriteImage(period_voting_map, saving_file_path)
         if not debug:
             text_file.close()
-
-    return f_filter
 
 def cal_voting_map(multi_period_map, label_list):
     count_map = np.zeros([len(label_list)]+ list(multi_period_map.shape)[1:])
@@ -86,4 +94,5 @@ data_path ='/playpen/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_c
 file_end_tag ='_t'
 gt_tag = '_gt.nii.gz'
 file_mid_tag ='_val_'
-files = get_file_list(post_type, data_path,file_mid_tag, file_end_tag,gt_tag,debug=True)
+number_of_workers=10
+get_file_list(post_type, data_path,file_mid_tag, file_end_tag,gt_tag,debug=False)
