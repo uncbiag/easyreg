@@ -6,6 +6,9 @@ import SimpleITK as sitk
 from data_pre.seg_data_utils import make_dir
 from model_pool.metrics import get_multi_metric
 from multiprocessing import Pool, TimeoutError
+import matplotlib.pyplot as plt
+
+
 
 
 def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_period_result=True, debug=False):
@@ -42,15 +45,20 @@ def period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_t
             break
         imgs=[]
         print('****************************************   period result  ************************************************************',file=text_file)
-
+        period_list = []
+        period_res_list = []
         for f in f_filter:
             image = sitk.ReadImage(f)
             image=sitk.GetArrayFromImage(image)
             imgs +=[image]
             file_name= os.path.split(f)[1]
+            val_period = file_name.split('iter_')[1].split(post_type)[0]
+            period_list.append(val_period)
+            file_name = fname+ file_name.split('iter')[1].split(post_type)[0]
             print("the current image period is {}".format(file_name), file=text_file)
             val_res_dic = get_multi_metric(np.expand_dims(image, 0), np.expand_dims(gt,0),
                                            rm_bg=False)
+            period_res_list.append(val_res_dic['batch_label_avg_res']['dice'])
             print("the result :", file=text_file)
             print('batch_avg_res{}'.format(val_res_dic['batch_avg_res']['dice']), file=text_file)
             print('batch_label_avg_res:{}'.format(val_res_dic['batch_label_avg_res']['dice']), file=text_file)
@@ -58,11 +66,12 @@ def period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_t
 
         print('#########################################  voting   ########################################################################',file=text_file)
         print("the image {} has {} period record".format(fname, imgs.shape[0]), file=text_file)
-
+        period_ens_voting_list = []
         for i in range(imgs.shape[0]):
             period_voting_map = cal_voting_map(imgs[i:], label_list)
             val_res_dic = get_multi_metric(np.expand_dims(period_voting_map, 0),  np.expand_dims(gt,0),
                                            rm_bg=False)  # the correct version maybe np.expand_dims(np.expand_dims(self.output,0))
+            period_ens_voting_list.append(val_res_dic['batch_label_avg_res']['dice'])
             print('the voting result of file{}  from period  {}:'.format(fname,i), file=text_file)
             print('batch_avg_res{}'.format(val_res_dic['batch_avg_res']['dice']), file=text_file)
             print('batch_label_avg_res:{}'.format(val_res_dic['batch_label_avg_res']['dice']), file=text_file)
@@ -73,6 +82,7 @@ def period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_t
             appendix = fname+'_from_period_'+str(i) + "_voting"
             saving_file_path = saving_folder_path + '/' + appendix + "_output.nii.gz"
             sitk.WriteImage(period_voting_map, saving_file_path)
+        plot_res(period_res_list,period_ens_voting_list,period_list,fname,saving_folder_path)
         if not debug:
             text_file.close()
 
@@ -88,6 +98,21 @@ def cal_voting_map(multi_period_map, label_list):
         period_voting_map_re[np.where(period_voting_map == i)] = label
     return period_voting_map_re
 
+
+
+def plot_res(period_res_list, period_ens_voting_list, period_list, fname, saving_path):
+    ax = plt.subplot(111)
+    plt.plot(range(len(period_res_list)), period_res_list, label="single_period=%d")
+    plt.plot(range(len(period_ens_voting_list)), period_ens_voting_list, label="ensemble_period=%d")
+
+    leg = plt.legend(loc='best', ncol=2, mode="expand", shadow=True, fancybox=True)
+    leg.get_frame().set_alpha(0.5)
+    plt.xticks(range(len(period_res_list)), period_list)
+    plt.title(fname)
+    plt.show()
+    plt.savefig(os.path.join(saving_path,fname+'.jpg'),
+                dpi=300)
+    plt.clf()
 
 post_type = '_output.nii.gz'
 data_path ='/playpen/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_106_unet_resid_only/records/output'
