@@ -11,19 +11,28 @@ import matplotlib.pyplot as plt
 
 
 
-def get_file_list(post_type,data_path, file_mid_tag,file_end_tag,gt_tag,show_period_result=True, debug=False):
+def get_file_list(data_path,post_type, file_mid_tag,file_end_tag,gt_tag,show_period_result=True, debug=False):
+    if isinstance(data_path, (np.ndarray)):
+        for path in data_path:
+            get_file_list(path,post_type, file_mid_tag, file_end_tag, gt_tag, show_period_result=True,
+                          debug=debug)
+
+    print("processing {}".format(data_path))
     f_path = os.path.join(data_path, '**', '*'+file_mid_tag+'*'+post_type)
     f_filter = glob(f_path, recursive=True)
-    fname_full_list = [os.path.split(file)[1].split(file_end_tag)[0] for file in f_filter]
-    fname_set = list(set(fname_full_list))
-    saving_folder_path = os.path.join(os.path.split(data_path)[0], 'voting')
-    make_dir(saving_folder_path)
+    if len(f_filter):
+        fname_full_list = [os.path.split(file)[1].split(file_end_tag)[0] for file in f_filter]
+        fname_set = list(set(fname_full_list))
+        saving_folder_path = os.path.join(os.path.split(data_path)[0], 'voting')
+        make_dir(saving_folder_path)
 
-    file_patitions = np.array_split(fname_set,number_of_workers)
-    from functools import partial
-    with Pool(processes=number_of_workers) as pool:
-        pool.map(partial(period_analysis,saving_folder_path=saving_folder_path,post_type=post_type,data_path=data_path, file_mid_tag=file_mid_tag,gt_tag=gt_tag, debug=debug), file_patitions)
-    #period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_tag,gt_tag, debug)
+        # file_patitions = np.array_split(fname_set,number_of_workers)
+        # from functools import partial
+        # with Pool(processes=number_of_workers) as pool:
+        #     pool.map(partial(period_analysis,saving_folder_path=saving_folder_path,post_type=post_type,data_path=data_path, file_mid_tag=file_mid_tag,gt_tag=gt_tag, debug=debug), file_patitions)
+        period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_tag,gt_tag, debug)
+    else:
+        print('there is no valid result in {}'.format(data_path))
 
 
 def period_analysis(fname_set,saving_folder_path,post_type,data_path, file_mid_tag,gt_tag, debug):
@@ -101,23 +110,60 @@ def cal_voting_map(multi_period_map, label_list):
 
 
 def plot_res(period_res_list, period_ens_voting_list, period_list, fname, saving_path):
-    ax = plt.subplot(111)
-    plt.plot(range(len(period_res_list)), period_res_list, label="single_period=%d")
-    plt.plot(range(len(period_ens_voting_list)), period_ens_voting_list, label="ensemble_period=%d")
-
+    plt.figure(figsize=( 9.,3.841), dpi=300)
+    plt.plot(range(len(period_res_list)), period_res_list, label="single_period")
+    plt.plot(range(len(period_ens_voting_list)), period_ens_voting_list, label="ensemble_period")
     leg = plt.legend(loc='best', ncol=2, mode="expand", shadow=True, fancybox=True)
     leg.get_frame().set_alpha(0.5)
     plt.xticks(range(len(period_res_list)), period_list)
+    plt.ylabel('dice')
+    plt.ylabel('step')
     plt.title(fname)
-    plt.show()
-    plt.savefig(os.path.join(saving_path,fname+'.jpg'),
-                dpi=300)
+    plt.savefig(os.path.join(saving_path,fname+'.png'),dpi=300)
+    #plt.show()
+    #plt.draw()
     plt.clf()
 
+# post_type = '_output.nii.gz'
+# #data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_106_unet_resid_only/records/output'
+# data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_105_unet/records/output'
+# file_end_tag ='_t'
+# gt_tag = '_gt.nii.gz'
+# file_mid_tag ='_val_'
+# number_of_workers=10
+# #get_file_list(data_path,post_type,file_mid_tag, file_end_tag,gt_tag,debug=False)
+#
+# root_path = "/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop"
+# sub_dirs = next(os.walk(root_path))[1]
+# key_word_list = ['task','tsk']
+# for sub_dir in sub_dirs:
+#     has_task= sum([(key_word in sub_dir) for key_word in key_word_list])
+#     if has_task:
+#         record_path = root_path +'/'+sub_dir +'/'+'records/output'
+#         if os.path.isdir(record_path):
+#             print(record_path)
+#             get_file_list(record_path,post_type,file_mid_tag, file_end_tag,gt_tag,debug=False)
+
+
+
 post_type = '_output.nii.gz'
-data_path ='/playpen/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_106_unet_resid_only/records/output'
+#data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_106_unet_resid_only/records/output'
+data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_105_unet/records/output'
 file_end_tag ='_t'
 gt_tag = '_gt.nii.gz'
 file_mid_tag ='_val_'
 number_of_workers=10
-get_file_list(post_type, data_path,file_mid_tag, file_end_tag,gt_tag,debug=False)
+root_path = "/playpen/raid/zyshen/data/hist_th_0.06_lpba_seg_patchedmy_balanced_random_crop"
+sub_dirs = next(os.walk(root_path))[1]
+key_word_list = ['task','tsk']
+valid_record_path = []
+for sub_dir in sub_dirs:
+    has_task= sum([(key_word in sub_dir) for key_word in key_word_list])
+    if has_task:
+        record_path = root_path +'/'+sub_dir +'/'+'records/output'
+        if os.path.isdir(record_path):
+            valid_record_path +=[record_path]
+record_path_patitions = np.array_split(valid_record_path, number_of_workers)
+from functools import partial
+with Pool(processes=number_of_workers) as pool:
+    pool.map(partial(get_file_list,post_type=post_type,file_mid_tag=file_mid_tag, file_end_tag=file_end_tag,gt_tag=gt_tag,debug=False), record_path_patitions)
