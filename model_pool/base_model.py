@@ -19,7 +19,8 @@ class BaseModel():
         self.continue_train = opt['tsk_set']['continue_train']
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.optimizer= None
-
+        self.lr_scheduler = None
+        self.exp_lr_scheduler= None
         self.iter_count = 0
         self.dim = len(self.img_sz)
         self.network =None
@@ -57,24 +58,25 @@ class BaseModel():
         lr_sched_opt = opt['lr_scheduler']
         self.lr_sched_type = lr_sched_opt['type']
         if optimize_name == 'adam':
-            self.optimizer = torch.optim.Adam(self.network.parameters(), lr=lr, betas=(beta, 0.999))
+            re_optimizer = torch.optim.Adam(self.network.parameters(), lr=lr, betas=(beta, 0.999))
         else:
-            self.optimizer = torch.optim.SGD(self.network.parameters(), lr=lr)
-        self.optimizer.zero_grad()
-        self.lr_scheduler = None
-        self.exp_lr_scheduler = None
+            re_optimizer = torch.optim.SGD(self.network.parameters(), lr=lr)
+        re_optimizer.zero_grad()
+        re_lr_scheduler = None
+        re_exp_lr_scheduler = None
         if self.lr_sched_type == 'custom':
             step_size = lr_sched_opt['custom']['step_size']
             gamma = lr_sched_opt['custom']['gamma']
-            self.lr_scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=step_size, gamma=gamma)
+            re_lr_scheduler = torch.optim.lr_scheduler.StepLR(re_optimizer, step_size=step_size, gamma=gamma)
         elif self.lr_sched_type == 'plateau':
             patience = lr_sched_opt['plateau']['patience']
             factor = lr_sched_opt['plateau']['factor']
             threshold = lr_sched_opt['plateau']['threshold']
             min_lr = lr_sched_opt['plateau']['min_lr']
-            self.exp_lr_scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', patience=patience,
+            re_exp_lr_scheduler = lr_scheduler.ReduceLROnPlateau(re_optimizer, mode='min', patience=patience,
                                                                    factor=factor, verbose=True,
                                                                    threshold=threshold, min_lr=min_lr)
+        return re_optimizer,re_lr_scheduler,re_exp_lr_scheduler
 
     # helper saving function that can be used by subclasses
     def save_network(self, network, network_label, epoch_label, gpu_ids):

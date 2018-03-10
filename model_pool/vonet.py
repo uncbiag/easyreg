@@ -5,40 +5,7 @@ from collections import OrderedDict
 from torch.autograd import Variable
 from .base_model import BaseModel
 from glob import glob
-
-from .unet_expr import UNet3D
-from .unet_expr2 import UNet3D2
-from .unet_expr3 import UNet3D3
-from .unet_expr4 import UNet3D4
-from .unet_expr5 import UNet3D5
-from .unet_expr4_test import UNet3Dt1
-from .unet_expr4_test2 import UNet3Dt2
-from .unet_expr4_test3 import UNet3Dt3
-from .unet_expr4_test4 import UNet3Dt4
-from .unet_expr4_test5 import UNet3Dt5
-from .unet_expr4_test6 import UNet3Dt6
-from .unet_expr4_test7 import UNet3Dt7
-from .unet_expr4_test8 import UNet3Dt8
-from .unet_expr4_test9 import UNet3Dt9
-from .unet_expr_bon import UNet3DB
-from .unet_expr_bon_s import UNet3DBS
-from .unet_expr4_bon import UNet3D4B
-from .unet_expr4_ens_nr import UNet3D4BNR
-from .unet_expr5_bon import UNet3D5B
-from .unet_expr5_ens import UNet3D5BE
-from .unet_expr6_bon import UNet3D5BM
-from .unet_expr7_bon import UNet3DB7
-from .unet_expr8_bon import UNet3DB8
-from .unet_expr9_bon import UNet3DB9
-from .unet_expr10_bon import UNet3DB10
-from .unet_expr11_bon import UNet3DB11
-from .unet_expr12_bon import UNet3DB12
-from .unet_expr13_bon import UNet3DB13
-from .unet_expr14_bon import UNet3DB14
-from .unet_expr15_bon import UNet3DB15
-from .unet_expr16_bon import UNet3DB16
-from .unet_expr17_bon import UNet3DB17
-from .vnet_expr import VNet
+from .vonet_pool import UNet_asm
 from  .zhenlin_net import *
 from . import networks
 from .losses import Loss
@@ -51,7 +18,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
 
-class Unet(BaseModel):
+class Vonet(BaseModel):
     def name(self):
         return '3D-unet'
 
@@ -66,11 +33,13 @@ class Unet(BaseModel):
         self.loss_update_epoch = opt['tsk_set']['loss']['update_epoch']
         self.activate_epoch = opt['tsk_set']['loss']['activate_epoch']
         self.imd_weighted_loss_on =  opt['tsk_set']['loss']['imd_weighted_loss_on']
-
+        self.start_saving_model =  opt['tsk_set']['voting']['start_saving_model']
+        self.saving_voting_per_epoch =  opt['tsk_set']['voting']['saving_voting_per_epoch']
+        self.voting_save_sched =opt['tsk_set']['voting']['voting_save_sched']
         tile_sz =  opt['dataset']['tile_size']
         overlap_size = opt['dataset']['overlap_size']
         padding_mode = opt['dataset']['padding_mode']
-        self.network = UNet3Dt8(n_in_channel, self.n_class)
+        self.network = UNet_asm(n_in_channel, self.n_class)
         #self.network = CascadedModel([UNet_light1(n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
         #self.network.apply(unet_weights_init)
         # self.network = VNet(n_in_channel, self.n_class)
@@ -80,9 +49,15 @@ class Unet(BaseModel):
         self.loss_fn = Loss(opt)
         self.loss_update_count = 0.
         self.loss_buffer = np.zeros([1, self.n_class])
-        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler =self.init_optim(opt['tsk_set']['optim'])
+        self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea =self.init_optim(opt['tsk_set']['optim'])
+        self.optimizer_dis, self.lr_scheduler_dis, self.exp_lr_scheduler_dis =self.init_optim(opt['tsk_set']['optim'])
         self.partition = Partition(tile_sz, overlap_size, padding_mode)
         self.res_record = {'gt':{}}
+        check_point_path = opt['tsk_set']['path']['check_point_path']
+        self.asm_path = os.path.join(check_point_path,'asm_models')
+        make_dir(self.asm_path)
+        self.start_asm_learning = False
+        self.check_point_path = opt['tsk_set']['path']['check_point_path']
         # here we need to add training_eval_record which should contain several thing
         # first it should record the dice performance(the label it contained), and the avg (or weighted avg) dice inside
         # it may also has some function to put it into a prior queue, which based on patch performance
@@ -104,7 +79,7 @@ class Unet(BaseModel):
 
     def set_input(self, input, is_train=True):
         self. is_train = is_train
-        if is_train:
+        if is_train and not self.start_asm_learning:
             self.input = Variable(input[0]['image']*2-1).cuda()
         else:
             self.input = Variable(input[0]['image']*2-1,volatile=True).cuda()
@@ -116,7 +91,16 @@ class Unet(BaseModel):
         # here input should be Tensor, not Variable
         if input is None:
             input =self.input
-        return self.network.forward(input)
+        if not self.start_asm_learning:
+            output = self.network(input)
+        else:
+            output = self.network.net_fea.forward(input)
+            for term in output:
+                term.volatile = False
+                term.requires_grad = False
+                term.detach_()
+            output = self.network.net_dis.forward(output)
+        return output
 
 
     def cal_loss(self,output= None):
@@ -137,6 +121,7 @@ class Unet(BaseModel):
 
     def set_cur_epoch(self,epoch):
         self.cur_epoch = epoch
+        self.cur_epoch_beg_tag = True
 
 
 
@@ -145,8 +130,12 @@ class Unet(BaseModel):
     def get_image_paths(self):
         return self.fname_list
 
+
+
     def backward_net(self):
         self.loss.backward()
+
+
 
 
     def optimize_parameters(self):
@@ -162,17 +151,36 @@ class Unet(BaseModel):
             self.loss = self.cal_loss()
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
-            self.optimizer.step()
-            self.optimizer.zero_grad()
+            self.optimizer_dis.step()
+            if not self.start_asm_learning:
+                self.optimizer_fea.step()
+                self.optimizer_fea.zero_grad()
+            self.optimizer_dis.zero_grad()
+        if self.auto_saving_model():
+            torch.save(self.network.net_dis.state_dict(),self.asm_path+'/'+'epoch_'+str(self.cur_epoch))
+            self.start_asm_learning = True
+
+
+
+
+
+    def auto_saving_model(self):
+        if self.voting_save_sched == 'default':
+            log = self.cur_epoch > self.start_saving_model and self.cur_epoch % self.saving_voting_per_epoch==0
+            log = log and self.cur_epoch_beg_tag
+            self.cur_epoch_beg_tag = False
+            return log
 
 
     def get_current_errors(self):
         return self.loss.data[0]
 
-    def get_assamble_pred(self,split_size=2):
+    def get_assamble_pred(self,split_size=4, old_verison=False):
         output = []
-        #self.input = torch.unsqueeze(torch.squeeze(self.input),1)
-        self.input = torch.squeeze(self.input,0)
+        if old_verison:
+            self.input = torch.unsqueeze(torch.squeeze(self.input),1)
+        else:
+            self.input = torch.squeeze(self.input,0)
         input_split = torch.split(self.input, split_size=split_size)
         for input in input_split:
             res = self.forward(input)

@@ -16,7 +16,7 @@ def train_model(opt,model, dataloaders,writer):
     max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
     model.network = model.network.cuda()
     best_model_wts = model.network.state_dict()
-    best_model_optimizer = model.optimizer.state_dict()
+    best_model_optimizer = model.optimizer.state_dict() if model.optimizer is not None else None
     best_loss = 0
     epoch_val_loss=0.
     best_epoch = 0
@@ -117,7 +117,7 @@ def train_model(opt,model, dataloaders,writer):
                     best_loss = epoch_val_loss
                     best_epoch = epoch
                     best_model_wts = model.network.state_dict()
-                    best_model_optimizer = model.optimizer.state_dict()
+                    best_model_optimizer =  model.optimizer.state_dict() if model.optimizer is not None else None
 
 
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:

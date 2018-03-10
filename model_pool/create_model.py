@@ -12,6 +12,10 @@ def create_model(opt):
     elif model_name == 'unet':
         from .unet import Unet
         model = Unet()
+    elif model_name == 'vonet':
+        from .vonet import Vonet
+        model = Vonet()
+
     elif model_name == 'reg_net':
         from .reg_net import RegNet
         model = RegNet()

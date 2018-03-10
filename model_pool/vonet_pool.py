@@ -37,7 +37,7 @@ def decoder( in_channels, out_channels, kernel_size, stride=1, padding=0,
 
 
 class UNet_Fea(nn.Module):
-    def __init__(self, in_channel, bias=False, BN=False):
+    def __init__(self, in_channel, bias=True, BN=True):
         super(UNet_Fea, self).__init__()
 
         self.in_channel = in_channel
@@ -82,7 +82,7 @@ class UNet_Fea(nn.Module):
 
 
 class UNet_Dis(nn.Module):
-    def __init__(self, n_classes, bias=False, BN=False):
+    def __init__(self, n_classes, bias=True, BN=True):
         super(UNet_Dis, self).__init__()
         self.dc3 = decoder(64, 64, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
         self.dc2 = decoder(32 + 64, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
@@ -90,7 +90,8 @@ class UNet_Dis(nn.Module):
         self.dc0 = nn.Conv3d(32, n_classes, kernel_size=1, stride=1, padding=0, bias=bias)
 
 
-    def forward(self, d4, syn0):
+    def forward(self, input):
+        d4, syn0 =input
         d3 = torch.cat((self.dc3(d4), syn0), dim=1)
         del d4, syn0
         d2 = self.dc2(d3)
@@ -100,7 +101,16 @@ class UNet_Dis(nn.Module):
         return d0
 
 
+class UNet_asm(nn.Module):
+    def __init__(self,in_channel, n_classes, bias=False, BN=False):
+        super(UNet_asm, self).__init__()
+        self.net_fea = UNet_Fea(in_channel,bias, BN)
+        self.net_dis = UNet_Dis(n_classes,bias,BN)
 
+    def forward(self, input):
+        output = self.net_fea(input)
+        output = self.net_dis(output)
+        return output
 
 
 
