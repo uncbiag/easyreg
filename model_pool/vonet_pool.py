@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
+import os
+from glob import glob
 
 def encoder(in_channels, out_channels, kernel_size=3, stride=1, padding=1,
             bias=True, batchnorm=False):
@@ -36,9 +37,9 @@ def decoder( in_channels, out_channels, kernel_size, stride=1, padding=0,
 
 
 
-class UNet_Fea(nn.Module):
+class UNet_Fea_light1(nn.Module):
     def __init__(self, in_channel, bias=True, BN=True):
-        super(UNet_Fea, self).__init__()
+        super(UNet_Fea_light1, self).__init__()
 
         self.in_channel = in_channel
         self.ec0 = encoder(self.in_channel, 16, bias=bias, batchnorm=BN)
@@ -81,9 +82,9 @@ class UNet_Fea(nn.Module):
         return d4,syn0
 
 
-class UNet_Dis(nn.Module):
+class UNet_Dis_light1(nn.Module):
     def __init__(self, n_classes, bias=True, BN=True):
-        super(UNet_Dis, self).__init__()
+        super(UNet_Dis_light1, self).__init__()
         self.dc3 = decoder(64, 64, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
         self.dc2 = decoder(32 + 64, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
         self.dc1 = decoder(32, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
@@ -102,15 +103,102 @@ class UNet_Dis(nn.Module):
 
 
 class UNet_asm(nn.Module):
-    def __init__(self,in_channel, n_classes, bias=False, BN=False):
+    #  there is a bug here before 3.9
+    def __init__(self,in_channel, n_classes, bias=True, BN=True):
         super(UNet_asm, self).__init__()
-        self.net_fea = UNet_Fea(in_channel,bias, BN)
-        self.net_dis = UNet_Dis(n_classes,bias,BN)
+        self.net_fea = UNet_Fea_light1(in_channel,bias, BN)
+        self.net_dis = UNet_Dis_light1(n_classes,bias,BN)
 
     def forward(self, input):
         output = self.net_fea(input)
         output = self.net_dis(output)
         return output
+
+
+
+
+
+
+class Vonet_test(nn.Module):
+    def __init__(self, in_channel, n_classes, path, epoch_list, gpu_switcher,bias=False, BN=False):
+        super(Vonet_test, self).__init__()
+
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.bias_on = bias
+        self.BN_on = BN
+        self.net_fea = UNet_Fea(in_channel,bias, BN)
+        self.epoch_str_list = [str(epoch) for epoch in epoch_list]
+        self.gpu_switcher = gpu_switcher
+        self.net_dis_list = nn.ModuleList([UNet_Dis(n_classes, bias,BN) for i in self.epoch_str_list])
+        self.init_net(path)
+        self.selected_epoch = -1
+
+
+    def init_net(self, path):
+        self.load_fea_state(path)
+        self.load_dis_state(path)
+        print("vonet test successfully initialized")
+
+    def load_fea_state(self,path):
+        fpath =  os.path.join(os.path.join(path,'asm_models'),'fea')
+        fpath_alter = os.path.join(path, 'model_best.pth.tar')
+
+        if os.path.exists(fpath):
+            model_state = torch.load(fpath, map_location={
+                'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
+            self.net_fea.load_state_dict(model_state)
+        elif os.path.exists(fpath_alter):
+            checkpoint = torch.load(fpath_alter,map_location={'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
+            net_tmp = UNet_asm(self.in_channel,self.n_classes,self.bias_on, self.BN_on)
+            net_tmp.load_state_dict(checkpoint['state_dict'])
+            self.net_fea.load_state_dict(net_tmp.net_fea.state_dict())
+        else:
+            print("no fea model is found")
+            exit(2)
+
+
+    def load_dis_state(self, path):
+        asm_path = os.path.join(path, 'asm_models')
+        f_path = os.path.join(asm_path, '**', 'epoch' + '*')
+        f_filter = glob(f_path, recursive=True)
+        if not len(f_filter):
+            print("Error, no asmable file finded in folder {}".format(f_path))
+            exit(3)
+        fname_epoch_dic = {os.path.split(file)[1].split('_')[1]:file for file in f_filter}
+        for fname_epoch in self.epoch_str_list:
+            if fname_epoch in fname_epoch_dic:
+                idx = self.epoch_str_list.index(fname_epoch)
+                model_state = torch.load(fname_epoch_dic[fname_epoch], map_location={'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
+                self.net_dis_list[idx].load_state_dict(model_state)
+            else:
+                print("Error, during asmble learning, epoch {} is not found".format(fname_epoch))
+                exit(4)
+
+    def cal_voting_map(self, input):
+        """
+
+        :param input:  batch x period x X x  Y x Z
+        :return:
+        """
+        count_map =torch.cuda.FloatTensor(input.shape[0], self.n_classes,input.shape[2],input.shape[3],input.shape[4]).fill_(0)
+        count_map = Variable(count_map)
+        #count_map = torch.zeros([list(input.shape)[0]]+[self.n_classes] + list(input.shape)[2:]).cuda()
+
+        for i in range(self.n_classes):
+            count_map[:,i,...] = torch.sum(input == i, dim=1)
+        return count_map
+
+    def forward(self, input):
+        fea_output = self.net_fea(input)
+        output_list = []
+        for dis_net in self.net_dis_list:
+            output_list += [torch.max(dis_net(fea_output),1)[1]]
+        output =torch.stack(output_list,dim=1)
+        output = self.cal_voting_map(output)
+        return output
+
+
 
 
 

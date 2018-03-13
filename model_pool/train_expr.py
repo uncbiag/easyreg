@@ -50,6 +50,8 @@ def train_model(opt,model, dataloaders,writer):
         for phase in phases:
             if  phase!='train' and epoch%val_period !=0:
                 break
+            if not max_batch_num_per_epoch[phase]:
+                break
             if phase == 'train':
                 model.network.train(True)  # Set model to training mode
             else:
@@ -61,7 +63,7 @@ def train_model(opt,model, dataloaders,writer):
             for data in dataloaders[phase]:
                 # get the inputs
                 global_step[phase] += 1
-                end_of_epoch = global_step[phase] % max_batch_num_per_epoch[phase] == 0
+                end_of_epoch =   global_step[phase] % max_batch_num_per_epoch[phase] == 0
                 is_train = True if phase == 'train' else False
                 model.set_input(data,is_train)
 
