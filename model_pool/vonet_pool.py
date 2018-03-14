@@ -37,9 +37,9 @@ def decoder( in_channels, out_channels, kernel_size, stride=1, padding=0,
 
 
 
-class UNet_Fea_light1(nn.Module):
+class UNet_Fea(nn.Module):
     def __init__(self, in_channel, bias=True, BN=True):
-        super(UNet_Fea_light1, self).__init__()
+        super(UNet_Fea, self).__init__()
 
         self.in_channel = in_channel
         self.ec0 = encoder(self.in_channel, 16, bias=bias, batchnorm=BN)
@@ -82,9 +82,9 @@ class UNet_Fea_light1(nn.Module):
         return d4,syn0
 
 
-class UNet_Dis_light1(nn.Module):
+class UNet_Dis(nn.Module):
     def __init__(self, n_classes, bias=True, BN=True):
-        super(UNet_Dis_light1, self).__init__()
+        super(UNet_Dis, self).__init__()
         self.dc3 = decoder(64, 64, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
         self.dc2 = decoder(32 + 64, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
         self.dc1 = decoder(32, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
@@ -106,8 +106,8 @@ class UNet_asm(nn.Module):
     #  there is a bug here before 3.9
     def __init__(self,in_channel, n_classes, bias=True, BN=True):
         super(UNet_asm, self).__init__()
-        self.net_fea = UNet_Fea_light1(in_channel,bias, BN)
-        self.net_dis = UNet_Dis_light1(n_classes,bias,BN)
+        self.net_fea = UNet_Fea(in_channel,bias, BN)
+        self.net_dis = UNet_Dis(n_classes,bias,BN)
 
     def forward(self, input):
         output = self.net_fea(input)

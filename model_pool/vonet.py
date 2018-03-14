@@ -33,12 +33,12 @@ class Vonet(BaseModel):
         self.voting_save_sched =opt['tsk_set']['voting']['voting_save_sched']
         network_name =opt['tsk_set']['network_name']
 
-        #self.network = self.get_from_model_pool(network_name,n_in_channel, self.n_class)
+        self.network = self.get_from_model_pool(network_name,n_in_channel, self.n_class)
 
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         epoch_list = [i for i in range(120, 180,2)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
-        self.network = Vonet_test(n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id))
+        #self.network = Vonet_test(n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id))
 
 
         self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea =self.init_optim(opt['tsk_set']['optim'])

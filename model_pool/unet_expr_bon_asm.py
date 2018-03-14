@@ -27,8 +27,8 @@ class UNet3DB(nn.Module):
         self.dc4 = self.decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
         self.dc3 = self.decoder(128, 128, kernel_size=2, stride=2, bias=True,batchnorm=True)
         self.dc2 = self.decoder(64 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
-        self.dc1 = self.decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
-        self.dc0 = self.decoder(128, n_classes, kernel_size=1, stride=1, bias=True,batchnorm=True)
+        self.dc1 = self.decoder(128, 64, kernel_size=3, stride=1, padding=1, bias=True,batchnorm=True)
+        self.dc0 = self.decoder(64, n_classes, kernel_size=1, stride=1, bias=True,batchnorm=True)
         # self.weights_init()
 
 

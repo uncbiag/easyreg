@@ -8,12 +8,12 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from data_pre.seg_data_utils import *
 from time import time
-
-
+from copy import deepcopy
+from data_pre.transform import Transform
 class SegmentationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,is_train=True, transform=None):
+    def __init__(self, data_path,is_train=True, transform=None, option = None):
         """
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
@@ -23,6 +23,11 @@ class SegmentationDataset(Dataset):
         self.transform = transform
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
+        self.num_img = len(self.path_list)
+        self.transform_name_seq = option['transform']['transform_seq']
+        self.option = option
+        self.img_pool = []
+        self.init_corr_transform_pool()
 
     def get_file_list(self):
         """
@@ -32,6 +37,22 @@ class SegmentationDataset(Dataset):
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
         name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
         return f_filter,name_list
+
+
+    def get_transform_seq(self):
+        option_trans = deepcopy(self.option)
+        transform = Transform(option_trans)
+        return transform.get_transform_seq(self.transform_name_seq)
+
+
+    def init_corr_transform_pool(self):
+        self.corr_transform_pool = [self.get_transform_seq() for _ in range(self.num_img)]
+
+    def load_img_pool(self):
+        for path in self.path_list:
+            dic = read_h5py_file(path)
+            sample = {'image': dic['data'], 'info': dic['info'], 'label': dic['label']}
+            self.img_pool += [sample]
 
     def __len__(self):
         return len(self.name_list)

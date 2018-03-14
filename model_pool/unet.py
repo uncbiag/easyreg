@@ -58,7 +58,8 @@ class Unet(BaseModel):
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         n_in_channel = 4
-        self.network = UNet3Dt8(n_in_channel, self.n_class)
+        network_name =opt['tsk_set']['network_name']
+        self.network = self.get_from_model_pool(network_name, n_in_channel, self.n_class)
         #self.network = CascadedModel([UNet_light1(n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
         #self.network.apply(unet_weights_init)
 
