@@ -96,9 +96,9 @@ def divide_data_set(root_path, file_path_list, ratio, m_mod=None):
     file_num = len(file_name_list)
     sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test','debug']}
     nt = [make_dir(sub_path[key]) for key in sub_path]
-    # if sum(nt):
-    #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
-    #                      "manually delete the folder to reprepare the data")
+    if sum(nt):
+        raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
+                         "manually delete the folder to reprepare the data")
     train_num = int(train_ratio * file_num)
     val_num = int(val_ratio * file_num)
     file_name_sub_list = {}
@@ -135,9 +135,9 @@ def load_file_path_from_txt(root_path,file_path_list, txt_path):
     """
     sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test', 'debug']}
     nt = [make_dir(sub_path[key]) for key in sub_path]
-    # if sum(nt):
-    #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
-    #                      "manually delete the folder to reprepare the data")
+    if sum(nt):
+        raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
+                         "manually delete the folder to reprepare the data")
     file_name_sub_list = {}
     sesses = ['train','val','test','debug']
     fp_sub_list = {}
@@ -240,8 +240,8 @@ def saving_patches_per_img(patches,file_path):
     saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
     save_to_h5py(saving_path,patches_img, patches_seg ,file_id,info,verbose=False)
 
-def saving_per_img(sample,file_path,info={}):
-    info = info
+def saving_per_img(sample,file_path):
+    info = {}
     img = sitk_to_np(sample['img'])
     if 'seg' in sample:
         seg = sitk_to_np(sample['seg'])
