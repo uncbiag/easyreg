@@ -1,5 +1,6 @@
 {
     "tsk_set": {
+        "network_name": "",
         "batch_sz": 4,
         "continue_train": false,
         "criticUpdates": 1,

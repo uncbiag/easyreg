@@ -143,11 +143,11 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
         checkpoint = torch.load(model_path,map_location={'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
         start_epoch = 0
         best_prec1 = 0.0
-        if 'start_epoch' in checkpoint:
+        if 'epoch' in checkpoint:
             start_epoch = checkpoint['epoch']
         else:
             start_epoch=0
-        if 'best_prec1' in checkpoint:
+        if 'best_loss' in checkpoint:
             best_prec1 = checkpoint['best_loss']
         else:
             best_prec1=0.

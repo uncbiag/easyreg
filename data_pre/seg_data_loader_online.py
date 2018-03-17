@@ -27,6 +27,7 @@ class SegmentationDataset(Dataset):
         self.transform_name_seq = option['transform']['transform_seq']
         self.option = option
         self.img_pool = []
+        self.init_img_pool()
         self.init_corr_transform_pool()
 
     def get_file_list(self):
@@ -39,23 +40,25 @@ class SegmentationDataset(Dataset):
         return f_filter,name_list
 
 
-    def get_transform_seq(self):
+    def get_transform_seq(self,i):
         option_trans = deepcopy(self.option)
+        option_trans['shared_info']['label_list'] = self.img_pool[i]['info']['label_list']
+        option_trans['shared_info']['label_density'] = self.img_pool[i]['info']['label_density']
         transform = Transform(option_trans)
         return transform.get_transform_seq(self.transform_name_seq)
 
 
     def init_corr_transform_pool(self):
-        self.corr_transform_pool = [self.get_transform_seq() for _ in range(self.num_img)]
+        self.corr_transform_pool = [self.get_transform_seq(i) for i in range(self.num_img)]
 
-    def load_img_pool(self):
+    def init_img_pool(self):
         for path in self.path_list:
             dic = read_h5py_file(path)
             sample = {'image': dic['data'], 'info': dic['info'], 'label': dic['label']}
             self.img_pool += [sample]
 
     def __len__(self):
-        return len(self.name_list)
+        return len(self.name_list)*100
 
 
     def __getitem__(self, idx):
@@ -63,7 +66,7 @@ class SegmentationDataset(Dataset):
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
-        dic = read_h5py_file(self.path_list[idx])
+        dic = self.img_pool[idx%self.num_img]
         fname  = self.name_list[idx]
         sample = {'image': dic['data'], 'info': dic['info'], 'label':dic['label']}
         if self.transform:

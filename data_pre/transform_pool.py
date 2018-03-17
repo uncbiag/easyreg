@@ -4,6 +4,7 @@ import SimpleITK as sitk
 import numpy as np
 import torch
 import math
+import random
 from math import floor
 
 
@@ -590,7 +591,7 @@ class MyBalancedRandomCrop(object):
             self.random_state = random_state
         else:
             self.random_state = np.random.RandomState()
-        self.cur_label_id = 0
+        self.cur_label_id = random.randint(0,self.num_label-1)
 
 
 
@@ -600,31 +601,52 @@ class MyBalancedRandomCrop(object):
         :param sample:if the img in sample is a list, then return a list of img list otherwise return single image
         :return:
         """
+
+        cur_label_id = self.cur_label_id
+        cur_label = int(self.label_list[cur_label_id])
+        is_numpy = False
+
+        # the size coordinate system here is according to the itk coordinate
+
         img, seg = sample['img'], sample['seg']
-        if not isinstance(img,list):
-            size_old = img.GetSize()
+        if isinstance(img,list):
+            if not isinstance(img[0],np.ndarray):
+                size_old = img[0].GetSize()
+            else:
+                is_numpy = True
+                size_old = np.flipud(list(img[0].shape))
         else:
-            size_old = img[0].GetSize()
+            if not isinstance(img[0],np.ndarray):
+                size_old = img.GetSize()
+            else:
+                is_numpy = True
+                size_old = np.flipud(list(img.shape))
+
         size_new = self.output_size
 
 
         #cur_label_id = self.random_state.randint(self.num_label)
-        cur_label_id = self.cur_label_id
-        cur_label = int(self.label_list[cur_label_id])
-        roiFilter = sitk.RegionOfInterestImageFilter()
-        roiFilter.SetSize(size_new)
+        if not is_numpy:
+            roiFilter = sitk.RegionOfInterestImageFilter()
+            roiFilter.SetSize(size_new)
+            seg_np = sitk.GetArrayViewFromImage(seg)
+        else:
+            seg_np = seg
+
+        # here the coordinate system transfer from the sitk to numpy
         size_new = np.flipud(size_new)
         size_old = np.flipud(size_old)
 
         # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
-        seg_np = sitk.GetArrayViewFromImage(seg)
+
+
         contain_label = False
         start_coord = None
         label_ratio =0
 
         # print(sample['name'])
         while not contain_label:
-            # get the start crop coordinate in ijk
+            # get the start crop coordinate in ijk, the operation is did in the numpy coordinate
             start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
                                                               self.random_state)
             seg_crop_np = cropping(seg_np,start_coord,size_new)
@@ -633,13 +655,28 @@ class MyBalancedRandomCrop(object):
                 contain_label = True
 
 
-        start_coord = np.flipud(start_coord).tolist()
-        roiFilter.SetIndex(start_coord)
-        seg_crop = roiFilter.Execute(seg)
-        if not isinstance(img,list):
-            img_crop = roiFilter.Execute(img)
+        if is_numpy:
+            after_coord = [start_coord[i] + size_new[i] for i in range(len(size_new))]
+            img_crop =[]
+            if isinstance(img, list):
+                for im in img:
+                    img_crop += [im[start_coord[0]:after_coord[0], start_coord[1]:after_coord[1], start_coord[2]:after_coord[2]].copy()]
+            else:
+                img_crop = img[start_coord[0]:after_coord[0], start_coord[1]:after_coord[1],
+                             start_coord[2]:after_coord[2]].copy()
+            seg_crop =seg_np[start_coord[0]:after_coord[0], start_coord[1]:after_coord[1],
+                             start_coord[2]:after_coord[2]].copy()
+            start_coord = np.flipud(start_coord).tolist()
+
+        # now transfer the system into the sitk system
         else:
-            img_crop = [roiFilter.Execute(im) for im in img]
+            start_coord = np.flipud(start_coord).tolist()
+            roiFilter.SetIndex(start_coord)
+            seg_crop = roiFilter.Execute(seg)
+            if not isinstance(img,list):
+                img_crop = roiFilter.Execute(img)
+            else:
+                img_crop = [roiFilter.Execute(im) for im in img]
         trans_sample={}
         trans_sample['img'] = img_crop
         trans_sample['seg'] = seg_crop
