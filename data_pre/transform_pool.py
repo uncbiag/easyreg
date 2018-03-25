@@ -603,24 +603,24 @@ class MyBalancedRandomCrop(object):
         """
 
         cur_label_id = self.cur_label_id
-        cur_label = int(self.label_list[cur_label_id])
         is_numpy = False
 
         # the size coordinate system here is according to the itk coordinate
 
         img, seg = sample['img'], sample['seg']
+        cur_label = int(self.label_list[cur_label_id])
+
         if isinstance(img,list):
             if not isinstance(img[0],np.ndarray):
                 size_old = img[0].GetSize()
             else:
                 is_numpy = True
+                #cur_label = cur_label_id
+
                 size_old = np.flipud(list(img[0].shape))
         else:
-            if not isinstance(img[0],np.ndarray):
+            if not isinstance(img,np.ndarray):
                 size_old = img.GetSize()
-            else:
-                is_numpy = True
-                size_old = np.flipud(list(img.shape))
 
         size_new = self.output_size
 
@@ -631,7 +631,7 @@ class MyBalancedRandomCrop(object):
             roiFilter.SetSize(size_new)
             seg_np = sitk.GetArrayViewFromImage(seg)
         else:
-            seg_np = seg
+            seg_np = seg[0].copy()
 
         # here the coordinate system transfer from the sitk to numpy
         size_new = np.flipud(size_new)
@@ -643,7 +643,7 @@ class MyBalancedRandomCrop(object):
         contain_label = False
         start_coord = None
         label_ratio =0
-
+        count = 0
         # print(sample['name'])
         while not contain_label:
             # get the start crop coordinate in ijk, the operation is did in the numpy coordinate
@@ -651,6 +651,13 @@ class MyBalancedRandomCrop(object):
                                                               self.random_state)
             seg_crop_np = cropping(seg_np,start_coord,size_new)
             label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
+
+            count += 1
+            if count>10000:
+                print("Warning!!!!!, no crop")
+                print(cur_label_id)
+                print(self.label_list)
+
             if label_ratio > self.threshold[cur_label]:  # judge if the patch satisfy condition
                 contain_label = True
 
@@ -661,11 +668,11 @@ class MyBalancedRandomCrop(object):
             if isinstance(img, list):
                 for im in img:
                     img_crop += [im[start_coord[0]:after_coord[0], start_coord[1]:after_coord[1], start_coord[2]:after_coord[2]].copy()]
-            else:
-                img_crop = img[start_coord[0]:after_coord[0], start_coord[1]:after_coord[1],
-                             start_coord[2]:after_coord[2]].copy()
             seg_crop =seg_np[start_coord[0]:after_coord[0], start_coord[1]:after_coord[1],
                              start_coord[2]:after_coord[2]].copy()
+            img_crop = np.stack(img_crop,0)
+            seg_crop =np.expand_dims(seg_crop,0)
+            # transfer the numpy coordinate into itk coordinate
             start_coord = np.flipud(start_coord).tolist()
 
         # now transfer the system into the sitk system

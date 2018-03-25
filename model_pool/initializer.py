@@ -66,6 +66,7 @@ class Initializer():
     
         seg_option = par_dataset['datapro']['seg']
         seg_transform_seq  = par_dataset['datapro']['seg']['transform']['transform_seq']
+
     
         self.data_manager = DataManager(task_name=data_pro_task_name, dataset_name=dataset_name)
         self.data_manager.set_task_type(task_type)

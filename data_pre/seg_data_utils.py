@@ -203,15 +203,16 @@ def gen_fn_from_info(info):
 
 def get_patch_saving_path(file_path,info, saving_by_patch=True):
     img_name = get_file_name(file_path)
-    file_name = gen_fn_from_info(info)
-    file_name = img_name + file_name
     if saving_by_patch:
+        file_name = gen_fn_from_info(info)
+        file_name = img_name + file_name
         label_str = info['l']
         folder_path=os.path.join(file_path,label_str)
         make_dir(folder_path)
         full_path = os.path.join(folder_path,file_name+'.h5py')
         file_id = file_name
     else:
+        file_name = img_name
         make_dir(file_path)
         full_path = os.path.join(file_path,file_name+'.h5py')
         file_id = file_name
@@ -227,7 +228,7 @@ def saving_patch_per_img(patch,file_path,itk_img=True):
     else:
         patch_seg = np.array([-1])
     saving_path, patch_id = get_patch_saving_path(file_path,info)
-    save_to_h5py(saving_path,patch_img, patch_seg,patch_id,info,verbose=False)
+    save_to_h5py(saving_path,patch_img.astype(np.float32), patch_seg.astype(np.int32),patch_id,info,verbose=False)
 
 def saving_patches_per_img(patches,file_path):
 
@@ -238,17 +239,24 @@ def saving_patches_per_img(patches,file_path):
     else:
         patches_seg= np.array([-1])
     saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
-    save_to_h5py(saving_path,patches_img, patches_seg ,file_id,info,verbose=False)
+    save_to_h5py(saving_path,patches_img.astype(np.float32), patches_seg.astype(np.int32) ,file_id,info,verbose=False)
 
 def saving_per_img(sample,file_path,info={}):
-    info = info
-    img = sitk_to_np(sample['img'])
-    if 'seg' in sample:
-        seg = sitk_to_np(sample['seg'])
-    else:
-        seg = np.array([-1])
+    # info = info
+    # img = sitk_to_np(sample['img'])
+    # if 'seg' in sample:
+    #     seg = sitk_to_np(sample['seg'])
+    # else:
+    #     seg = np.array([-1])
     saving_path, file_id = get_patch_saving_path(file_path,info, saving_by_patch=False)
-    save_to_h5py(saving_path,img, seg,file_id,info,verbose=False)
+
+    if not isinstance(sample['img'], list):
+        sitk.WriteImage(sitk.Cast(sample['img'], sitk.sitkFloat32), saving_path.replace('.h5py', '_tmod_'+str(0)+'.nii.gz'))
+    else:
+        [sitk.WriteImage(sitk.Cast(im, sitk.sitkFloat32), saving_path.replace('.h5py', '_tmod_'+str(i)+'.nii.gz')) for i, im in enumerate(sample['img'])]
+    if 'seg' in sample:
+        sitk.WriteImage(sitk.Cast(sample['seg'], sitk.sitkInt32), saving_path.replace('.h5py', '_seg.nii.gz'))
+    save_to_h5py(saving_path,np.array([-1]), np.array([-1]),file_id,info,verbose=False)
 
 
 
@@ -382,9 +390,10 @@ def write_file(path, dic, type='h5py'):
     """
     if type == 'h5py':
         f = h5py.File(path, 'w')
-        f.create_dataset('data', data=dic['data'])
+        if dic['data'] is not None:
+            f.create_dataset('data', data=dic['data'].astype(np.float32))
         if dic['label'] is not None:
-            f.create_dataset('label', data=dic['label'])
+            f.create_dataset('label', data=dic['label'].astype(np.int32))
         for key, value in dic['info'].items():
             f.attrs[key] = value
         # asciiList = [[path.encode("ascii", "ignore") for path in file] for file in dic['file_path']]

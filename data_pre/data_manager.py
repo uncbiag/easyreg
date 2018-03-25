@@ -6,6 +6,7 @@ from data_pre.seg_data_loader import ToTensor
 import data_pre.module_parameters as pars
 import  data_pre.reg_data_pool as reg_pool
 import data_pre.seg_data_loader as  seg_loader
+import data_pre.seg_data_loader_online as seg_loader_ol
 import  data_pre.seg_data_pool as seg_pool
 
 
@@ -211,7 +212,7 @@ class DataManager(object):
         self.dataset.prepare_data()
 
     def init_dataset_type(self):
-        self.cur_dataset = reg_loader.RegistrationDataset if self.task_type=='reg' else seg_loader.SegmentationDataset
+        self.cur_dataset = reg_loader.RegistrationDataset if self.task_type=='reg' else seg_loader_ol.SegmentationDataset
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
@@ -219,7 +220,7 @@ class DataManager(object):
                                                       shuffle=False, num_workers=4) for x in ['train','val','test','debug']}
         elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
-                                                                  batch_size=batch_size,shuffle=True, num_workers=4),
+                                                                  batch_size=batch_size,shuffle=True, num_workers=8),
                            'val': torch.utils.data.DataLoader(transformed_dataset['val'],
                                                                 batch_size=1, shuffle=True, num_workers=1),
                            'test': torch.utils.data.DataLoader(transformed_dataset['test'],
@@ -238,12 +239,13 @@ class DataManager(object):
         :param batch_size:  set the batch size
         :return:
         """
+        phases = ['train', 'val','test','debug']
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
-        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x], is_train=(x=='train'),transform=composed) for x in self.task_path}
+        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,option=self.seg_option) for x in phases}
         dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
-        dataloaders['data_size'] = {x: len(dataloaders[x]) for x in ['train', 'val','test','debug']}
-        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in ['train', 'val','test','debug']}
+        dataloaders['data_size'] = {x: len(dataloaders[x]) for x in phases}
+        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in phases}
         print('dataloader is ready')
 
 

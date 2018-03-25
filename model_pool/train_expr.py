@@ -7,7 +7,7 @@ from pipLine.utils import *
 def train_model(opt,model, dataloaders,writer):
     since = time()
     experiment_name = opt['tsk_set']['task_name']
-    period = opt['tsk_set'][('print_step', [10,2,2], 'num of steps to print')]
+    period = opt['tsk_set'][('print_step', [10,2,1], 'num of steps to print')]
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
     resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
@@ -123,8 +123,8 @@ def train_model(opt,model, dataloaders,writer):
 
 
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
-                    save_checkpoint({'epoch': epoch,'state_dict': best_model_wts,'optimizer': best_model_optimizer,
-                             'best_loss': best_loss, 'global_step':global_step}, is_best, check_point_path, 'epoch_'+str(best_epoch), '')
+                    save_checkpoint({'epoch': epoch,'state_dict':  model.network.state_dict(),'optimizer': model.optimizer.state_dict(),
+                             'best_loss': best_loss, 'global_step':global_step}, is_best, check_point_path, 'epoch_'+str(epoch), '')
                     is_best = False
                 # if epoch % save_visualization_period ==0:
                 #     image_summary = model.get_image_summary()
@@ -133,8 +133,8 @@ def train_model(opt,model, dataloaders,writer):
 
         print()
 
-    save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(),'optimizer': best_model_optimizer,
-                     'best_loss': epoch_val_loss,'global_step':global_step}, False, check_point_path, 'epoch_' + str(num_epochs), '')
+    save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(),'optimizer': model.optimizer.state_dict(),
+                     'best_loss': epoch_val_loss,'global_step':global_step}, False, check_point_path, 'epoch_last', '')
 
     time_elapsed = time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(

@@ -10,16 +10,20 @@ from data_pre.seg_data_utils import *
 from time import time
 from copy import deepcopy
 from data_pre.transform import Transform
+import blosc
+
+
 class SegmentationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,is_train=True, transform=None, option = None):
+    def __init__(self, data_path,phase, transform=None, option = None):
         """
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
         """
         self.data_path = data_path
-        self.is_train = is_train
+        self.is_train = phase =='train'
+        self.is_test = phase=='test'
         self.transform = transform
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
@@ -27,8 +31,12 @@ class SegmentationDataset(Dataset):
         self.transform_name_seq = option['transform']['transform_seq']
         self.option = option
         self.img_pool = []
-        self.init_img_pool()
-        self.init_corr_transform_pool()
+        if self.is_train:
+            self.init_img_pool()
+            print('img pool initialized complete')
+            self.init_corr_transform_pool()
+            print('transforms initialized complete')
+        blosc.set_nthreads(1)
 
     def get_file_list(self):
         """
@@ -36,6 +44,10 @@ class SegmentationDataset(Dataset):
         :return: full file path list, file name list
         """
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
+        ##############
+
+        #f_filter= f_filter[0:10]
+        #############
         name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
         return f_filter,name_list
 
@@ -44,8 +56,18 @@ class SegmentationDataset(Dataset):
         option_trans = deepcopy(self.option)
         option_trans['shared_info']['label_list'] = self.img_pool[i]['info']['label_list']
         option_trans['shared_info']['label_density'] = self.img_pool[i]['info']['label_density']
+        option_trans['shared_info']['img_size'] = self.img_size
+        if len(self.img_pool[i]['info']['label_list'])==3:
+            print(self.name_list[i])
         transform = Transform(option_trans)
         return transform.get_transform_seq(self.transform_name_seq)
+
+
+    def apply_transform(self,sample, transform_seq):
+        for transform in transform_seq:
+            sample = transform(sample)
+        return sample
+
 
 
     def init_corr_transform_pool(self):
@@ -54,11 +76,33 @@ class SegmentationDataset(Dataset):
     def init_img_pool(self):
         for path in self.path_list:
             dic = read_h5py_file(path)
-            sample = {'image': dic['data'], 'info': dic['info'], 'label': dic['label']}
+            sample = { 'info': dic['info']}
+            folder_path = os.path.split(path)[0]
+            mode_filter  = glob(join(folder_path,'*tmod*.nii.gz'),recursive=True)
+            img_list_sitk=[]
+            for mode_path in mode_filter:
+                img_list_sitk += [sitk.ReadImage(mode_path)]
+            modes = sitk_to_np(img_list_sitk)
+            modes_pack = blosc.pack_array(modes)
+            sample['img'] =modes_pack
+            seg_path =path.replace('.h5py','_seg.nii.gz')
+            sample['seg'] = sitk_to_np(sitk.ReadImage(seg_path))
+            self.img_size = list(sample['seg'].shape)[1:]
             self.img_pool += [sample]
 
+            # img_path_list = []
+            # for mode_path in mode_filter:
+            #     img_path_list += [mode_path]
+            # sample['image_path_list'] = img_path_list
+            # seg_path = path.replace('.h5py', '_seg.nii.gz')
+            # sample['label_path'] = seg_path
+            # self.img_pool += [sample]
+
     def __len__(self):
-        return len(self.name_list)*100
+        if self.is_train:
+            return len(self.name_list)*100
+        else:
+            return len(self.name_list)
 
 
     def __getitem__(self, idx):
@@ -66,14 +110,31 @@ class SegmentationDataset(Dataset):
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
-        dic = self.img_pool[idx%self.num_img]
-        fname  = self.name_list[idx]
-        sample = {'image': dic['data'], 'info': dic['info'], 'label':dic['label']}
+        idx = idx%self.num_img
+        fname  = self.name_list[idx]+'_tile'
+        if self.is_train:
+            dic = self.img_pool[idx]
+            modes = blosc.unpack_array(dic['img'])
+            data = {'img': modes, 'info': dic['info'], 'seg': dic['seg']}
+            data['img'] = [modes[i] for i in range(modes.shape[0])]
+            data = self.apply_transform(data,self.corr_transform_pool[idx])
+        else:
+            dic = read_h5py_file(self.path_list[idx])
+            data = {'img': dic['data'], 'info': dic['info'], 'seg': dic['label']}
+        sample = {}
+        ########################### channel sel
         if self.transform:
-            sample['image'] = self.transform(sample['image'].astype(np.float32))
-            if sample['label'] is not None:
-                 sample['label'] = self.transform(sample['label'].astype(np.int32))
+            index = [0,2,3]
+            if self.is_train:
+                sample['image'] = self.transform(data['img'][index].copy())
+            else:
+                sample['image'] = self.transform(data['img'][:,index].copy())
+            #sample['image'] = self.transform(data['img'].copy())
+            if data['seg'] is not None:
+                 sample['label'] = self.transform(data['seg'].copy())
         return sample,fname
+
+
 
 
 

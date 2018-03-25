@@ -33,12 +33,12 @@ class Vonet(BaseModel):
         self.voting_save_sched =opt['tsk_set']['voting']['voting_save_sched']
         network_name =opt['tsk_set']['network_name']
 
-        self.network = self.get_from_model_pool(network_name,n_in_channel, self.n_class)
+        #self.network = self.get_from_model_pool(network_name,n_in_channel, self.n_class)
 
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        epoch_list = [i for i in range(120, 180,2)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
-        #self.network = Vonet_test(n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id))
+        epoch_list = [i for i in range(240, 249,5)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
+        self.network = Vonet_test(n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
 
 
         self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea =self.init_optim(opt['tsk_set']['optim'])
@@ -117,7 +117,7 @@ class Vonet(BaseModel):
             torch.save(self.network.net_dis.state_dict(),self.asm_path+'/'+'epoch_'+str(self.cur_epoch))
             fea_path = self.asm_path+'/'+'fea'
             if not os.path.exists(fea_path):
-                torch.save(self.network.net_feas.state_dict(),fea_path)
+                torch.save(self.network.net_fea.state_dict(),fea_path)
             self.start_asm_learning = True
 
 
@@ -125,10 +125,10 @@ class Vonet(BaseModel):
 
 
     def auto_saving_model(self):
-        if self.voting_save_sched == 'default':
-            log = self.cur_epoch > self.start_saving_model and self.cur_epoch % self.saving_voting_per_epoch==0
-            log = log and self.cur_epoch_beg_tag
-            self.cur_epoch_beg_tag = False
-            return log
+        #if self.voting_save_sched == 'default':
+        log = self.cur_epoch > self.start_saving_model and self.cur_epoch % self.saving_voting_per_epoch==0
+        log = log and self.cur_epoch_beg_tag
+        self.cur_epoch_beg_tag = False
+        return log
 
 

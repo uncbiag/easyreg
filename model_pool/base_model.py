@@ -22,6 +22,7 @@ from .unet_expr4_test6 import UNet3Dt6
 from .unet_expr4_test7 import UNet3Dt7
 from .unet_expr4_test8 import UNet3Dt8
 from .unet_expr4_test9 import UNet3Dt9
+from .unet_expr4_test10 import UNet3Dt9_sim
 from .unet_expr_bon import UNet3DB
 from .unet_expr_bon_s import UNet3DBS
 from .unet_expr4_bon import UNet3D4B
@@ -42,7 +43,9 @@ from .unet_expr16_bon import UNet3DB16
 from .unet_expr17_bon import UNet3DB17
 from .vnet_expr import VNet
 from  .zhenlin_net import *
-from .vonet_pool import UNet_asm
+from .vonet_pool import UNet_asm,Vonet_test
+from .unet_expr_extreme_deep import UNet3D_Deep
+from .unet_expr_multi_mod import UNet3DMM
 import SimpleITK as sitk
 from glob import glob
 model_pool_1 = {
@@ -60,6 +63,7 @@ model_pool_1 = {
     'UNet3Dt7': UNet3Dt7,
     'UNet3Dt8': UNet3Dt8,
     'UNet3Dt9': UNet3Dt9,
+    'UNet3Dt9_sim':UNet3Dt9_sim,
     'UNet3DB': UNet3DB,
     'UNet3DBS': UNet3DBS,
     'UNet3D4B': UNet3D4B,
@@ -79,7 +83,10 @@ model_pool_1 = {
     'UNet3DB16': UNet3DB16,
     'UNet3DB17': UNet3DB17,
     'VNet': VNet,
-    'UNet_asm':UNet_asm
+    'UNet_asm':UNet_asm,
+    'Vonet_test':Vonet_test,
+    'UNet3D_Deep':UNet3D_Deep,
+    'UNet3DMM':UNet3DMM
 }
 
 

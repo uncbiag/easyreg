@@ -159,6 +159,7 @@ class BaseSegDataSet(object):
                                                                    self.divided_ratio)
 
     def load_file_and_save_list(self):
+        print("Attention, the files are loaded from the prepared txt")
         self.file_path_list = get_file_path_list(self.data_path, self.file_type_list)
         self.saving_path_dic, self.file_path_dic = load_file_path_from_txt(self.output_path,self.file_path_list,self.task_file_txt_path)
 
@@ -174,15 +175,19 @@ class BaseSegDataSet(object):
         else:
             self.load_file_and_save_list()
         self.initialize_info()
+        print("starting process train data")
         file_patitions = np.array_split(self.file_path_dic['train'], number_of_workers)
         with Pool(processes=number_of_workers) as pool:
             res = pool.map(self.train_data_processing,file_patitions)
+        print("starting process validation data")
         file_patitions = np.array_split(self.file_path_dic['val'], number_of_workers)
         with Pool(processes=number_of_workers) as pool:
             res = pool.map(self.val_data_processing, file_patitions)
+        print("starting process test data")
         file_patitions = np.array_split(self.file_path_dic['test'], number_of_workers)
         with Pool(processes=number_of_workers) as pool:
             res = pool.map(self.test_data_processing, file_patitions)
+        print("starting process debug data")
         file_patitions = np.array_split(self.file_path_dic['debug'], number_of_workers)
         from functools import partial
         with Pool(processes=number_of_workers) as pool:
@@ -308,6 +313,9 @@ class NoPatchedDataSet(BaseSegDataSet):
     def __init__(self, file_type_list, option,label_switch= ('',''), dim=3):
         BaseSegDataSet.__init__(self,file_type_list,option,label_switch, dim)
 
+        self.option_p = self.option[('partition', {}, "settings for the partition")]
+        self.option_p['patch_size'] = self.option['patch_size']
+
 
     def train_data_processing(self,file_path_list,debug=False):
         option_trans_cp = deepcopy(self.option_trans)
@@ -323,9 +331,9 @@ class NoPatchedDataSet(BaseSegDataSet):
             label_list = list(np.unique(label))
             label_density = np.bincount(label.reshape(-1).astype(np.int32)) / len(label.reshape(-1))
             info = {'label_list':label_list,'label_density':label_density}
-            transform_seq = self.get_transform_seq(option_trans_cp)
-            sample = {'img': np_to_sitk(img, info), 'seg': np_to_sitk(label, info)}
-            img_transformed = self.apply_transform(sample, transform_seq)
+            #transform_seq = self.get_transform_seq(option_trans_cp)
+            img_transformed = {'img': np_to_sitk(img, info), 'seg': np_to_sitk(label, info)}
+            #img_transformed = self.apply_transform(sample, transform_seq)
             if not debug:
                 saving_per_img(img_transformed, self.saving_path_dic[file_name], info)
             else:
@@ -334,8 +342,23 @@ class NoPatchedDataSet(BaseSegDataSet):
             pbar.update(self.count)
         pbar.finish()
 
+    # def val_data_processing(self,file_path_list,debug=False):
+    #     return self.train_data_processing(file_path_list,debug=debug)
+
     def val_data_processing(self,file_path_list,debug=False):
-        return self.train_data_processing(file_path_list,debug=debug)
+        partition_ins = partition(self.option_p)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
+        for i, file_path in enumerate(file_path_list):
+            file_name = get_file_name(file_path)
+            img, info = self.read_file(file_path)
+            label, linfo = self.read_file(file_label_path_list[i], is_label=True)
+            self.convert_to_standard_label_map(label,file_path)
+            sample = {'img':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
+            patches = partition_ins(sample)
+            if not debug:
+                saving_patches_per_img(patches,self.saving_path_dic[file_name])
+            else:
+                saving_patches_per_img(patches, self.saving_path_dic[file_name+'_debug'])
 
 
     def test_data_processing(self,file_path_list):
@@ -438,7 +461,7 @@ class CustomNoPatchedDaset(NoPatchedDataSet):
 
 class BratsPatchedDataSet(PatchedDataSet,MultiModiltyDataSet):
     def __init__(self,option):
-        CustomNoPatchedDaset.__init__(self, ['*flair.nii.gz'],option,label_switch=('flair','seg'))
+        PatchedDataSet.__init__(self, ['*flair.nii.gz'],option,label_switch=('flair','seg'))
         MultiModiltyDataSet.__init__(self,['*flair.nii.gz'],option, label_switch=('flair','seg'))
 
         self.set_multi_mode(['flair','t1','t1ce','t2'])

@@ -29,7 +29,7 @@ def debug_model(opt,model, dataloaders):
     test_loss = running_test_loss / dataloaders['data_size'][phase]
     print('the average test_loss: {:.4f}'.format(test_loss))
     time_elapsed = time() - since
-    print('the size of test is {}, test evaluation complete in {:.0f}m {:.0f}s'.format(dataloaders['data_size'][phase],
+    print('the size of test is {}, val evaluation complete in {:.0f}m {:.0f}s'.format(dataloaders['data_size'][phase],
                                                                                        time_elapsed // 60,
                                                                                        time_elapsed % 60))
 

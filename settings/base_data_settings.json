@@ -42,7 +42,7 @@
                 128,
                 32
             ],
-            "sched": "patched",
+            "sched": "nopatched",
             "transform": {
                 "bal_rand_crop": {},
                 "bilateral_filter": {
