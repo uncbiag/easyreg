@@ -34,8 +34,8 @@ def decoder(in_channels, out_channels, kernel_size, stride=1, padding=0,
 
 class Fea_part():
     def initial(self, in_channels):
-        self.e0cb = encoder(in_channels, 16, bias=True, batchnorm=True)
-        self.e0c1 = encoder(16, 32, bias=True, batchnorm=True)
+        self.e0cb = encoder(in_channels, 32, bias=True, batchnorm=True)
+        self.e0c1 = encoder(32, 32, bias=True, batchnorm=True)
         self.e0ce = encoder(32, 32, bias=True, batchnorm=True)
         self.e0_sq =  nn.ModuleList([nn.Sequential(self.e0cb, self.e0c1, self.e0ce)])
         return self.e0_sq
@@ -106,7 +106,7 @@ class UNet3DMM(nn.Module):
 
     def forward(self, x):
         output= []
-        for i in range(3):
+        for i in range(self.in_channel):
             e0_sq_res = self.fea_list[i][0](x[:,i:i+1])
             e1_sq_res = self.mod_list[i][0](e0_sq_res)
             e2_sq_res = self.mod_list[i][1](e1_sq_res)

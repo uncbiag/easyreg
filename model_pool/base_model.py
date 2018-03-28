@@ -300,12 +300,14 @@ class BaseModel():
         if brats_eval_on:
             output = self.output.copy()
             gt = self.gt_np.copy()
+            # WT is the label other than 0
             output[np.where(output!=0)]=1
             gt[np.where(gt!=0)]=1
             val_res_dic = get_multi_metric(np.expand_dims(output,0),gt,rm_bg=True)
             print('here is the WT :{}'.format(val_res_dic['batch_label_avg_res']))
             output = self.output.copy()
             gt = self.gt_np.copy()
+            # TC is the label 1 and 3
             output[np.where((output==3)|(output ==1))] = 1
             output[np.where(output == 2)] = 0
             gt[np.where((gt == 3) | (gt == 1))] = 1
@@ -314,6 +316,7 @@ class BaseModel():
             print('here is the TC :{}'.format(val_res_dic['batch_label_avg_res']))
             output = self.output.copy()
             gt = self.gt_np.copy()
+            # ET is the label 3
             output[np.where(output !=3)] = 0
             output[np.where((output == 3))] = 1
             gt[np.where(gt!= 3)] = 0
@@ -421,7 +424,7 @@ class BaseModel():
 
 
 
-    def save_fig(self,phase,standard_record=True,saving_gt=True):
+    def save_fig(self,phase,standard_record=False,saving_gt=True):
         saving_folder_path = os.path.join(self.record_path, 'output')
         make_dir(saving_folder_path)
         if self.save_by_standard_label:

@@ -7,7 +7,7 @@ from pipLine.utils import *
 def train_model(opt,model, dataloaders,writer):
     since = time()
     experiment_name = opt['tsk_set']['task_name']
-    period = opt['tsk_set'][('print_step', [10,2,1], 'num of steps to print')]
+    period = opt['tsk_set'][('print_step', [10,4,4], 'num of steps to print')]
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
     resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
@@ -38,6 +38,7 @@ def train_model(opt,model, dataloaders,writer):
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         start_epoch, best_prec1, global_step=resume_train(model_path, model.network, model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
+        model.optimizer.zero_grad()
     # else:
     #     model.apply(weights_init)
 
@@ -63,7 +64,7 @@ def train_model(opt,model, dataloaders,writer):
             for data in dataloaders[phase]:
                 # get the inputs
                 global_step[phase] += 1
-                end_of_epoch =   global_step[phase] % max_batch_num_per_epoch[phase] == 0
+                end_of_epoch = global_step[phase] % max_batch_num_per_epoch[phase] == 0
                 is_train = True if phase == 'train' else False
                 model.set_input(data,is_train)
 
@@ -96,7 +97,7 @@ def train_model(opt,model, dataloaders,writer):
                 # save for tensorboard, both train and val will be saved
 
                 if global_step[phase] > 1 and global_step[phase] % period[phase] == 0:
-                    period_avg_loss = period_loss[phase] / period[phase]
+                    period_avg_loss = period_loss[phase] / min(max_batch_num_per_epoch[phase],period[phase])
                     writer.add_scalar('loss/' + phase, period_avg_loss, global_step[phase])
                     print("global_step:{}, {} lossing is{}".format(global_step[phase], phase, loss))
                     period_loss[phase] = 0.
@@ -114,12 +115,10 @@ def train_model(opt,model, dataloaders,writer):
                 if epoch == 0:
                     best_loss = epoch_val_loss
 
-                if  epoch_val_loss > best_loss:
+                if epoch_val_loss > best_loss:
                     is_best = True
                     best_loss = epoch_val_loss
                     best_epoch = epoch
-                    best_model_wts = model.network.state_dict()
-                    best_model_optimizer =  model.optimizer.state_dict() if model.optimizer is not None else None
 
 
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
@@ -129,7 +128,6 @@ def train_model(opt,model, dataloaders,writer):
                 # if epoch % save_visualization_period ==0:
                 #     image_summary = model.get_image_summary()
                 #     writer.add_image("validation_visualization", image_summary, global_step=global_step)
-
 
         print()
 

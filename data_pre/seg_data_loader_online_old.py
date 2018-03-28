@@ -40,8 +40,6 @@ class SegmentationDataset(Dataset):
             self.init_corr_transform_pool()
             print('transforms initialized complete')
         else:
-            self.init_img_pool()
-            print('img pool initialized complete')
             self.init_corr_partition_pool()
             print("partition pool initialized complete")
         blosc.set_nthreads(1)
@@ -54,9 +52,10 @@ class SegmentationDataset(Dataset):
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
         ##############
 
-        # f_filter= f_filter[0:3]
+        # f_filter= f_filter[0:10]
         #############
         name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
+        assert len(f_filter)==len(name_list)
         return f_filter,name_list
 
 
@@ -90,7 +89,7 @@ class SegmentationDataset(Dataset):
     def init_img_pool(self):
         for path in self.path_list:
             dic = read_h5py_file(path)
-            sample = {'info': dic['info']}
+            sample = { 'info': dic['info']}
             folder_path = os.path.split(path)[0]
             mode_filter  = glob(join(folder_path,'*tmod*.nii.gz'),recursive=True)
             img_list_sitk=[]
@@ -99,10 +98,9 @@ class SegmentationDataset(Dataset):
             modes = sitk_to_np(img_list_sitk)
             modes_pack = blosc.pack_array(modes)
             sample['img'] =modes_pack
-            if not self.is_test:
-                seg_path =path.replace('.h5py','_seg.nii.gz')
-                sample['seg'] = sitk_to_np(sitk.ReadImage(seg_path))
-                self.img_size = list(sample['seg'].shape)[1:]
+            seg_path =path.replace('.h5py','_seg.nii.gz')
+            sample['seg'] = sitk_to_np(sitk.ReadImage(seg_path))
+            self.img_size = list(sample['seg'].shape)[1:]
             self.img_pool += [sample]
 
             # img_path_list = []
@@ -111,59 +109,44 @@ class SegmentationDataset(Dataset):
             # sample['image_path_list'] = img_path_list
             # seg_path = path.replace('.h5py', '_seg.nii.gz')
             # sample['label_path'] = seg_path
-            # self.img_pool += [sample]`
+            # self.img_pool += [sample]
 
     def __len__(self):
         if self.is_train:
             return len(self.name_list)*100
         else:
             return len(self.name_list)
-    def gen_coord_map(self, img_sz):
-        map = np.mgrid[0.:1.:1./img_sz[0],0.:1.:1./img_sz[1],0.:1.:1./img_sz[2]]
-        map = np.array(map.astype('float32'))
-
-        return map
 
 
-    def __getitem__(self, idx, add_loc=True):
+    def __getitem__(self, idx):
         """
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
         idx = idx%self.num_img
         fname  = self.name_list[idx]+'_tile'
-        dic = self.img_pool[idx]
-        modes = blosc.unpack_array(dic['img'])
-        if add_loc:
-            map = self.gen_coord_map(modes.shape[1:]).copy()
-            modes = np.concatenate((modes, map), 0)
         if self.is_train:
+            dic = self.img_pool[idx]
+            modes = blosc.unpack_array(dic['img'])
             data = {'img': modes, 'info': dic['info'], 'seg': dic['seg']}
+
             data['img'] = [modes[i] for i in range(modes.shape[0])]
             data = self.apply_transform(data,self.corr_transform_pool[idx])
         else:
-            if self.is_test:
-                data = {'img': modes, 'info': dic['info']}
-            else:
-                data = {'img': modes, 'info': dic['info'], 'seg': dic['seg']}
-            data['img'] = [modes[i] for i in range(modes.shape[0])]
-            data = self.corr_partition_pool[idx](data)
+            dic = read_h5py_file(self.path_list[idx])
+            data = {'img': dic['data'], 'info': dic['info'], 'seg': dic['label']}
         sample = {}
 
         ########################### channel sel
         if self.transform:
             index = [0,1,2,3]
-            if add_loc:
-                index = index + [index[-1]+1 for _ in range(3)]
             if self.is_train:
                 sample['image'] = self.transform(data['img'][index].copy())*2-1
             else:
                 sample['image'] = self.transform(data['img'][:,index].copy())*2-1
             #sample['image'] = self.transform(data['img'].copy())
-            if 'seg'in data and data['seg'] is not None:
+            if data['seg'] is not None:
                  sample['label'] = self.transform(data['seg'].copy())
-            else:
-                sample['label'] = self.transform(np.array([-1]).astype((np.int32)))
         return sample,fname
 
 

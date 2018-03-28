@@ -318,8 +318,8 @@ class NoPatchedDataSet(BaseSegDataSet):
 
 
     def train_data_processing(self,file_path_list,debug=False):
-        option_trans_cp = deepcopy(self.option_trans)
-        option_trans_cp.print_settings_off()
+        # option_trans_cp = deepcopy(self.option_trans)
+        # option_trans_cp.print_settings_off()
         file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
         total = len(file_path_list)
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=total).start()
@@ -346,7 +346,7 @@ class NoPatchedDataSet(BaseSegDataSet):
     #     return self.train_data_processing(file_path_list,debug=debug)
 
     def val_data_processing(self,file_path_list,debug=False):
-        partition_ins = partition(self.option_p)
+        # partition_ins = partition(self.option_p)
         file_label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
         for i, file_path in enumerate(file_path_list):
             file_name = get_file_name(file_path)
@@ -354,11 +354,11 @@ class NoPatchedDataSet(BaseSegDataSet):
             label, linfo = self.read_file(file_label_path_list[i], is_label=True)
             self.convert_to_standard_label_map(label,file_path)
             sample = {'img':np_to_sitk(img,info),'seg':np_to_sitk(label,info)}
-            patches = partition_ins(sample)
+            # patches = partition_ins(sample)
             if not debug:
-                saving_patches_per_img(patches,self.saving_path_dic[file_name])
+                saving_per_img(sample,self.saving_path_dic[file_name])
             else:
-                saving_patches_per_img(patches, self.saving_path_dic[file_name+'_debug'])
+                saving_per_img(sample, self.saving_path_dic[file_name+'_debug'])
 
 
     def test_data_processing(self,file_path_list):
@@ -367,8 +367,8 @@ class NoPatchedDataSet(BaseSegDataSet):
             file_name = get_file_name(file_path)
             img, info = self.read_file(file_path)
             sample = {'img':np_to_sitk(img,info)}
-            patches = partition_ins(sample)
-            saving_patches_per_img(patches,self.saving_path_dic[file_name])
+            #patches = partition_ins(sample)
+            saving_per_img(sample,self.saving_path_dic[file_name])
 
     # def test_data_processing(self,file_path_list):
     #     option_trans_cp = deepcopy(self.option_trans,mode='pred')

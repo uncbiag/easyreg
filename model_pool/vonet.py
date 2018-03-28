@@ -70,9 +70,9 @@ class Vonet(BaseModel):
     def set_input(self, input, is_train=True):
         self. is_train = is_train
         if is_train and not self.start_asm_learning:
-            self.input = Variable(input[0]['image']*2-1).cuda()
+            self.input = Variable(input[0]['image']).cuda()
         else:
-            self.input = Variable(input[0]['image']*2-1,volatile=True).cuda()
+            self.input = Variable(input[0]['image'],volatile=True).cuda()
         self.gt = Variable(input[0]['label']).long().cuda()
         self.fname_list = list(input[1])
 

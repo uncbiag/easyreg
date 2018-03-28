@@ -51,14 +51,25 @@ class Partition(object):
             {'img':  Nx1xDxHxW, 'label':  Nx1xDxHxW }
         """
         # get numpy array from simpleITK images
-        images_itk = sample['img']
-        if 'seg' in sample:
-            seg_np = sitk.GetArrayFromImage(sample['seg'])
+        images_t = sample['img']
+
         #self.image = sample['img']
-        if not isinstance(images_itk,list):
-            images = [sitk.GetArrayFromImage(images_itk)]
+        is_numpy = False
+        if not isinstance(images_t,list):
+            # is not list, then it should be itk image
+            images = [sitk.GetArrayFromImage(images_t)]
         else:
-            images = [ sitk.GetArrayFromImage(image) for image in images_itk]
+            if not isinstance(images_t[0], np.ndarray):
+                images = [ sitk.GetArrayFromImage(image) for image in images_t]
+            else:
+                is_numpy = True
+                images = images_t
+        if 'seg' in sample:
+            if not is_numpy:
+                seg_np = sitk.GetArrayFromImage(sample['seg'])
+            else:
+                seg_np = sample['seg']
+
         self.image_size = np.array(images[0].shape)
         self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
         self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
