@@ -52,7 +52,7 @@ class SegmentationDataset(Dataset):
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
         ##############
 
-        # f_filter= f_filter[0:10]
+        # f_filter= f_filter[0:3]
         #############
         name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
         assert len(f_filter)==len(name_list)

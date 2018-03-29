@@ -151,18 +151,7 @@ def labels2colors(labels, images=None, overlap=False):
 
     return torch.Tensor(np.transpose(np.stack(colors, 0), (0, 3, 1, 2))).cuda()
 
-def resume_train(model_path, model):
-    if os.path.isfile(model_path):
-        print("=> loading checkpoint '{}'".format(model_path))
-        checkpoint = torch.load(model_path)
-        start_epoch = checkpoint['epoch']
-        best_prec1 = checkpoint['best_prec1']
-        model.load_state_dict(checkpoint['state_dict'])
-        print("=> loaded checkpoint '{}' (epoch {})"
-              .format(model_path, checkpoint['epoch']))
-        return  start_epoch, best_prec1
-    else:
-        print("=> no checkpoint found at '{}'".format(model_path))
+
 
 def clip_gradient(model, clip_norm):
     """Computes a gradient clipping coefficient based on gradient norm."""

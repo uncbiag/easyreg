@@ -13,13 +13,13 @@ from time import time
 class SegmentationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,is_train=True, transform=None):
+    def __init__(self, data_path,phase='train', transform=None, option=None):
         """
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
         """
         self.data_path = data_path
-        self.is_train = is_train
+        self.is_train = phase=='train'
         self.transform = transform
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()

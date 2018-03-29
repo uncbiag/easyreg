@@ -41,86 +41,64 @@ class UNet_Fea(nn.Module):
     def __init__(self, in_channel, bias=True, BN=True):
         super(UNet_Fea, self).__init__()
         self.e0cb = encoder(in_channel, 32, bias=True, batchnorm=True)
-        self.e0c1 = encoder(32, 32, bias=True, batchnorm=True)
-        self.e0ce = encoder(32, 32, bias=True, batchnorm=True)
-        self.e0_sq = nn.ModuleList([nn.Sequential(self.e0cb, self.e0c1, self.e0ce)])
-
-
-
+        self.e0ce = encoder(32, 64, bias=True, batchnorm=True)
+        self.e0_sq = nn.Sequential(self.e0cb, self.e0ce)
+        self.pool0 = nn.MaxPool3d(2)
+        self.e1cb = encoder(64, 64, bias=True, batchnorm=True)
+        self.e1ce = encoder(64, 128, bias=True, batchnorm=True)
+        self.e1_sq = nn.Sequential(self.pool0, self.e1cb, self.e1ce)
+        self.pool1 = nn.MaxPool3d(2)
+        self.e2cb = encoder(128, 128, bias=True, batchnorm=True)
+        self.e2ce = encoder(128, 256, bias=True, batchnorm=True)
+        self.e2_sq = nn.Sequential(self.pool1, self.e2cb, self.e2ce)
 
     def forward(self, x):
-        e0 = self.ec0(x)
-        syn0 = self.ec1(e0)
-        e1 = self.pool0(syn0)
-        e2 = self.ec2(e1)
-        syn1 = self.ec3(e2)
-        del e0, e1, e2
-
-        e3 = self.pool1(syn1)
-        e4 = self.ec4(e3)
-        e5 = self.ec5(e4)
-        del e3, e4
-
-        d6 = torch.cat((self.dc6(e5), syn1), dim=1)
-        del e5, syn1
-
-        d5 = self.dc5(d6)
-        d4 = self.dc4(d5)
-        del d6, d5
-        return d4,syn0
+        e0_sq_res = self.e0_sq(x)
+        e1_sq_res = self.e1_sq(e0_sq_res)
+        e2_sq_res = self.e2_sq(e1_sq_res)
+        return e0_sq_res,e1_sq_res,e2_sq_res
 
 
 class UNet_Dis(nn.Module):
     def __init__(self, n_classes, bias=True, BN=True):
         super(UNet_Dis, self).__init__()
-        self.pool0 = nn.MaxPool3d(2)
-        self.e1cb = encoder(32, 32, bias=True, batchnorm=True)
-        self.e1ce = encoder(32, 64, bias=True, batchnorm=True)
-        self.e1_sq = nn.Sequential(self.pool0, self.e1cb, self.e1ce)
 
-        self.pool1 = nn.MaxPool3d(2)
-        self.e2cb = encoder(64, 64, bias=True, batchnorm=True)
-        self.e2ce = encoder(64, 64, bias=True, batchnorm=True)
-        self.e2_sq = nn.Sequential(self.pool1, self.e2cb, self.e2ce)
 
         self.pool2 = nn.MaxPool3d(2)
-        self.e3cb = encoder(64, 64, bias=True, batchnorm=True)
-        self.e3c1 = encoder(64, 64, bias=True, batchnorm=True)
-        self.e3ce = decoder(64, 64, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.e3cb = encoder(256, 256, bias=True, batchnorm=True)
+        self.e3c1 = encoder(256, 512, bias=True, batchnorm=True)
+        self.e3ce = decoder(512, 512, kernel_size=2, stride=2, bias=True, batchnorm=True)
         self.e3_sq = nn.Sequential(self.pool2, self.e3cb, self.e3c1, self.e3ce)
 
-        self.d2cb = decoder(64 + 64, 64, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d2c1 = decoder(64, 64, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d2ce = decoder(64, 64, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.d2cb = decoder(256 + 512, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d2c1 = decoder(256, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d2ce = decoder(256, 256, kernel_size=2, stride=2, bias=True, batchnorm=True)
         self.d2_sq = nn.Sequential(self.d2cb, self.d2c1, self.d2ce)
 
-        self.d1cb = decoder(64 + 64, 64, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d1c1 = decoder(64, 64, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d1ce = decoder(64, 64, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.d1cb = decoder(128 + 256, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d1c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d1ce = decoder(128, 128, kernel_size=2, stride=2, bias=True, batchnorm=True)
         self.d1_sq = nn.Sequential(self.d1cb, self.d1c1, self.d1ce)
 
-        self.d0cb = decoder(64 + 32, 64, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d0c1 = decoder(64, 32, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d0ce = decoder(32, n_classes, kernel_size=1, stride=1, bias=True, batchnorm=True)
+        self.d0cb = decoder(64 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d0c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d0ce = decoder(128, n_classes, kernel_size=1, stride=1, bias=True, batchnorm=True)
         self.d0_sq = nn.Sequential(self.d0cb, self.d0c1, self.d0ce)
-        self.mod_sq = nn.ModuleList([self.e1_sq, self.e2_sq, self.e3_sq, self.d2_sq, self.d1_sq, self.d0_sq])
 
 
     def forward(self, input):
-        d4, syn0 =input
-        d3 = torch.cat((self.dc3(d4), syn0), dim=1)
-        del d4, syn0
-        d2 = self.dc2(d3)
-        d1 = self.dc1(d2)
-        del d3, d2
-        d0 = self.dc0(d1)
-        return d0
+        e0_sq_res, e1_sq_res, e2_sq_res = input
+        e3_sq_res = self.e3_sq(e2_sq_res)
+        d2_sq_res = self.d2_sq(torch.cat((e3_sq_res, e2_sq_res), dim=1))
+        d1_sq_res = self.d1_sq(torch.cat((d2_sq_res, e1_sq_res), dim=1))
+        d0_sq_res = self.d0_sq(torch.cat((d1_sq_res, e0_sq_res), dim=1))
+        return d0_sq_res
 
 
-class UNet_asm(nn.Module):
+class UNet_asm_full(nn.Module):
     #  there is a bug here before 3.9
     def __init__(self,in_channel, n_classes, bias=True, BN=True):
-        super(UNet_asm, self).__init__()
+        super(UNet_asm_full, self).__init__()
         self.net_fea = UNet_Fea(in_channel,bias, BN)
         self.net_dis = UNet_Dis(n_classes,bias,BN)
 

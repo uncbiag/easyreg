@@ -125,7 +125,7 @@ class SegmentationDataset(Dataset):
         return map
 
 
-    def __getitem__(self, idx, add_loc=True):
+    def __getitem__(self, idx, add_loc=False):
         """
         :param idx: id of the items
         :return: the processed data, return as type of dic

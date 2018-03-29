@@ -224,7 +224,7 @@ class DataManager(object):
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=8),
                            'val': torch.utils.data.DataLoader(transformed_dataset['val'],
-                                                                batch_size=1, shuffle=True, num_workers=1),
+                                                                batch_size=1, shuffle=False, num_workers=1),
                            'test': torch.utils.data.DataLoader(transformed_dataset['test'],
                                                                 batch_size=1, shuffle=False, num_workers=1),
                            'debug': torch.utils.data.DataLoader(transformed_dataset['debug'],

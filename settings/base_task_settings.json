@@ -56,7 +56,7 @@
             },
             "optim_type": "adam"
         },
-        "print_step": [10,2,2],
+        "print_step": [10,4,4],
         "print_val_detail": true,
         "save_val_fig_epoch": 20,
         "save_by_standard_label": true,
@@ -64,6 +64,6 @@
         "task_name": "",
         "train": true,
         "which_epoch": "",
-        "check_best_model_period": 20
+        "check_best_model_period": 10
     }
 }

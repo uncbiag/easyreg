@@ -145,6 +145,7 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
         best_prec1 = 0.0
         if 'epoch' in checkpoint:
             start_epoch = checkpoint['epoch']
+            print("the recorded epoch now is {}".format(start_epoch))
         else:
             start_epoch=0
         if 'best_loss' in checkpoint:
