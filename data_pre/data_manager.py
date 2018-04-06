@@ -10,7 +10,7 @@ import data_pre.seg_data_loader_online as seg_loader_ol
 import data_pre.seg_data_loader_online_old as seg_loader_ol_old
 import data_pre.seg_data_loader_offline as seg_loader_fl
 import  data_pre.seg_data_pool as seg_pool
-
+import data_pre.data
 
 
 class DataManager(object):

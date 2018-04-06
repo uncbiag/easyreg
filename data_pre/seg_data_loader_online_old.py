@@ -64,6 +64,7 @@ class SegmentationDataset(Dataset):
         option_trans['shared_info']['label_list'] = self.img_pool[i]['info']['label_list']
         option_trans['shared_info']['label_density'] = self.img_pool[i]['info']['label_density']
         option_trans['shared_info']['img_size'] = self.img_size
+        option_trans['shared_info']['num_crop_per_class_per_train_img'] = self.option['num_crop_per_class_per_train_img']
         if len(self.img_pool[i]['info']['label_list'])==3:
             print(self.name_list[i])
         transform = Transform(option_trans)

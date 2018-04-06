@@ -106,13 +106,16 @@ class Transform(object):
         label_list = self.option['shared_info']['label_list']
         label_density = self.option['shared_info']['label_density']
         img_size = self.option['shared_info']['img_size']
+        max_crop_num = self.option['shared_info']['num_crop_per_class_per_train_img']
+
         from functools import reduce
         scale_dim = [img_size[i]/self.patch_size[i] for i in range(self.dim)]
         scale = reduce(lambda x,y:x*y, scale_dim)
         sample_threshold = label_density * scale * scale_ratio
         #np.clip(sample_threshold,0,0.06,out=sample_threshold)
         sample_threshold[0] = bg_th_ratio
-        my_balanced_random_crop = bio_transform.MyBalancedRandomCrop(self.patch_size, threshold=sample_threshold.tolist(),label_list =label_list )
+        my_balanced_random_crop = bio_transform.MyBalancedRandomCrop(self.patch_size, threshold=sample_threshold.tolist(),label_list =label_list,max_crop_num=max_crop_num )
+        #print("Count init:", id(my_balanced_random_crop.np_coord_count))
         return my_balanced_random_crop
 
 

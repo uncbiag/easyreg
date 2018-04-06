@@ -569,9 +569,11 @@ class MyBalancedRandomCrop(object):
 
     """
 
-    def __init__(self, output_size, threshold, random_state=None, label_list=()):
+    def __init__(self, output_size, threshold, random_state=None, label_list=(),max_crop_num = -1):
         self.num_label=  len(label_list)
         self.label_list = label_list
+        self.max_crop_on = max_crop_num>0
+        self.max_crop_num = max_crop_num
         assert isinstance(output_size, (int, tuple,list))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size, output_size)
@@ -591,6 +593,11 @@ class MyBalancedRandomCrop(object):
         else:
             self.random_state = np.random.RandomState()
         self.cur_label_id = 0
+
+        ### if the max_crop_num>0, then a numpy of shape [], the coodinate is in itk style
+        if self.max_crop_on:
+            self.coord_buffer= np.zeros((self.num_label, self.max_crop_num,3))
+            self.coord_count = np.zeros(self.num_label)
 
 
 
@@ -613,27 +620,34 @@ class MyBalancedRandomCrop(object):
         cur_label = int(self.label_list[cur_label_id])
         roiFilter = sitk.RegionOfInterestImageFilter()
         roiFilter.SetSize(size_new)
-        size_new = np.flipud(size_new)
-        size_old = np.flipud(size_old)
+        label_ratio = 0
 
-        # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
-        seg_np = sitk.GetArrayViewFromImage(seg)
-        contain_label = False
-        start_coord = None
-        label_ratio =0
+        if self.max_crop_on and self.coord_count[cur_label_id] >= self.max_crop_num:
+            ins_id = self.coord_count[cur_label_id] % self.max_crop_num
+            start_coord = self.coord_buffer[cur_label_id,ins_id,:]
+        else:
+            size_new = np.flipud(size_new)
+            size_old = np.flipud(size_old)
+            # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
+            seg_np = sitk.GetArrayViewFromImage(seg)
+            contain_label = False
+            start_coord = None
 
-        # print(sample['name'])
-        while not contain_label:
-            # get the start crop coordinate in ijk
-            start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
-                                                              self.random_state)
-            seg_crop_np = cropping(seg_np,start_coord,size_new)
-            label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
-            if label_ratio > self.threshold[cur_label]:  # judge if the patch satisfy condition
-                contain_label = True
+            # print(sample['name'])
+            while not contain_label:
+                # get the start crop coordinate in ijk
+                start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
+                                                                  self.random_state)
+                seg_crop_np = cropping(seg_np,start_coord,size_new)
+                label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
+                if label_ratio > self.threshold[cur_label]:  # judge if the patch satisfy condition
+                    contain_label = True
 
+            start_coord = np.flipud(start_coord).tolist()
+            if self.max_crop_on:
+                self.coord_buffer[cur_label_id,self.coord_count,:] = start_coord
 
-        start_coord = np.flipud(start_coord).tolist()
+        self.coord_count[cur_label_id] = self.coord_count[cur_label_id] + 1
         roiFilter.SetIndex(start_coord)
         seg_crop = roiFilter.Execute(seg)
         if not isinstance(img,list):

@@ -59,11 +59,12 @@ class Unet(BaseModel):
         BaseModel.initialize(self,opt)
         n_in_channel = 4
         network_name =opt['tsk_set']['network_name']
-        self.network = self.get_from_model_pool(network_name, n_in_channel, self.n_class)
+        from .base_model import get_from_model_pool
+        self.network = get_from_model_pool(network_name, n_in_channel, self.n_class)
         #self.network = CascadedModel([UNet_light1(n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
         #self.network.apply(unet_weights_init)
-
-        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler =self.init_optim(opt['tsk_set']['optim'])
+        self.opt_optim =opt['tsk_set']['optim']
+        self.init_optimize_instance(warmming_up=True)
 
         # here we need to add training_eval_record which should contain several thing
         # first it should record the dice performance(the label it contained), and the avg (or weighted avg) dice inside
@@ -81,7 +82,9 @@ class Unet(BaseModel):
         print('-----------------------------------------------')
 
 
-
+    def init_optimize_instance(self, warmming_up=False):
+        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,
+                                                                                   warmming_up=warmming_up)
 
 
     def set_input(self, input, is_train=True):

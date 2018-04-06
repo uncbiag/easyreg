@@ -16,7 +16,7 @@ def train_model(opt,model, dataloaders,writer):
     max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
     model.network = model.network.cuda()
     best_model_wts = model.network.state_dict()
-    best_model_optimizer = model.optimizer.state_dict() if model.optimizer is not None else None
+    #best_model_optimizer = model.optimizer.state_dict() if model.optimizer is not None else None
     best_loss = 0
     epoch_val_loss=0.
     best_epoch = 0
@@ -31,6 +31,7 @@ def train_model(opt,model, dataloaders,writer):
     save_fig_epoch = opt['tsk_set'][('save_val_fig_epoch',10,'saving every num epoch')]
     val_period = opt['tsk_set'][('val_period',10,'saving every num epoch')]
     save_fig_on = opt['tsk_set'][('save_fig_on',True,'saving fig')]
+    warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
 
 
 
@@ -38,7 +39,7 @@ def train_model(opt,model, dataloaders,writer):
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         start_epoch, best_prec1, global_step=resume_train(model_path, model.network, model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
-        model.optimizer.zero_grad()
+        #model.optimizer.zero_grad()
     # else:
     #     model.apply(weights_init)
 
@@ -46,6 +47,8 @@ def train_model(opt,model, dataloaders,writer):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
         model.set_cur_epoch(epoch)
+        if epoch == warmming_up_epoch:
+            model.init_optimize_instance(warmming_up=False)
 
         # Each epoch has a training and validation phase
         for phase in phases:
@@ -62,6 +65,8 @@ def train_model(opt,model, dataloaders,writer):
 
             # Iterate over data.
             for data in dataloaders[phase]:
+
+
                 # get the inputs
                 global_step[phase] += 1
                 end_of_epoch = global_step[phase] % max_batch_num_per_epoch[phase] == 0
@@ -78,7 +83,7 @@ def train_model(opt,model, dataloaders,writer):
                     print('val loss:')
                     model.cal_val_errors()
                     if  epoch>0 and epoch % save_fig_epoch ==0 and save_fig_on:
-                        model.save_fig(phase,standard_record=True)
+                        model.save_fig(phase,standard_record=False)
                     loss= model.get_val_res()
                     model.update_loss(epoch,end_of_epoch)
                     running_val_loss += loss
@@ -89,7 +94,7 @@ def train_model(opt,model, dataloaders,writer):
                     print('debugging loss:')
                     model.cal_val_errors()
                     if epoch>0 and epoch % save_fig_epoch ==0 and save_fig_on:
-                        model.save_fig(phase,standard_record=True)
+                        model.save_fig(phase,standard_record=False)
                     loss = model.get_val_res()
 
 
@@ -122,7 +127,14 @@ def train_model(opt,model, dataloaders,writer):
 
 
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
-                    save_checkpoint({'epoch': epoch,'state_dict':  model.network.state_dict(),'optimizer': model.optimizer.state_dict(),
+                    if isinstance(model.optimizer, tuple):
+                        optimizer_state = []
+                        for term in model.optimizer:
+                            optimizer_state.append(term.state_dict())
+                        optimizer_state = tuple(optimizer_state)
+                    else:
+                        optimizer_state  = model.optimizer.state_dict()
+                    save_checkpoint({'epoch': epoch,'state_dict':  model.network.state_dict(),'optimizer': optimizer_state,
                              'best_loss': best_loss, 'global_step':global_step}, is_best, check_point_path, 'epoch_'+str(epoch), '')
                     is_best = False
                 # if epoch % save_visualization_period ==0:
@@ -131,7 +143,14 @@ def train_model(opt,model, dataloaders,writer):
 
         print()
 
-    save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(),'optimizer': model.optimizer.state_dict(),
+    if isinstance(model.optimizer, tuple):
+        optimizer_state = []
+        for term in model.optimizer:
+            optimizer_state.append(term.state_dict())
+        optimizer_state = tuple(optimizer_state)
+    else:
+        optimizer_state = model.optimizer.state_dict()
+    save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(),'optimizer':optimizer_state,
                      'best_loss': epoch_val_loss,'global_step':global_step}, False, check_point_path, 'epoch_last', '')
 
     time_elapsed = time() - since

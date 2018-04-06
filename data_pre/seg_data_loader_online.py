@@ -12,6 +12,8 @@ from copy import deepcopy
 from data_pre.transform import Transform
 import blosc
 
+# count = [1, 2, 3]
+
 
 class SegmentationDataset(Dataset):
     """registration dataset."""
@@ -21,6 +23,7 @@ class SegmentationDataset(Dataset):
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
         """
+        super(SegmentationDataset).__init__()
         self.data_path = data_path
         self.is_train = phase =='train'
         self.is_test = phase=='test'
@@ -29,6 +32,7 @@ class SegmentationDataset(Dataset):
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
         self.num_img = len(self.path_list)
+        self.patch_size =  option['patch_size']
         self.transform_name_seq = option['transform']['transform_seq']
         self.option_p = option[('partition', {}, "settings for the partition")]
         self.option_p['patch_size'] = option['patch_size']
@@ -54,7 +58,7 @@ class SegmentationDataset(Dataset):
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
         ##############
 
-        # f_filter= f_filter[0:3]
+        #f_filter= f_filter[0:3]
         #############
         name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
         return f_filter,name_list
@@ -65,15 +69,17 @@ class SegmentationDataset(Dataset):
         option_trans['shared_info']['label_list'] = self.img_pool[i]['info']['label_list']
         option_trans['shared_info']['label_density'] = self.img_pool[i]['info']['label_density']
         option_trans['shared_info']['img_size'] = self.img_size
+        option_trans['shared_info']['num_crop_per_class_per_train_img'] = self.option['num_crop_per_class_per_train_img']
+
         if len(self.img_pool[i]['info']['label_list'])==3:
             print(self.name_list[i])
         transform = Transform(option_trans)
         return transform.get_transform_seq(self.transform_name_seq)
 
 
-    def apply_transform(self,sample, transform_seq):
+    def apply_transform(self,sample, transform_seq, rand_label_id=-1):
         for transform in transform_seq:
-            sample = transform(sample)
+            sample = transform(sample, rand_label_id)
         return sample
 
 
@@ -87,6 +93,27 @@ class SegmentationDataset(Dataset):
         else:
             self.corr_partition_pool = [deepcopy(partition(self.option_p, mode='pred')) for i in range(self.num_img)]
 
+    def resize_img(self, img):
+        """
+        :param img: sitk input, factor is the outputsize/patched_sized
+        :return:
+        """
+        resampler= sitk.ResampleImageFilter()
+        dimension =3
+        factor = [2,2,2]
+        img_sz = img.GetSize()
+        affine = sitk.AffineTransform(dimension)
+        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+        matrix[0, 0] = img_sz[0]/float((self.patch_size[0]*factor[0]))
+        matrix[1, 1] = img_sz[1]/float((self.patch_size[1]*factor[1]))
+        matrix[2, 2] = img_sz[2]/float((self.patch_size[2]*factor[2]))
+        affine.SetMatrix(matrix.ravel())
+        resampler.SetSize([dim_size*factor[i] for i,dim_size in enumerate(self.patch_size)])
+        resampler.SetTransform(affine)
+        img_resampled = resampler.Execute(img)
+        return img_resampled
+
+
     def init_img_pool(self):
         for path in self.path_list:
             dic = read_h5py_file(path)
@@ -94,11 +121,17 @@ class SegmentationDataset(Dataset):
             folder_path = os.path.split(path)[0]
             mode_filter  = glob(join(folder_path,'*tmod*.nii.gz'),recursive=True)
             img_list_sitk=[]
+            img_resampled_list_sitk = []
             for mode_path in mode_filter:
-                img_list_sitk += [sitk.ReadImage(mode_path)]
+                sitk_image = sitk.ReadImage(mode_path)
+                img_list_sitk += [sitk_image]
+                img_resampled_list_sitk += [self.resize_img(sitk_image)]
             modes = sitk_to_np(img_list_sitk)
             modes_pack = blosc.pack_array(modes)
+            resampled_modes = sitk_to_np((img_resampled_list_sitk))
+            resampled_modes_pack = blosc.pack_array(resampled_modes)
             sample['img'] =modes_pack
+            sample['resampled_img'] = resampled_modes_pack
             if not self.is_test:
                 seg_path =path.replace('.h5py','_seg.nii.gz')
                 sample['seg'] = sitk_to_np(sitk.ReadImage(seg_path))
@@ -125,11 +158,12 @@ class SegmentationDataset(Dataset):
         return map
 
 
-    def __getitem__(self, idx, add_loc=False):
+    def __getitem__(self, idx, add_loc=False, add_resampled_img=False):
         """
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
+        rand_label_id =random.randint(0,1000)
         idx = idx%self.num_img
         fname  = self.name_list[idx]+'_tile'
         dic = self.img_pool[idx]
@@ -137,10 +171,11 @@ class SegmentationDataset(Dataset):
         if add_loc:
             map = self.gen_coord_map(modes.shape[1:]).copy()
             modes = np.concatenate((modes, map), 0)
+
         if self.is_train:
             data = {'img': modes, 'info': dic['info'], 'seg': dic['seg']}
             data['img'] = [modes[i] for i in range(modes.shape[0])]
-            data = self.apply_transform(data,self.corr_transform_pool[idx])
+            data = self.apply_transform(data,self.corr_transform_pool[idx],rand_label_id)
         else:
             if self.is_test:
                 data = {'img': modes, 'info': dic['info']}
@@ -159,11 +194,17 @@ class SegmentationDataset(Dataset):
                 sample['image'] = self.transform(data['img'][index].copy())*2-1
             else:
                 sample['image'] = self.transform(data['img'][:,index].copy())*2-1
+
+            if add_resampled_img:
+                sample['resampled_img'] = self.transform(blosc.unpack_array((dic['resampled_img'])))
             #sample['image'] = self.transform(data['img'].copy())
             if 'seg'in data and data['seg'] is not None:
                  sample['label'] = self.transform(data['seg'].copy())
             else:
                 sample['label'] = self.transform(np.array([-1]).astype((np.int32)))
+        # global count
+        # count[1] +=1
+        # print(count)
         return sample,fname
 
 

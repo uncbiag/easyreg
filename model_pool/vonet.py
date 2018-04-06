@@ -5,8 +5,9 @@ from collections import OrderedDict
 from torch.autograd import Variable
 from .base_model import BaseModel
 from glob import glob
-from  .zhenlin_net import *
+#from  .zhenlin_net import *
 from .vonet_pool import  Vonet_test
+from .vonet_pool_un import  Vonet_test
 from . import networks
 from .losses import Loss
 from .metrics import get_multi_metric
@@ -14,6 +15,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 from data_pre.partition import Partition
 from model_pool.utils import unet_weights_init,vnet_weights_init
 from model_pool.utils import *
+from model_pool.model_assamble import Assemble_Net_Test
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
@@ -32,17 +34,18 @@ class Vonet(BaseModel):
         self.saving_voting_per_epoch =  opt['tsk_set']['voting']['saving_voting_per_epoch']
         self.voting_save_sched =opt['tsk_set']['voting']['voting_save_sched']
         network_name =opt['tsk_set']['network_name']
+        from .base_model import get_from_model_pool
 
-        self.network = self.get_from_model_pool(network_name,n_in_channel, self.n_class)
+        self.network = get_from_model_pool(network_name,n_in_channel, self.n_class)
 
         # cur_gpu_id = opt['tsk_set']['gpu_ids']
         # old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        # epoch_list = [i for i in range(240, 249,5)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
+        # epoch_list = [i for i in range(290, 300,10)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
         # self.network = Vonet_test(n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
 
+        self.opt_optim = opt['tsk_set']['optim']
+        self.init_optimize_instance(warmming_up=True)
 
-        self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea =self.init_optim(opt['tsk_set']['optim'])
-        self.optimizer_dis, self.lr_scheduler_dis, self.exp_lr_scheduler_dis =self.init_optim(opt['tsk_set']['optim'])
 
         check_point_path = opt['tsk_set']['path']['check_point_path']
         self.asm_path = os.path.join(check_point_path,'asm_models')
@@ -63,8 +66,10 @@ class Vonet(BaseModel):
             networks.print_network(self.network)
         print('-----------------------------------------------')
 
-
-
+    def init_optimize_instance(self, warmming_up=False):
+        self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea = self.init_optim(self.opt_optim,warmming_up)
+        self.optimizer_dis, self.lr_scheduler_dis, self.exp_lr_scheduler_dis = self.init_optim(self.opt_optim,warmming_up)
+        self.optimizer = (self.optimizer_fea, self.optimizer_dis)
 
 
     def set_input(self, input, is_train=True):
@@ -85,10 +90,11 @@ class Vonet(BaseModel):
             output = self.network(input)
         else:
             output = self.network.net_fea.forward(input)
-            for term in output:
-                term.volatile = False
-                term.requires_grad = False
-                term.detach_()
+            if self.is_train:
+                for term in output:
+                    term.volatile = False
+                    term.requires_grad = False
+                    term.detach_()
             output = self.network.net_dis.forward(output)
         return output
 

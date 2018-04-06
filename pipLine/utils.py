@@ -140,12 +140,13 @@ def labels2colors(labels, images=None, overlap=False):
 def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
     if os.path.isfile(model_path):
         print("=> loading checkpoint '{}'".format(model_path))
+        print("load from old gpu {} to cur gpu {}".format(old_gpu, cur_gpu))
         checkpoint = torch.load(model_path,map_location={'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
         start_epoch = 0
         best_prec1 = 0.0
         if 'epoch' in checkpoint:
-            start_epoch = checkpoint['epoch']
-            print("the recorded epoch now is {}".format(start_epoch))
+            start_epoch = checkpoint['epoch']+1
+            print("the started epoch now is {}".format(start_epoch))
         else:
             start_epoch=0
         if 'best_loss' in checkpoint:
@@ -160,8 +161,13 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
 
         model.load_state_dict(checkpoint['state_dict'])
         print("=> succeed load model '{}'".format(model_path))
-        if 'optimizer' in checkpoint:
-            optimizer.load_state_dict(checkpoint['optimizer'])
+        if 'optimizer' in checkpoint and optimizer is not None:
+            if not isinstance(optimizer,tuple):
+                optimizer.load_state_dict(checkpoint['optimizer'])
+            else:
+                for i,term in enumerate(optimizer):
+                    term.load_state_dict(checkpoint['optimizer'][i])
+                    print("=> succeed load optimzer_{}".format(i))
             print("=> succeed load optimizer '{}'".format(model_path))
         return  start_epoch  , best_prec1, global_step
     else:

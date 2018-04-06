@@ -24,6 +24,7 @@ from .unet_expr4_test8 import UNet3Dt8
 from .unet_expr4_test9 import UNet3Dt9
 from .unet_expr4_test10 import UNet3Dt9_sim
 from .unet_expr_bon import UNet3DB
+from .unet_expr_bon_loc import UNet3DB_loc
 from .unet_expr_bon_s import UNet3DBS
 from .unet_expr4_bon import UNet3D4B
 from .unet_expr4_ens_nr import UNet3D4BNR
@@ -43,8 +44,10 @@ from .unet_expr16_bon import UNet3DB16
 from .unet_expr17_bon import UNet3DB17
 from .vnet_expr import VNet
 from  .zhenlin_net import *
-from .vonet_pool import UNet_asm,Vonet_test
-from .vonet_pool_un import UNet_asm_full
+from .vonet_pool import UNet_asm
+from .vonet_pool_un import UNet_asm_full,Vonet_test
+from .vonet_pool_t9 import UNet_asm_t9
+from .vonet_pool_t9_concise import UNet_asm_t9_con
 from .unet_expr_extreme_deep import UNet3D_Deep
 from .unet_expr_multi_mod import UNet3DMM
 import SimpleITK as sitk
@@ -66,6 +69,7 @@ model_pool_1 = {
     'UNet3Dt9': UNet3Dt9,
     'UNet3Dt9_sim':UNet3Dt9_sim,
     'UNet3DB': UNet3DB,
+    'UNet3DB_loc':UNet3DB_loc,
     'UNet3DBS': UNet3DBS,
     'UNet3D4B': UNet3D4B,
     'UNet3D4BNR': UNet3D4BNR,
@@ -86,13 +90,20 @@ model_pool_1 = {
     'VNet': VNet,
     'UNet_asm':UNet_asm,
     'UNet_asm_f':UNet_asm_full,
+    'UNet_asm_t9':UNet_asm_t9,
+    'UNet_asm_t9_con':UNet_asm_t9_con,
     'Vonet_test':Vonet_test,
     'UNet3D_Deep':UNet3D_Deep,
     'UNet3DMM':UNet3DMM
 }
 
 
-
+def get_from_model_pool(model_name,n_in_channel, n_class):
+        if model_name in model_pool_1:
+            return model_pool_1[model_name](n_in_channel, n_class)
+        if model_name =='Cascaded_light1_4':
+            model = CascadedModel([UNet_light1(n_in_channel,n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+n_class,n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
+            return model
 
 
 class BaseModel():
@@ -144,6 +155,7 @@ class BaseModel():
         self.gt = None
         self.fname_list = []
         self.output = None
+        self.cur_epoch_beg_tag = False
 
 
 
@@ -164,9 +176,14 @@ class BaseModel():
 
 
 
-    def init_optim(self, opt):
+    def init_optim(self, opt, warmming_up = False):
         optimize_name = opt['optim_type']
-        lr = opt['lr']
+        if not warmming_up:
+            lr = opt['lr']
+            print(" no warming up the learning rate is {}".format(lr))
+        else:
+            lr = 0.0005
+            print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
         lr_sched_opt = opt['lr_scheduler']
         self.lr_sched_type = lr_sched_opt['type']
@@ -211,14 +228,6 @@ class BaseModel():
 
 
 
-    def get_from_model_pool(self,model_name,n_in_channel, n_class):
-        if model_name in model_pool_1:
-            return model_pool_1[model_name](n_in_channel, n_class)
-        if model_name =='Cascaded_light1_4':
-            model = CascadedModel([UNet_light1(n_in_channel,n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+n_class,n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
-            return model
-
-
 
 ################ seg #########
 
@@ -261,18 +270,23 @@ class BaseModel():
     def get_current_errors(self):
             return self.loss.data[0]
 
-    def get_assamble_pred(self,split_size=4, old_verison=False):
+    def get_assamble_pred(self,split_size=3, old_verison=False):
         output = []
         if old_verison:
             self.input = torch.unsqueeze(torch.squeeze(self.input),1)
         else:
             self.input = torch.squeeze(self.input,0)
         input_split = torch.split(self.input, split_size=split_size)
+        volatile_status = input_split[0].volatile
+        print("check the input_split volatile status :{}".format(volatile_status))
         for input in input_split:
+            if not volatile_status:
+                input.volatile = True
             res = self.forward(input)
             if isinstance(res,list):
                 res = res[-1]
             output.append(res.detach().cpu())
+            del res
         pred_patched =  torch.cat(output, dim=0)
         pred_patched = torch.max(pred_patched.data,1)[1]
         self.input= None
@@ -363,6 +377,8 @@ class BaseModel():
             if end_of_epoch:
                 resid = 1- self.loss_buffer/self.loss_update_count
                 resid = resid/np.sum(resid)   #from tsk31 #fromtsk46_4 # tsk51
+                print(resid.shape)
+                resid = np.squeeze(resid)
                 self.opt['tsk_set']['loss']['residue_weight'] = resid
                 self.opt['tsk_set']['loss']['residue_weight_gama'] = sigmoid_explode(epoch % 10, static=1, k=4)
                 self.opt['tsk_set']['loss']['residue_weight_alpha'] = sigmoid_decay(epoch % 10, static=1, k=4)
@@ -381,7 +397,7 @@ class BaseModel():
             metric_res= get_multi_metric(output, self.gt.cpu().data.numpy())
             dice_weights = metric_res['batch_avg_res']['dice']
             label_list = metric_res['label_list']
-            log_resid_dice_weights = np.log1p(1. - dice_weights)
+            log_resid_dice_weights = np.log1p(1.5 - dice_weights)
             log_resid_dice_weights = log_resid_dice_weights / np.sum(log_resid_dice_weights)  #
             weights = np.zeros(self.n_class)
             weights[label_list] = log_resid_dice_weights

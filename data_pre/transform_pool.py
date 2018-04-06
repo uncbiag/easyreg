@@ -1,5 +1,7 @@
 """ classes of transformations for 3d simpleITK image 
 """
+import threading
+
 import SimpleITK as sitk
 import numpy as np
 import torch
@@ -570,9 +572,15 @@ class MyBalancedRandomCrop(object):
 
     """
 
-    def __init__(self, output_size, threshold, random_state=None, label_list=()):
+    def __init__(self, output_size, threshold, random_state=None, label_list=(),max_crop_num = -1):
+
+
+
+        assert max_crop_num==-1, "dataloader bugs, not fixed now"
         self.num_label=  len(label_list)
         self.label_list = label_list
+        self.max_crop_on = max_crop_num>0
+        self.max_crop_num = max_crop_num
         assert isinstance(output_size, (int, tuple,list))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size, output_size)
@@ -592,17 +600,23 @@ class MyBalancedRandomCrop(object):
         else:
             self.random_state = np.random.RandomState()
         self.cur_label_id = random.randint(0,self.num_label-1)
+        ### if the max_crop_num>0, then a numpy of shape [], the coodinate is in numpy style
+        print("Init my current transfrom: {}".format(threading.current_thread()))
+        if self.max_crop_on:
+            self.np_coord_buffer = np.zeros((self.num_label, self.max_crop_num, 3)).astype(np.int32)
+            self.np_coord_count = np.zeros(self.num_label).astype(np.int32)
 
-
-
-    def __call__(self, sample):
+    def __call__(self, sample, rand_id=-1):
         """
 
         :param sample:if the img in sample is a list, then return a list of img list otherwise return single image
         :return:
         """
-
-        cur_label_id = self.cur_label_id
+        if rand_id >0:
+            cur_label_id  = rand_id%self.num_label
+        else:
+            cur_label_id = self.cur_label_id
+        #print("id(self): {}  , cur_label_id:{}".format(id(self),cur_label_id))
         is_numpy = False
 
         # the size coordinate system here is according to the itk coordinate
@@ -633,33 +647,47 @@ class MyBalancedRandomCrop(object):
         else:
             seg_np = seg[0].copy()
 
-        # here the coordinate system transfer from the sitk to numpy
-        size_new = np.flipud(size_new)
-        size_old = np.flipud(size_old)
 
-        # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
-
-
-        contain_label = False
-        start_coord = None
         label_ratio =0
-        count = 0
-        # print(sample['name'])
-        while not contain_label:
-            # get the start crop coordinate in ijk, the operation is did in the numpy coordinate
-            start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
-                                                              self.random_state)
-            seg_crop_np = cropping(seg_np,start_coord,size_new)
-            label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
 
-            count += 1
-            if count>10000:
-                print("Warning!!!!!, no crop")
-                print(cur_label_id)
-                print(self.label_list)
+        if self.max_crop_on and self.np_coord_count[cur_label_id] >= self.max_crop_num:
+            ins_id = self.np_coord_count[cur_label_id] % self.max_crop_num
+            start_coord = self.np_coord_buffer[cur_label_id, ins_id, :]
+        else:
+            # here the coordinate system transfer from the sitk to numpy
+            size_new = np.flipud(size_new)
+            size_old = np.flipud(size_old)
 
-            if label_ratio > self.threshold[cur_label]:  # judge if the patch satisfy condition
-                contain_label = True
+            # rand_ind = self.random_state.randint(3)  # random choose to focus on one class
+
+
+            contain_label = False
+            start_coord = None
+            count = 0
+            # print(sample['name'])
+            while not contain_label:
+                # get the start crop coordinate in ijk, the operation is did in the numpy coordinate
+                start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
+                                                                  self.random_state)
+                seg_crop_np = cropping(seg_np,start_coord,size_new)
+                label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
+
+                count += 1
+                if count>10000:
+                    print("Warning!!!!!, no crop")
+                    print(cur_label_id)
+                    print(self.label_list)
+
+                if label_ratio >= self.threshold[cur_label]:  # judge if the patch satisfy condition
+                    contain_label = True
+
+            if self.max_crop_on:
+                self.np_coord_buffer[cur_label_id, self.np_coord_count[cur_label_id], :] = start_coord
+        if self.max_crop_on:
+            #print("coord count: {}--{}--{}--{}".format(self.np_coord_count, threading.current_thread(), id(self.np_coord_count), id(self)))
+            self.np_coord_count[cur_label_id] += 1
+
+
 
 
         if is_numpy:
@@ -690,8 +718,10 @@ class MyBalancedRandomCrop(object):
         trans_sample['label'] = cur_label
         trans_sample['start_coord']= tuple(start_coord)
         trans_sample['threshold'] = label_ratio
-        self.cur_label_id = cur_label_id + 1
-        self.cur_label_id = self.cur_label_id if self.cur_label_id < self.num_label else 0
+
+        if rand_id<0:
+            self.cur_label_id = cur_label_id + 1
+            self.cur_label_id = self.cur_label_id if self.cur_label_id < self.num_label else 0
 
         return trans_sample
 
@@ -705,10 +735,10 @@ def cropping(img,start_coord,size_new):
                     start_coord[2]: start_coord[2] + size_new[2]]
 
 def random_nd_coordinates(range_nd, random_state=None):
-    if not random_state:
-        random_state = np.random.RandomState()
+    # if not random_state:
+    #     random_state = np.random.RandomState()
     dim = len(range_nd)
-    return [random_state.randint(0, range_nd[i]) for i in range(dim)]
+    return [random.randint(0, range_nd[i]) for i in range(dim)]
 
 
 

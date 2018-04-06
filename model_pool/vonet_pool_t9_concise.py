@@ -34,6 +34,63 @@ def decoder( in_channels, out_channels, kernel_size, stride=1, padding=0,
     return layer
 
 
+def ddecoder_1(in_channels,out_channels, bias=True):
+    layer = nn.Sequential(
+        nn.Conv3d(in_channels, out_channels, 3, stride=2,
+                           padding=1,  bias=bias),
+        nn.ReLU(inplace=True))
+    return layer
+
+def ddecoder_2(in_channels,out_channels, bias=True):
+    layer = nn.Sequential(
+        nn.Conv3d(in_channels, out_channels, 5, stride=4,
+                           padding=2, bias=bias),
+        nn.ReLU(inplace=True))
+    return layer
+
+def cmid(in_channels, out_channels, bias=True):
+    layer = nn.Sequential(
+        nn.Conv3d(in_channels, out_channels, 3, stride=1,
+                  padding=1, bias=bias),
+        nn.BatchNorm3d(out_channels),
+        nn.ReLU(inplace=True),
+        nn.Conv3d(in_channels, out_channels, 3, stride=1,
+                  padding=1, bias=bias),
+        nn.ReLU(inplace=True))
+    return layer
+
+
+
+
+def udecoder_2(in_channels,out_channels, bias=True):
+    layer = nn.Sequential(
+        nn.ConvTranspose3d(in_channels, out_channels, 2, stride=2,bias=bias),
+        nn.ReLU(inplace=True),
+        nn.ConvTranspose3d(out_channels, out_channels, 2, stride=2,bias=bias),
+        #  To Do  maybe here should be exchanged
+        nn.ReLU(inplace=True),
+        nn.BatchNorm3d(out_channels),
+        nn.Conv3d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=bias),
+        # nn.Dropout3d(p=0.5, inplace=True)
+    )
+        # To Do  comment bias
+    return layer
+
+def udecoder_1(in_channels,out_channels, bias=True):
+    layer = nn.Sequential(
+        nn.ConvTranspose3d(in_channels, out_channels,  2, stride=2,bias=bias),
+        nn.ReLU(inplace=True),
+        nn.Conv3d(out_channels, out_channels, 3, stride=1, padding=1,bias=True),
+        # nn.Dropout3d(p=0.5, inplace=True)
+    )
+    return layer
+
+def udecoder_0(in_channels,out_channels):
+    layer = nn.Sequential(
+        nn.ConvTranspose3d(in_channels,out_channels, 3, stride=1,padding=1,bias=True),
+        # nn.Dropout3d(p=0.5, inplace=True)
+    )
+    return layer
 
 
 
@@ -43,62 +100,82 @@ class UNet_Fea(nn.Module):
         self.e0cb = encoder(in_channel, 32, bias=True, batchnorm=True)
         self.e0ce = encoder(32, 64, bias=True, batchnorm=True)
         self.e0_sq = nn.Sequential(self.e0cb, self.e0ce)
+
+
+        self.e0e1 = ddecoder_1(in_channel,32,bias=True)
         self.pool0 = nn.MaxPool3d(2)
-        self.e1cb = encoder(64, 64, bias=True, batchnorm=True)
+        self.e1cb = encoder(32+64, 64, bias=True, batchnorm=True)
         self.e1ce = encoder(64, 128, bias=True, batchnorm=True)
-        self.e1_sq = nn.Sequential(self.pool0, self.e1cb, self.e1ce)
+        self.e1_sq = nn.Sequential(self.e1cb, self.e1ce)
+
+
+        self.e0e2 = ddecoder_2(in_channel,32,bias=True)
         self.pool1 = nn.MaxPool3d(2)
-        self.e2cb = encoder(128, 128, bias=True, batchnorm=True)
-        self.e2ce = encoder(128, 256, bias=True, batchnorm=True)
-        self.e2_sq = nn.Sequential(self.pool1, self.e2cb, self.e2ce)
+        self.e2cb = encoder(32+128, 128, bias=True, batchnorm=True)
+        self.e2ce = encoder(128, 128, bias=True, batchnorm=True)
+        self.e2_sq = nn.Sequential(self.e2cb, self.e2ce)
+        print("this is vonet_con t9_fea")
+
 
     def forward(self, x):
         e0_sq_res = self.e0_sq(x)
-        e1_sq_res = self.e1_sq(e0_sq_res)
-        e2_sq_res = self.e2_sq(e1_sq_res)
+        e1_sq_res = self.e1_sq(torch.cat((self.pool0(e0_sq_res),self.e0e1(x)),dim=1))
+        e2_sq_res = self.e2_sq(torch.cat((self.pool1(e1_sq_res),self.e0e2(x)),dim=1))
         return e0_sq_res,e1_sq_res,e2_sq_res
 
 
 class UNet_Dis(nn.Module):
     def __init__(self, n_classes, bias=True, BN=True):
         super(UNet_Dis, self).__init__()
-
+        self.cmid0 = cmid(64, 64, bias=True)
+        self.cmid1 = cmid(128, 128, bias=True)
+        self.cmid2 = cmid(128, 128, bias=True)
 
         self.pool2 = nn.MaxPool3d(2)
-        self.e3cb = encoder(256, 256, bias=True, batchnorm=True)
-        self.e3c1 = encoder(256, 512, bias=True, batchnorm=True)
-        self.e3ce = decoder(512, 512, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.e3cb = encoder(128, 128, bias=True, batchnorm=True)
+        self.e3c1 = encoder(128, 128, bias=True, batchnorm=True)
+        self.e3ce = decoder(128, 128, kernel_size=2, stride=2, bias=True, batchnorm=True)
         self.e3_sq = nn.Sequential(self.pool2, self.e3cb, self.e3c1, self.e3ce)
 
-        self.d2cb = decoder(256 + 512, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d2c1 = decoder(256, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d2ce = decoder(256, 256, kernel_size=2, stride=2, bias=True, batchnorm=True)
-        self.d2_sq = nn.Sequential(self.d2cb, self.d2c1, self.d2ce)
+        self.d2cb = decoder(128 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d2c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d2ce = decoder(128, 128, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.d2_sq = nn.Sequential(self.d2cb, self.d2c1)
+        self.ud2 = udecoder_2(128,64)
 
-        self.d1cb = decoder(128 + 256, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
+        self.d1cb = decoder(128 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
         self.d1c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
         self.d1ce = decoder(128, 128, kernel_size=2, stride=2, bias=True, batchnorm=True)
-        self.d1_sq = nn.Sequential(self.d1cb, self.d1c1, self.d1ce)
+        self.d1_sq = nn.Sequential(self.d1cb, self.d1c1)
+        self.ud1 = udecoder_1(128,64)
 
         self.d0cb = decoder(64 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d0c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d0ce = decoder(128, n_classes, kernel_size=1, stride=1, bias=True, batchnorm=True)
-        self.d0_sq = nn.Sequential(self.d0cb, self.d0c1, self.d0ce)
+        self.d0ce = decoder(128, 128, kernel_size=1, stride=1, bias=True, batchnorm=True)
+        self.d0_sq = nn.Sequential(self.d0cb, self.d0ce)
+        self.ud0 = udecoder_0(128,64)
+        self.adapt_conv = nn.Conv3d(64*3, n_classes, 1, stride=1)
+
+
+        print("this is vonet_t9 con dis")
 
 
     def forward(self, input):
         e0_sq_res, e1_sq_res, e2_sq_res = input
         e3_sq_res = self.e3_sq(e2_sq_res)
-        d2_sq_res = self.d2_sq(torch.cat((e3_sq_res, e2_sq_res), dim=1))
-        d1_sq_res = self.d1_sq(torch.cat((d2_sq_res, e1_sq_res), dim=1))
-        d0_sq_res = self.d0_sq(torch.cat((d1_sq_res, e0_sq_res), dim=1))
-        return d0_sq_res
+        d2_sq_res = self.d2_sq(torch.cat((e3_sq_res, self.cmid2(e2_sq_res)), dim=1))
+        ud2 = self.ud2(d2_sq_res)
+        d1_sq_res = self.d1_sq(torch.cat((self.d2ce(d2_sq_res), self.cmid1(e1_sq_res)), dim=1))
+        ud1 = self.ud1(d1_sq_res)
+        d0_sq_res = self.d0_sq(torch.cat((self.d1ce(d1_sq_res), self.cmid0(e0_sq_res)), dim=1))
+        ud0 = self.ud0(d0_sq_res)
+        output = self.adapt_conv(torch.cat((ud2, ud1, ud0), 1))
+        return output
 
 
-class UNet_asm_full(nn.Module):
+class UNet_asm_t9_con(nn.Module):
     #  there is a bug here before 3.9
     def __init__(self,in_channel, n_classes, bias=True, BN=True):
-        super(UNet_asm_full, self).__init__()
+        super(UNet_asm_t9_con, self).__init__()
         self.net_fea = UNet_Fea(in_channel,bias, BN)
         self.net_dis = UNet_Dis(n_classes,bias,BN)
 
@@ -143,7 +220,7 @@ class Vonet_test(nn.Module):
             self.net_fea.load_state_dict(model_state)
         elif os.path.exists(fpath_alter):
             checkpoint = torch.load(fpath_alter,map_location={'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
-            net_tmp = UNet_asm_full(self.in_channel,self.n_classes,self.bias_on, self.BN_on)
+            net_tmp = UNet_asm(self.in_channel,self.n_classes,self.bias_on, self.BN_on)
             net_tmp.load_state_dict(checkpoint['state_dict'])
             self.net_fea.load_state_dict(net_tmp.net_fea.state_dict())
         else:
