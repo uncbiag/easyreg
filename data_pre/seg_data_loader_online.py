@@ -35,6 +35,8 @@ class SegmentationDataset(Dataset):
         self.patch_size =  option['patch_size']
         self.transform_name_seq = option['transform']['transform_seq']
         self.option_p = option[('partition', {}, "settings for the partition")]
+        self.add_resampled = option['add_resampled']
+        self.add_loc = option['add_loc']
         self.option_p['patch_size'] = option['patch_size']
         self.option = option
         self.img_pool = []
@@ -65,11 +67,13 @@ class SegmentationDataset(Dataset):
 
 
     def get_transform_seq(self,i):
-        option_trans = deepcopy(self.option)
+        option_trans = deepcopy(self.option['transform'])
         option_trans['shared_info']['label_list'] = self.img_pool[i]['info']['label_list']
         option_trans['shared_info']['label_density'] = self.img_pool[i]['info']['label_density']
         option_trans['shared_info']['img_size'] = self.img_size
         option_trans['shared_info']['num_crop_per_class_per_train_img'] = self.option['num_crop_per_class_per_train_img']
+        option_trans['my_bal_rand_crop']['scale_ratio'] = self.option['transform']['my_bal_rand_crop']['scale_ratio']
+        option_trans['patch_size'] = self.option['patch_size']
 
         if len(self.img_pool[i]['info']['label_list'])==3:
             print(self.name_list[i])
@@ -100,7 +104,7 @@ class SegmentationDataset(Dataset):
         """
         resampler= sitk.ResampleImageFilter()
         dimension =3
-        factor = [2,2,2]
+        factor = [1,1,1]
         img_sz = img.GetSize()
         affine = sitk.AffineTransform(dimension)
         matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
@@ -158,7 +162,7 @@ class SegmentationDataset(Dataset):
         return map
 
 
-    def __getitem__(self, idx, add_loc=False, add_resampled_img=False):
+    def __getitem__(self, idx):
         """
         :param idx: id of the items
         :return: the processed data, return as type of dic
@@ -168,7 +172,7 @@ class SegmentationDataset(Dataset):
         fname  = self.name_list[idx]+'_tile'
         dic = self.img_pool[idx]
         modes = blosc.unpack_array(dic['img'])
-        if add_loc:
+        if self.add_loc:
             map = self.gen_coord_map(modes.shape[1:]).copy()
             modes = np.concatenate((modes, map), 0)
 
@@ -188,14 +192,14 @@ class SegmentationDataset(Dataset):
         ########################### channel sel
         if self.transform:
             index = [0,1,2,3]
-            if add_loc:
+            if self.add_loc:
                 index = index + [index[-1]+1 for _ in range(3)]
             if self.is_train:
                 sample['image'] = self.transform(data['img'][index].copy())*2-1
             else:
                 sample['image'] = self.transform(data['img'][:,index].copy())*2-1
 
-            if add_resampled_img:
+            if self.add_resampled:
                 sample['resampled_img'] = self.transform(blosc.unpack_array((dic['resampled_img'])))
             #sample['image'] = self.transform(data['img'].copy())
             if 'seg'in data and data['seg'] is not None:

@@ -14,8 +14,8 @@ def train_model(opt,model, dataloaders,writer):
     record_path = opt['tsk_set']['path']['record_path']
     check_point_path = opt['tsk_set']['path']['check_point_path']
     max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
-    model.network = model.network.cuda()
-    best_model_wts = model.network.state_dict()
+    #model.network = model.network.cuda()
+    #best_model_wts = model.network.state_dict()
     #best_model_optimizer = model.optimizer.state_dict() if model.optimizer is not None else None
     best_loss = 0
     epoch_val_loss=0.
@@ -39,16 +39,17 @@ def train_model(opt,model, dataloaders,writer):
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         start_epoch, best_prec1, global_step=resume_train(model_path, model.network, model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
-        #model.optimizer.zero_grad()
     # else:
     #     model.apply(weights_init)
 
-    for epoch in range(start_epoch, num_epochs):
+    model.network = model.network.cuda()
+
+    for epoch in range(start_epoch, num_epochs+1):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
         model.set_cur_epoch(epoch)
         if epoch == warmming_up_epoch:
-            model.init_optimize_instance(warmming_up=False)
+            model.adjust_learning_rate()
 
         # Each epoch has a training and validation phase
         for phase in phases:
@@ -125,7 +126,7 @@ def train_model(opt,model, dataloaders,writer):
                     best_loss = epoch_val_loss
                     best_epoch = epoch
 
-
+            if phase == 'train':
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
                     if isinstance(model.optimizer, tuple):
                         optimizer_state = []
@@ -150,6 +151,9 @@ def train_model(opt,model, dataloaders,writer):
         optimizer_state = tuple(optimizer_state)
     else:
         optimizer_state = model.optimizer.state_dict()
+    save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(), 'optimizer': optimizer_state,
+                     'best_loss': epoch_val_loss, 'global_step': global_step}, False, check_point_path, 'epoch_'+str(num_epochs),
+                    '')
     save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(),'optimizer':optimizer_state,
                      'best_loss': epoch_val_loss,'global_step':global_step}, False, check_point_path, 'epoch_last', '')
 

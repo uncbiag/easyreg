@@ -9,6 +9,7 @@
         "old_gpu_ids":0,
         "val_period": 5,
         "warmming_up_epoch": 2,
+        "n_in_channel":4,
         "loss": {
             "ce": {
                 "no_bg": false,

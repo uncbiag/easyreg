@@ -121,6 +121,7 @@ class BaseModel():
         self.img_sz = opt['tsk_set']['extra_info']['img_sz']
         self.continue_train = opt['tsk_set']['continue_train']
         self.criticUpdates = opt['tsk_set']['criticUpdates']
+        self.n_in_channel = opt['tsk_set']['n_in_channel']
         self.optimizer= None
         self.lr_scheduler = None
         self.exp_lr_scheduler= None
@@ -138,6 +139,7 @@ class BaseModel():
         self.loss_update_epoch = opt['tsk_set']['loss']['update_epoch']
         self.activate_epoch = opt['tsk_set']['loss']['activate_epoch']
         self.imd_weighted_loss_on = opt['tsk_set']['loss']['imd_weighted_loss_on']
+        self.add_resampled =opt['dataset']['datapro']['seg']
 
         tile_sz = opt['dataset']['tile_size']
         overlap_size = opt['dataset']['overlap_size']
@@ -157,12 +159,14 @@ class BaseModel():
         self.output = None
         self.cur_epoch_beg_tag = False
 
+        self.resam = None
+
 
 
     def set_input(self, input):
         self.input = input
 
-    def forward(self):
+    def forward(self,input):
         pass
 
     # used in test time, no backprop
@@ -280,6 +284,9 @@ class BaseModel():
         volatile_status = input_split[0].volatile
         print("check the input_split volatile status :{}".format(volatile_status))
         for input in input_split:
+            if self.add_resampled:
+                resam = self.resam.expand(input.size(0),self.resam.size(1),self.resam.size(2),self.resam.size(3),self.resam.size(4))
+                input = torch.cat((input,resam),1)
             if not volatile_status:
                 input.volatile = True
             res = self.forward(input)

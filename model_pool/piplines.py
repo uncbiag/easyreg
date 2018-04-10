@@ -25,9 +25,10 @@ class Pipline():
     def run_task(self):
         if self.tsk_opt['tsk_set']['train']:
             train_model(self.tsk_opt, self.model, self.data_loaders,self.writer)
-            #debug_model(self.tsk_opt,self.model,self.data_loaders)
+
         else:
-            test_model(self.tsk_opt,self.model,self.data_loaders)
+            debug_model(self.tsk_opt, self.model, self.data_loaders)
+            #test_model(self.tsk_opt,self.model,self.data_loaders)
         # test_model(self.tsk_opt,self.model,self.data_loaders)
         # else:
         #     test_expr(self.tsk_opt, self.data_loaders)

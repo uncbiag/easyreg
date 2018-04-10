@@ -57,10 +57,9 @@ class Unet(BaseModel):
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
-        n_in_channel = 4
         network_name =opt['tsk_set']['network_name']
         from .base_model import get_from_model_pool
-        self.network = get_from_model_pool(network_name, n_in_channel, self.n_class)
+        self.network = get_from_model_pool(network_name, self.n_in_channel, self.n_class)
         #self.network = CascadedModel([UNet_light1(n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
         #self.network.apply(unet_weights_init)
         self.opt_optim =opt['tsk_set']['optim']
@@ -86,21 +85,32 @@ class Unet(BaseModel):
         self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,
                                                                                    warmming_up=warmming_up)
 
+    def adjust_learning_rate(self):
+        """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+        lr = self.opt_optim['lr']
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+        print(" no warming up the learning rate is {}".format(lr))
+
 
     def set_input(self, input, is_train=True):
         self. is_train = is_train
         if is_train:
-            self.input = Variable(input[0]['image']).cuda()
+            if not self.add_resampled:
+                self.input = Variable(input[0]['image']).cuda()
+            else:
+                self.input =Variable(torch.cat((input[0]['image'], input[0]['resampled_img']),1)).cuda()
+
         else:
             self.input = Variable(input[0]['image'],volatile=True).cuda()
+            if 'resampled_img' in input[0]:
+                self.resam = Variable( input[0]['resampled_img']).cuda().volatile
         self.gt = Variable(input[0]['label']).long().cuda()
         self.fname_list = list(input[1])
 
 
-    def forward(self,input=None):
+    def forward(self,input):
         # here input should be Tensor, not Variable
-        if input is None:
-            input =self.input
         return self.network.forward(input)
 
 
@@ -112,7 +122,7 @@ class Unet(BaseModel):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        output = self.forward()
+        output = self.forward(self.input)
         if isinstance(output, list):
             self.output = output[-1]
             self.loss = self.cal_seq_loss(output)

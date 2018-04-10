@@ -22,6 +22,8 @@
         },
         "seg": {
             "save_train_custom": true,
+            "add_resampled": false,
+            "add_loc": false,
             "num_crop_per_class_per_train_img": 20,
             "num_flicker_per_train_img": 3,
             "partition": {

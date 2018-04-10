@@ -11,9 +11,6 @@ class Asm_test(BaseModel):
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
-        n_in_channel = 4
-
-
 
 
         ################ settings for default assemble net ############
@@ -24,7 +21,7 @@ class Asm_test(BaseModel):
         epoch_list = opt['tsk_set']['model_epoch_list']
         gpu_switcher = (old_gpu_id,cur_gpu_id)
         pars ={'sched':'default','model_name':network_name,'model_folder_path':model_folder_path, 'setting':
-            {'in_channel':n_in_channel, 'n_class':self.n_class, 'gpu_switcher':gpu_switcher,'epoch_list':epoch_list}}
+            {'in_channel':self.n_in_channel, 'n_class':self.n_class, 'gpu_switcher':gpu_switcher,'epoch_list':epoch_list}}
 
 
         # ################ settings for assigned assemble net ############
@@ -65,10 +62,8 @@ class Asm_test(BaseModel):
         self.fname_list = list(input[1])
 
 
-    def forward(self,input=None):
+    def forward(self,input):
         # here input should be Tensor, not Variable
-        if input is None:
-            input =self.input
         return self.network.forward(input)
 
 
@@ -80,7 +75,7 @@ class Asm_test(BaseModel):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        output = self.forward()
+        output = self.forward(self.input)
         if isinstance(output, list):
             self.output = output[-1]
             self.loss = self.cal_seq_loss(output)

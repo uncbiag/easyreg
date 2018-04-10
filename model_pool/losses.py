@@ -102,7 +102,7 @@ class Loss(object):
                 class_weight = np.asarray([1.] * class_num)
                 ga = opt['tsk_set']['loss'][('residue_weight_gama', 1., 'residue weight gama')]
                 # residue_weight =np.log1p(class_weight)+ ga* np.log1p((np.asarray(residue_weight)))
-                residue_weight = np.log1p((np.asarray(residue_weight))+0.5)   # fromm task52  from task68_2 # remove ga from task110
+                residue_weight = np.log1p((np.asarray(residue_weight))+0.1)   # fromm task52  from task68_2 # remove ga from task110
                 re_class_weight = residue_weight
             if only_bg_avg_update:
                 residue_weight = opt['tsk_set']['loss'][
@@ -115,7 +115,7 @@ class Loss(object):
                     ('residue_weight', [1] * class_num, 'residue weight')]  # from 34
                 residue_weight =np.asarray(residue_weight)  # fromm task52  from task68_2 # remove ga from task110
                 residue_weight[0] = np.average(residue_weight[1:])
-                re_class_weight = np.log1p(residue_weight)
+                re_class_weight = np.log1p(residue_weight+0.1)  # 4.9
             if continuous_update:
                 m = opt['tsk_set']['loss'][('residue_weight_momentum', 0.3, 'residue weight')]
                 class_weight = record_weight if record_weight is not None else class_weight

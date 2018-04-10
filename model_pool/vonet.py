@@ -6,8 +6,9 @@ from torch.autograd import Variable
 from .base_model import BaseModel
 from glob import glob
 #from  .zhenlin_net import *
-from .vonet_pool import  Vonet_test
+#from .vonet_pool import  Vonet_test
 from .vonet_pool_un import  Vonet_test
+#from .vonet_pool_t9_concise import  Vonet_test
 from . import networks
 from .losses import Loss
 from .metrics import get_multi_metric
@@ -26,7 +27,6 @@ class Vonet(BaseModel):
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
-        n_in_channel = 4
         self.check_point_path = opt['tsk_set']['path']['check_point_path']
 
 
@@ -36,12 +36,12 @@ class Vonet(BaseModel):
         network_name =opt['tsk_set']['network_name']
         from .base_model import get_from_model_pool
 
-        self.network = get_from_model_pool(network_name,n_in_channel, self.n_class)
+        #self.network = get_from_model_pool(network_name,self.n_in_channel, self.n_class)
 
-        # cur_gpu_id = opt['tsk_set']['gpu_ids']
-        # old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        # epoch_list = [i for i in range(290, 300,10)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
-        # self.network = Vonet_test(n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
+        cur_gpu_id = opt['tsk_set']['gpu_ids']
+        old_gpu_id = opt['tsk_set']['old_gpu_ids']
+        epoch_list =opt['tsk_set']['voting']['epoch_list']# [i for i in range(210, 241,10)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
+        self.network = Vonet_test(self.n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
 
         self.opt_optim = opt['tsk_set']['optim']
         self.init_optimize_instance(warmming_up=True)
@@ -71,21 +71,35 @@ class Vonet(BaseModel):
         self.optimizer_dis, self.lr_scheduler_dis, self.exp_lr_scheduler_dis = self.init_optim(self.opt_optim,warmming_up)
         self.optimizer = (self.optimizer_fea, self.optimizer_dis)
 
+    def adjust_learning_rate(self):
+        """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+        lr = self.opt_optim['lr']
+        for param_group in self.optimizer_fea.param_groups:
+            param_group['lr'] = lr
+        for param_group in self.optimizer_dis.param_groups:
+            param_group['lr'] = lr
+        print(" no warming up the learning rate is {}".format(lr))
+
+
 
     def set_input(self, input, is_train=True):
         self. is_train = is_train
         if is_train and not self.start_asm_learning:
-            self.input = Variable(input[0]['image']).cuda()
+            if not self.add_resampled:
+                self.input = Variable(input[0]['image']).cuda()
+            else:
+                self.input =Variable(torch.cat((input[0]['image'], input[0]['resampled_img']),1)).cuda()
+
         else:
             self.input = Variable(input[0]['image'],volatile=True).cuda()
+            if 'resampled_img' in input[0]:
+                self.resam = Variable( input[0]['resampled_img'],volatile=True).cuda()
         self.gt = Variable(input[0]['label']).long().cuda()
         self.fname_list = list(input[1])
 
 
-    def forward(self,input=None):
+    def forward(self,input):
         # here input should be Tensor, not Variable
-        if input is None:
-            input =self.input
         if not self.start_asm_learning:
             output = self.network(input)
         else:
@@ -105,7 +119,7 @@ class Vonet(BaseModel):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        output = self.forward()
+        output = self.forward(self.input)
         if isinstance(output, list):
             self.output = output[-1]
             self.loss = self.cal_seq_loss(output)
