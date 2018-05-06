@@ -37,7 +37,7 @@ class Asm_test(BaseModel):
 
 
         self.network = Assemble_Net_Test(pars)
-        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler =self.init_optim(opt['tsk_set']['optim'])
+        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler =self.init_optim(opt['tsk_set']['optim'], self.network)
 
 
         self.training_eval_record={}

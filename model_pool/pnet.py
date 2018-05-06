@@ -4,62 +4,29 @@ import os
 from collections import OrderedDict
 from torch.autograd import Variable
 from .base_model import BaseModel
-from glob import glob
 
-from .unet_expr import UNet3D
-from .unet_expr2 import UNet3D2
-from .unet_expr3 import UNet3D3
-from .unet_expr4 import UNet3D4
-from .unet_expr5 import UNet3D5
-from .unet_expr4_test import UNet3Dt1
-from .unet_expr4_test2 import UNet3Dt2
-from .unet_expr4_test3 import UNet3Dt3
-from .unet_expr4_test4 import UNet3Dt4
-from .unet_expr4_test5 import UNet3Dt5
-from .unet_expr4_test6 import UNet3Dt6
-from .unet_expr4_test7 import UNet3Dt7
-from .unet_expr4_test8 import UNet3Dt8
-from .unet_expr4_test9 import UNet3Dt9
-from .unet_expr_bon import UNet3DB
-from .unet_expr_bon_s import UNet3DBS
-from .unet_expr4_bon import UNet3D4B
-from .unet_expr4_ens_nr import UNet3D4BNR
-from .unet_expr5_bon import UNet3D5B
-from .unet_expr5_ens import UNet3D5BE
-from .unet_expr6_bon import UNet3D5BM
-from .unet_expr7_bon import UNet3DB7
-from .unet_expr8_bon import UNet3DB8
-from .unet_expr9_bon import UNet3DB9
-from .unet_expr10_bon import UNet3DB10
-from .unet_expr11_bon import UNet3DB11
-from .unet_expr12_bon import UNet3DB12
-from .unet_expr13_bon import UNet3DB13
-from .unet_expr14_bon import UNet3DB14
-from .unet_expr15_bon import UNet3DB15
-from .unet_expr16_bon import UNet3DB16
-from .unet_expr17_bon import UNet3DB17
-from .vnet_expr import VNet
 from  .zhenlin_net import *
 from . import networks
-from .losses import Loss
-from .metrics import get_multi_metric
-import torch.optim.lr_scheduler as lr_scheduler
-from data_pre.partition import Partition
+
 from model_pool.utils import unet_weights_init,vnet_weights_init
 from model_pool.utils import *
-import torch.nn as nn
-import matplotlib.pyplot as plt
-import SimpleITK as sitk
 
-class Unet(BaseModel):
+
+class Pnet(BaseModel):
     def name(self):
-        return '3D-unet'
+        return 'prior-unet'
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         network_name =opt['tsk_set']['network_name']
         from .base_model import get_from_model_pool
-        self.network = get_from_model_pool(network_name, self.n_in_channel, self.n_class)
+        from model_pool.losses import Loss
+        num_class =2
+        self.set_num_class(num_class)
+        opt['tsk_set']['extra_info']['num_label'] = num_class
+
+        self.loss_fn = Loss(opt)
+        self.network = get_from_model_pool(network_name, self.n_in_channel, self.num_class)
         #self.network = CascadedModel([UNet_light1(n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
         #self.network.apply(unet_weights_init)
         self.opt_optim =opt['tsk_set']['optim']
@@ -85,6 +52,9 @@ class Unet(BaseModel):
         self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
                                                                                    warmming_up=warmming_up)
 
+    def save_fig(self,phase, standard_record=True,saving_gt=True):
+        pass
+
     def adjust_learning_rate(self):
         """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
         lr = self.opt_optim['lr']
@@ -105,7 +75,7 @@ class Unet(BaseModel):
             self.input = Variable(input[0]['image'],volatile=True).cuda()
             if 'resampled_img' in input[0]:
                 self.resam = Variable( input[0]['resampled_img']).cuda().volatile
-        self.gt = Variable(input[0]['label']).long().cuda()
+        self.gt = Variable(input[0]['checked_label']).long().cuda()
         self.fname_list = list(input[1])
 
 
@@ -114,7 +84,8 @@ class Unet(BaseModel):
         return self.network.forward(input)
 
 
-
+    def set_num_class(self, num_class):
+        self.num_class = num_class
 
 
 
@@ -134,3 +105,43 @@ class Unet(BaseModel):
             self.optimizer.step()
             self.optimizer.zero_grad()
 
+
+
+
+
+    def get_val_res(self):
+        return self.val_res
+
+
+    def get_evaluation(self,brats_eval_on=True):
+        pass
+
+
+    def get_assamble_pred(self,split_size=3, old_verison=False):
+        output = []
+        if old_verison:
+            self.input = torch.unsqueeze(torch.squeeze(self.input),1)
+        else:
+            self.input = torch.squeeze(self.input,0)
+        input_split = torch.split(self.input, split_size=split_size)
+        volatile_status = input_split[0].volatile
+        print("check the input_split volatile status :{}".format(volatile_status))
+        for input in input_split:
+            if self.add_resampled:
+                resam = self.resam.expand(input.size(0),self.resam.size(1),self.resam.size(2),self.resam.size(3),self.resam.size(4))
+                input = torch.cat((input,resam),1)
+            if not volatile_status:
+                input.volatile = True
+            res = self.forward(input)
+            if isinstance(res,list):
+                res = res[-1]
+            output.append(res.detach().cpu())
+            del res
+        pred_patched = torch.cat(output, dim=0)
+        pred_patched = torch.max(pred_patched.data,1)[1]
+        pred_res = np.sum(np.sum(pred_patched.cpu().numpy())>0)
+        self.gt_np= self.gt.data.cpu().numpy()
+        gt_res = np.sum(np.sum(self.gt_np)>0)
+        self.val_res = np.sum(pred_res==(gt_res))
+
+        print("pred/actual{}/{}".format(np.sum(pred_patched.cpu().numpy()),gt_res))

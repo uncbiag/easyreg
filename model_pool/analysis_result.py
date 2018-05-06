@@ -2,11 +2,15 @@ import numpy as np
 from glob import glob
 import os
 import SimpleITK as sitk
-
+import os
+import sys
+sys.path.insert(0,os.path.abspath('.'))
+sys.path.insert(0,os.path.abspath('..'))
+sys.path.insert(0,os.path.abspath('../model_pool'))
 from data_pre.seg_data_utils import make_dir
 from model_pool.metrics import get_multi_metric
 from multiprocessing import Pool, TimeoutError
-from .vonet_pool import UNet_asm
+#from .vonet_pool import UNet_asm
 import matplotlib.pyplot as plt
 import torch
 
@@ -17,6 +21,7 @@ def get_file_list(data_path,post_type, file_mid_tag,file_end_tag,gt_tag,show_per
         for path in data_path:
             get_file_list(path,post_type, file_mid_tag, file_end_tag, gt_tag, show_period_result=True,
                           debug=debug)
+        return 0
 
     print("processing {}".format(data_path))
     f_path = os.path.join(data_path, '**', '*'+file_mid_tag+'*'+post_type)
@@ -130,15 +135,15 @@ def plot_res(period_res_list, period_ens_voting_list, period_list, fname, saving
 
 
 
-
-post_type = '_output.nii.gz'
-data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_105_unet/records/output'
-file_end_tag ='_t'
-gt_tag = '_gt.nii.gz'
-file_mid_tag ='_val_'
-number_of_workers=10
-get_file_list(data_path,post_type,file_mid_tag, file_end_tag,gt_tag,debug=False)
-
+#
+# post_type = '_output.nii.gz'
+# data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_105_unet/records/output'
+# file_end_tag ='_t'
+# gt_tag = '_gt.nii.gz'
+# file_mid_tag ='_val_'
+# number_of_workers=10
+# get_file_list(data_path,post_type,file_mid_tag, file_end_tag,gt_tag,debug=False)
+#
 
 
 
@@ -168,24 +173,24 @@ get_file_list(data_path,post_type,file_mid_tag, file_end_tag,gt_tag,debug=False)
 
 
 
-# post_type = '_output.nii.gz'
-# #data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_106_unet_resid_only/records/output'
-# data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_105_unet/records/output'
-# file_end_tag ='_t'
-# gt_tag = '_gt.nii.gz'
-# file_mid_tag ='_val_'
-# number_of_workers=10
-# root_path = "/playpen/raid/zyshen/data/hist_th_0.06_lpba_seg_patchedmy_balanced_random_crop"
-# sub_dirs = next(os.walk(root_path))[1]
-# key_word_list = ['task','tsk']
-# valid_record_path = []
-# for sub_dir in sub_dirs:
-#     has_task= sum([(key_word in sub_dir) for key_word in key_word_list])
-#     if has_task:
-#         record_path = root_path +'/'+sub_dir +'/'+'records/output'
-#         if os.path.isdir(record_path):
-#             valid_record_path +=[record_path]
-# record_path_patitions = np.array_split(valid_record_path, number_of_workers)
-# from functools import partial
-# with Pool(processes=number_of_workers) as pool:
-#     pool.map(partial(get_file_list,post_type=post_type,file_mid_tag=file_mid_tag, file_end_tag=file_end_tag,gt_tag=gt_tag,debug=False), record_path_patitions)
+post_type = '_output.nii.gz'
+#data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_106_unet_resid_only/records/output'
+#data_path ='/playpen/raid/zyshen/data/brats_com_brats_seg_patchedmy_balanced_random_crop/tsk_105_unet/records/output'
+file_end_tag ='_t'
+gt_tag = '_gt.nii.gz'
+file_mid_tag ='_val_'
+number_of_workers=20
+root_path = "/playpen/zyshen/data/oai_2_vnet_oai_seg_nopatchedmy_balanced_random_crop"
+sub_dirs = next(os.walk(root_path))[1]
+key_word_list = ['task','tsk']
+valid_record_path = []
+for sub_dir in sub_dirs:
+    has_task= sum([(key_word in sub_dir) for key_word in key_word_list])
+    if has_task:
+        record_path = root_path +'/'+sub_dir +'/'+'records/output'
+        if os.path.isdir(record_path):
+            valid_record_path +=[record_path]
+record_path_patitions = np.array_split(valid_record_path, number_of_workers)
+from functools import partial
+with Pool(processes=number_of_workers) as pool:
+    pool.map(partial(get_file_list,post_type=post_type,file_mid_tag=file_mid_tag, file_end_tag=file_end_tag,gt_tag=gt_tag,debug=False), record_path_patitions)

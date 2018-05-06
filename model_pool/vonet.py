@@ -23,11 +23,12 @@ import SimpleITK as sitk
 
 class Vonet(BaseModel):
     def name(self):
-        return '3D-unet'
+        return '3D-vonet'
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         self.check_point_path = opt['tsk_set']['path']['check_point_path']
+        self.mode_train= opt['tsk_set']['mode_train']
 
 
         self.start_saving_model =  opt['tsk_set']['voting']['start_saving_model']
@@ -35,16 +36,18 @@ class Vonet(BaseModel):
         self.voting_save_sched =opt['tsk_set']['voting']['voting_save_sched']
         network_name =opt['tsk_set']['network_name']
         from .base_model import get_from_model_pool
-
-        #self.network = get_from_model_pool(network_name,self.n_in_channel, self.n_class)
-
-        cur_gpu_id = opt['tsk_set']['gpu_ids']
-        old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        epoch_list =opt['tsk_set']['voting']['epoch_list']# [i for i in range(210, 241,10)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
-        self.network = Vonet_test(self.n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
-
         self.opt_optim = opt['tsk_set']['optim']
-        self.init_optimize_instance(warmming_up=True)
+
+        if not self.mode_train:
+            cur_gpu_id = opt['tsk_set']['gpu_ids']
+            old_gpu_id = opt['tsk_set']['old_gpu_ids']
+            epoch_list =opt['tsk_set']['voting']['epoch_list']# [i for i in range(210, 241,10)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
+            self.network = Vonet_test(self.n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
+
+
+        else:
+            self.network = get_from_model_pool(network_name,self.n_in_channel, self.n_class)
+            self.init_optimize_instance(warmming_up=True)
 
 
         check_point_path = opt['tsk_set']['path']['check_point_path']
@@ -67,13 +70,15 @@ class Vonet(BaseModel):
         print('-----------------------------------------------')
 
     def init_optimize_instance(self, warmming_up=False):
-        self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea = self.init_optim(self.opt_optim,warmming_up)
-        self.optimizer_dis, self.lr_scheduler_dis, self.exp_lr_scheduler_dis = self.init_optim(self.opt_optim,warmming_up)
+        self.optimizer_fea, self.lr_scheduler_fea, self.exp_lr_scheduler_fea = self.init_optim(self.opt_optim,self.network.net_fea,warmming_up)
+        self.optimizer_dis, self.lr_scheduler_dis, self.exp_lr_scheduler_dis = self.init_optim(self.opt_optim,self.network.net_dis,warmming_up)
         self.optimizer = (self.optimizer_fea, self.optimizer_dis)
 
-    def adjust_learning_rate(self):
-        """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-        lr = self.opt_optim['lr']
+    def adjust_learning_rate(self, new_lr=-1):
+        if new_lr<0:
+            lr = self.opt_optim['lr']
+        else:
+            lr = new_lr
         for param_group in self.optimizer_fea.param_groups:
             param_group['lr'] = lr
         for param_group in self.optimizer_dis.param_groups:
@@ -117,8 +122,9 @@ class Vonet(BaseModel):
 
     def optimize_parameters(self):
         self.iter_count+=1
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+        if self.lr_scheduler_fea is not None:
+            self.lr_scheduler_fea.step()
+            self.lr_scheduler_dis.step()
         output = self.forward(self.input)
         if isinstance(output, list):
             self.output = output[-1]
@@ -138,6 +144,7 @@ class Vonet(BaseModel):
             fea_path = self.asm_path+'/'+'fea'
             if not os.path.exists(fea_path):
                 torch.save(self.network.net_fea.state_dict(),fea_path)
+                print("the fea module has been saved")
             self.start_asm_learning = True
 
 

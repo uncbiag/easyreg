@@ -3,7 +3,7 @@ from __future__ import print_function
 import numpy as np
 
 
-def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False):
+def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False, verbose=True):
     """
     implemented iou, dice, recall, precision metrics for each label of each instance in batch
 
@@ -22,6 +22,13 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False):
         pred = pred.cpu().data.numpy()
         gt = gt.cpu().data.numpy()
     label_list = np.unique(gt).tolist()
+    pred_list = np.unique(pred).tolist()
+    union_set = set(label_list).union(set(pred_list))
+    if verbose:
+        if len(union_set)> len(set(label_list)):
+            print("Warning, label {} is in prediction map but not in the ground truth map".format(set(pred_list)-set(label_list)))
+    label_list = list(union_set)
+
     if rm_bg:
         label_list = label_list[1:]
     if eval_label_list is not None:
@@ -60,7 +67,6 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False):
             batch_avg_res[metric][:, l] = float(np.mean(multi_metric_res[metric][:, l][no_n_index]))
         label_batch_avg_res[metric] = float(np.mean(batch_avg_res[metric]))
 
-
     return {'multi_metric_res': multi_metric_res, 'label_avg_res': label_avg_res, 'batch_avg_res': batch_avg_res,
             'label_list': label_list, 'batch_label_avg_res':batch_label_avg_res,'label_batch_avg_res':label_batch_avg_res}
 
@@ -89,6 +95,17 @@ def cal_metric(label_pred, label_gt):
         recall = tp / (tp + fn + eps)
         precision = tp / (tp + fp + eps)
         dice = 2 * tp / (2 * tp + fn + fp + eps)
+    else:
+        if len(pred_loc)>0:
+            iou = 0.
+            recall = 0.
+            precision = 0.
+            dice = 0.
+        else:
+            iou = 1.
+            recall = 1.
+            precision = 1.
+            dice = 1.
 
     res = {'iou': iou, 'dice': dice, 'recall': recall, 'precision': precision}
 

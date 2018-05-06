@@ -445,6 +445,7 @@ class OAIPatchedDataSet(PatchedDataSet):
 class OAINoPatchedDataSet(NoPatchedDataSet):
     def __init__(self,option):
         NoPatchedDataSet.__init__(self, ['*_image.nii.gz'],option,label_switch=('image','label_all'))
+        self.set_task_file_txt_path('/playpen/zyshen/unet/data/OAI_segmentation')
 
 
 

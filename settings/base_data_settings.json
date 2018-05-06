@@ -24,6 +24,8 @@
             "save_train_custom": true,
             "add_resampled": false,
             "add_loc": false,
+            "use_org_size": false,
+            "detect_et": false,
             "num_crop_per_class_per_train_img": 20,
             "num_flicker_per_train_img": 3,
             "partition": {

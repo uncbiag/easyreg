@@ -109,6 +109,7 @@ class DataManager(object):
                              'brats':'/playpen/zyshen/data/miccia_brats'}
 
         default_label_path = {'lpba': '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm',
+                              'oai': '/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',
                              'oasis2d': 'None',
                              'cumc': '/playpen/data/quicksilver_data/testdata/CUMC12/label_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm',

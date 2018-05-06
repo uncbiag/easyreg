@@ -15,6 +15,9 @@ def create_model(opt):
     elif model_name == 'vonet':
         from .vonet import Vonet
         model = Vonet()
+    elif model_name == 'pnet':
+        from .pnet import Pnet
+        model = Pnet()
     elif model_name == 'asm_net_test':
         from .assemble_net import Asm_test
         model = Asm_test()

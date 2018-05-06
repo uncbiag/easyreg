@@ -26,7 +26,7 @@ class SegmentationDataset(Dataset):
         super(SegmentationDataset).__init__()
         self.data_path = data_path
         self.is_train = phase =='train'
-        self.is_test = phase=='test'
+        self.is_test = False#phase=='test'
         self.phase = phase
         self.transform = transform
         self.data_type = '*.h5py'
@@ -37,6 +37,8 @@ class SegmentationDataset(Dataset):
         self.option_p = option[('partition', {}, "settings for the partition")]
         self.add_resampled = option['add_resampled']
         self.add_loc = option['add_loc']
+        self.use_org_size = option['use_org_size']
+        self.detect_et = option['detect_et']
         self.option_p['patch_size'] = option['patch_size']
         self.option = option
         self.img_pool = []
@@ -160,6 +162,10 @@ class SegmentationDataset(Dataset):
         map = np.array(map.astype('float32'))
 
         return map
+    def get_seg_info_list(self,seg):
+        check_label = np.sum(seg==3)
+        check_label = 1 if check_label>0 else 0
+        return np.array([check_label])
 
 
     def __getitem__(self, idx):
@@ -179,19 +185,27 @@ class SegmentationDataset(Dataset):
         if self.is_train:
             data = {'img': modes, 'info': dic['info'], 'seg': dic['seg']}
             data['img'] = [modes[i] for i in range(modes.shape[0])]
-            data = self.apply_transform(data,self.corr_transform_pool[idx],rand_label_id)
+            if not self.use_org_size:
+                data = self.apply_transform(data,self.corr_transform_pool[idx],rand_label_id)
+            else:
+                data['img'] = np.stack(data['img'],0)
         else:
             if self.is_test:
                 data = {'img': modes, 'info': dic['info']}
             else:
                 data = {'img': modes, 'info': dic['info'], 'seg': dic['seg']}
             data['img'] = [modes[i] for i in range(modes.shape[0])]
-            data = self.corr_partition_pool[idx](data)
+            if not self.use_org_size:
+                data = self.corr_partition_pool[idx](data)
+            else:
+                data['img'] = np.stack(data['img'], 0)
+        if self.detect_et and 'seg'in data and data['seg'] is not None:
+            data['checked_label'] = self.get_seg_info_list(data['seg'])
         sample = {}
 
         ########################### channel sel
         if self.transform:
-            index = [0,1,2,3]
+            index = [0]
             if self.add_loc:
                 index = index + [index[-1]+1 for _ in range(3)]
             if self.is_train:
@@ -201,6 +215,8 @@ class SegmentationDataset(Dataset):
 
             if self.add_resampled:
                 sample['resampled_img'] = self.transform(blosc.unpack_array((dic['resampled_img'])))
+            if self.use_org_size or self.detect_et:
+                sample['checked_label']=self.transform(data['checked_label'].astype(np.int32))
             #sample['image'] = self.transform(data['img'].copy())
             if 'seg'in data and data['seg'] is not None:
                  sample['label'] = self.transform(data['seg'].copy())

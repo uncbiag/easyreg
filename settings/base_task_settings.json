@@ -3,6 +3,8 @@
         "network_name": "",
         "batch_sz": 4,
         "continue_train": false,
+        "mode_train": true,
+        "continue_train_lr": -1,
         "criticUpdates": 1,
         "epoch": 100,
         "gpu_ids": 0,
@@ -31,6 +33,7 @@
             "only_bg_avg_update":false,
             "only_bg_avg_log_update":false,
             "focal_loss_weight_on": false,
+            "factor_update": false,
             "activate_epoch": 1
         },
         "max_batch_num_per_epoch": [
@@ -63,12 +66,12 @@
         },
         "print_step": [10,4,4],
         "print_val_detail": true,
-        "save_val_fig_epoch": 20,
+        "save_val_fig_epoch": 2,
         "save_by_standard_label": true,
         "save_fig_on": true,
         "task_name": "",
         "train": true,
         "which_epoch": "",
-        "check_best_model_period": 10
+        "check_best_model_period": 5
     }
 }

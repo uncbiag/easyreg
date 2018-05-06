@@ -26,6 +26,7 @@ from .unet_expr4_test10 import UNet3Dt9_sim
 from .unet_expr_bon import UNet3DB
 from .unet_expr_bon_loc import UNet3DB_loc
 from .unet_expr_bon_s import UNet3DBS
+from .unet_expr_bon_s_prelu import UNet3DBS_Prelu
 from .unet_expr4_bon import UNet3D4B
 from .unet_expr4_ens_nr import UNet3D4BNR
 from .unet_expr5_bon import UNet3D5B
@@ -48,6 +49,8 @@ from .vonet_pool import UNet_asm
 from .vonet_pool_un import UNet_asm_full,Vonet_test
 from .vonet_pool_t9 import UNet_asm_t9
 from .vonet_pool_t9_concise import UNet_asm_t9_con
+from .vonet_pool_sim_prelu import UNet_asm_sim_prelu
+from .prior_net import  PriorNet
 from .unet_expr_extreme_deep import UNet3D_Deep
 from .unet_expr_multi_mod import UNet3DMM
 import SimpleITK as sitk
@@ -68,6 +71,7 @@ model_pool_1 = {
     'UNet3Dt8': UNet3Dt8,
     'UNet3Dt9': UNet3Dt9,
     'UNet3Dt9_sim':UNet3Dt9_sim,
+    'UNet3DBS_Prelu':UNet3DBS_Prelu,
     'UNet3DB': UNet3DB,
     'UNet3DB_loc':UNet3DB_loc,
     'UNet3DBS': UNet3DBS,
@@ -92,9 +96,11 @@ model_pool_1 = {
     'UNet_asm_f':UNet_asm_full,
     'UNet_asm_t9':UNet_asm_t9,
     'UNet_asm_t9_con':UNet_asm_t9_con,
+    'UNet_asm_sim_prelu':UNet_asm_sim_prelu,
     'Vonet_test':Vonet_test,
     'UNet3D_Deep':UNet3D_Deep,
-    'UNet3DMM':UNet3DMM
+    'UNet3DMM':UNet3DMM,
+    'prior_net':PriorNet
 }
 
 
@@ -139,7 +145,7 @@ class BaseModel():
         self.loss_update_epoch = opt['tsk_set']['loss']['update_epoch']
         self.activate_epoch = opt['tsk_set']['loss']['activate_epoch']
         self.imd_weighted_loss_on = opt['tsk_set']['loss']['imd_weighted_loss_on']
-        self.add_resampled =opt['dataset']['datapro']['seg']
+        self.add_resampled =opt['tsk_set']['add_resampled']
 
         tile_sz = opt['dataset']['tile_size']
         overlap_size = opt['dataset']['overlap_size']
@@ -150,6 +156,9 @@ class BaseModel():
 
         self.partition = Partition(tile_sz, overlap_size, padding_mode)
         self.res_record = {'gt': {}}
+        self.his_score = None
+        self.cur_score = None
+        self.score_diff = None
 
         self.is_train= None
         self.loss = None
@@ -180,7 +189,7 @@ class BaseModel():
 
 
 
-    def init_optim(self, opt, warmming_up = False):
+    def init_optim(self, opt,network, warmming_up = False):
         optimize_name = opt['optim_type']
         if not warmming_up:
             lr = opt['lr']
@@ -192,9 +201,9 @@ class BaseModel():
         lr_sched_opt = opt['lr_scheduler']
         self.lr_sched_type = lr_sched_opt['type']
         if optimize_name == 'adam':
-            re_optimizer = torch.optim.Adam(self.network.parameters(), lr=lr, betas=(beta, 0.999))
+            re_optimizer = torch.optim.Adam(network.parameters(), lr=lr, betas=(beta, 0.999))
         else:
-            re_optimizer = torch.optim.SGD(self.network.parameters(), lr=lr)
+            re_optimizer = torch.optim.SGD(network.parameters(), lr=lr)
         re_optimizer.zero_grad()
         re_lr_scheduler = None
         re_exp_lr_scheduler = None
@@ -382,17 +391,27 @@ class BaseModel():
             else:
                 print("Warning the valdiation size is not the same {}, compared with{}, skip....".format(dice_h_shape, loss_buffer_shape))
             if end_of_epoch:
-                resid = 1- self.loss_buffer/self.loss_update_count
-                resid = resid/np.sum(resid)   #from tsk31 #fromtsk46_4 # tsk51
+                self.cur_score = self.loss_buffer/self.loss_update_count
+                resid = 1- self.loss_buffer/self.loss_update_count  # the resid here should never be normalized
+                if self.his_score is not None:
+                    self.score_diff = self.cur_score -  self.his_score
+                    print("the score difference is {}".format(self.score_diff))
+                else:
+                    self.score_diff = np.zeros_like(self.cur_score)
+                    self.old_score_diff = np.zeros_like(self.cur_score)
+                #resid = resid/np.sum(resid)   #from tsk31 #fromtsk46_4 # tsk51
                 print(resid.shape)
                 resid = np.squeeze(resid)
                 self.opt['tsk_set']['loss']['residue_weight'] = resid
                 self.opt['tsk_set']['loss']['residue_weight_gama'] = sigmoid_explode(epoch % 10, static=1, k=4)
                 self.opt['tsk_set']['loss']['residue_weight_alpha'] = sigmoid_decay(epoch % 10, static=1, k=4)
-                record_weight = self.loss_fn.record_weight
-                self.loss_fn = Loss(self.opt,record_weight)
+                record_weight = self.loss_fn.record_weight  # the record weight should be read from the class
+                self.loss_fn = Loss(self.opt,record_weight=record_weight, imd_weight=None, score_differ = self.score_diff,old_score_diff = self.old_score_diff, manual_set=True)
                 self.loss_update_count =0.
                 self.loss_buffer = np.zeros([1, self.n_class])
+                self.his_score = self.cur_score
+                self.old_score_diff = self.score_diff
+
 
 
 
@@ -401,19 +420,21 @@ class BaseModel():
         if self.cur_epoch >= self.activate_epoch:
             output = torch.max(self.output.data,1)[1]
             output = output.cpu().numpy()
-            metric_res= get_multi_metric(output, self.gt.cpu().data.numpy())
+            metric_res= get_multi_metric(output, self.gt.cpu().data.numpy(), verbose=False)
             dice_weights = metric_res['batch_avg_res']['dice']
             label_list = metric_res['label_list']
-            log_resid_dice_weights = np.log1p(1.5 - dice_weights)
+            log_resid_dice_weights = np.log1p(1.2 - dice_weights)
             log_resid_dice_weights = log_resid_dice_weights / np.sum(log_resid_dice_weights)  #
             weights = np.zeros(self.n_class)
             weights[label_list] = log_resid_dice_weights
             weights = torch.cuda.FloatTensor(weights)
+            #print(weights)
             self.loss_fn = Loss(self.opt, record_weight=None, imd_weight=weights)
+            self.opt.print_settings_off()
 
 
     def get_val_res(self):
-        return self.val_res_dic['batch_label_avg_res']['dice']
+        return self.val_res_dic['batch_label_avg_res']['dice'], self.val_res_dic['batch_avg_res']['dice']
 
     def get_test_res(self):
         return self.get_val_res()

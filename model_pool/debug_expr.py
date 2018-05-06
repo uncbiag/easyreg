@@ -10,9 +10,11 @@ def debug_model(opt,model, dataloaders):
     model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
 
-    phase = 'val'
+    phase = 'test'
     if len(model_path):
-        get_test_model(model_path, model.network, model.optimizer)
+        cur_gpu_id = opt['tsk_set']['gpu_ids']
+        old_gpu_id = opt['tsk_set']['old_gpu_ids']
+        get_test_model(model_path, model.network, model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
     else:
         print("Warning, the model is not manual loaded, make sure your model itself has been inited")
     running_test_loss = 0

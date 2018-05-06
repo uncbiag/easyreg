@@ -612,9 +612,10 @@ class MyBalancedRandomCrop(object):
         :param sample:if the img in sample is a list, then return a list of img list otherwise return single image
         :return:
         """
-        if rand_id >0:
+        if rand_id >=0:
             cur_label_id  = rand_id%self.num_label
         else:
+            raise ValueError("should not happen in this case")
             cur_label_id = self.cur_label_id
         #print("id(self): {}  , cur_label_id:{}".format(id(self),cur_label_id))
         is_numpy = False
