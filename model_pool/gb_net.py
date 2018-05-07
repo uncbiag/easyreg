@@ -1,84 +1,46 @@
-import numpy as np
-import torch
-import os
-from collections import OrderedDict
-from torch.autograd import Variable
+
 from .base_model import BaseModel
-from glob import glob
 
-from .unet_expr import UNet3D
-from .unet_expr2 import UNet3D2
-from .unet_expr3 import UNet3D3
-from .unet_expr4 import UNet3D4
-from .unet_expr5 import UNet3D5
-from .unet_expr4_test import UNet3Dt1
-from .unet_expr4_test2 import UNet3Dt2
-from .unet_expr4_test3 import UNet3Dt3
-from .unet_expr4_test4 import UNet3Dt4
-from .unet_expr4_test5 import UNet3Dt5
-from .unet_expr4_test6 import UNet3Dt6
-from .unet_expr4_test7 import UNet3Dt7
-from .unet_expr4_test8 import UNet3Dt8
-from .unet_expr4_test9 import UNet3Dt9
-from .unet_expr_bon import UNet3DB
-from .unet_expr_bon_s import UNet3DBS
-from .unet_expr4_bon import UNet3D4B
-from .unet_expr4_ens_nr import UNet3D4BNR
-from .unet_expr5_bon import UNet3D5B
-from .unet_expr5_ens import UNet3D5BE
-from .unet_expr6_bon import UNet3D5BM
-from .unet_expr7_bon import UNet3DB7
-from .unet_expr8_bon import UNet3DB8
-from .unet_expr9_bon import UNet3DB9
-from .unet_expr10_bon import UNet3DB10
-from .unet_expr11_bon import UNet3DB11
-from .unet_expr12_bon import UNet3DB12
-from .unet_expr13_bon import UNet3DB13
-from .unet_expr14_bon import UNet3DB14
-from .unet_expr15_bon import UNet3DB15
-from .unet_expr16_bon import UNet3DB16
-from .unet_expr17_bon import UNet3DB17
-from .vnet_expr import VNet
-from  .zhenlin_net import *
+from  .gb_net_pool import *
 from . import networks
-from .losses import Loss
-from .metrics import get_multi_metric
-import torch.optim.lr_scheduler as lr_scheduler
-from data_pre.partition import Partition
-from model_pool.utils import unet_weights_init,vnet_weights_init
-from model_pool.utils import *
-import torch.nn as nn
-import matplotlib.pyplot as plt
-import SimpleITK as sitk
 
-class Unet(BaseModel):
+from model_pool.utils import *
+
+
+class GBnet(BaseModel):
     def name(self):
-        return '3D-unet'
+        return '3D-GBNet'
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         network_name =opt['tsk_set']['network_name']
         from .base_model import get_from_model_pool
-        self.network = get_from_model_pool(network_name, self.n_in_channel, self.n_class)
-        #self.network = CascadedModel([UNet_light1(n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
+        #self.network = get_from_model_pool(network_name, self.n_in_channel, self.n_class)
+        model_list = [UNet_light1(self.n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(self.n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(2)]
+        self.num_models = len(model_list)
+        self.network = gbNet(model_list,self.n_class, end2end=False, auto_context=True, residual=False, adaboost=True)
+        self.is_train = opt['tsk_set']['train']
+
+        gbnet_model_s = opt['tsk_set'][('gbnet_model_s', 0, 'start id of the model')]
+        gbnet_model_e = opt['tsk_set'][('gbnet_model_e', self.num_models, 'end id of the model')]
+        self.cur_model_id = gbnet_model_s if self.is_train else gbnet_model_e-1
+        if self.is_train:
+            self.network.set_cascaded_train(self.cur_model_id)
+        else:
+            self.network.set_cascaded_eval()
         #self.network.apply(unet_weights_init)
         self.opt_optim =opt['tsk_set']['optim']
         self.init_optimize_instance(warmming_up=True)
-
-        # here we need to add training_eval_record which should contain several thing
-        # first it should record the dice performance(the label it contained), and the avg (or weighted avg) dice inside
-        # it may also has some function to put it into a prior queue, which based on patch performance
-        # second it should record the times of being called, just for record, or we may put it as some standard, maybe change dataloader, shouldn't be familiar with pytorch source code
-        # third it should contains the path of the file, in case we may use frequent sampling on low performance patch
-        # forth it should record the labels in that patch and the label_density, which should be done during the data process
-        #
         self.training_eval_record={}
         print('---------- Networks initialized -------------')
         networks.print_network(self.network)
 
-        if self.isTrain:
-            networks.print_network(self.network)
-        print('-----------------------------------------------')
+
+    def set_train(self):
+        self.network.training= True
+    def set_val(self):
+        self.network.training = False
+
 
 
     def init_optimize_instance(self, warmming_up=False):
@@ -97,9 +59,9 @@ class Unet(BaseModel):
         self. is_train = is_train
         if is_train:
             if not self.add_resampled:
-                self.input = Variable(input[0]['image']).cuda()
+                self.input = Variable(input[0]['image'],volatile=True).cuda()
             else:
-                self.input =Variable(torch.cat((input[0]['image'], input[0]['resampled_img']),1)).cuda()
+                self.input =Variable(torch.cat((input[0]['image'], input[0]['resampled_img']),1),volatile=True).cuda()
 
         else:
             self.input = Variable(input[0]['image'],volatile=True).cuda()
@@ -109,9 +71,20 @@ class Unet(BaseModel):
         self.fname_list = list(input[1])
 
 
-    def forward(self,input):
+    def forward(self,input, gt = None):
         # here input should be Tensor, not Variable
-        return self.network.forward(input)
+        return self.network.forward(input, gt)
+
+
+    def check_and_update_model(self):
+        self.cur_model_id += 1
+        print("network updated, current model id is {}".format(self.cur_model_id))
+        if self.cur_model_id < self.num_models:
+            self.network.set_cascaded_train(self.cur_model_id)
+        else:
+            stop_train = True
+            return stop_train
+
 
 
 
@@ -122,13 +95,9 @@ class Unet(BaseModel):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        output = self.forward(self.input)
-        if isinstance(output, list):
-            self.output = output[-1]
-            self.loss = self.cal_seq_loss(output)
-        else:
-            self.output = output
-            self.loss = self.cal_loss()
+        output, weights = self.forward(self.input, self.gt)
+        self.output = output
+        self.loss = self.loss_fn.get_loss(output,self.gt, weights)
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()

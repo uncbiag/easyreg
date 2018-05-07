@@ -158,13 +158,13 @@ class UNet_light2(nn.Module):
 
 
 
-class CascadedModel(nn.Module):
+class gbNet(nn.Module):
     """
     A cascaded model from a give model list
     Only train the last model and all other model are pre-trained.
     """
     def __init__(self, model_list,num_class, end2end=False, auto_context=True, residual=False, adaboost=False, residual_scale=1.0):
-        super(CascadedModel, self).__init__()
+        super(gbNet, self).__init__()
         self.models = nn.ModuleList(model_list)
         self.num_models = len(self.models)
         self.end2end = end2end
@@ -212,6 +212,8 @@ class CascadedModel(nn.Module):
         :return:
         """
         self.cur_model_id = model_id
+        self.num_cur_models = self.cur_model_id+1
+
 
 
     def _init_cur_training_model(self):
@@ -220,22 +222,23 @@ class CascadedModel(nn.Module):
         :return:
         """
         model_id = self.cur_model_id
-        self.num_cur_models = self.cur_model_id+1
         if not self.end2end:
             # the model before the current model will be in the inference state
             if model_id>0:
-                for param in self.models[self.cur_model_id-1].parameters():
-                    param.requires_grad = False
+                # for param in self.models[self.cur_model_id-1].parameters():
+                #     param.requires_grad = False
                 self.models[self.cur_model_id-1].eval()
             # we use the previous model's parameter to initialized the current model to be trained
                 if model_id > self.st_copy_previous_model:
-                    self.models[model_id].load_state_dic(self.models[model_id-1].state_dic())
+                    self.models[model_id].load_state_dict(self.models[model_id-1].state_dict())
             self.models[model_id].train(True)
 
 
 
     def set_cascaded_eval(self):
+        # this function will not be used
         self.training = False
+        self._set_cur_model_id(self.num_models-1)
         self.eval()
 
 
@@ -264,12 +267,12 @@ class CascadedModel(nn.Module):
         logp_output = self.log_softmax(logit)
         weight = None
         h = None
-        if self.train:
-            weight = (-learning_rate * (((self.num_class - 1.) / self.num_class)
+        if self.training:
+            weight = torch.exp(-learning_rate * (((self.num_class - 1.) / self.num_class)
                                 * torch.sum(target * logp_output, dim=1)))
         else:
             h = (self.num_class - 1) * (logp_output - (1. / self.num_class)
-                                * torch.sum(logp_output, dim=1))
+                                * torch.sum(logp_output, dim=1,keepdim=True))
         return weight, h
 
     def check_if_volatile(self, id, num_models):
@@ -291,15 +294,17 @@ class CascadedModel(nn.Module):
 
         train = self.training
         num_cur_models = self.num_cur_models
-        in_sz = input.size()
         estimator_weight = None
         h = None
         resid_output = None
-
+        if self.cur_model_id ==0:
+            input.volatile= False
         output = self.models[0](input)
+        in_sz = list(output.size())
 
         if self.adaboost:
-            target = self.encode_target(in_sz, target)
+            if train:
+                target = self.encode_target(in_sz, target)
             estimator_weight, h = self.adaboost_module(output, target=target)
 
 
@@ -329,18 +334,29 @@ class CascadedModel(nn.Module):
 
 
             if self.adaboost:
-                cur_w, cur_h =self.adaboost_module(output, target=target)
                 if train:
-                    estimator_weight *= cur_w
+                    # the weight of the current model is not used
+                    if i < num_cur_models-1:
+                        cur_w, cur_h = self.adaboost_module(output, target=target)
+                        estimator_weight *= cur_w
                 else:
+                    cur_w, cur_h = self.adaboost_module(output, target=target)
                     h += cur_h
 
+        if train:
+            if self.residual:
+                return resid_output, None
 
-        if self.residual:
-            return resid_output
+            elif self.adaboost:
+                if self.cur_model_id>0:
+                    estimator_weight.volatile = False
 
-        elif self.adaboost:
-            return h
+                return output, estimator_weight
+        else:
+            if self.residual:
+                return resid_output
+            elif self.adaboost:
+                return h
 
 
 

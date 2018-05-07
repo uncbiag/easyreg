@@ -84,8 +84,8 @@ class Loss(object):
             self.record_weight = None
 
 
-    def get_loss(self,output, gt):
-        return self.criterion(output, gt)
+    def get_loss(self,output, gt, inst_weights=None):
+        return self.criterion(output, gt,inst_weights=inst_weights)
 
 
     def get_inverse_label_density(self,opt):
@@ -218,7 +218,7 @@ class FocalLoss(nn.Module):
         self.class_num = class_num
         self.size_average = size_average
 
-    def forward(self, inputs, targets):
+    def forward(self, inputs, targets, weight= None, inst_weights=None):
         """
 
         :param inputs: Bxn_classxXxYxZ
@@ -265,7 +265,7 @@ class DiceLoss(nn.Module):
             else:
                 self.weight = Variable(weight)
         self.weight = torch.squeeze(self.weight)
-    def forward(self,input, target):
+    def forward(self,input, target, inst_weights=None):
         """
         input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
         target is a Bx....   range 0,1....N_label
@@ -364,7 +364,7 @@ class TverskyLoss(nn.Module):
         self.beta = beta
         print("the weight of Tversky loss is  {}".format(weight))
 
-    def forward(self,input, target):
+    def forward(self,input, target,inst_weights=None):
         """
         input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
         target is a Bx....   range 0,1....N_label
@@ -409,17 +409,18 @@ class CrossEntropyLoss(nn.Module):
         super(CrossEntropyLoss,self).__init__()
         no_bg = opt[('no_bg',False,'exclude background')]
         weighted = opt[('weighted',True,'  weighted the class')]
+        reduced = opt[('reduced',False,'  reduced the class')]
         class_num = opt['class_num']
 
         if no_bg:
             self.loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
         if weighted:
             class_weight = opt['class_weight']if imd_weight is None else imd_weight
-            self.loss_fn = nn.CrossEntropyLoss(weight=class_weight)
+            self.loss_fn = nn.CrossEntropyLoss(weight=class_weight, reduce = reduced)
         else:
-            self.loss_fn = nn.CrossEntropyLoss()
+            self.loss_fn = nn.CrossEntropyLoss(reduce = reduced)
         self.n_class = class_num
-    def forward(self, input, gt):
+    def forward(self, input, gt, inst_weights= None):
         """
         :param inputs: Bxn_classxXxYxZ
         :param targets: Bx.....  , range(0,n_class)
@@ -430,7 +431,10 @@ class CrossEntropyLoss(nn.Module):
         else:
             output_flat = input
         truths_flat = gt.view(-1)
-        return self.loss_fn(output_flat,truths_flat)
+        if inst_weights is None:
+            return self.loss_fn(output_flat,truths_flat)
+        else:
+            return torch.sum( inst_weights.view(-1)*self.loss_fn(output_flat,truths_flat)/(inst_weights.numel()))*20
 
 
 

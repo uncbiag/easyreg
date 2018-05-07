@@ -51,6 +51,7 @@ from .vonet_pool_t9 import UNet_asm_t9
 from .vonet_pool_t9_concise import UNet_asm_t9_con
 from .vonet_pool_sim_prelu import UNet_asm_sim_prelu
 from .prior_net import  PriorNet
+from .gb_net_pool import  gbNet
 from .unet_expr_extreme_deep import UNet3D_Deep
 from .unet_expr_multi_mod import UNet3DMM
 import SimpleITK as sitk
@@ -100,7 +101,8 @@ model_pool_1 = {
     'Vonet_test':Vonet_test,
     'UNet3D_Deep':UNet3D_Deep,
     'UNet3DMM':UNet3DMM,
-    'prior_net':PriorNet
+    'prior_net':PriorNet,
+    'gb_net':gbNet
 }
 
 
@@ -180,6 +182,11 @@ class BaseModel():
 
     # used in test time, no backprop
     def test(self):
+        pass
+
+    def set_train(self):
+        pass
+    def set_val(self):
         pass
 
 
@@ -563,6 +570,11 @@ class BaseModel():
             output.SetOrigin(itk_image.GetOrigin())
             output.SetDirection(itk_image.GetDirection())
             sitk.WriteImage(output, saving_file_path)
+
+
+
+    def check_and_update_model(self):
+        return None
 
 
 

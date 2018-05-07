@@ -37,6 +37,10 @@ def train_model(opt,model, dataloaders,writer):
     save_fig_on = opt['tsk_set'][('save_fig_on',True,'saving fig')]
     warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
     continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'continue to train')]
+    epoch_val_record = -1
+    update_model_torl = 2
+    model_torl_count = 0
+    stop_train = False
 
 
 
@@ -54,6 +58,10 @@ def train_model(opt,model, dataloaders,writer):
     model.network = model.network.cuda()
 
     for epoch in range(start_epoch, num_epochs+1):
+        if stop_train:
+            print("the model meets validation requirements and finished training ")
+            break
+
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
         model.set_cur_epoch(epoch)
@@ -69,8 +77,10 @@ def train_model(opt,model, dataloaders,writer):
                 break
             if phase == 'train':
                 model.network.train(True)  # Set model to training mode
+                model.set_train()
             else:
                 model.network.train(False)  # Set model to evaluate mode
+                model.set_val()
 
             running_val_loss =0.0
 
@@ -142,6 +152,13 @@ def train_model(opt,model, dataloaders,writer):
                     is_best = True
                     best_loss = epoch_val_loss
                     best_epoch = epoch
+
+                if np.abs(epoch_val_loss - epoch_val_record) < 0.05:
+                    model_torl_count += 1
+                    if model_torl_count >= update_model_torl:
+                        stop_train =model.check_and_update_model()
+                        model_torl_count =0
+                epoch_val_record = epoch_val_loss
 
             if phase == 'train':
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
