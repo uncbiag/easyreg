@@ -85,9 +85,12 @@ class Unet(BaseModel):
         self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
                                                                                    warmming_up=warmming_up)
 
-    def adjust_learning_rate(self):
+    def adjust_learning_rate(self, new_lr=-1):
         """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-        lr = self.opt_optim['lr']
+        if new_lr<0:
+            lr = self.opt_optim['lr']
+        else:
+            lr = new_lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
         print(" no warming up the learning rate is {}".format(lr))

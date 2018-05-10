@@ -189,6 +189,9 @@ class BaseModel():
     def set_val(self):
         pass
 
+    def set_debug(self):
+        pass
+
 
 
     def optimize_parameters(self):
@@ -295,7 +298,8 @@ class BaseModel():
         if old_verison:
             self.input = torch.unsqueeze(torch.squeeze(self.input),1)
         else:
-            self.input = torch.squeeze(self.input,0)
+            if not len(self.input.shape)==5:
+                self.input = torch.squeeze(self.input,0)
         input_split = torch.split(self.input, split_size=split_size)
         volatile_status = input_split[0].volatile
         print("check the input_split volatile status :{}".format(volatile_status))
@@ -313,7 +317,11 @@ class BaseModel():
         pred_patched =  torch.cat(output, dim=0)
         pred_patched = torch.max(pred_patched.data,1)[1]
         self.input= None
-        self.output = self.partition.assemble(pred_patched, self.img_sz)
+        print(pred_patched.shape)
+        if pred_patched.shape[0]>1:
+            self.output = self.partition.assemble(pred_patched, self.img_sz)
+        else:
+            self.output = np.squeeze(pred_patched.numpy())
         self.gt_np= self.gt.data.cpu().numpy()
         for i in range(self.gt_np.shape[0]):
             fname = self.fname_list[i]

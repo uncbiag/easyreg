@@ -409,7 +409,7 @@ class CrossEntropyLoss(nn.Module):
         super(CrossEntropyLoss,self).__init__()
         no_bg = opt[('no_bg',False,'exclude background')]
         weighted = opt[('weighted',True,'  weighted the class')]
-        reduced = opt[('reduced',False,'  reduced the class')]
+        reduced = opt[('reduced',True,'  reduced the class')]
         class_num = opt['class_num']
 
         if no_bg:
@@ -434,7 +434,7 @@ class CrossEntropyLoss(nn.Module):
         if inst_weights is None:
             return self.loss_fn(output_flat,truths_flat)
         else:
-            return torch.sum( inst_weights.view(-1)*self.loss_fn(output_flat,truths_flat)/(inst_weights.numel()))*20
+            return torch.mean( inst_weights.view(-1)*self.loss_fn(output_flat,truths_flat))
 
 
 

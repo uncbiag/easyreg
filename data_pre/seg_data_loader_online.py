@@ -211,11 +211,13 @@ class SegmentationDataset(Dataset):
             if self.is_train:
                 sample['image'] = self.transform(data['img'][index].copy())*2-1
             else:
-                sample['image'] = self.transform(data['img'][:,index].copy())*2-1
-
+                if not self.use_org_size:
+                    sample['image'] = self.transform(data['img'][:,index].copy())*2-1
+                else:
+                    sample['image'] = self.transform(data['img'][index].copy()) * 2 - 1
             if self.add_resampled:
                 sample['resampled_img'] = self.transform(blosc.unpack_array((dic['resampled_img'])))
-            if self.use_org_size or self.detect_et:
+            if  self.detect_et: #self.use_org_size or self.detect_et:
                 sample['checked_label']=self.transform(data['checked_label'].astype(np.int32))
             #sample['image'] = self.transform(data['img'].copy())
             if 'seg'in data and data['seg'] is not None:

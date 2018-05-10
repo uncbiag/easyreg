@@ -49,10 +49,8 @@ class UNet_light1(nn.Module):
         self.ec4 = encoder(64, 64, bias=bias, batchnorm=BN)
         self.ec5 = encoder(64, 128, bias=bias, batchnorm=BN)
 
-        self.pool0 = encoder(32, 32, kernel_size=3, stride=2, padding=1,
-            bias=True, batchnorm=True)
-        self.pool1 = encoder(64, 64, kernel_size=3, stride=2, padding=1,
-            bias=True, batchnorm=True)
+        self.pool0 = nn.MaxPool3d(2)
+        self.pool1 = nn.MaxPool3d(2)
 
         self.dc6 = decoder(128, 128, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
         self.dc5 = decoder(64 + 128, 64, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
@@ -109,10 +107,8 @@ class UNet_light2(nn.Module):
         self.ec4 = encoder(32, 32, bias=bias, batchnorm=BN)
         self.ec5 = encoder(32, 64, bias=bias, batchnorm=BN)
 
-        self.pool0 = encoder(16, 16, kernel_size=3, stride=2, padding=1,
-                             bias=True, batchnorm=True)
-        self.pool1 = encoder(32, 32, kernel_size=3, stride=2, padding=1,
-                             bias=True, batchnorm=True)
+        self.pool0 = nn.MaxPool3d(2)
+        self.pool1 = nn.MaxPool3d(2)
 
         self.dc6 = decoder(64, 64, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
         self.dc5 = decoder(32 + 64, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
@@ -156,6 +152,114 @@ class UNet_light2(nn.Module):
         return d0
 
 
+class UNet_light3(nn.Module):
+    def __init__(self, in_channel, n_classes, bias=False, BN=False):
+        super(UNet_light3, self).__init__()
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.ec0 = encoder(self.in_channel, 8, bias=bias, batchnorm=BN)
+        self.ec1 = encoder(8, 16, bias=bias, batchnorm=BN)
+        self.ec2 = encoder(16, 16, bias=bias, batchnorm=BN)
+        self.ec3 = encoder(16, 32, bias=bias, batchnorm=BN)
+        self.ec4 = encoder(32, 32, bias=bias, batchnorm=BN)
+        self.ec5 = encoder(32, 32, bias=bias, batchnorm=BN)
+
+        self.pool0 = nn.MaxPool3d(2)
+        self.pool1 = nn.MaxPool3d(2)
+
+        self.dc6 = decoder(32, 32, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
+        self.dc5 = decoder(32 + 32, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
+        self.dc4 = decoder(32, 32, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
+        self.dc3 = decoder(32, 16, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
+        self.dc2 = decoder(16 + 16, 16, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
+        self.dc1 = decoder(16, 8, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
+        self.dc0 = nn.Conv3d(8, n_classes, kernel_size=1, stride=1, padding=0, bias=bias)
+
+    def forward(self, x):
+        e0 = self.ec0(x)
+        syn0 = self.ec1(e0)
+        e1 = self.pool0(syn0)
+        e2 = self.ec2(e1)
+        syn1 = self.ec3(e2)
+        del e0, e1, e2
+
+        e3 = self.pool1(syn1)
+        e4 = self.ec4(e3)
+        e5 = self.ec5(e4)
+        del e3, e4
+
+        d6 = torch.cat((self.dc6(e5), syn1), dim=1)
+        del e5, syn1
+
+        d5 = self.dc5(d6)
+        d4 = self.dc4(d5)
+        del d6, d5
+
+        d3 = torch.cat((self.dc3(d4), syn0), dim=1)
+        del d4, syn0
+
+        d2 = self.dc2(d3)
+        d1 = self.dc1(d2)
+        del d3, d2
+
+        d0 = self.dc0(d1)
+        return d0
+
+class UNet_light4(nn.Module):
+    def __init__(self, in_channel, n_classes, bias=False, BN=False):
+        super(UNet_light4, self).__init__()
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.ec0 = encoder(self.in_channel, 8, bias=bias, batchnorm=BN)
+        self.ec1 = encoder(8, 16, bias=bias, batchnorm=BN)
+        self.ec2 = encoder(16, 16, bias=bias, batchnorm=BN)
+        self.ec3 = encoder(16, 32, bias=bias, batchnorm=BN)
+
+
+        self.pool0 = nn.MaxPool3d(2)
+
+        self.dc3 = decoder(32, 16, kernel_size=2, stride=2, bias=bias, batchnorm=BN)
+        self.dc2 = decoder(16 + 16, 16, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
+        self.dc1 = decoder(16, 8, kernel_size=3, stride=1, padding=1, bias=bias, batchnorm=BN)
+        self.dc0 = nn.Conv3d(8, n_classes, kernel_size=1, stride=1, padding=0, bias=bias)
+
+   
+    def forward(self, x):
+        e0 = self.ec0(x)
+        syn0 = self.ec1(e0)
+        e1 = self.pool0(syn0)
+        e2 = self.ec2(e1)
+        e3 = self.ec3(e2)
+        del e0, e1, e2
+
+        d3 = torch.cat((self.dc3(e3), syn0), dim=1)
+        d2 = self.dc2(d3)
+        d1 = self.dc1(d2)
+        del d3, d2
+
+        d0 = self.dc0(d1)
+        return d0
+
+
+class UNet_light5(nn.Module):
+    def __init__(self, in_channel, n_classes, bias=False, BN=False):
+        super(UNet_light5, self).__init__()
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.ec0 = encoder(self.in_channel, 4, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.ec1 = encoder(4, 8, kernel_size=3,stride=1, padding=1,bias=bias, batchnorm=BN)
+        self.ec2 = encoder(8, 16, kernel_size=3,stride=1, padding=1,bias=bias, batchnorm=BN)
+        self.ec3 = decoder(16, 8, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.dc0 = nn.Conv3d(8, n_classes, kernel_size=1, stride=1, padding=0, bias=bias)
+    def forward(self, x):
+        e0 = self.ec0(x)
+        e1 = self.ec1(e0)
+        e2 = self.ec2(e1)
+        e3 = self.ec3(e2)
+
+        d0 = self.dc0(e3)
+        return d0
+
 
 
 class gbNet(nn.Module):
@@ -177,7 +281,8 @@ class gbNet(nn.Module):
         self.num_class =num_class
         self.softmax = nn.Softmax(dim=1)
         self.log_softmax = nn.LogSoftmax(dim=1)
-        self.st_copy_previous_model = 0
+        self.st_copy_previous_model = 0  #0
+        self.debugging = False
 
 
     def weights_init(self):
@@ -223,7 +328,7 @@ class gbNet(nn.Module):
         """
         model_id = self.cur_model_id
         if not self.end2end:
-            # the model before the current model will be in the inference state
+            # the model before the current model will be in the inference stated
             if model_id>0:
                 # for param in self.models[self.cur_model_id-1].parameters():
                 #     param.requires_grad = False
@@ -263,7 +368,7 @@ class gbNet(nn.Module):
 
 
     def adaboost_module(self, logit, target=None):
-        learning_rate = 1
+        learning_rate = 1.
         logp_output = self.log_softmax(logit)
         weight = None
         h = None
@@ -273,6 +378,9 @@ class gbNet(nn.Module):
         else:
             h = (self.num_class - 1) * (logp_output - (1. / self.num_class)
                                 * torch.sum(logp_output, dim=1,keepdim=True))
+
+        if weight is not None:
+            weight[weight>1]=1.
         return weight, h
 
     def check_if_volatile(self, id, num_models):
@@ -294,19 +402,27 @@ class gbNet(nn.Module):
 
         train = self.training
         num_cur_models = self.num_cur_models
+        num_instances = input.numel()/input.size(1)
         estimator_weight = None
         h = None
+        cur_h = None
         resid_output = None
         if self.cur_model_id ==0:
             input.volatile= False
         output = self.models[0](input)
         in_sz = list(output.size())
 
+
+
         if self.adaboost:
             if train:
                 target = self.encode_target(in_sz, target)
-            estimator_weight, h = self.adaboost_module(output, target=target)
 
+            if self.cur_model_id == 0 and train:
+                estimator_weight = Variable(torch.cuda.FloatTensor([1.]))
+            else:
+                estimator_weight, cur_h = self.adaboost_module(output, target=target) # here we'd better to do some scale
+                h = cur_h
 
         if self.residual:
             resid_output = output
@@ -318,14 +434,15 @@ class gbNet(nn.Module):
                 # voliate on  when is (not the current model, not end to end) or not train
                 temp_input = Variable(torch.cat([self.softmax(output).data, input.data], dim=1),
                                       volatile=volatile)
+                assert temp_input.requires_grad == False
             else:
                 temp_input = Variable(input.data.cuda(), volatile=volatile)
 
 
-            # detach the output of the last model
-            if i == num_cur_models-1 and not self.end2end and train:
-                output = output.detach()
-                output.volatile=False
+            # # detach the output of the last model
+            # if i == num_cur_models-1 and not self.end2end and train:
+            #     output = output.detach()
+            #     output.volatile=False
 
             output = self.models[i](temp_input)
 
@@ -343,6 +460,7 @@ class gbNet(nn.Module):
                     cur_w, cur_h = self.adaboost_module(output, target=target)
                     h += cur_h
 
+
         if train:
             if self.residual:
                 return resid_output, None
@@ -350,13 +468,17 @@ class gbNet(nn.Module):
             elif self.adaboost:
                 if self.cur_model_id>0:
                     estimator_weight.volatile = False
+                    estimator_weight *= 10
 
-                return output, estimator_weight
+                return output, Variable(estimator_weight.data)
         else:
             if self.residual:
                 return resid_output
             elif self.adaboost:
-                return h
+                if not self.debugging:
+                    return h
+                else:
+                    return cur_h
 
 
 

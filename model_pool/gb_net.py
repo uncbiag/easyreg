@@ -16,9 +16,14 @@ class GBnet(BaseModel):
         network_name =opt['tsk_set']['network_name']
         from .base_model import get_from_model_pool
         #self.network = get_from_model_pool(network_name, self.n_in_channel, self.n_class)
-        model_list = [UNet_light1(self.n_in_channel,self.n_class,bias=True,BN=True)]+[UNet_light1(self.n_in_channel+self.n_class,self.n_class,bias=True,BN=True) for _ in range(2)]
+        auto_context = False
+        bias= False
+        BN = False
+        adaboost= True
+        ac_mask = int(auto_context)
+        model_list = [UNet_light5(self.n_in_channel,self.n_class,bias=bias,BN=BN)]+[UNet_light5(self.n_in_channel+ac_mask*self.n_class,self.n_class,bias=bias,BN=BN) for _ in range(3)]
         self.num_models = len(model_list)
-        self.network = gbNet(model_list,self.n_class, end2end=False, auto_context=True, residual=False, adaboost=True)
+        self.network = gbNet(model_list,self.n_class, end2end=False, auto_context=auto_context, residual=False, adaboost=adaboost)
         self.is_train = opt['tsk_set']['train']
 
         gbnet_model_s = opt['tsk_set'][('gbnet_model_s', 0, 'start id of the model')]
@@ -38,8 +43,17 @@ class GBnet(BaseModel):
 
     def set_train(self):
         self.network.training= True
+        self.network.debugging = False
+        print("cur model_id is {}".format(self.network.cur_model_id))
     def set_val(self):
         self.network.training = False
+        self.network.debugging = False
+        print("cur model_id is {}".format(self.network.cur_model_id))
+
+    def set_debug(self):
+        self.network.debugging = True
+        self.network.training = False
+        print("cur model_id is {}".format(self.network.cur_model_id))
 
 
 
@@ -47,9 +61,12 @@ class GBnet(BaseModel):
         self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
                                                                                    warmming_up=warmming_up)
 
-    def adjust_learning_rate(self):
+    def adjust_learning_rate(self,new_lr=-1):
         """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-        lr = self.opt_optim['lr']
+        if new_lr<0:
+            lr = self.opt_optim['lr']
+        else:
+            lr = new_lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
         print(" no warming up the learning rate is {}".format(lr))

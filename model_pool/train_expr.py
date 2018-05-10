@@ -21,6 +21,7 @@ def train_model(opt,model, dataloaders,writer):
     #best_model_optimizer = model.optimizer.state_dict() if model.optimizer is not None else None
     best_loss = 0
     epoch_val_loss=0.
+    epoch_debug_loss =0.
     best_epoch = 0
     is_best = False
     start_epoch = 0
@@ -38,8 +39,11 @@ def train_model(opt,model, dataloaders,writer):
     warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
     continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'continue to train')]
     epoch_val_record = -1
+    epoch_debug_record = -1
     update_model_torl = 2
     model_torl_count = 0
+    tor_thre =  0.8
+    last_met = True
     stop_train = False
 
 
@@ -80,9 +84,13 @@ def train_model(opt,model, dataloaders,writer):
                 model.set_train()
             else:
                 model.network.train(False)  # Set model to evaluate mode
-                model.set_val()
+                if phase =='val':
+                    model.set_val()
+                else:
+                    model.set_debug()
 
             running_val_loss =0.0
+            running_debug_loss =0.0
 
             # Iterate over data.
             for data in dataloaders[phase]:
@@ -116,6 +124,7 @@ def train_model(opt,model, dataloaders,writer):
                     if epoch>0 and epoch % save_fig_epoch ==0 and save_fig_on:
                         model.save_fig(phase,standard_record=False)
                     loss, full_loss = model.get_val_res()
+                    running_debug_loss += loss
 
                 # save for tensorboard, both train and val will be saved
                 period_loss[phase] += loss
@@ -152,13 +161,15 @@ def train_model(opt,model, dataloaders,writer):
                     is_best = True
                     best_loss = epoch_val_loss
                     best_epoch = epoch
-
-                if np.abs(epoch_val_loss - epoch_val_record) < 0.05:
-                    model_torl_count += 1
-                    if model_torl_count >= update_model_torl:
-                        stop_train =model.check_and_update_model()
-                        model_torl_count =0
-                epoch_val_record = epoch_val_loss
+                #
+                # if np.abs(epoch_val_loss - epoch_val_record)*100 < tor_thre:
+                #     model_torl_count *= int(last_met)
+                #     model_torl_count += 1
+                #     if model_torl_count >= update_model_torl:
+                #         stop_train =model.check_and_update_model()
+                #         model_torl_count =0
+                # last_met = np.abs(epoch_val_loss - epoch_val_record)*100 < tor_thre
+                # epoch_val_record = epoch_val_loss
 
             if phase == 'train':
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
@@ -172,6 +183,21 @@ def train_model(opt,model, dataloaders,writer):
                     save_checkpoint({'epoch': epoch,'state_dict':  model.network.state_dict(),'optimizer': optimizer_state,
                              'best_loss': best_loss, 'global_step':global_step}, is_best, check_point_path, 'epoch_'+str(epoch), '')
                     is_best = False
+
+
+            if phase == 'debug':
+
+                epoch_debug_loss = running_debug_loss / min(max_batch_num_per_epoch['debug'], dataloaders['data_size']['debug'])
+                print('{} epoch_debug_loss: {:.4f}'.format(epoch, epoch_debug_loss))
+
+                if np.abs(epoch_debug_loss - epoch_debug_record) * 100 < tor_thre:
+                    model_torl_count *= int(last_met)
+                    model_torl_count += 1
+                    if model_torl_count >= update_model_torl:
+                        stop_train = model.check_and_update_model()
+                        model_torl_count = 0
+                last_met = np.abs(epoch_debug_loss - epoch_debug_record) * 100 < tor_thre
+                epoch_debug_record = epoch_debug_loss
 
         print()
 
@@ -201,6 +227,7 @@ def train_model(opt,model, dataloaders,writer):
     # model.optimizer.load_state_dict(best_model_optimizer)
     running_val_loss = 0.0
     since = time()
+    model.set_val()
     # Iterate over data.
     for data in dataloaders['val']:
         # get the inputs
@@ -210,7 +237,7 @@ def train_model(opt,model, dataloaders,writer):
         model.cal_val_errors()
         if save_fig_on:
             model.save_fig('best',standard_record='True')
-        loss = model.get_val_res()
+        loss, full_loss = model.get_val_res()
         running_val_loss += loss
     val_loss = running_val_loss /  dataloaders['data_size']['val']
     print('the best epoch is {}, the average_val_loss: {:.4f}'.format(best_epoch, val_loss))
@@ -219,7 +246,7 @@ def train_model(opt,model, dataloaders,writer):
         time_elapsed // 60, time_elapsed % 60))
 
 
-
+    running_val_loss = 0.0
     # do the test data evaluation
     if not dataset_name =='brats':
         for data in dataloaders['test']:
@@ -229,7 +256,7 @@ def train_model(opt,model, dataloaders,writer):
             model.cal_val_errors()
             if save_fig_on:
                 model.save_fig('best',standard_record='True')
-            loss = model.get_val_res()
+            loss, full_loss = model.get_val_res()
             running_val_loss += loss
         test_loss = running_val_loss /  dataloaders['data_size']['test']
         print('the best epoch is {}, the average_test_loss: {:.4f}'.format(best_epoch, test_loss))
