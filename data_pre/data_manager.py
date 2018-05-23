@@ -245,7 +245,14 @@ class DataManager(object):
         phases = ['train', 'val','test','debug']
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
+        ########################################################################33######3
         transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,option=self.seg_option) for x in phases}
+        # transformed_dataset = {
+        # 'train': self.cur_dataset(data_path=self.task_path['train'], phase='train', transform=composed, option=self.seg_option),
+        # 'val': self.cur_dataset(data_path=self.task_path['val'], phase='val', transform=composed, option=self.seg_option),
+        # 'test': self.cur_dataset(data_path=self.task_path['test'], phase='test', transform=composed, option=self.seg_option),
+        # 'debug': self.cur_dataset(data_path=self.task_path['train'], phase='debug', transform=composed, option=self.seg_option),
+        # }
         dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
         dataloaders['data_size'] = {x: len(dataloaders[x]) for x in phases}
         dataloaders['info'] = {x: transformed_dataset[x].name_list for x in phases}

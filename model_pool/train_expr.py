@@ -7,7 +7,7 @@ from pipLine.utils import *
 def train_model(opt,model, dataloaders,writer):
     since = time()
     experiment_name = opt['tsk_set']['task_name']
-    dataset_name = opt['datapro']['dataset']['dataset_name']
+    dataset_name = opt['tsk_set']['dataset_name']
 
     print_step = opt['tsk_set'][('print_step', [10,4,4], 'num of steps to print')]
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
@@ -38,13 +38,19 @@ def train_model(opt,model, dataloaders,writer):
     save_fig_on = opt['tsk_set'][('save_fig_on',True,'saving fig')]
     warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
     continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'continue to train')]
+    update_model_by_val = opt['tsk_set'][('update_model_by_val', True, 'update_model_by_val')]
+    tor_thre = opt['tsk_set'][('tor_thre', 0.8, 'tor_thre')]
+    update_model_torl = opt['tsk_set'][('update_model_torl', 2, 'update_model_torl')]
+    update_model_epoch_torl = opt['tsk_set'][('update_model_epoch_torl', 50, 'update_model_epoch_torl')]
+    update_model_epoch_count = 0
     epoch_val_record = -1
     epoch_debug_record = -1
-    update_model_torl = 2
     model_torl_count = 0
-    tor_thre =  0.8
+    update_model_epoch_best_record= 0
+    update_model_epoch_best_dice_record=0.
     last_met = True
     stop_train = False
+
 
 
 
@@ -62,6 +68,7 @@ def train_model(opt,model, dataloaders,writer):
     model.network = model.network.cuda()
 
     for epoch in range(start_epoch, num_epochs+1):
+        update_model_epoch_count += 1
         if stop_train:
             print("the model meets validation requirements and finished training ")
             break
@@ -80,10 +87,10 @@ def train_model(opt,model, dataloaders,writer):
             if not max_batch_num_per_epoch[phase]:
                 break
             if phase == 'train':
-                model.network.train(True)  # Set model to training mode
+                #model.network.train(True)  # Set model to training mode
                 model.set_train()
             else:
-                model.network.train(False)  # Set model to evaluate mode
+                #model.network.train(False)  # Set model to evaluate mode
                 if phase =='val':
                     model.set_val()
                 else:
@@ -161,15 +168,24 @@ def train_model(opt,model, dataloaders,writer):
                     is_best = True
                     best_loss = epoch_val_loss
                     best_epoch = epoch
-                #
-                # if np.abs(epoch_val_loss - epoch_val_record)*100 < tor_thre:
-                #     model_torl_count *= int(last_met)
-                #     model_torl_count += 1
-                #     if model_torl_count >= update_model_torl:
-                #         stop_train =model.check_and_update_model()
-                #         model_torl_count =0
-                # last_met = np.abs(epoch_val_loss - epoch_val_record)*100 < tor_thre
-                # epoch_val_record = epoch_val_loss
+                if update_model_by_val and epoch>1:
+                    better_res= epoch_val_loss > update_model_epoch_best_dice_record
+                    update_model_epoch_best_dice_record = epoch_val_loss if better_res else update_model_epoch_best_dice_record
+                    update_model_epoch_best_record = epoch if better_res else update_model_epoch_best_record
+                    if np.abs(epoch_val_loss - epoch_val_record)*100 < tor_thre or update_model_epoch_count> update_model_epoch_torl:
+                        model_torl_count *= int(last_met)
+                        model_torl_count += 1
+                        if model_torl_count >= update_model_torl or  update_model_epoch_count> update_model_epoch_torl:
+                            if model_torl_count >= update_model_torl:
+                                print("reached the update_model_torl :{}".format(update_model_torl))
+                            else:
+                                print("reached the update epoch_torl :{}".format(update_model_epoch_torl))
+                            stop_train =model.check_and_update_model(update_model_epoch_best_record)
+                            model_torl_count =0
+                            update_model_epoch_count =0
+                            update_model_epoch_best_dice_record=0
+                    last_met = np.abs(epoch_val_loss - epoch_val_record)*100 < tor_thre
+                    epoch_val_record = epoch_val_loss
 
             if phase == 'train':
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
@@ -189,15 +205,24 @@ def train_model(opt,model, dataloaders,writer):
 
                 epoch_debug_loss = running_debug_loss / min(max_batch_num_per_epoch['debug'], dataloaders['data_size']['debug'])
                 print('{} epoch_debug_loss: {:.4f}'.format(epoch, epoch_debug_loss))
-
-                if np.abs(epoch_debug_loss - epoch_debug_record) * 100 < tor_thre:
-                    model_torl_count *= int(last_met)
-                    model_torl_count += 1
-                    if model_torl_count >= update_model_torl:
-                        stop_train = model.check_and_update_model()
-                        model_torl_count = 0
-                last_met = np.abs(epoch_debug_loss - epoch_debug_record) * 100 < tor_thre
-                epoch_debug_record = epoch_debug_loss
+                if not update_model_by_val and epoch >1:
+                    better_res= epoch_val_loss > update_model_epoch_best_dice_record
+                    update_model_epoch_best_dice_record = epoch_val_loss if better_res  else update_model_epoch_best_dice_record
+                    update_model_epoch_best_record = epoch if better_res else update_model_epoch_best_record
+                    if np.abs(epoch_debug_loss - epoch_debug_record) * 100 < tor_thre or update_model_epoch_count> update_model_epoch_torl:
+                        model_torl_count *= int(last_met)
+                        model_torl_count += 1
+                        if model_torl_count >= update_model_torl or update_model_epoch_count> update_model_epoch_torl: #and  epoch_debug_loss > epoch_debug_record:
+                            if model_torl_count >= update_model_torl:
+                                print("reached the update_model_torl :{}".format(update_model_torl))
+                            else:
+                                print("reached the update epoch_torl :{}".format(update_model_epoch_torl))
+                            stop_train = model.check_and_update_model(update_model_epoch_best_record)
+                            model_torl_count = 0
+                            update_model_epoch_count = 0
+                            update_model_epoch_best_dice_record=0
+                    last_met = np.abs(epoch_debug_loss - epoch_debug_record) * 100 < tor_thre
+                    epoch_debug_record = epoch_debug_loss
 
         print()
 

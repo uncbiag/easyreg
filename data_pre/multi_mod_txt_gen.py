@@ -9,7 +9,7 @@ class MultiTxtGen(object):
         self.img_type = img_type
         self.label_replace = label_replace
         self.file_path_list_dic = {}
-        self.ratio = (0.95, 0.05)
+        self.ratio = (0.8, 0.05)
         self.sesses = ['train','val','test']
         self.file_num = -1
         self.divide_ind={}
@@ -105,7 +105,7 @@ class MultiTxtGenByFolder(object):
         self.label_replace = label_replace
         self.file_path_list_dic = {}
         self.sesses = ['train','val','test']
-        self.ratio = (0.95,0.05)
+        self.ratio = (0.8,0.2)
         self.file_num = -1
         self.divide_ind={}
 
@@ -193,7 +193,7 @@ class MultiTxtGenByFolder(object):
 
 # Brat dataset
 model_list = ['flair','t1','t1ce','t2']
-data_path = ['/playpen/zyshen/data/miccia_brats/train','/playpen/zyshen/data/miccia_brats/test']
-output_path_list = '/playpen/zyshen/data/miccia_brats'
+data_path = ['/playpen/raid/zyshen/data/miccia_brats/train','/playpen/raid/zyshen/data/miccia_brats/test']
+output_path_list = '/playpen/raid/zyshen/data/miccia_brats'
 brat = MultiTxtGenByFolder(mode_list=model_list, data_path_list=data_path, output_path=output_path_list, img_type='.nii.gz',label_replace='seg')
 brat.gen_text()

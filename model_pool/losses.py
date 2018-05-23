@@ -84,8 +84,8 @@ class Loss(object):
             self.record_weight = None
 
 
-    def get_loss(self,output, gt, inst_weights=None):
-        return self.criterion(output, gt,inst_weights=inst_weights)
+    def get_loss(self,output, gt, inst_weights=None, train=False):
+        return self.criterion(output, gt,inst_weights=inst_weights, train=train)
 
 
     def get_inverse_label_density(self,opt):
@@ -113,6 +113,7 @@ class Loss(object):
             continuous_update = opt['tsk_set']['loss'][('continuous_update', False, 'using residue weight')]
             log_update = opt['tsk_set']['loss'][('log_update', False, 'using residue weight')]
             only_resid_update = opt['tsk_set']['loss'][('only_resid_update', False, 'using residue weight')]
+            rand_resid_update = opt['tsk_set']['loss'][('rand_resid_update', False, 'using residue weight')]
             only_bg_avg_update = opt['tsk_set']['loss'][('only_bg_avg_update', False, 'using only_bg_avg_update weight')]
             only_bg_avg_log_update = opt['tsk_set']['loss'][('only_bg_avg_log_update', False, 'using only_bg_avg_log_update weight')]
             factor_update = opt['tsk_set']['loss'][('factor_update', False, 'using factor weight ')]
@@ -136,6 +137,16 @@ class Loss(object):
                 # residue_weight =np.log1p(class_weight)+ ga* np.log1p((np.asarray(residue_weight)))
                 residue_weight = np.log1p((np.asarray(residue_weight))+0.15)   # fromm task52  from task68_2 # remove ga from task110
                 re_class_weight = residue_weight
+
+            if rand_resid_update:  # from task51 add sm
+                residue_weight = opt['tsk_set']['loss'][('residue_weight', [1] * class_num, 'residue weight')]  # from 34
+                rand_ratio = opt['tsk_set']['loss'][('rand_ratio',0.5, 'rand_ratio')]  # from 34
+                print("current rand_raito is {}".format(rand_ratio))
+                mask_num = int((1.-rand_ratio)* len(residue_weight))
+                masked_label = residue_weight
+                if self.manual_set: # here mask_num refer to the label need to be masked, background 0 should be left
+                    masked_label = np.argsort(residue_weight)[1:mask_num]   # fromm task52  from task68_2 # remove ga from task110
+                return masked_label
             if only_bg_avg_update:
                 residue_weight = opt['tsk_set']['loss'][
                     ('residue_weight', [1] * class_num, 'residue weight')]  # from 34
@@ -218,7 +229,7 @@ class FocalLoss(nn.Module):
         self.class_num = class_num
         self.size_average = size_average
 
-    def forward(self, inputs, targets, weight= None, inst_weights=None):
+    def forward(self, inputs, targets, weight= None, inst_weights=None, train=None):
         """
 
         :param inputs: Bxn_classxXxYxZ
@@ -265,7 +276,7 @@ class DiceLoss(nn.Module):
             else:
                 self.weight = Variable(weight)
         self.weight = torch.squeeze(self.weight)
-    def forward(self,input, target, inst_weights=None):
+    def forward(self,input, target, inst_weights=None,train=None):
         """
         input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
         target is a Bx....   range 0,1....N_label
@@ -312,7 +323,7 @@ class GeneralizedDiceLoss(nn.Module):
             else:
                 self.weight = Variable(weight)
         self.weight = torch.squeeze(self.weight)
-    def forward(self,input, target):
+    def forward(self,input, target,inst_weights=None,train=None):
         """
         input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
         target is a Bx....   range 0,1....N_label
@@ -364,7 +375,7 @@ class TverskyLoss(nn.Module):
         self.beta = beta
         print("the weight of Tversky loss is  {}".format(weight))
 
-    def forward(self,input, target,inst_weights=None):
+    def forward(self,input, target,inst_weights=None, train=None):
         """
         input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
         target is a Bx....   range 0,1....N_label
@@ -403,6 +414,12 @@ class TverskyLoss(nn.Module):
         return dice_total
 
 
+
+
+
+
+
+
 class CrossEntropyLoss(nn.Module):
     def __init__(self, opt, imd_weight=None):
         # To Do,  add dynamic weight
@@ -410,22 +427,32 @@ class CrossEntropyLoss(nn.Module):
         no_bg = opt[('no_bg',False,'exclude background')]
         weighted = opt[('weighted',True,'  weighted the class')]
         reduced = opt[('reduced',True,'  reduced the class')]
+        self.mask = None #opt[('mask',None, 'masked other label')]
         class_num = opt['class_num']
 
         if no_bg:
             self.loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
         if weighted:
             class_weight = opt['class_weight']if imd_weight is None else imd_weight
-            self.loss_fn = nn.CrossEntropyLoss(weight=class_weight, reduce = reduced)
+            if not (len(class_weight)< class_num):
+                self.loss_fn = nn.CrossEntropyLoss(weight=class_weight, reduce = reduced)
+                self.mask=None
+            else:  # this is the case for using random mask, the class weight here refers to the label need be masked
+                self.mask = class_weight
+                print("the current mask is {}".format(self.mask))
+                self.loss_fn = nn.CrossEntropyLoss()
         else:
             self.loss_fn = nn.CrossEntropyLoss(reduce = reduced)
         self.n_class = class_num
-    def forward(self, input, gt, inst_weights= None):
+    def forward(self, input, gt, inst_weights= None, train=False):
         """
         :param inputs: Bxn_classxXxYxZ
         :param targets: Bx.....  , range(0,n_class)
         :return:
         """
+        if self.mask is not None and train:
+            for m in self.mask:
+                gt[gt==m]=0
         if len(input.shape)==5:
             output_flat = input.permute(0, 2, 3, 4, 1).contiguous().view(-1, self.n_class)
         else:

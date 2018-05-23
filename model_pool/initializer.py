@@ -92,8 +92,12 @@ class Initializer():
                 self.data_manager.init_dataset()
                 self.data_manager.prepare_data()
                 par_dataset.load_JSON(setting_path)
-                par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_data_path()
-                par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))
+                # par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_data_path()############################3
+                # par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))############3
+
+            par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_default_dataset_path(False)
+            par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(), 'data_settings.json'))
+
             task_root_path = self.data_manager.get_task_root_path()
 
         self.task_root_path = task_root_path

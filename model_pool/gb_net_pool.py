@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+import numpy as np
 
 # 3D UNet and its variants
 
@@ -260,6 +261,42 @@ class UNet_light5(nn.Module):
         d0 = self.dc0(e3)
         return d0
 
+class UNet_light6(nn.Module):
+    def __init__(self, in_channel, n_classes, bias=False, BN=False):
+        super(UNet_light6, self).__init__()
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.ec0 = encoder(self.in_channel, 4, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.ec1 = encoder(4, 8, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.ec2 = decoder(8, 16, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.ec3 = decoder(16, 8, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.dc0 = nn.Conv3d(8, n_classes, kernel_size=1, stride=1, padding=0, bias=bias)
+    def forward(self, x):
+        e0 = self.ec0(x)
+        e1 = self.ec1(e0)
+        e2 = self.ec2(e1)
+        e3 = self.ec3(e2)
+
+        d0 = self.dc0(e3)
+        return d0
+
+class UNet_light7(nn.Module):
+    def __init__(self, in_channel, n_classes, bias=False, BN=False):
+        super(UNet_light7, self).__init__()
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.ec0 = encoder(self.in_channel, 4, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.ec1 = encoder(4, 8, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.ec2 = decoder(8, 8, kernel_size=2,stride=2, padding=0,bias=bias, batchnorm=BN)
+        self.dc0 = nn.Conv3d(8, n_classes, kernel_size=1, stride=1, padding=0, bias=bias)
+    def forward(self, x):
+        e0 = self.ec0(x)
+        e1 = self.ec1(e0)
+        e2 = self.ec3(e1)
+
+        d0 = self.dc0(e2)
+        return d0
+
 
 
 class gbNet(nn.Module):
@@ -295,13 +332,16 @@ class gbNet(nn.Module):
                     if not m.bias is None:
                         m.bias.data.zero_()
         else:
-            for m in self.models[-1].modules():
+            count = 0
+            for m in self.models[self.cur_model_id].modules():
                 classname = m.__class__.__name__
                 if classname.find('Conv') != -1:
                     if not m.weight is None:
                         nn.init.xavier_normal(m.weight.data)
                     if not m.bias is None:
                         m.bias.data.zero_()
+                    count+=1
+            print("{}conv layers has been initialized".format(count))
 
     def cascaded_parameters(self):
         if self.end2end:
@@ -321,7 +361,7 @@ class gbNet(nn.Module):
 
 
 
-    def _init_cur_training_model(self):
+    def _update_cur_training_model(self,init=False):
         """
         Assume all the net[0,..model_id-1] has already been trained
         :return:
@@ -330,32 +370,41 @@ class gbNet(nn.Module):
         if not self.end2end:
             # the model before the current model will be in the inference stated
             if model_id>0:
-                # for param in self.models[self.cur_model_id-1].parameters():
-                #     param.requires_grad = False
-                self.models[self.cur_model_id-1].eval()
-            # we use the previous model's parameter to initialized the current model to be trained
-                if model_id > self.st_copy_previous_model:
-                    self.models[model_id].load_state_dict(self.models[model_id-1].state_dict())
+                for ind in range(model_id):
+                    self.models[ind].eval()
+                if model_id > self.st_copy_previous_model and init:
+                    #self.models[model_id].load_state_dict(self.models[model_id-1].state_dict())
+                    self.weights_init()
             self.models[model_id].train(True)
+        else:
+            self.train(True)
 
 
 
-    def set_cascaded_eval(self):
+
+
+    def set_cascaded_eval(self, cur_id=None):
         # this function will not be used
+        cur_id = cur_id if cur_id is not None else self.cur_model_id
         self.training = False
-        self._set_cur_model_id(self.num_models-1)
+        self._set_cur_model_id(cur_id)
         self.eval()
 
 
-    def set_cascaded_train(self, model_id):
+
+    def set_cascaded_train(self, cur_id=None, init=False):
         """
         :param model_id: the model id should be 0,1,2,3,...
 
         :return:
         """
+        cur_id = cur_id if cur_id is not None else self.cur_model_id
         self.training = True
-        self._set_cur_model_id(model_id)
-        self._init_cur_training_model()
+        self._set_cur_model_id(cur_id)
+        self._update_cur_training_model(init)
+
+
+
 
 
     def encode_target(self, in_sz, target):
@@ -370,17 +419,19 @@ class gbNet(nn.Module):
     def adaboost_module(self, logit, target=None):
         learning_rate = 1.
         logp_output = self.log_softmax(logit)
+        # logp_output[logp_output<-6] = -6
+        # logp_output[logp_output>-1e-3] = -1e-3
         weight = None
-        h = None
-        if self.training:
+        if self.training and not self.end2end:
             weight = torch.exp(-learning_rate * (((self.num_class - 1.) / self.num_class)
                                 * torch.sum(target * logp_output, dim=1)))
-        else:
-            h = (self.num_class - 1) * (logp_output - (1. / self.num_class)
+        h = (self.num_class - 1) * (logp_output - (1. / self.num_class)
                                 * torch.sum(logp_output, dim=1,keepdim=True))
 
-        if weight is not None:
-            weight[weight>1]=1.
+        # if weight is not None:
+        #     if not self.end2end:
+        #         weight[weight>1]=1.
+
         return weight, h
 
     def check_if_volatile(self, id, num_models):
@@ -401,14 +452,14 @@ class gbNet(nn.Module):
 
 
         train = self.training
+        self.num_cur_models = self.cur_model_id + 1
         num_cur_models = self.num_cur_models
         num_instances = input.numel()/input.size(1)
         estimator_weight = None
         h = None
         cur_h = None
-        resid_output = None
-        if self.cur_model_id ==0:
-            input.volatile= False
+        resid_added_output = None
+        input.volatile= self.check_if_volatile(0, num_cur_models)
         output = self.models[0](input)
         in_sz = list(output.size())
 
@@ -418,44 +469,53 @@ class gbNet(nn.Module):
             if train:
                 target = self.encode_target(in_sz, target)
 
+            estimator_weight, cur_h = self.adaboost_module(output, target=target) # here we'd better to do some scale
             if self.cur_model_id == 0 and train:
                 estimator_weight = Variable(torch.cuda.FloatTensor([1.]))
-            else:
-                estimator_weight, cur_h = self.adaboost_module(output, target=target) # here we'd better to do some scale
-                h = cur_h
+            h = cur_h
 
         if self.residual:
-            resid_output = output
+            resid_added_output = output
 
 
         for i in range(1, num_cur_models):
             volatile = self.check_if_volatile(i, num_cur_models)
             if self.auto_context:
                 # voliate on  when is (not the current model, not end to end) or not train
-                temp_input = Variable(torch.cat([self.softmax(output).data, input.data], dim=1),
-                                      volatile=volatile)
+                if self.residual:
+                    temp_input = Variable(torch.cat([self.softmax(resid_added_output).data, input.data], dim=1), volatile=volatile)
+                if self.adaboost:
+                    temp_input = Variable(torch.cat([self.softmax(h).data, input.data], dim=1),
+                                          volatile=volatile)
                 assert temp_input.requires_grad == False
             else:
-                temp_input = Variable(input.data.cuda(), volatile=volatile)
+                temp_input = Variable(input.data, volatile=volatile)
 
 
-            # # detach the output of the last model
-            # if i == num_cur_models-1 and not self.end2end and train:
-            #     output = output.detach()
-            #     output.volatile=False
 
             output = self.models[i](temp_input)
 
             if self.residual:
-                resid_output = resid_output*self.residual_scale + output
+                if i == num_cur_models-1 and not self.end2end:
+                    resid_added_output = Variable(resid_added_output.data)
+                resid_added_output = resid_added_output*self.residual_scale + output
 
 
             if self.adaboost:
-                if train:
+                if train and not self.end2end:
                     # the weight of the current model is not used
                     if i < num_cur_models-1:
                         cur_w, cur_h = self.adaboost_module(output, target=target)
-                        estimator_weight *= cur_w
+                        estimator_weight *= cur_w*1.5
+                        if self.auto_context:
+                            h += cur_h
+                        # print(np.histogram(np.log10(estimator_weight.cpu().data.numpy()), bins=list(range(-6,6))))
+                        # print('\n')
+                        # if estimator_weight is not None:  ##############################################################################
+                        #     if not self.end2end:
+                        #         estimator_weight[estimator_weight>1]=1.
+
+
                 else:
                     cur_w, cur_h = self.adaboost_module(output, target=target)
                     h += cur_h
@@ -463,17 +523,21 @@ class gbNet(nn.Module):
 
         if train:
             if self.residual:
-                return resid_output, None
+                return resid_added_output, None
 
             elif self.adaboost:
-                if self.cur_model_id>0:
-                    estimator_weight.volatile = False
-                    estimator_weight *= 10
+                # if self.cur_model_id>0:
+                #     estimator_weight *= 10################################################3
+                #print("the biggest value of weight is {}, the smallest value of weight is {}".format(
+                #    torch.max(estimator_weight), torch.min(estimator_weight)))
+                if estimator_weight is not None:  ##############################################################################
+                    if not self.end2end:
+                        estimator_weight[estimator_weight > 1] = 1.
 
-                return output, Variable(estimator_weight.data)
+                return output if not self.end2end else h,   Variable(estimator_weight.data) if not self.end2end else None
         else:
             if self.residual:
-                return resid_output
+                return resid_added_output
             elif self.adaboost:
                 if not self.debugging:
                     return h

@@ -185,12 +185,19 @@ class BaseModel():
         pass
 
     def set_train(self):
-        pass
+        self.network.train(True)
+        self.is_train =True
     def set_val(self):
-        pass
+        self.network.train(False)
+        self.is_train = False
 
     def set_debug(self):
-        pass
+        self.network.train(False)
+        self.is_train = False
+
+    def set_test(self):
+        self.network.train(False)
+        self.is_train = False
 
 
 
@@ -281,7 +288,7 @@ class BaseModel():
         if self.imd_weighted_loss_on:
             self.get_imd_weight_loss()
         output = self.output if output is None else output
-        return self.loss_fn.get_loss(output,self.gt)
+        return self.loss_fn.get_loss(output,self.gt, train=self.is_train)
 
     def cal_seq_loss(self,output_seq):
         loss =0.0
@@ -449,7 +456,7 @@ class BaseModel():
 
 
     def get_val_res(self):
-        return self.val_res_dic['batch_label_avg_res']['dice'], self.val_res_dic['batch_avg_res']['dice']
+        return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['batch_avg_res']['dice']
 
     def get_test_res(self):
         return self.get_val_res()
@@ -581,7 +588,7 @@ class BaseModel():
 
 
 
-    def check_and_update_model(self):
+    def check_and_update_model(self,epoch):
         return None
 
 

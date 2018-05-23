@@ -44,6 +44,7 @@ class Assemble_Net_Test(nn.Module):
             get_test_model(path,model,None,old_gpu=gpu_switcher[0],cur_gpu=gpu_switcher[1])
             model_list.append(model)
         self.model_list = nn.ModuleList(model_list).cuda()
+        self.len_model_list = len(self.model_list)
         self.n_class = n_class
         print("default assemble model is successfully initialized")
 
@@ -72,8 +73,12 @@ class Assemble_Net_Test(nn.Module):
         count_map = Variable(count_map)
         #count_map = torch.zeros([list(input.shape)[0]]+[self.n_classes] + list(input.shape)[2:]).cuda()
 
-        for i in range(self.n_class):
+        # for i in range(self.n_class):   ##############################################################################################
+        #     count_map[:,i,...] = torch.sum(input == i, dim=1)
+        for i in range(1,self.n_class):   ##############################################################################################
             count_map[:,i,...] = torch.sum(input == i, dim=1)
+        count_map[:, 0, ...] = int(self.len_model_list/4)
+
         return count_map
 
     def forward(self, input):

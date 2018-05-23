@@ -26,7 +26,7 @@ def debug_model(opt,model, dataloaders):
         model.cal_test_errors()
         if save_fig_on:
             model.save_fig('best')
-        loss = model.get_test_res()
+        loss,_ = model.get_test_res()
         running_test_loss += loss
     test_loss = running_test_loss / dataloaders['data_size'][phase]
     print('the average test_loss: {:.4f}'.format(test_loss))

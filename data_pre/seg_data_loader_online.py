@@ -26,7 +26,8 @@ class SegmentationDataset(Dataset):
         super(SegmentationDataset).__init__()
         self.data_path = data_path
         self.is_train = phase =='train'
-        self.is_test = False#phase=='test'
+        self.is_brats = 'brats' in data_path
+        self.is_test = phase=='test' if self.is_brats else False
         self.phase = phase
         self.transform = transform
         self.data_type = '*.h5py'
@@ -62,7 +63,7 @@ class SegmentationDataset(Dataset):
         f_filter = glob( join(self.data_path, '**', '*.h5py'), recursive=True)
         ##############
 
-        #f_filter= f_filter[0:3]
+        #f_filter= f_filter[0:4]
         #############
         name_list = [get_file_name(f,last_ocur=True) for f in f_filter]
         return f_filter,name_list
@@ -154,7 +155,10 @@ class SegmentationDataset(Dataset):
 
     def __len__(self):
         if self.is_train:
-            return len(self.name_list)*100
+            if not self.use_org_size:
+                return len(self.name_list)*100
+            else:
+                return len(self.name_list)*10
         else:
             return len(self.name_list)
     def gen_coord_map(self, img_sz):
@@ -205,7 +209,7 @@ class SegmentationDataset(Dataset):
 
         ########################### channel sel
         if self.transform:
-            index = [0]
+            index = [0] if not self.is_brats else [0,1,2,3]
             if self.add_loc:
                 index = index + [index[-1]+1 for _ in range(3)]
             if self.is_train:
