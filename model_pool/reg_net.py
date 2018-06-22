@@ -29,25 +29,28 @@ class RegNet(BaseModel):
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-        self.network = FlowNet(self.img_sz, self.spacing)
+        self.network = SimpleNet(self.img_sz, factor=1)
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         if self.continue_train:
             self.load_network(self.network,'reg_net',which_epoch)
         self.loss_fn = Loss(opt)
-        self.init_optim(opt['tsk_set']['optim'])
+        self.opt_optim = opt['tsk_set']['optim']
+        self.init_optimize_instance(warmming_up=True)
         print('---------- Networks initialized -------------')
         networks.print_network(self.network)
         if self.isTrain:
             networks.print_network(self.network)
         print('-----------------------------------------------')
 
-
+    def init_optimize_instance(self, warmming_up=False):
+        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
+                                                                                   warmming_up=warmming_up)
 
 
     def set_input(self, data, is_train=True):
         moving, target, l_moving,l_target = get_pair(data[0])
-        input = organize_data(moving, target, sched='list_concat')
+        input = data[0]['image']
         volatile = not is_train
         self.moving = Variable(moving.cuda(),volatile=volatile)
         self.target = Variable(target.cuda(),volatile=volatile)

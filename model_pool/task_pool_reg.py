@@ -932,11 +932,11 @@ tsm.task_par['tsk_set']['save_by_standard_label'] = True
 tsm.task_par['tsk_set']['continue_train'] =False
 tsm.task_par['tsk_set']['continue_train_lr'] = 5e-4 ####################################################################3
 tsm.task_par['tsk_set']['old_gpu_ids']=2
-tsm.task_par['tsk_set']['gpu_ids'] = 1  #1
+tsm.task_par['tsk_set']['gpu_ids'] = 0  #1
 
 tsm.task_par['tsk_set']['model_path'] = "/playpen/zyshen/data/oai_2_vnet_oai_seg_nopatchedmy_balanced_random_crop/ada_zhenlin_nat_light2x3_patch_fixed_longiter/checkpoints/epoch_80_"
 dm.data_par['datapro']['dataset']['task_name']='reg_debug'
-dm.data_par['datapro']['dataset']['prepare_data']=True
+dm.data_par['datapro']['dataset']['prepare_data']=False
 dm.data_par['datapro']['seg']['sched']='nopatched'
 
 
@@ -959,10 +959,10 @@ dm.data_par['datapro']['seg']['partition']['flicker_mode']='rand'
 dm.data_par['datapro']['seg']['partition']['flicker_range']=5
 
 tsm.task_par['tsk_set']['task_name'] = 'ada_zhenlin_nat_light2_light5x2_patch_fixed_longiter_2'  #task42_unet4_base
-tsm.task_par['tsk_set']['network_name'] ='gb_net'
+tsm.task_par['tsk_set']['network_name'] ='reg_net'
 tsm.task_par['tsk_set']['epoch'] = 360
-tsm.task_par['tsk_set']['model'] = 'gbnet'
-tsm.task_par['tsk_set']['batch_sz'] = 4
+tsm.task_par['tsk_set']['model'] = 'reg_net'
+tsm.task_par['tsk_set']['batch_sz'] = 1
 tsm.task_par['tsk_set']['val_period'] =10
 tsm.task_par['tsk_set']['loss']['update_epoch'] =-1
 tsm.task_par['tsk_set']['loss']['imd_weighted_loss_on']= False

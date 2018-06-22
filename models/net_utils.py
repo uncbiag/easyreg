@@ -5,6 +5,13 @@ import torch.nn.functional as F
 import numpy as np
 
 
+dim = 3
+Conv = nn.Conv2d if dim==2 else nn.Conv3d
+ConvTranspose = nn.ConvTranspose2d if dim==2 else nn.ConvTranspose3d
+BatchNorm = nn.BatchNorm2d if dim==2 else nn.BatchNorm3d
+conv = F.conv2d if dim==2 else F.conv3d
+
+
 class ConvBnRel(nn.Module):
     # conv + bn (optional) + relu
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, active_unit='relu', same_padding=False,
@@ -12,10 +19,10 @@ class ConvBnRel(nn.Module):
         super(ConvBnRel, self).__init__()
         padding = int((kernel_size - 1) / 2) if same_padding else 0
         if not reverse:
-            self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding)
+            self.conv = Conv(in_channels, out_channels, kernel_size, stride, padding=padding)
         else:
-            self.conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding=padding)
-        self.bn = nn.BatchNorm2d(out_channels, eps=0.0001, momentum=0, affine=True) if bn else None
+            self.conv = ConvTranspose(in_channels, out_channels, kernel_size, stride, padding=padding)
+        self.bn = BatchNorm(out_channels, eps=0.0001, momentum=0, affine=True) if bn else None
         if active_unit == 'relu':
             self.active_unit = nn.ReLU(inplace=True)
         elif active_unit == 'elu':
@@ -52,18 +59,61 @@ class FcRel(nn.Module):
         return x
 
 
-class JacobiField(object):
+class HessianField(object):
     def __init__(self):
-        self.dx = Variable(torch.cuda.FloatTensor([[1., 0., -1.], [2., 0., -2.], [1., 0., -1.]])).view(1,1,3,3)
-        self.dy = Variable(torch.cuda.FloatTensor([[1., 2., 1.], [0., 0., 0.], [-1., -2., -1.]])).view(1,1,3,3)
-
+        if dim ==2:
+            self.laplace = Variable(torch.cuda.FloatTensor([0.,1.,0.],[1.,-4,1.],[0.,1.,0.])).view(1,1,3,3)
+        elif dim==3:
+            self.laplace = Variable(torch.cuda.FloatTensor([[[0., 0., 0.], [0., 1., 0.], [0., 0., 0.]],
+                                                            [[0., 1., 0.], [1., -6, 1.], [0., 1., 0.]]
+                                                            [[0., 0., 0.], [0., 1., 0.], [0., 0., 0.]]]
+                                                           )).view(1,1,3,3,3)
     def __call__(self,disField):
-        dxDisField = F.conv2d(disField[:,1:2,...], self.dx)
-        dyDisField = F.conv2d(disField[:,0:1,...], self.dy)
-        x = (dxDisField**2 + dyDisField**2)
-
+        x = conv(disField,self.laplace)
         return x
 
+
+
+class HessianField(object):
+    def __init__(self):
+        if dim ==2:
+            dx = Variable(torch.cuda.FloatTensor([[1., 0., -1.], [2., 0., -2.], [1., 0., -1.]])).view(1,1,3,3)
+            dy = Variable(torch.cuda.FloatTensor([[1., 2., 1.], [0., 0., 0.], [-1., -2., -1.]])).view(1,1,3,3)
+            self.spatial_filter = torch.cat((dx,dy),1)
+            self.spatial_filter.repeat(2, 1, 1, 1)
+        elif dim==3:
+            dx = Variable(torch.cuda.FloatTensor([[[-1., -3., -1.], [-3., -6., -3.], [-1., -3., -1.]],
+                                                            [[0., 0., 0.], [0., 0, 0.], [0., 0., 0.]],
+                                                            [[1., 3., 1.], [3., 6., 3.], [1., 3., 1.]]]
+                                                           )).view(1,1,3,3,3)
+            dy  = Variable(
+                torch.cuda.FloatTensor([[[1., 3., 1.], [0., 0., 0.], [-1., -3., -1.]],
+                                        [[3., 6., 3.], [0., 0, 0.], [-3., -6., -3.]],
+                                        [[1., 3., 1.], [0., 0., 0.], [-1., -3., -1.]]]
+                                       )).view(1, 1, 3, 3, 3)
+            dz = Variable(
+                torch.cuda.FloatTensor([[[-1., 0., 1.], [-3., 0., 3.], [-1., 0., 1.]],
+                                        [[-3., 0., 3.], [-6., 0, 6.], [-3., 0., 3.]],
+                                        [[-1., 0., 1.], [-3., 0., 3.], [-1., 0., 1.]]]
+                                       )).view(1, 1, 3, 3, 3)
+            self.spatial_filter = torch.cat((dx, dy,dz), 1)
+            self.spatial_filter=self.spatial_filter.repeat(3,1,1,1,1)
+
+    def __call__(self,disField):
+        hessionField = conv(disField, self.spatial_filter)
+        if dim==2:
+            return hessionField[:, 0:1, ...] ** 2 + hessionField[:, 1:2, ...] ** 2
+
+        elif dim==3:
+            return hessionField[:, 0:1, ...] ** 2 + hessionField[:, 1:2, ...] ** 2 + hessionField[:, 2:3, ...] ** 2
+
+
+class JacobiField(object):
+    def __call__(self,disField):
+        if dim==2:
+            return disField[:,0:1,...]**2 + disField[:,1:2,...]**2
+        elif dim==3:
+            return disField[:,0:1,...]**2 + disField[:,1:2,...]**2 +disField[:,2:3,...]**2
 
 
 def save_net(fname, net):

@@ -22,8 +22,10 @@ class RegistrationDataset(Dataset):
         self.data_path = data_path
         self.phase = phase
         self.transform = transform
-        self.data_type = '*.h5py'  # '*.nii.gz'
+        self.data_type = '*.nii.gz'
         self.get_file_list()
+        self.resize = True
+        self.resize_factor=[0.5,0.5,0.5]
 
     def get_file_list(self):
         """
@@ -36,8 +38,41 @@ class RegistrationDataset(Dataset):
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
 
 
+    def resize_img(self, img, is_label=False):
+        """
+        :param img: sitk input, factor is the outputsize/patched_sized
+        :return:
+        """
+        resampler= sitk.ResampleImageFilter()
+        dimension =3
+        factor = self.resize_factor
+        img_sz = img.GetSize()
+        affine = sitk.AffineTransform(dimension)
+        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+        after_size = [img_sz[i]*factor[i] for i in range(dimension)]
+        after_size = [int(sz) for sz in after_size]
+        matrix[0, 0] =1./ factor[0]
+        matrix[1, 1] =1./ factor[1]
+        matrix[2, 2] =1./ factor[2]
+        affine.SetMatrix(matrix.ravel())
+        resampler.SetSize(after_size)
+        resampler.SetTransform(affine)
+        if is_label:
+            resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        else:
+            resampler.SetInterpolator(sitk.sitkBSpline)
+        img_resampled = resampler.Execute(img)
+        return img_resampled
+
+
+    def __read_and_clean_itk_info(self,path):
+        return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(path)))
+
+
+
     def __len__(self):
         return len(self.name_list)
+
 
     def __getitem__(self, idx):
         """
@@ -46,18 +81,26 @@ class RegistrationDataset(Dataset):
         """
         pair_path = self.path_list[idx]
         filename = self.name_list[idx]
-        pair_dic = [read_h5py_file(pt) for pt in pair_path]
-        sample = {'image': np.asarray([pair_dic[0]['data'],pair_dic[1]['data']]),
-                  'info': pair_dic[0]['info']}
-        if pair_dic[0]['label'] is not None:
-            sample ['label']= np.asarray([pair_dic[0]['label'], pair_dic[1]['label']])
+        sitk_pair_list = [ self.__read_and_clean_itk_info(pt) for pt in pair_path]
+        if self.resize:
+            sitk_pair_list[0] = self.resize_img(sitk_pair_list[0])
+            sitk_pair_list[1] = self.resize_img(sitk_pair_list[1])
+            if len(pair_path)==4:
+                sitk_pair_list[2] = self.resize_img(sitk_pair_list[2], is_label=True)
+                sitk_pair_list[3] = self.resize_img(sitk_pair_list[3], is_label=True)
+
+        pair_list = [sitk.GetArrayFromImage(sitk_pair) for sitk_pair in sitk_pair_list]
+        sample = {'image': np.asarray([pair_list[0]*2-1,pair_list[1]*2-1])}
+
+        if len(pair_path)==4:
+            sample ['label']= np.asarray([pair_list[0], pair_list[1]])
         else:
             sample['label'] = None
         if self.transform:
             sample['image'] = self.transform(sample['image'])
             if sample['label'] is not None:
                  sample['label'] = self.transform(sample['label'])
-        sample['spacing'] = self.transform(sample['info']['spacing'])
+        #sample['spacing'] = self.transform(sample['info']['spacing'])
         return sample,filename
 
 

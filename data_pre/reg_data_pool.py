@@ -392,6 +392,23 @@ class PatientStructureDataSet(VolumetricDataSet):
         return sub_path,sub_patients_dic
 
 
+    def __initialize_info(self,one_label_path):
+        label = sitk.ReadImage(one_label_path)
+        label = sitk.GetArrayFromImage(label)
+        label_list = list(np.unique(label))
+        num_label = len(label_list)
+        self.standard_label_index = tuple([int(item) for item in label_list])
+        print('the standard label index is :{}'.format(self.standard_label_index))
+        print('the num of the class: {}'.format(num_label))
+        self.num_label = num_label
+        linfo={}
+        linfo['num_label'] = num_label
+        linfo['standard_label_index']= self.standard_label_index
+        linfo['img_size'] = label.shape
+        linfo['spacing']=np.array([-1])
+        self.save_shared_info(linfo)
+
+
 
     def __gen_intra_pair_list(self,patients, pair_num_limit = 1000):
         intra_pair_list = []
@@ -406,6 +423,7 @@ class PatientStructureDataSet(VolumetricDataSet):
             if len(intra_pair_list)> 3*pair_num_limit:
                 break
         random.shuffle(intra_pair_list)
+        self.__initialize_info(patients[0].get_label_path_list()[0])
         return intra_pair_list[:pair_num_limit]
 
 
@@ -424,13 +442,15 @@ class PatientStructureDataSet(VolumetricDataSet):
             pair = [all_image_list[rand_pair_id[0]], all_image_list[rand_pair_id[1]],
                     all_label_list[rand_pair_id[0]], all_label_list[rand_pair_id[1]]]
             inter_pair_list.append(pair)
+
+        self.__initialize_info(patients[0].get_label_path_list()[0])
         return inter_pair_list
 
     def __gen_path_and_name_dic(self, pair_list_dic):
         sesses = ['train', 'val', 'test', 'debug']
         divided_path_and_name_dic={}
         divided_path_and_name_dic['pair_path_list'] = pair_list_dic
-        divided_path_and_name_dic['pair_name_list'] = {sess:[get_file_name(path[0]) for path in pair_list_dic[sess]] for sess in sesses}
+        divided_path_and_name_dic['pair_name_list'] = {sess:[get_file_name(path[0])+'_'+get_file_name(path[1]) for path in pair_list_dic[sess]] for sess in sesses}
         return divided_path_and_name_dic
 
 

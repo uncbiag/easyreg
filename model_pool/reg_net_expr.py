@@ -11,16 +11,16 @@ from functions.bilinear import *
 
 
 class SimpleNet(nn.Module):
-    def __init__(self, img_sz=None):
+    def __init__(self, img_sz=None, factor=1.):
         super(SimpleNet,self).__init__()
         self.img_sz = img_sz
         self.denseGen = DisGen()
-        self.jacobiField = JacobiField()
+        self.hessianField = HessianField()
         self. denseAffineGrid= DenseAffineGridGen(self.img_sz)
         self.bilinear = Bilinear()
     def forward(self, input, moving):
         disField = self.denseGen(input)
-        jacobDisField = self.jacobiField(disField)
+        hessianField = self.hessianField(disField)
         gridField = self.denseAffineGrid(disField)
         #gridField= torch.tanh(gridField)
         output = self.bilinear(moving,gridField)
