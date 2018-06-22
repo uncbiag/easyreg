@@ -69,7 +69,7 @@ class DisGen(nn.Module):
         self.conv2 = nn.Sequential(ConvBnRel(64, 128, 3, active_unit='relu', same_padding=True, bn=bn),
                                   ConvBnRel(128, 64, 3, active_unit='relu', same_padding=True, bn=bn),
                                    ConvBnRel(64, 32, 3, active_unit='None', same_padding=True, bn=bn))
-        self.conv3 = nn.Sequential(ConvBnRel(32, 2, 3, active_unit='None', same_padding=True, bn=bn))
+        self.conv3 = nn.Sequential(ConvBnRel(32, dim, 3, active_unit='None', same_padding=True, bn=bn))
 
 
 
@@ -116,16 +116,36 @@ class SPPLayer(nn.Module):
         return x
 
 
-def grid_gen(img_sz):
-    height= img_sz[0]
-    width = img_sz[1]
-    grid = np.zeros([2, height, width], dtype=np.float32)
-    grid[0, ...] = np.expand_dims(
-        np.repeat(np.expand_dims(np.arange(-1, 1, 2.0 / height)[:height], 0), repeats=width, axis=0).T, 0)
-    grid[1, ...] = np.expand_dims(
-        np.repeat(np.expand_dims(np.arange(-1, 1, 2.0 / width)[:width], 0), repeats=height, axis=0), 0)
-    # self.grid[:,:,2] = np.ones([self.height, self.width])
-    return Variable(torch.from_numpy(grid.astype(np.float32)).cuda())
+
+def identity_map(sz):
+    """
+    Returns an identity map.
+
+    :param sz: just the spatial dimensions, i.e., XxYxZ
+    :param spacing: list with spacing information [sx,sy,sz]
+    :param dtype: numpy data-type ('float32', 'float64', ...)
+    :return: returns the identity map of dimension dimxXxYxZ
+    """
+    dim = len(sz)
+    if dim == 1:
+        id = np.mgrid[0:sz[0]]
+    elif dim == 2:
+        id = np.mgrid[0:sz[0], 0:sz[1]]
+    elif dim == 3:
+        id = np.mgrid[0:sz[0], 0:sz[1], 0:sz[2]]
+    else:
+        raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
+
+    id= id*2-1
+    return id
+
+
+
+
+
+
+
+
 
 
 class DenseAffineGridGen(nn.Module):
@@ -136,7 +156,7 @@ class DenseAffineGridGen(nn.Module):
         super(DenseAffineGridGen, self).__init__()
         self.height =img_sz[0]
         self.width =img_sz[1]
-        self.grid = grid_gen(img_sz)
+        self.grid = identity_map(img_sz)
 
 
 
