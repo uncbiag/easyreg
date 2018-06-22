@@ -434,7 +434,7 @@ class CrossEntropyLoss(nn.Module):
             self.loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
         if weighted:
             class_weight = opt['class_weight']if imd_weight is None else imd_weight
-            if not (len(class_weight)< class_num):
+            if class_weight is not None and not (len(class_weight)< class_num):
                 self.loss_fn = nn.CrossEntropyLoss(weight=class_weight, reduce = reduced)
                 self.mask=None
             else:  # this is the case for using random mask, the class weight here refers to the label need be masked

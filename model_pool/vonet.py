@@ -27,7 +27,9 @@ class Vonet(BaseModel):
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
+        vonet_test_path = opt['tsk_set'][('vonet_test_path',None, "vonet test path")]
         self.check_point_path = opt['tsk_set']['path']['check_point_path']
+        vonet_test_path =  opt['tsk_set']['path']['check_point_path'] if vonet_test_path is None else vonet_test_path
         self.mode_train= opt['tsk_set']['mode_train']
 
 
@@ -42,7 +44,7 @@ class Vonet(BaseModel):
             cur_gpu_id = opt['tsk_set']['gpu_ids']
             old_gpu_id = opt['tsk_set']['old_gpu_ids']
             epoch_list =opt['tsk_set']['voting']['epoch_list']# [i for i in range(210, 241,10)  ]  #range(245,249,2)] 79.34   (51,249,3) 79.66
-            self.network = Vonet_test(self.n_in_channel,self.n_class, self.check_point_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
+            self.network = Vonet_test(self.n_in_channel,self.n_class, vonet_test_path, epoch_list, (old_gpu_id,cur_gpu_id), bias=True,BN=True)
 
 
         else:

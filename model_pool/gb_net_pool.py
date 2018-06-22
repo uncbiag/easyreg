@@ -304,7 +304,7 @@ class gbNet(nn.Module):
     A cascaded model from a give model list
     Only train the last model and all other model are pre-trained.
     """
-    def __init__(self, model_list,num_class, end2end=False, auto_context=True, residual=False, adaboost=False, residual_scale=1.0):
+    def __init__(self, model_list,num_class, end2end=False, auto_context=True, residual=False, adaboost=False, multi_output=False,residual_scale=1.0):
         super(gbNet, self).__init__()
         self.models = nn.ModuleList(model_list)
         self.num_models = len(self.models)
@@ -320,6 +320,7 @@ class gbNet(nn.Module):
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.st_copy_previous_model = 0  #0
         self.debugging = False
+        self.multi_output= multi_output
 
 
     def weights_init(self):
@@ -417,7 +418,8 @@ class gbNet(nn.Module):
 
 
     def adaboost_module(self, logit, target=None):
-        learning_rate = 1.
+        learning_rate = 2 ####################################################################3
+        print("debug")
         logp_output = self.log_softmax(logit)
         # logp_output[logp_output<-6] = -6
         # logp_output[logp_output>-1e-3] = -1e-3
@@ -437,6 +439,20 @@ class gbNet(nn.Module):
     def check_if_volatile(self, id, num_models):
         volatile = True if id < num_models - 1 and not self.end2end else not self.training
         return volatile
+    def debug_w(self, estimate_weight):
+        return Variable(estimate_weight.data).view(estimate_weight.shape[0],1,estimate_weight.shape[1],estimate_weight.shape[2],estimate_weight.shape[3])
+
+    def debug_distr(self, v):
+        return np.histogram(v.cpu().data.numpy(),[1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4])
+
+    def debug_acc(self,output,target):
+        output = torch.max(output.data,1)[1]
+        output = output.cpu().numpy()
+        target = target.data.cpu().numpy()
+        from model_pool.metrics import get_multi_metric
+        metric_res = get_multi_metric(output,target , verbose=False)
+        print(metric_res['batch_avg_res'])
+        return metric_res
 
 
     def forward(self, input, target=None):
@@ -449,8 +465,11 @@ class gbNet(nn.Module):
         :param train: if training mode
         :return:the output of the last model
         """
+        if self.multi_output and self.end2end:
+            multi_output_list = []
+            multi_weight_list = []
 
-
+        #target0 = Variable(target.data)
         train = self.training
         self.num_cur_models = self.cur_model_id + 1
         num_cur_models = self.num_cur_models
@@ -461,6 +480,7 @@ class gbNet(nn.Module):
         resid_added_output = None
         input.volatile= self.check_if_volatile(0, num_cur_models)
         output = self.models[0](input)
+
         in_sz = list(output.size())
 
 
@@ -476,6 +496,14 @@ class gbNet(nn.Module):
 
         if self.residual:
             resid_added_output = output
+
+
+        if self.multi_output and self.end2end:
+            if self.residual:
+                multi_output_list.append(resid_added_output)
+            if self.adaboost:
+                multi_output_list.append(output)
+                multi_weight_list.append(estimator_weight)
 
 
         for i in range(1, num_cur_models):
@@ -494,6 +522,8 @@ class gbNet(nn.Module):
 
 
             output = self.models[i](temp_input)
+
+
 
             if self.residual:
                 if i == num_cur_models-1 and not self.end2end:
@@ -520,22 +550,39 @@ class gbNet(nn.Module):
                     cur_w, cur_h = self.adaboost_module(output, target=target)
                     h += cur_h
 
+            if self.multi_output and self.end2end:
+                if self.residual:
+                    multi_output_list.append(resid_added_output)
+                if self.adaboost:
+                    multi_output_list.append(output)
+                    multi_weight_list.append(estimator_weight)
+
+
 
         if train:
             if self.residual:
-                return resid_added_output, None
+                if not self.multi_output:
+                    return resid_added_output, None
+                else:
+                    return multi_output_list, [None]*len(multi_output_list)
 
-            elif self.adaboost:
+            if self.adaboost:
                 # if self.cur_model_id>0:
                 #     estimator_weight *= 10################################################3
                 #print("the biggest value of weight is {}, the smallest value of weight is {}".format(
                 #    torch.max(estimator_weight), torch.min(estimator_weight)))
-                if estimator_weight is not None:  ##############################################################################
-                    if not self.end2end:
-                        estimator_weight[estimator_weight > 1] = 1.
 
-                return output if not self.end2end else h,   Variable(estimator_weight.data) if not self.end2end else None
-        else:
+
+
+                # if estimator_weight is not None:  ##############################################################################
+                #     if not self.end2end:
+                #         estimator_weight[estimator_weight > 1] = 1.
+                if not self.multi_output:
+                    return output if not self.end2end else h,   Variable(estimator_weight.data) if not self.end2end else None
+                else:
+                    return multi_output_list, multi_weight_list
+
+        if not train:
             if self.residual:
                 return resid_added_output
             elif self.adaboost:

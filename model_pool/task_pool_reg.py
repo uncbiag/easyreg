@@ -918,23 +918,25 @@ class ModelTask(BaseTask):
 
 
 ################ Task 0   input -1 1#############
-tsm = ModelTask('task_263_vonet')
-dm = DataTask('task_263_vonet')
-dm.data_par['datapro']['task_type']='seg'
+tsm = ModelTask('task_reg')
+dm = DataTask('task_reg')
+dm.data_par['datapro']['task_type']='reg'
 dm.data_par['datapro']['dataset']['dataset_name']='oai'
-#dm.data_par['datapro']['dataset']['output_path']='/playpen/raid/zyshen/data/'
+dm.data_par['datapro']['reg']['sched']='intra'
+
+dm.data_par['datapro']['dataset']['output_path']='/playpen/raid/zyshen/data/'
 # tsm.task_par['tsk_set']['save_fig_on'] = False
 tsm.task_par['tsk_set']['train'] = True
 tsm.task_par['tsk_set']['dg_key_word'] = ''
 tsm.task_par['tsk_set']['save_by_standard_label'] = True
-tsm.task_par['tsk_set']['continue_train'] =True
+tsm.task_par['tsk_set']['continue_train'] =False
 tsm.task_par['tsk_set']['continue_train_lr'] = 5e-4 ####################################################################3
 tsm.task_par['tsk_set']['old_gpu_ids']=2
 tsm.task_par['tsk_set']['gpu_ids'] = 1  #1
 
 tsm.task_par['tsk_set']['model_path'] = "/playpen/zyshen/data/oai_2_vnet_oai_seg_nopatchedmy_balanced_random_crop/ada_zhenlin_nat_light2x3_patch_fixed_longiter/checkpoints/epoch_80_"
-dm.data_par['datapro']['dataset']['task_name']='oai_2_vnet'
-dm.data_par['datapro']['dataset']['prepare_data']=False
+dm.data_par['datapro']['dataset']['task_name']='reg_debug'
+dm.data_par['datapro']['dataset']['prepare_data']=True
 dm.data_par['datapro']['seg']['sched']='nopatched'
 
 

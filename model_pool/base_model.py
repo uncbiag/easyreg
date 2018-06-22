@@ -445,8 +445,12 @@ class BaseModel():
             metric_res= get_multi_metric(output, self.gt.cpu().data.numpy(), verbose=False)
             dice_weights = metric_res['batch_avg_res']['dice']
             label_list = metric_res['label_list']
-            log_resid_dice_weights = np.log1p(1.2 - dice_weights)
-            log_resid_dice_weights = log_resid_dice_weights / np.sum(log_resid_dice_weights)  #
+            log_resid_dice_weights = np.log1p(1.1 - dice_weights)
+            log_resid_dice_weights[0,0] = np.average(log_resid_dice_weights)
+            try:
+                log_resid_dice_weights = log_resid_dice_weights / np.sum(log_resid_dice_weights)  #
+            except:
+                print(log_resid_dice_weights)
             weights = np.zeros(self.n_class)
             weights[label_list] = log_resid_dice_weights
             weights = torch.cuda.FloatTensor(weights)
@@ -590,6 +594,13 @@ class BaseModel():
 
     def check_and_update_model(self,epoch):
         return None
+
+
+    def do_some_clean(self):
+        self.loss= None
+        self.gt=None
+        self.input = None
+        self.output= None
 
 
 

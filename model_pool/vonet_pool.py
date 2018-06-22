@@ -200,8 +200,14 @@ class Vonet_test(nn.Module):
         count_map = Variable(count_map)
         #count_map = torch.zeros([list(input.shape)[0]]+[self.n_classes] + list(input.shape)[2:]).cuda()
 
-        for i in range(self.n_classes):
+        # for i in range(self.n_classes):
+        #     count_map[:,i,...] = torch.sum(input == i, dim=1)
+
+
+        for i in range(1,self.n_classes):   ##############################################################################################
             count_map[:,i,...] = torch.sum(input == i, dim=1)
+        count_map[:, 0, ...] = int(len(self.net_dis_list)/4)
+
         return count_map
 
     def forward(self, input):

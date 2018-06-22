@@ -144,6 +144,7 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
         checkpoint = torch.load(model_path,map_location={'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
         start_epoch = 0
         best_prec1 = 0.0
+        load_only_one=False
         if 'epoch' in checkpoint:
             start_epoch = checkpoint['epoch']+1
             print("the started epoch now is {}".format(start_epoch))
@@ -158,8 +159,12 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
         else:
             phases = ['train', 'val', 'debug']
             global_step = {x: 0 for x in phases}
-
-        model.load_state_dict(checkpoint['state_dict'])
+        try:
+            model.load_state_dict(checkpoint['state_dict'])
+        except:
+            print("Meet error is reading the whole model, now try to read the first model, be careful")
+            load_from_existed_model(checkpoint['state_dict'],model)
+            load_only_one =True
         print("=> succeed load model '{}'".format(model_path))
         if 'optimizer' in checkpoint and optimizer is not None:
             if not isinstance(optimizer,tuple):
@@ -168,12 +173,27 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
                 for i,term in enumerate(optimizer):
                     term.load_state_dict(checkpoint['optimizer'][i])
                     print("=> succeed load optimzer_{}".format(i))
+                    if load_only_one:
+                        break
             print("=> succeed load optimizer '{}'".format(model_path))
         return  start_epoch  , best_prec1, global_step
     else:
         print("=> no checkpoint found at '{}'".format(model_path))
 
 get_test_model = resume_train
+
+
+def load_from_existed_model(old_model_dic, new_model):
+    model_dict = new_model.state_dict()
+
+    # 1. filter out unnecessary keys
+    pretrained_dict = {k: v for k, v in old_model_dic.items() if k in model_dict and k.find('models.0')!=-1}
+    # 2. overwrite entries in the existing state dict
+    model_dict.update(pretrained_dict)
+    # 3. load the new state dict
+    new_model.load_state_dict(model_dict)
+
+    return
 
 
 def clip_gradient(model, clip_norm):

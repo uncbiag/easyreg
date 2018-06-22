@@ -27,8 +27,8 @@ class Pipline():
             train_model(self.tsk_opt, self.model, self.data_loaders,self.writer)
 
         else:
-            debug_model(self.tsk_opt, self.model, self.data_loaders)
-            #test_model(self.tsk_opt,self.model,self.data_loaders)
+            #debug_model(self.tsk_opt, self.model, self.data_loaders)
+            test_model(self.tsk_opt,self.model,self.data_loaders)
         # test_model(self.tsk_opt,self.model,self.data_loaders)
         # else:
         #     test_expr(self.tsk_opt, self.data_loaders)

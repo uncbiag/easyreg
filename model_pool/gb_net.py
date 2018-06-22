@@ -99,7 +99,7 @@ class GBnet(BaseModel):
         else:
             self.input = Variable(input[0]['image'],volatile=True).cuda()
             if 'resampled_img' in input[0]:
-                self.resam = Variable( input[0]['resampled_img']).cuda().volatile
+                self.resam = Variable(input[0]['resampled_img']).cuda().volatile
         self.gt = Variable(input[0]['label']).long().cuda()
         self.fname_list = list(input[1])
 
@@ -130,7 +130,11 @@ class GBnet(BaseModel):
                 sdl.step()
         output, weights = self.forward(self.input, self.gt)
         self.output = output
-        self.loss = self.loss_fn.get_loss(output,self.gt, weights, train=self.is_train)
+        if not isinstance(output, list):
+            self.loss = self.loss_fn.get_loss(output,self.gt, weights, train=self.is_train)
+        else:
+            for i,term in enumerate(output):
+                self.loss += self.loss_fn.get_loss(output[i], self.gt, weights[i], train=self.is_train)
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
             if not self.end2end:

@@ -41,7 +41,7 @@ def train_model(opt,model, dataloaders,writer):
     update_model_by_val = opt['tsk_set'][('update_model_by_val', True, 'update_model_by_val')]
     tor_thre = opt['tsk_set'][('tor_thre', 0.8, 'tor_thre')]
     update_model_torl = opt['tsk_set'][('update_model_torl', 2, 'update_model_torl')]
-    update_model_epoch_torl = opt['tsk_set'][('update_model_epoch_torl', 50, 'update_model_epoch_torl')]
+    update_model_epoch_torl = opt['tsk_set'][('update_model_epoch_torl', 80, 'update_model_epoch_torl')]
     update_model_epoch_count = 0
     epoch_val_record = -1
     epoch_debug_record = -1
@@ -132,6 +132,8 @@ def train_model(opt,model, dataloaders,writer):
                         model.save_fig(phase,standard_record=False)
                     loss, full_loss = model.get_val_res()
                     running_debug_loss += loss
+
+                model.do_some_clean()
 
                 # save for tensorboard, both train and val will be saved
                 period_loss[phase] += loss

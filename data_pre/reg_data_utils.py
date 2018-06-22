@@ -234,7 +234,18 @@ def divide_data_set(root_path, pair_num,ratio):
     file_id_dic['debug'] = list(range(train_num))
     return sub_folder_dic, file_id_dic
 
+
+
+
+
 def get_divided_dic(file_id_dic, pair_path_list, pair_name_list):
+    """
+
+    :param file_id_dic:
+    :param pair_path_list:
+    :param pair_name_list:
+    :return: divided_path_dic {'pair_path_list':{'train': [path1,path2..],'val':[..],...}, 'pair_name_list':{'train':[fn1,fn2...],'val':[..],..}}
+    """
     divided_path_dic = {}
     sesses = ['train','val','test','debug']
     divided_path_dic['pair_path_list'] ={sess:[pair_path_list[idx] for idx in file_id_dic[sess]] for sess in sesses}

@@ -13,13 +13,14 @@ from time import time
 class RegistrationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path, transform=None):
+    def __init__(self, data_path,phase=None, transform=None, option = None):
         """
 
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
         """
         self.data_path = data_path
+        self.phase = phase
         self.transform = transform
         self.data_type = '*.h5py'
         self.get_file_list()

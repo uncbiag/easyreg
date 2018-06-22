@@ -615,97 +615,97 @@ class ModelTask(BaseTask):
 
 
 
-
-
-
-
-################ Task 0   input -1 1#############
-tsm = ModelTask('debug')
-dm = DataTask('debug')
-dm.data_par['datapro']['task_type']='seg'
-dm.data_par['datapro']['dataset']['dataset_name']='lpba'
-dm.data_par['datapro']['dataset']['output_path']='/playpen/raid/zyshen/data/'
-# tsm.task_par['tsk_set']['save_fig_on'] = False
-tsm.task_par['tsk_set']['train'] = False
-tsm.task_par['tsk_set']['dg_key_word'] = ''
-tsm.task_par['tsk_set']['save_by_standard_label'] = True
-tsm.task_par['tsk_set']['continue_train'] =True
-tsm.task_par['tsk_set']['continue_train_lr'] = 5e-4 ###########################
-tsm.task_par['tsk_set']['old_gpu_ids']=3
-tsm.task_par['tsk_set']['gpu_ids'] = 0  #1
-
-tsm.task_par['tsk_set']['model_path'] =''# "/playpen/raid/zyshen/data/lpba_2_vonet_lpba_seg_nopatchedmy_balanced_random_crop/debug_rand_ratio0.8_nosave_val10/checkpoints/epoch_100_"
-tsm.task_par['tsk_set']['model_folder_path'] = "/playpen/raid/zyshen/data/lpba_2_vonet_lpba_seg_nopatchedmy_balanced_random_crop/debug_rand_ratio0.8_nosave_val10/checkpoints"
-tsm.task_par['tsk_set']['model_epoch_list'] = list(range(120,250,10))
-
-dm.data_par['datapro']['dataset']['task_name']='lpba_2_vonet'
-dm.data_par['datapro']['dataset']['prepare_data']=False
-dm.data_par['datapro']['seg']['sched']='nopatched'
-
-
-tsm.task_par['tsk_set']['n_in_channel'] = 1  #1
-dm.data_par['datapro']['seg']['add_resampled']= False
-dm.data_par['datapro']['seg']['add_loc']= False
-tsm.task_par['tsk_set']['add_resampled']= dm.data_par['datapro']['seg']['add_resampled']
-
-dm.data_par['datapro']['seg']['num_crop_per_class_per_train_img']=-1
-dm.data_par['datapro']['seg']['transform']['transform_seq']=['my_balanced_random_crop']
-dm.data_par['datapro']['seg']['transform']['my_bal_rand_crop']['scale_ratio']= 0.1
-
-
-dm.data_par['datapro']['seg']['save_train_custom']=True
-dm.data_par['datapro']['seg']['num_flicker_per_train_img']=2
-dm.data_par['datapro']['seg']['patch_size']=[72,72,72]
-dm.data_par['datapro']['seg']['partition']['overlap_size']=[16,16,16]
-dm.data_par['datapro']['seg']['partition']['flicker_on']=False
-dm.data_par['datapro']['seg']['partition']['flicker_mode']='rand'
-dm.data_par['datapro']['seg']['partition']['flicker_range']=5
-
-tsm.task_par['tsk_set']['task_name'] = 'debug_rand_ratio0.8_nosave_val10'  #task42_unet4_base
-tsm.task_par['tsk_set']['network_name'] ='UNet_asm_f'
-tsm.task_par['tsk_set']['epoch'] = 250
-tsm.task_par['tsk_set']['model'] = 'asm_net_test'
-tsm.task_par['tsk_set']['batch_sz'] = 2
-tsm.task_par['tsk_set']['val_period'] =10
-tsm.task_par['tsk_set']['loss']['update_epoch'] =10
-tsm.task_par['tsk_set']['loss']['imd_weighted_loss_on']= False
-
-tsm.task_par['tsk_set']['loss']['type'] = 'ce'
-tsm.task_par['tsk_set']['loss']['ce']['weighted'] = True
-tsm.task_par['tsk_set']['loss']['residue_weight_on'] = True
-tsm.task_par['tsk_set']['loss']['log_update'] = False
-tsm.task_par['tsk_set']['loss']['only_resid_update'] = False
-tsm.task_par['tsk_set']['loss']['rand_resid_update'] = True
-tsm.task_par['tsk_set']['loss']['rand_ratio'] = 0.8
-tsm.task_par['tsk_set']['loss']['density_weight_on'] = False
-tsm.task_par['tsk_set']['loss']['continuous_update'] = False
-tsm.task_par['tsk_set']['loss']['factor_update'] = False
-tsm.task_par['tsk_set']['loss']['residue_weight_momentum'] = 0.3
-tsm.task_par['tsk_set']['loss']['focal_loss_weight_on'] = False
-tsm.task_par['tsk_set']['loss']['activate_epoch'] = 0
-
-
-tsm.task_par['tsk_set']['voting']['start_saving_model'] = 300
-tsm.task_par['tsk_set']['voting']['saving_voting_per_epoch'] = 2
-tsm.task_par['tsk_set']['voting']['epoch_list'] = list(range(120,250,10))
-
-
-tsm.task_par['tsk_set']['criticUpdates'] = 2
-tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [400,4,1]
-tsm.task_par['tsk_set']['optim']['lr'] = 0.001
-tsm.task_par['tsk_set']['optim']['lr_scheduler']['type'] = 'custom'
-tsm.task_par['tsk_set']['optim']['lr_scheduler']['custom']['step_size'] = 4000*5
-tsm.task_par['tsk_set']['optim']['lr_scheduler']['custom']['gamma'] = 0.5   # the learning rate should be ajusted in brats cases
-
-
-tsm.save()
-dm.save()
-run_one_task()
-
-
-
-
-
+#
+#
+#
+#
+# ################ Task 0   input -1 1#############
+# tsm = ModelTask('debug')
+# dm = DataTask('debug')
+# dm.data_par['datapro']['task_type']='seg'
+# dm.data_par['datapro']['dataset']['dataset_name']='lpba'
+# dm.data_par['datapro']['dataset']['output_path']='/playpen/raid/zyshen/data/'
+# # tsm.task_par['tsk_set']['save_fig_on'] = False
+# tsm.task_par['tsk_set']['train'] = False
+# tsm.task_par['tsk_set']['dg_key_word'] = ''
+# tsm.task_par['tsk_set']['save_by_standard_label'] = True
+# tsm.task_par['tsk_set']['continue_train'] =True
+# tsm.task_par['tsk_set']['continue_train_lr'] = 5e-4 ###########################
+# tsm.task_par['tsk_set']['old_gpu_ids']=3
+# tsm.task_par['tsk_set']['gpu_ids'] = 0  #1
+#
+# tsm.task_par['tsk_set']['model_path'] =''# "/playpen/raid/zyshen/data/lpba_2_vonet_lpba_seg_nopatchedmy_balanced_random_crop/debug_rand_ratio0.8_nosave_val10/checkpoints/epoch_100_"
+# tsm.task_par['tsk_set']['model_folder_path'] = "/playpen/raid/zyshen/data/lpba_2_vonet_lpba_seg_nopatchedmy_balanced_random_crop/debug_rand_ratio0.8_nosave_val10/checkpoints"
+# tsm.task_par['tsk_set']['model_epoch_list'] = list(range(120,250,10))
+#
+# dm.data_par['datapro']['dataset']['task_name']='lpba_2_vonet'
+# dm.data_par['datapro']['dataset']['prepare_data']=False
+# dm.data_par['datapro']['seg']['sched']='nopatched'
+#
+#
+# tsm.task_par['tsk_set']['n_in_channel'] = 1  #1
+# dm.data_par['datapro']['seg']['add_resampled']= False
+# dm.data_par['datapro']['seg']['add_loc']= False
+# tsm.task_par['tsk_set']['add_resampled']= dm.data_par['datapro']['seg']['add_resampled']
+#
+# dm.data_par['datapro']['seg']['num_crop_per_class_per_train_img']=-1
+# dm.data_par['datapro']['seg']['transform']['transform_seq']=['my_balanced_random_crop']
+# dm.data_par['datapro']['seg']['transform']['my_bal_rand_crop']['scale_ratio']= 0.1
+#
+#
+# dm.data_par['datapro']['seg']['save_train_custom']=True
+# dm.data_par['datapro']['seg']['num_flicker_per_train_img']=2
+# dm.data_par['datapro']['seg']['patch_size']=[72,72,72]
+# dm.data_par['datapro']['seg']['partition']['overlap_size']=[16,16,16]
+# dm.data_par['datapro']['seg']['partition']['flicker_on']=False
+# dm.data_par['datapro']['seg']['partition']['flicker_mode']='rand'
+# dm.data_par['datapro']['seg']['partition']['flicker_range']=5
+#
+# tsm.task_par['tsk_set']['task_name'] = 'debug_rand_ratio0.8_nosave_val10'  #task42_unet4_base
+# tsm.task_par['tsk_set']['network_name'] ='UNet_asm_f'
+# tsm.task_par['tsk_set']['epoch'] = 250
+# tsm.task_par['tsk_set']['model'] = 'asm_net_test'
+# tsm.task_par['tsk_set']['batch_sz'] = 2
+# tsm.task_par['tsk_set']['val_period'] =10
+# tsm.task_par['tsk_set']['loss']['update_epoch'] =10
+# tsm.task_par['tsk_set']['loss']['imd_weighted_loss_on']= False
+#
+# tsm.task_par['tsk_set']['loss']['type'] = 'ce'
+# tsm.task_par['tsk_set']['loss']['ce']['weighted'] = True
+# tsm.task_par['tsk_set']['loss']['residue_weight_on'] = True
+# tsm.task_par['tsk_set']['loss']['log_update'] = False
+# tsm.task_par['tsk_set']['loss']['only_resid_update'] = False
+# tsm.task_par['tsk_set']['loss']['rand_resid_update'] = True
+# tsm.task_par['tsk_set']['loss']['rand_ratio'] = 0.8
+# tsm.task_par['tsk_set']['loss']['density_weight_on'] = False
+# tsm.task_par['tsk_set']['loss']['continuous_update'] = False
+# tsm.task_par['tsk_set']['loss']['factor_update'] = False
+# tsm.task_par['tsk_set']['loss']['residue_weight_momentum'] = 0.3
+# tsm.task_par['tsk_set']['loss']['focal_loss_weight_on'] = False
+# tsm.task_par['tsk_set']['loss']['activate_epoch'] = 0
+#
+#
+# tsm.task_par['tsk_set']['voting']['start_saving_model'] = 300
+# tsm.task_par['tsk_set']['voting']['saving_voting_per_epoch'] = 2
+# tsm.task_par['tsk_set']['voting']['epoch_list'] = list(range(120,250,10))
+#
+#
+# tsm.task_par['tsk_set']['criticUpdates'] = 2
+# tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [400,4,1]
+# tsm.task_par['tsk_set']['optim']['lr'] = 0.001
+# tsm.task_par['tsk_set']['optim']['lr_scheduler']['type'] = 'custom'
+# tsm.task_par['tsk_set']['optim']['lr_scheduler']['custom']['step_size'] = 4000*5
+# tsm.task_par['tsk_set']['optim']['lr_scheduler']['custom']['gamma'] = 0.5   # the learning rate should be ajusted in brats cases
+#
+#
+# tsm.save()
+# dm.save()
+# run_one_task()
+#
+#
+#
+#
+#
 
 
 

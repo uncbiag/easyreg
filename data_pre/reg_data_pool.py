@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 
 from data_pre.reg_data_utils import *
 
-
+from data_pre.oai_longitude_reg import *
 
 class BaseRegDataSet(object):
 
@@ -99,7 +99,10 @@ class BaseRegDataSet(object):
         self.save_file_to_h5py()
         self.pair_path_list = self.generate_pair_list()
         self.save_pair_to_txt()
-        print("the total num of pair is {}".format(self.get_file_num()))
+        try:
+            print("the total num of pair is {}".format(self.get_file_num()))
+        except:
+            pass
         print("data preprocessing finished")
 
 
@@ -125,8 +128,8 @@ class UnlabeledDataSet(BaseRegDataSet):
         self.pair_name_list = generate_pair_name(self.pair_path_list, sched=self.dataset_type)
         self.num_pair = len(self.pair_path_list)
         sub_folder_dic, file_id_dic = divide_data_set(self.output_path, self.num_pair, self.divided_ratio)
-        divided_path_dic = get_divided_dic(file_id_dic, self.pair_path_list, self.pair_name_list)
-        saving_pair_info(sub_folder_dic,divided_path_dic)
+        divided_path_and_name_dic = get_divided_dic(file_id_dic, self.pair_path_list, self.pair_name_list)
+        saving_pair_info(sub_folder_dic,divided_path_and_name_dic)
 
 
 
@@ -162,8 +165,13 @@ class LabeledDataSet(BaseRegDataSet):
     """
     def __init__(self, dataset_type, file_type_list, sched=None):
         BaseRegDataSet.__init__(self,dataset_type, file_type_list,sched)
+        self.label_switch = ('','')
         self.label_path = None
         self.pair_label_path_list=[]
+
+
+    def set_label_switch(self,label_switch):
+        self.label_switch = label_switch
 
 
     def set_label_path(self, path):
@@ -187,7 +195,7 @@ class LabeledDataSet(BaseRegDataSet):
 
     def initialize_info(self):
         file_path_list = get_file_path_list(self.data_path, self.file_type_list)
-        file_label_path_list = find_corr_map(file_path_list, self.label_path)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path,self.label_switch)
         label, linfo = self.read_file(file_label_path_list[0], is_label=True)
         label_list = list(np.unique(label))
         num_label = len(label_list)
@@ -214,14 +222,14 @@ class LabeledDataSet(BaseRegDataSet):
         self.pair_name_list = generate_pair_name(self.pair_path_list, sched=self.dataset_type)
         self.num_pair = len(self.pair_path_list)
         sub_folder_dic, file_id_dic = divide_data_set(self.output_path, self.num_pair, self.divided_ratio)
-        divided_path_dic = get_divided_dic(file_id_dic, self.pair_path_list, self.pair_name_list)
-        saving_pair_info(sub_folder_dic,divided_path_dic)
+        divided_path_and_name_dic = get_divided_dic(file_id_dic, self.pair_path_list, self.pair_name_list)
+        saving_pair_info(sub_folder_dic,divided_path_and_name_dic)
 
 
 
     def save_file_to_h5py(self):
         file_path_list =  get_file_path_list(self.data_path, self.file_type_list)
-        file_label_path_list = find_corr_map(file_path_list, self.label_path)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path,self.label_switch)
         file_name_list = [get_file_name(pt) for pt in file_path_list]
         self.pro_data_path = os.path.join(self.output_path,'data')
         pro_data_path_list = [fp.replace(self.data_path, self.pro_data_path) for fp in file_path_list]
@@ -250,6 +258,18 @@ class LabeledDataSet(BaseRegDataSet):
 
 
 
+    def save_file_by_default_type(self):
+        file_path_list =  get_file_path_list(self.data_path, self.file_type_list)
+        file_label_path_list = find_corr_map(file_path_list, self.label_path,self.label_switch)
+        file_name_list = [get_file_name(pt) for pt in file_path_list]
+        self.pro_data_path = os.path.join(self.output_path,'data')
+        pro_data_path_list = [fp.replace(self.data_path, self.pro_data_path) for fp in file_path_list]
+        self.pro_data_path_list = pro_data_path_list
+        make_dir(self.pro_data_path)
+
+
+
+
 
 
 class CustomDataSet(BaseRegDataSet):
@@ -274,8 +294,8 @@ class VolumetricDataSet(BaseRegDataSet):
     """
     3D dataset
     """
-    def __init__(self,dataset_type, file_type_list):
-        BaseRegDataSet.__init__(self, dataset_type, file_type_list)
+    def __init__(self,dataset_type, file_type_list,sched=None):
+        BaseRegDataSet.__init__(self, dataset_type=dataset_type, file_type_list=file_type_list,sched=sched)
         self.slicing = -1
         self.axis = -1
 
@@ -334,6 +354,114 @@ class MixedDataSet(BaseRegDataSet):
 
 
 
+class PatientStructureDataSet(VolumetricDataSet):
+    """
+    the dataset is organized in the patients,  in the way as patient_id/modality/specificity/
+    each folder include a series slices which obtained at different time period
+
+
+    """
+
+    def __init__(self, dataset_type, file_type_list, sched):
+        VolumetricDataSet.__init__(self, dataset_type, file_type_list,sched)
+        self.patients = []
+        self.__init_patients()
+
+    def __init_patients(self):
+        root_path = "/playpen/raid/zyshen/summer/oai_registration/data"
+        Patient_class = Patients(full_init=True, root_path=root_path)
+        self.patients= Patient_class.get_filtered_patients_list(has_complete_label= True, len_time_range=[2, 7], use_random=False)
+
+    def __divide_into_train_val_test_set(self,root_path, patients, ratio):
+        num_patient = len(patients)
+        train_ratio = ratio[0]
+        val_ratio = ratio[1]
+        sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test', 'debug']}
+        nt = [make_dir(sub_path[key]) for key in sub_path]
+        # if sum(nt):
+        #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
+        #                      "manually delete the folder to reprepare the data")
+
+        train_num = int(train_ratio * num_patient)
+        val_num = int(val_ratio * num_patient)
+        sub_patients_dic = {}
+        sub_patients_dic['train'] = patients[:train_num]
+        sub_patients_dic['val'] = patients[train_num: train_num + val_num]
+        sub_patients_dic['test'] = patients[train_num + val_num:]
+        sub_patients_dic['debug'] = patients[: val_num]
+        return sub_path,sub_patients_dic
+
+
+
+    def __gen_intra_pair_list(self,patients, pair_num_limit = 1000):
+        intra_pair_list = []
+        for patient in patients:
+            intra_image_list = patient.get_slice_path_list()
+            intra_label_list = patient.get_label_path_list()
+            num_images = len(intra_image_list)
+            for i, image in enumerate(intra_image_list):
+                for j in range(i+1, num_images):
+                    intra_pair_list.append([intra_image_list[i],intra_image_list[j],
+                                            intra_label_list[i],intra_label_list[j]])
+            if len(intra_pair_list)> 3*pair_num_limit:
+                break
+        random.shuffle(intra_pair_list)
+        return intra_pair_list[:pair_num_limit]
+
+
+    def __gen_inter_pair_list(self, patients,pair_num_limit = 1000):
+        inter_pair_list = []
+        all_image_list = []
+        all_label_list = []
+        for patient in patients:
+            all_image_list.append(patient.get_slice_path_list())
+            all_label_list.append(patient.get_label_path_list())
+        permute_id_list = list(range(len(all_image_list)))
+        all_image_list =[all_image_list[i] for i in permute_id_list]
+        all_label_list = [all_label_list[i] for i in permute_id_list]
+        for _ in range(pair_num_limit):
+            rand_pair_id =[int(1000*random.random()),int(1000*random.random())]
+            pair = [all_image_list[rand_pair_id[0]], all_image_list[rand_pair_id[1]],
+                    all_label_list[rand_pair_id[0]], all_label_list[rand_pair_id[1]]]
+            inter_pair_list.append(pair)
+        return inter_pair_list
+
+    def __gen_path_and_name_dic(self, pair_list_dic):
+        sesses = ['train', 'val', 'test', 'debug']
+        divided_path_and_name_dic={}
+        divided_path_and_name_dic['pair_path_list'] = pair_list_dic
+        divided_path_and_name_dic['pair_name_list'] = {sess:[get_file_name(path[0]) for path in pair_list_dic[sess]] for sess in sesses}
+        return divided_path_and_name_dic
+
+
+
+
+
+
+
+    def save_pair_to_txt(self):
+        sub_folder_dic, sub_patients_dic =self.__divide_into_train_val_test_set(self.output_path,self.patients,self.divided_ratio)
+        sesses = ['train', 'val', 'test', 'debug']
+        gen_pair_list_func = self. __gen_intra_pair_list if self.sched=='intra' else self.__gen_inter_pair_list
+        max_ratio = {'train':self.divided_ratio[0],'val':self.divided_ratio[1],'test':self.divided_ratio[2],'debug':self.divided_ratio[1]}
+        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(1000*max_ratio[sess])) for sess in sesses}
+        divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
+        saving_pair_info(sub_folder_dic,divided_path_and_name_dic)
+
+    def save_file_to_h5py(self):
+        """
+        for compatiblity
+        :return:
+        """
+        pass
+
+    def generate_pair_list(self):
+        """
+        for compatiblity
+        :return:
+        """
+        return None
+
 
 
 
@@ -343,7 +471,8 @@ class RegDatasetPool(object):
         self.dataset_dic = {'oasis2d':Oasis2DDataSet,
                                    'lpba':VolLabCusDataSet,
                                     'ibsr':VolLabCusDataSet,
-                                     'cumc':VolLabCusDataSet}
+                                     'cumc':VolLabCusDataSet,
+                                    'oai':OaiDataSet}
 
         dataset = self.dataset_dic[dataset_name](sched, full_comb)
         return dataset
@@ -365,6 +494,11 @@ class VolLabCusDataSet(VolumetricDataSet, LabeledDataSet, CustomDataSet):
         VolumetricDataSet.__init__(self, 'custom', ['*.nii'])
         LabeledDataSet.__init__(self, 'custom', ['*.nii'])
         CustomDataSet.__init__(self,'custom', ['*.nii'], full_comb)
+
+class OaiDataSet(PatientStructureDataSet):
+    def __init__(self, sched, full_comb=True):
+        img_poster= ['*image.nii.gz']
+        PatientStructureDataSet.__init__(self,None,None,sched)
 
 
 

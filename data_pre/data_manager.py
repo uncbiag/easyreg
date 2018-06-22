@@ -105,11 +105,11 @@ class DataManager(object):
                              'oasis2d': '/playpen/zyshen/data/oasis',
                              'cumc':'/playpen/data/quicksilver_data/testdata/CUMC12/brain_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/brain_affine_icbm',
-                             'oai':'/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',
+                             'oai':'/playpen/raid/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',   ########################
                              'brats':'/playpen/zyshen/data/miccia_brats'}
 
         default_label_path = {'lpba': '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm',
-                              'oai': '/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',
+                              'oai': '/playpen/raid/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',   ###################3
                              'oasis2d': 'None',
                              'cumc': '/playpen/data/quicksilver_data/testdata/CUMC12/label_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm',
