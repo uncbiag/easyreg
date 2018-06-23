@@ -29,7 +29,8 @@ class RegNet(BaseModel):
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-        self.network = SimpleNet(self.img_sz, factor=1)
+        self.resize_factor = opt['tsk_set']['resize_factor']
+        self.network = SimpleNet(self.img_sz, resize_factor=self.resize_factor)
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         if self.continue_train:
@@ -54,8 +55,8 @@ class RegNet(BaseModel):
         volatile = not is_train
         self.moving = Variable(moving.cuda(),volatile=volatile)
         self.target = Variable(target.cuda(),volatile=volatile)
-        self.l_moving = Variable(l_moving.cuda(),volatile=volatile)
-        self.l_target = Variable(l_target.cuda(),volatile=volatile)
+        self.l_moving = Variable(l_moving.cuda(),volatile=volatile).long()
+        self.l_target = Variable(l_target.cuda(),volatile=volatile).long()
         self.input = Variable(input.cuda(),volatile=volatile)
         self.fname_list = list(data[1])
 

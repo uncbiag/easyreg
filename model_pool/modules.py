@@ -137,7 +137,7 @@ def identity_map(sz):
         raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
 
     id= id*2-1
-    return id
+    return Variable(torch.from_numpy(id.astype(np.float32)).cuda())
 
 
 
@@ -152,10 +152,11 @@ class DenseAffineGridGen(nn.Module):
     """
     given displacement field,  add displacement on grid field
     """
-    def __init__(self, img_sz):
+    def __init__(self, img_sz,resize_factor):
         super(DenseAffineGridGen, self).__init__()
         self.height =img_sz[0]
         self.width =img_sz[1]
+        img_sz = [int(img_sz[i]*resize_factor[i]) for i in range(dim)]
         self.grid = identity_map(img_sz)
 
 

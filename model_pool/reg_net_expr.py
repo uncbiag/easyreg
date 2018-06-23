@@ -11,12 +11,12 @@ from functions.bilinear import *
 
 
 class SimpleNet(nn.Module):
-    def __init__(self, img_sz=None, factor=1.):
+    def __init__(self, img_sz=None, resize_factor=1.):
         super(SimpleNet,self).__init__()
         self.img_sz = img_sz
         self.denseGen = DisGen()
         self.hessianField = HessianField()
-        self. denseAffineGrid= DenseAffineGridGen(self.img_sz)
+        self. denseAffineGrid= DenseAffineGridGen(self.img_sz,resize_factor)
         self.bilinear = Bilinear()
     def forward(self, input, moving):
         disField = self.denseGen(input)

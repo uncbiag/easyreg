@@ -16,6 +16,7 @@ class Loss(object):
     def __init__(self,opt,record_weight=None, imd_weight=None, score_differ=None,old_score_diff= None, manual_set = False):
         super(Loss,self).__init__()
         cont_loss_type = opt['tsk_set']['loss']['type']
+        self.cont_loss_type = cont_loss_type
         self.manual_set = manual_set
         self.record_weight = record_weight  # numpy
         self.cur_weight = None   # tensor
@@ -85,7 +86,10 @@ class Loss(object):
 
 
     def get_loss(self,output, gt, inst_weights=None, train=False):
-        return self.criterion(output, gt,inst_weights=inst_weights, train=train)
+        if self.cont_loss_type!='mse' and self.cont_loss_type!='l1':
+            return self.criterion(output, gt,inst_weights=inst_weights, train=train)
+        else:
+            return self.criterion(output,gt)
 
 
     def get_inverse_label_density(self,opt):

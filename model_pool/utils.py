@@ -7,7 +7,7 @@ import torchvision.utils as utils
 from skimage import color
 
 def get_pair(data, pair= True, target=None):
-     return data['image'][:,0], data['image'][:,1],data['label'][:,0],data['label'][:,1]
+     return data['image'][:,0:1], data['image'][:,1:2],data['label'][:,0:1],data['label'][:,1:2]
 
 
 def sigmoid_explode(ep, static =5, k=5):

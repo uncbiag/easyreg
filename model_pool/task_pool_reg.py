@@ -923,9 +923,11 @@ dm = DataTask('task_reg')
 dm.data_par['datapro']['task_type']='reg'
 dm.data_par['datapro']['dataset']['dataset_name']='oai'
 dm.data_par['datapro']['reg']['sched']='intra'
+dm.data_par['datapro']['reg']['resize_factor']=[0.5,0.5,0.5]
 
 dm.data_par['datapro']['dataset']['output_path']='/playpen/raid/zyshen/data/'
 # tsm.task_par['tsk_set']['save_fig_on'] = False
+tsm.task_par['tsk_set']['resize_factor'] = dm.data_par['datapro']['reg']['resize_factor']
 tsm.task_par['tsk_set']['train'] = True
 tsm.task_par['tsk_set']['dg_key_word'] = ''
 tsm.task_par['tsk_set']['save_by_standard_label'] = True
@@ -967,7 +969,7 @@ tsm.task_par['tsk_set']['val_period'] =10
 tsm.task_par['tsk_set']['loss']['update_epoch'] =-1
 tsm.task_par['tsk_set']['loss']['imd_weighted_loss_on']= False
 
-tsm.task_par['tsk_set']['loss']['type'] = 'ce'
+tsm.task_par['tsk_set']['loss']['type'] = 'l1'
 tsm.task_par['tsk_set']['loss']['ce']['weighted'] = False
 tsm.task_par['tsk_set']['loss']['residue_weight_on'] = False
 tsm.task_par['tsk_set']['loss']['log_update'] = False

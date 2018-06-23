@@ -63,6 +63,7 @@ class Initializer():
         reg_full_comb = par_dataset['datapro']['reg']['all_comb']
         reg_slicing = par_dataset['datapro']['reg']['slicing']
         reg_axis = par_dataset['datapro']['reg']['axis']
+        reg_option = par_dataset['datapro']['reg']
     
         seg_option = par_dataset['datapro']['seg']
         seg_transform_seq  = par_dataset['datapro']['seg']['transform']['transform_seq']
@@ -80,6 +81,7 @@ class Initializer():
             self.data_manager.set_label_path(label_path)
             self.data_manager.set_divided_ratio(divided_ratio)
             # reg
+            self.data_manager.set_reg_option(reg_option)
             self.data_manager.set_full_comb(reg_full_comb)
             self.data_manager.set_slicing(reg_slicing, reg_axis)
             # seg

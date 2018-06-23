@@ -13,7 +13,7 @@ import blosc
 class SegmentationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,phase, transform=None, option=None):
+    def __init__(self, data_path,phase, transform=None, seg_option=None, reg_option=None):
         """
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data

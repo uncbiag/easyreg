@@ -13,7 +13,7 @@ from time import time
 class RegistrationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,phase=None, transform=None, option = None):
+    def __init__(self, data_path,phase=None, transform=None, seg_option=None, reg_option=None):
         """
 
         :param data_path:  string, path to processed data
@@ -25,7 +25,8 @@ class RegistrationDataset(Dataset):
         self.data_type = '*.nii.gz'
         self.get_file_list()
         self.resize = True
-        self.resize_factor=[0.5,0.5,0.5]
+        self.reg_option = reg_option
+        self.resize_factor=reg_option['resize_factor']
 
     def get_file_list(self):
         """
@@ -90,10 +91,14 @@ class RegistrationDataset(Dataset):
                 sitk_pair_list[3] = self.resize_img(sitk_pair_list[3], is_label=True)
 
         pair_list = [sitk.GetArrayFromImage(sitk_pair) for sitk_pair in sitk_pair_list]
-        sample = {'image': np.asarray([pair_list[0]*2-1,pair_list[1]*2-1])}
+        sample = {'image': np.asarray([pair_list[0]*2.-1.,pair_list[1]*2.-1.])}
 
         if len(pair_path)==4:
-            sample ['label']= np.asarray([pair_list[0], pair_list[1]])
+            try:
+                sample ['label']= np.asarray([pair_list[2], pair_list[3]]).astype(np.int32)
+            except:
+                print(pair_list[2].shape,pair_list[3].shape)
+                print(filename)
         else:
             sample['label'] = None
         if self.transform:

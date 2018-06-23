@@ -18,7 +18,7 @@ import blosc
 class SegmentationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,phase, transform=None, option = None):
+    def __init__(self, data_path,phase, transform=None, seg_option = None,reg_option=None):
         """
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
@@ -33,15 +33,15 @@ class SegmentationDataset(Dataset):
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
         self.num_img = len(self.path_list)
-        self.patch_size =  option['patch_size']
-        self.transform_name_seq = option['transform']['transform_seq']
-        self.option_p = option[('partition', {}, "settings for the partition")]
-        self.add_resampled = option['add_resampled']
-        self.add_loc = option['add_loc']
-        self.use_org_size = option['use_org_size']
-        self.detect_et = option['detect_et']
-        self.option_p['patch_size'] = option['patch_size']
-        self.option = option
+        self.patch_size =  seg_option['patch_size']
+        self.transform_name_seq = seg_option['transform']['transform_seq']
+        self.option_p = seg_option[('partition', {}, "settings for the partition")]
+        self.add_resampled = seg_option['add_resampled']
+        self.add_loc = seg_option['add_loc']
+        self.use_org_size = seg_option['use_org_size']
+        self.detect_et = seg_option['detect_et']
+        self.option_p['patch_size'] = seg_option['patch_size']
+        self.seg_option = seg_option
         self.img_pool = []
         if self.is_train:
             self.init_img_pool()
@@ -70,13 +70,13 @@ class SegmentationDataset(Dataset):
 
 
     def get_transform_seq(self,i):
-        option_trans = deepcopy(self.option['transform'])
+        option_trans = deepcopy(self.seg_option['transform'])
         option_trans['shared_info']['label_list'] = self.img_pool[i]['info']['label_list']
         option_trans['shared_info']['label_density'] = self.img_pool[i]['info']['label_density']
         option_trans['shared_info']['img_size'] = self.img_size
-        option_trans['shared_info']['num_crop_per_class_per_train_img'] = self.option['num_crop_per_class_per_train_img']
-        option_trans['my_bal_rand_crop']['scale_ratio'] = self.option['transform']['my_bal_rand_crop']['scale_ratio']
-        option_trans['patch_size'] = self.option['patch_size']
+        option_trans['shared_info']['num_crop_per_class_per_train_img'] = self.seg_option['num_crop_per_class_per_train_img']
+        option_trans['my_bal_rand_crop']['scale_ratio'] = self.seg_option['transform']['my_bal_rand_crop']['scale_ratio']
+        option_trans['patch_size'] = self.seg_option['patch_size']
 
         if len(self.img_pool[i]['info']['label_list'])==3:
             print(self.name_list[i])

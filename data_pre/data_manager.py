@@ -60,6 +60,7 @@ class DataManager(object):
         """train|val|test: dic task_root_path/train|val|test"""
         self.transform_seq = []
         self.seg_option = None
+        self.reg_option = None
 
 
     def set_task_type(self,task_type):
@@ -95,6 +96,10 @@ class DataManager(object):
 
     def set_seg_option(self,option):
         self.seg_option = option
+
+    def set_reg_option(self,option):
+        self.reg_option = option
+
     def get_data_path(self):
         return self.data_path
 
@@ -247,7 +252,7 @@ class DataManager(object):
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
         ########################################################################33######3
-        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,option=self.seg_option) for x in phases}
+        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,seg_option=self.seg_option, reg_option =self.reg_option) for x in phases}
         # transformed_dataset = {
         # 'train': self.cur_dataset(data_path=self.task_path['train'], phase='train', transform=composed, option=self.seg_option),
         # 'val': self.cur_dataset(data_path=self.task_path['val'], phase='val', transform=composed, option=self.seg_option),
