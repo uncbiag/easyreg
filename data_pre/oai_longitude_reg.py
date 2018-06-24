@@ -1,12 +1,18 @@
 
 import sys
-import numpy as np
 import os
+sys.path.insert(0,os.path.abspath('.'))
+sys.path.insert(0,os.path.abspath('..'))
+sys.path.insert(0,os.path.abspath('../model_pool'))
+
+import numpy as np
 from glob import glob
 from functools import reduce
 import torch
 from data_pre.reg_data_utils import make_dir, get_file_name
 import random
+import SimpleITK as sitk
+from multiprocessing import Pool
 
 from torch.autograd import Variable
 
@@ -47,6 +53,27 @@ the patient slices list will be save in folder  "patient_slice"
 
 ########################################   Section 3. Code Organization  ####################################################
 
+
+
+
+abnormal example list:
+!! image size not matched , img:9901199_20090422_SAG_3D_DESS_RIGHT_12800503_image.nii.gz sz:(160, 384, 352) 
+!! image size not matched , img:9052335_20090126_SAG_3D_DESS_RIGHT_12766414_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9163391_20110808_SAG_3D_DESS_LEFT_16613250603_image.nii.gz sz:(159, 384, 384) 
+!! image size not matched , img:9712762_20090420_SAG_3D_DESS_RIGHT_12583306_image.nii.gz sz:(160, 384, 352) 
+!! image size not matched , img:9388265_20040405_SAG_3D_DESS_LEFT_10016906_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9388265_20040405_SAG_3D_DESS_LEFT_10016903_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9938453_20071130_SAG_3D_DESS_RIGHT_12140103_image.nii.gz sz:(159, 384, 384) 
+!! image size not matched , img:9452305_20070228_SAG_3D_DESS_RIGHT_11633112_image.nii.gz sz:(109, 384, 384) 
+!! image size not matched , img:9219500_20080326_SAG_3D_DESS_RIGHT_12266509_image.nii.gz sz:(8, 384, 384) 
+!! image size not matched , img:9011949_20060118_SAG_3D_DESS_LEFT_10667703_image.nii.gz sz:(156, 384, 384) 
+!! image size not matched , img:9885303_20051212_SAG_3D_DESS_LEFT_10624403_image.nii.gz sz:(155, 384, 384) 
+!! image size not matched , img:9833782_20090519_SAG_3D_DESS_RIGHT_12802313_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9462278_20050524_SAG_3D_DESS_RIGHT_10546912_image.nii.gz sz:(156, 384, 384) 
+!! image size not matched , img:9126260_20060921_SAG_3D_DESS_RIGHT_11309309_image.nii.gz sz:(66, 384, 384) 
+!! image size not matched , img:9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9847480_20081007_SAG_3D_DESS_RIGHT_11508512_image.nii.gz sz:(159, 384, 384) 
+!! image size not matched , img:9020714_20101207_SAG_3D_DESS_RIGHT_16613171935_image.nii.gz sz:(118, 384, 384) 
 
 
 
@@ -255,6 +282,8 @@ class Patient():
         self.__init_patient_info()
 
 
+
+
     def __init_patient_info(self):
         self.patient_id = os.path.split(self.patient_root_path)[1]
         modality_list = os.listdir(self.patient_root_path)
@@ -344,19 +373,33 @@ class Patient():
 
 
 
+def __debug_check_img_sz(file_path_list):
+    for fp in file_path_list:
+        img = sitk.ReadImage(fp)
+        img_shape = sitk.GetArrayFromImage(img).shape
+        fp_to_del =[]
+        if not img_shape == (160,384,384):
+            print("!! image size not matched , img:{} sz:{} \n".format(os.path.split(fp)[1], img_shape))
+            fp_to_del.append(fp)
+        return fp_to_del
+
+f= __debug_check_img_sz
+
 
 
 class OAIDataPrepare():
     def __init__(self):
-        self.raw_data_path = "/playpen/raid/zhenlinx/Data/OAI_segmentation/Nifti_corrected_rescaled"
-        self.raw_label_path = "/playpen/raid/zhenlinx/Data/OAI_segmentation/Nifti_corrected_rescaled"
-        self.output_root_path = "/playpen/raid/zyshen/summer/oai_registration/reg/data"
-        self.output_data_path = "/playpen/raid/zyshen/summer/oai_registration/reg/data/patient_slice"
+        self.raw_data_path = "/playpen/raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"
+        self.raw_label_path = "/playpen/raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"
+        self.output_root_path = "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
+        self.output_data_path = "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data/patient_slice"
         self.raw_file_path_list = []
         self.raw_file_label_path_list= []
         self.patient_info_dic= {}
         self.image_file_end = '*image.nii.gz'
-        self.label_file_end = '*label_all.nii.gz'
+        self.label_file_end = '*reflect.nii.gz'
+        self.debug = False
+
 
     def prepare_data(self):
         self.get_file_list()
@@ -374,10 +417,24 @@ class OAIDataPrepare():
         return f_filter
 
 
+
+
+
     def get_file_list(self):
 
         self.raw_file_path_list = self.__filter_file(self.raw_data_path,self.image_file_end)
         self.raw_file_label_path_list = self.__filter_file(self.raw_label_path,self.label_file_end)
+        if self.debug:
+            number_of_workers=10
+            file_patitions = np.array_split(self.raw_file_path_list, number_of_workers)
+            with Pool(processes=number_of_workers) as pool:
+                fp_to_del=pool.map(f, file_patitions)
+            print("total {} paths need to be removed".format(len(fp_to_del)))
+            for fp in fp_to_del:
+                self.raw_file_path_list.remove(fp)
+
+
+
 
 
     def __factor_file(self, f_path):
@@ -466,6 +523,7 @@ class OAIDataPrepare():
 
 
 test = OAIDataPrepare()
+test.debug=True
 test.prepare_data()
-patients = Patients()
+patients = Patients(full_init=True)
 #filtered_patients = patients.get_filtered_patients_list(specificity='RIGHT',num_of_patients=3, len_time_range=[2,7], use_random=False)
