@@ -49,14 +49,25 @@ class RegNet(BaseModel):
                                                                                    warmming_up=warmming_up)
 
 
+    def adjust_learning_rate(self, new_lr=-1):
+        """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+        if new_lr<0:
+            lr = self.opt_optim['lr']
+        else:
+            lr = new_lr
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+        print(" no warming up the learning rate is {}".format(lr))
+
+
     def set_input(self, data, is_train=True):
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
         volatile = not is_train
         self.moving = Variable(moving.cuda(),volatile=volatile)
         self.target = Variable(target.cuda(),volatile=volatile)
-        self.l_moving = Variable(l_moving.cuda(),volatile=volatile).long()
-        self.l_target = Variable(l_target.cuda(),volatile=volatile).long()
+        self.l_moving = Variable(l_moving.cuda(),volatile=volatile)#.long()
+        self.l_target = Variable(l_target.cuda(),volatile=volatile)#.long()
         self.input = Variable(input.cuda(),volatile=volatile)
         self.fname_list = list(data[1])
 
@@ -133,7 +144,7 @@ class RegNet(BaseModel):
 
 
     def get_val_res(self):
-        return self.val_res_dic['batch_label_avg_res']['dice']
+        return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['batch_avg_res']['dice']
 
     def get_test_res(self):
         return self.get_val_res()
@@ -174,8 +185,8 @@ class RegNet(BaseModel):
             save_image_with_scale(saving_folder_path + '/' + appendix + "_target.tif", self.target[i, 0, ...])
             save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
 
-    def save_fig(self,phase):
-        from model_pool.visualize_registration_results import  save_current_images
+    def save_fig(self,phase,standard_record=False,saving_gt=True):
+        from model_pool.visualize_registration_results_old import  save_current_images
         visual_param={}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True

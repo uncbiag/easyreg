@@ -95,7 +95,7 @@ class RegistrationDataset(Dataset):
 
         if len(pair_path)==4:
             try:
-                sample ['label']= np.asarray([pair_list[2], pair_list[3]]).astype(np.int32)
+                sample ['label']= np.asarray([pair_list[2], pair_list[3]]).astype(np.float32)
             except:
                 print(pair_list[2].shape,pair_list[3].shape)
                 print(filename)

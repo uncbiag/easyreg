@@ -191,7 +191,7 @@ def make_dir(path):
 
 def show_current_images_3d(iS,iT):
     import matplotlib.pyplot as plt
-    import model_pool.viewers as viewers
+    import model_pool.viewers_old as viewers
     fig, ax = plt.subplots(2,3)
     plt.setp(plt.gcf(), 'facecolor', 'white')
     plt.style.use('bmh')

@@ -1001,7 +1001,7 @@ tsm.task_par['tsk_set']['voting']['saving_voting_per_epoch'] = 2
 
 
 tsm.task_par['tsk_set']['criticUpdates'] = 1
-tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [400,4,debug_num]
+tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [200,4,debug_num]
 tsm.task_par['tsk_set']['optim']['lr'] = 5e-4
 tsm.task_par['tsk_set']['optim']['lr_scheduler']['type'] = 'custom'
 tsm.task_par['tsk_set']['optim']['lr_scheduler']['custom']['step_size'] = 4000*10

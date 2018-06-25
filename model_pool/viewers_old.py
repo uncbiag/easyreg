@@ -1,17 +1,12 @@
 """
 Implements various viewers to display 3D data
 """
-from __future__ import print_function
 
-from builtins import str
-from builtins import range
-from builtins import object
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from future.utils import with_metaclass
 
 def _create_some_test_data():
     a = np.sin(np.linspace(0, np.pi, 20))
@@ -170,7 +165,7 @@ class FigureEventHandler(object):
                     _print_debug('Dispatching event')
                     e[1](event)
 
-                    if e[0] in self.sync_d and e[2] is not None:
+                    if self.sync_d.has_key(e[0]) and e[2] is not None:
                         _print_debug('Broadcasting')
                         syncInfo = e[2]()
                         self._broadcast(self.sync_d[e[0]], syncInfo, 'button_press_event')
@@ -188,10 +183,11 @@ class FigureEventHandler(object):
         pass
 
 
-class ImageViewer(with_metaclass(ABCMeta, object)):
+class ImageViewer(object):
     """
     Abstract class for an image viewer.
     """
+    __metaclass__ = ABCMeta
 
     def __init__(self, ax, data ):
         """
@@ -217,10 +213,12 @@ class ImageViewer(with_metaclass(ABCMeta, object)):
         """
         pass
 
-class ImageViewer3D(with_metaclass(ABCMeta, ImageViewer)):
+class ImageViewer3D(ImageViewer):
     """
     Abstract class for a 3D image viewer.
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, ax, data ):
         super(ImageViewer3D,self).__init__(ax,data)
@@ -362,22 +360,19 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         """
         Display figure title
         """
-        font = {'size': 10}
         plt.sca(self.ax)
-        plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1),font )
+        plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1) )
 
     def show(self):
         """
         Show the current slice
         """
-
         plt.sca(self.ax)
         plt.cla()
-        #print('debugging {}'.format(self.index), 'slice_dim{}'.format(self.sliceDim),'img_shape{}'.format(self.data.shape))
         cim = self.ax.imshow(self._get_slice_at_dimension(self.index))
         divider = make_axes_locatable(self.ax)
         cax = divider.append_axes('right', size='5%', pad=0.05)
-        plt.gcf().colorbar(cim, cax=cax, orientation='vertical').ax.tick_params(labelsize=3)
+        plt.gcf().colorbar(cim, cax=cax, orientation='vertical')
         self.display_title()
 
 

@@ -77,6 +77,10 @@ abnormal example list:
 
 
 
+
+
+
+
 class DataPrepare:
                 class Dataprepare are specificed to oai_dataset, which will transfer Raw Data Organization into Processed Data Organization
                 
@@ -175,7 +179,7 @@ class OAILongitudeRegistration:
 class Patients(object):
     def __init__(self,full_init=False, root_path= ''):
         self.full_init = full_init
-        self.root_path = root_path if len(root_path) else "/playpen/raid/zyshen/summer/oai_registration/data"
+        self.root_path = root_path if len(root_path) else "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
         self.patients_id_txt_name = 'patient_id.txt'
         self.patients_info_folder = 'patient_slice'
         self.patients_id_list= []
@@ -374,23 +378,58 @@ class Patient():
 
 
 def __debug_check_img_sz(file_path_list):
+    fp_to_del = []
+
     for fp in file_path_list:
         img = sitk.ReadImage(fp)
         img_shape = sitk.GetArrayFromImage(img).shape
-        fp_to_del =[]
         if not img_shape == (160,384,384):
             print("!! image size not matched , img:{} sz:{} \n".format(os.path.split(fp)[1], img_shape))
             fp_to_del.append(fp)
-        return fp_to_del
+    return fp_to_del
 
 f= __debug_check_img_sz
 
 
 
+abnormal_example_list=\
+[
+"9901199_20090422_SAG_3D_DESS_RIGHT_12800503_image.nii.gz",
+"9052335_20090126_SAG_3D_DESS_RIGHT_12766414_image.nii.gz",
+"9163391_20110808_SAG_3D_DESS_LEFT_16613250603_image.nii.gz",
+"9712762_20090420_SAG_3D_DESS_RIGHT_12583306_image.nii.gz",
+"9388265_20040405_SAG_3D_DESS_LEFT_10016906_image.nii.gz",
+"9388265_20040405_SAG_3D_DESS_LEFT_10016903_image.nii.gz",
+"9938453_20071130_SAG_3D_DESS_RIGHT_12140103_image.nii.gz" ,
+"9452305_20070228_SAG_3D_DESS_RIGHT_11633112_image.nii.gz" ,
+"9219500_20080326_SAG_3D_DESS_RIGHT_12266509_image.nii.gz",
+"9011949_20060118_SAG_3D_DESS_LEFT_10667703_image.nii.gz",
+"9885303_20051212_SAG_3D_DESS_LEFT_10624403_image.nii.gz",
+"9833782_20090519_SAG_3D_DESS_RIGHT_12802313_image.nii.gz",
+"9462278_20050524_SAG_3D_DESS_RIGHT_10546912_image.nii.gz",
+"9126260_20060921_SAG_3D_DESS_RIGHT_11309309_image.nii.gz",
+"9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz",
+"9847480_20081007_SAG_3D_DESS_RIGHT_11508512_image.nii.gz",
+"9020714_20101207_SAG_3D_DESS_RIGHT_16613171935_image.nii.gz"
+]
+
+
+
+
+
+
+
+
+
+
+
+
 class OAIDataPrepare():
     def __init__(self):
-        self.raw_data_path = "/playpen/raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"
-        self.raw_label_path = "/playpen/raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"
+        self.raw_data_path_list = ["/playpen/raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"]
+        self.raw_label_path_list =[ "/playpen/raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038",
+                                    "/playpen/raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"]
+
         self.output_root_path = "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
         self.output_data_path = "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data/patient_slice"
         self.raw_file_path_list = []
@@ -408,12 +447,13 @@ class OAIDataPrepare():
 
 
 
-    def __filter_file(self, path, file_end):
+    def __filter_file(self, path_list, file_end):
         f_filter =[]
         import fnmatch
-        for root, dirnames, filenames in os.walk(path):
-            for filename in fnmatch.filter(filenames, file_end):
-                f_filter.append(os.path.join(root, filename))
+        for path in path_list:
+            for root, dirnames, filenames in os.walk(path):
+                for filename in fnmatch.filter(filenames, file_end):
+                    f_filter.append(os.path.join(root, filename))
         return f_filter
 
 
@@ -422,16 +462,32 @@ class OAIDataPrepare():
 
     def get_file_list(self):
 
-        self.raw_file_path_list = self.__filter_file(self.raw_data_path,self.image_file_end)
-        self.raw_file_label_path_list = self.__filter_file(self.raw_label_path,self.label_file_end)
+        self.raw_file_path_list = self.__filter_file(self.raw_data_path_list,self.image_file_end)
+        self.raw_file_label_path_list = self.__filter_file(self.raw_label_path_list,self.label_file_end)
+        self.remove_abnormal_data()
+
+    def remove_abnormal_data(self):
         if self.debug:
-            number_of_workers=10
+            number_of_workers=20
+            fp_to_del = []
+            fp_to_del_tmp = []
             file_patitions = np.array_split(self.raw_file_path_list, number_of_workers)
             with Pool(processes=number_of_workers) as pool:
-                fp_to_del=pool.map(f, file_patitions)
+                fp_to_del_tmp=pool.map(f, file_patitions)
+            for fp_list in fp_to_del_tmp:
+                for fp in fp_list:
+                    fp_to_del.append(fp)
             print("total {} paths need to be removed".format(len(fp_to_del)))
             for fp in fp_to_del:
                 self.raw_file_path_list.remove(fp)
+        else:
+            for fp in self.raw_file_path_list:
+                fn = os.path.split(fp)[1]
+                if fn in abnormal_example_list:
+                    self.raw_file_path_list.remove(fp)
+                    print("!! {} is removed from the image list".format(fn))
+
+
 
 
 
@@ -478,7 +534,10 @@ class OAIDataPrepare():
 
         for f_path in self.raw_file_label_path_list:
             fd = self.__factor_file(f_path)
-            self.patient_info_dic[fd['patient_id']][fd['modality']][fd['specificity']][fd['slice_name']]['label_path'] = f_path
+            try:
+                self.patient_info_dic[fd['patient_id']][fd['modality']][fd['specificity']][fd['slice_name']]['label_path'] = f_path
+            except:
+                pass
 
 
 
@@ -486,8 +545,8 @@ class OAIDataPrepare():
     def __build_and_write_in(self):
         make_dir(self.output_root_path)
         with open(os.path.join(self.output_root_path,'patient_id.txt'),'w') as fr:
-            has_label = True
             for pat_id in self.patient_info_dic:
+                has_complete_label = True
                 for mod in self.patient_info_dic[pat_id]:
                     for spec in self.patient_info_dic[pat_id][mod]:
                         folder_path = os.path.join(self.output_data_path,pat_id,mod,spec)
@@ -500,8 +559,8 @@ class OAIDataPrepare():
                                 f.write("\t")
                                 f.write(slices_info_dict[name]['label_path'])
                                 f.write("\n")
-                                has_label = has_label if slices_info_dict[name]['label_path'] !='None' else False
-                label_complete_str = 'annotation_complete' if has_label else 'annotation_not_complete'
+                                has_complete_label = has_complete_label if slices_info_dict[name]['label_path'] !='None' else False
+                label_complete_str = 'annotation_complete' if has_complete_label else 'annotation_not_complete'
                 fr.write(pat_id +'\t' + label_complete_str +'\n')
 
 
@@ -521,9 +580,9 @@ class OAIDataPrepare():
         return list(slices_name_np)
 
 
-
-test = OAIDataPrepare()
-test.debug=True
-test.prepare_data()
-patients = Patients(full_init=True)
-#filtered_patients = patients.get_filtered_patients_list(specificity='RIGHT',num_of_patients=3, len_time_range=[2,7], use_random=False)
+#
+# test = OAIDataPrepare()
+# test.debug=False
+# test.prepare_data()
+# patients = Patients(full_init=True)
+# filtered_patients = patients.get_filtered_patients_list(specificity='RIGHT',num_of_patients=3, len_time_range=[2,7], use_random=False)

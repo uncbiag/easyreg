@@ -368,9 +368,10 @@ class PatientStructureDataSet(VolumetricDataSet):
         self.__init_patients()
 
     def __init_patients(self):
-        root_path = "/playpen/raid/zyshen/summer/oai_registration/data"
+        root_path ="/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
         Patient_class = Patients(full_init=True, root_path=root_path)
-        self.patients= Patient_class.get_filtered_patients_list(has_complete_label= True, len_time_range=[2, 7], use_random=False)
+        self.patients= Patient_class.get_filtered_patients_list(has_complete_label=True, len_time_range=[2, 7], use_random=False)
+        print("total {} of  paitents are selected".format(len(self.patients)))
 
     def __divide_into_train_val_test_set(self,root_path, patients, ratio):
         num_patient = len(patients)
