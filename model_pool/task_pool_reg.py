@@ -1,3 +1,7 @@
+import matplotlib as matplt
+matplt.use('Agg')
+
+
 import sys,os
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
@@ -923,24 +927,23 @@ dm = DataTask('task_reg')
 dm.data_par['datapro']['task_type']='reg'
 dm.data_par['datapro']['dataset']['dataset_name']='oai'
 dm.data_par['datapro']['reg']['sched']='intra'
-dm.data_par['datapro']['reg']['resize_factor']=[0.5,0.5,0.5]
 
-dm.data_par['datapro']['dataset']['output_path']='/playpen/raid/zyshen/data/'
+dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # tsm.task_par['tsk_set']['save_fig_on'] = False
-tsm.task_par['tsk_set']['resize_factor'] = dm.data_par['datapro']['reg']['resize_factor']
+tsm.task_par['tsk_set']['resize_factor'] =[80./160.,192./384.,192./384]
 tsm.task_par['tsk_set']['train'] = True
 tsm.task_par['tsk_set']['dg_key_word'] = ''
 tsm.task_par['tsk_set']['save_by_standard_label'] = True
 tsm.task_par['tsk_set']['continue_train'] =False
 tsm.task_par['tsk_set']['continue_train_lr'] = 5e-4 ####################################################################3
 tsm.task_par['tsk_set']['old_gpu_ids']=2
-tsm.task_par['tsk_set']['gpu_ids'] = 0  #1
+tsm.task_par['tsk_set']['gpu_ids'] = 3  #1
 
 tsm.task_par['tsk_set']['model_path'] = "/playpen/zyshen/data/oai_2_vnet_oai_seg_nopatchedmy_balanced_random_crop/ada_zhenlin_nat_light2x3_patch_fixed_longiter/checkpoints/epoch_80_"
 dm.data_par['datapro']['dataset']['task_name']='reg_debug'
 dm.data_par['datapro']['dataset']['prepare_data']=False
 dm.data_par['datapro']['seg']['sched']='nopatched'
-
+dm.data_par['datapro']['reg']['resize_factor'] =tsm.task_par['tsk_set']['resize_factor']
 
 tsm.task_par['tsk_set']['n_in_channel'] = 1  #1
 dm.data_par['datapro']['seg']['add_resampled']= False
@@ -960,11 +963,11 @@ dm.data_par['datapro']['seg']['partition']['flicker_on']=False
 dm.data_par['datapro']['seg']['partition']['flicker_mode']='rand'
 dm.data_par['datapro']['seg']['partition']['flicker_range']=5
 
-tsm.task_par['tsk_set']['task_name'] = 'ada_zhenlin_nat_light2_light5x2_patch_fixed_longiter_2'  #task42_unet4_base
+tsm.task_par['tsk_set']['task_name'] = 'reg_hessian_bch4'  #task42_unet4_base
 tsm.task_par['tsk_set']['network_name'] ='reg_net'
 tsm.task_par['tsk_set']['epoch'] = 360
 tsm.task_par['tsk_set']['model'] = 'reg_net'
-tsm.task_par['tsk_set']['batch_sz'] = 1
+tsm.task_par['tsk_set']['batch_sz'] = 4
 tsm.task_par['tsk_set']['val_period'] =10
 tsm.task_par['tsk_set']['loss']['update_epoch'] =-1
 tsm.task_par['tsk_set']['loss']['imd_weighted_loss_on']= False
