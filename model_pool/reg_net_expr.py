@@ -8,19 +8,21 @@ import torch.nn.functional as F
 from torch.autograd import *
 from model_pool.modules import *
 from functions.bilinear import *
-
+from models.net_utils import init_weights
 
 class SimpleNet(nn.Module):
     def __init__(self, img_sz=None, resize_factor=1.):
         super(SimpleNet,self).__init__()
         self.img_sz = img_sz
-        self.denseGen = DisGen()
+        self.denseGen = DisGen_unet()
+        init_weights(self.denseGen,init_type='kaiming')
         self.hessianField = HessianField()
+        self.jacobiField = JacobiField()
         self. denseAffineGrid= DenseAffineGridGen(self.img_sz,resize_factor)
         self.bilinear = Bilinear()
     def forward(self, input, moving):
         disField = self.denseGen(input)
-        hessianField = self.hessianField(disField)
+        #hessianField = self.hessianField(disField)
         gridField = self.denseAffineGrid(disField)
         #gridField= torch.tanh(gridField)
         output = self.bilinear(moving,gridField)

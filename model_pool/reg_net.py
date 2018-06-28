@@ -29,7 +29,6 @@ class RegNet(BaseModel):
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-        self.resize_factor = opt['tsk_set']['resize_factor']
         self.network = SimpleNet(self.img_sz, resize_factor=self.resize_factor)
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
@@ -61,14 +60,16 @@ class RegNet(BaseModel):
 
 
     def set_input(self, data, is_train=True):
+        data[0]['image'] =data[0]['image'].cuda()
+        data[0]['label'] =data[0]['label'].cuda()
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
         volatile = not is_train
-        self.moving = Variable(moving.cuda(),volatile=volatile)
-        self.target = Variable(target.cuda(),volatile=volatile)
-        self.l_moving = Variable(l_moving.cuda(),volatile=volatile)#.long()
-        self.l_target = Variable(l_target.cuda(),volatile=volatile)#.long()
-        self.input = Variable(input.cuda(),volatile=volatile)
+        self.moving = Variable(moving,volatile=volatile)
+        self.target = Variable(target,volatile=volatile)
+        self.l_moving = Variable(l_moving,volatile=volatile)#.long()
+        self.l_target = Variable(l_target,volatile=volatile)#.long()
+        self.input = Variable(input,volatile=volatile)
         self.fname_list = list(data[1])
 
 
@@ -78,11 +79,20 @@ class RegNet(BaseModel):
             input =self.input
         return self.network.forward(input, self.moving)
 
+    def phi_regularization(self):
+        constr_map  = self.network.hessianField(self.disp)
+        #constr_map = self.network.jacobiField(self.disp)
+        reg =torch.abs(constr_map).sum()
+        return reg
+
 
     def cal_loss(self):
         # output should be BxCx....
         # target should be Bx1x
-        return self.loss_fn.get_loss(self.output,self.target)
+        factor = 1e-7
+        sim_loss  = self.loss_fn.get_loss(self.output,self.target)
+        reg_loss = self.phi_regularization()
+        return sim_loss+reg_loss*factor
 
 
     # get image paths
@@ -186,7 +196,7 @@ class RegNet(BaseModel):
             save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
 
     def save_fig(self,phase,standard_record=False,saving_gt=True):
-        from model_pool.visualize_registration_results_old import  save_current_images
+        from model_pool.visualize_registration_results import  show_current_images
         visual_param={}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True
@@ -197,7 +207,7 @@ class RegNet(BaseModel):
         visual_param['pair_path'] = self.fname_list
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp = ((self.disp[:,...]**2).sum(1))**0.5
-        save_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
+        show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
                             disp, 'disp', self.phi, visual_param=visual_param)
 
 

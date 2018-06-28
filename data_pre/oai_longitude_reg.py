@@ -179,7 +179,7 @@ class OAILongitudeRegistration:
 class Patients(object):
     def __init__(self,full_init=False, root_path= ''):
         self.full_init = full_init
-        self.root_path = root_path if len(root_path) else "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
+        self.root_path = root_path if len(root_path) else "/playpen/zyshen/summer/oai_registration/reg_0623/data"
         self.patients_id_txt_name = 'patient_id.txt'
         self.patients_info_folder = 'patient_slice'
         self.patients_id_list= []
@@ -426,12 +426,12 @@ abnormal_example_list=\
 
 class OAIDataPrepare():
     def __init__(self):
-        self.raw_data_path_list = ["/playpen/raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"]
-        self.raw_label_path_list =[ "/playpen/raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038",
-                                    "/playpen/raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"]
+        self.raw_data_path_list = ["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"]
+        self.raw_label_path_list =[ "/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038",
+                                    "/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"]
 
-        self.output_root_path = "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
-        self.output_data_path = "/playpen/raid/zyshen/summer/oai_registration/reg_0623/data/patient_slice"
+        self.output_root_path = "/playpen/zyshen/summer/oai_registration/reg_0623/data"
+        self.output_data_path = "/playpen/zyshen/summer/oai_registration/reg_0623/data/patient_slice"
         self.raw_file_path_list = []
         self.raw_file_label_path_list= []
         self.patient_info_dic= {}

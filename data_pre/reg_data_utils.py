@@ -253,6 +253,10 @@ def get_divided_dic(file_id_dic, pair_path_list, pair_name_list):
     return divided_path_dic
 
 
+
+
+
+
 def saving_pair_info(sub_folder_dic, divided_path_dic):
     for sess, sub_folder_path in sub_folder_dic.items():
         for item, list_to_write in divided_path_dic.items():

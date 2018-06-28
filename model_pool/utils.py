@@ -189,6 +189,30 @@ def make_dir(path):
     return is_exist
 
 
+
+def lift_to_dimension(A,dim):
+    """
+    Creates a view of A of dimension dim (by adding dummy dimensions if necessary).
+    Assumes a numpy array as input
+
+    :param A: numpy array
+    :param dim: desired dimension of view
+    :return: returns view of A of appropriate dimension
+    """
+
+    current_dim = len(A.shape)
+    if current_dim>dim:
+        raise ValueError('Can only add dimensions, but not remove them')
+
+    if current_dim==dim:
+        return A
+    else:
+        return A.reshape([1]*(dim-current_dim)+list(A.shape))
+
+
+
+
+
 def show_current_images_3d(iS,iT):
     import matplotlib.pyplot as plt
     import model_pool.viewers_old as viewers

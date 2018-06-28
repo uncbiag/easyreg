@@ -1,4 +1,4 @@
-from time import time
+from time import time, sleep
 from pipLine.utils import *
 
 
@@ -100,8 +100,15 @@ def train_model(opt,model, dataloaders,writer):
             running_debug_loss =0.0
 
             # Iterate over data.
+            time_cc=0
             for data in dataloaders[phase]:
                 # get the inputs
+                # if time_cc%10==0:
+                #     print("this is just for test speed,time_cc{}".format(time_cc))
+                #     print(data[0]['image'].shape)
+                # time_cc +=1
+                # sleep(0.2)
+                # continue
 
                 global_step[phase] += 1
                 end_of_epoch = global_step[phase] % max_batch_num_per_epoch[phase] == 0

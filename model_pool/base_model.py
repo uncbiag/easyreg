@@ -130,6 +130,7 @@ class BaseModel():
         self.continue_train = opt['tsk_set']['continue_train']
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.n_in_channel = opt['tsk_set']['n_in_channel']
+        self.resize_factor = opt['tsk_set']['resize_factor']
         self.optimizer= None
         self.lr_scheduler = None
         self.exp_lr_scheduler= None
@@ -549,6 +550,7 @@ class BaseModel():
             sample_label_path = self.opt['tsk_set']['extra_info']['sample_label_path']
             image = sitk.ReadImage(sample_label_path)
         self.origin_size = sitk.GetArrayFromImage(image).shape
+        self.origin_size = [int(self.origin_size[i]*self.resize_factor[i]) for i in range(len(self.origin_size))]
         return image
 
     def get_period_voting_map(self,period_record_dic, show_period_result=True):

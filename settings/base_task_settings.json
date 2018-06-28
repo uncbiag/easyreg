@@ -12,6 +12,7 @@
         "val_period": 5,
         "warmming_up_epoch": 2,
         "n_in_channel":4,
+        "resize_factor":[1.0,1.0,1.0],
         "loss": {
             "ce": {
                 "no_bg": false,

@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
-
+import torch.nn.init as init
 
 dim = 3
 Conv = nn.Conv2d if dim==2 else nn.Conv3d
@@ -12,11 +12,11 @@ BatchNorm = nn.BatchNorm2d if dim==2 else nn.BatchNorm3d
 conv = F.conv2d if dim==2 else F.conv3d
 
 
-class ConvBnRel(nn.Module):
+class conv_bn_rel(nn.Module):
     # conv + bn (optional) + relu
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, active_unit='relu', same_padding=False,
                  bn=False, reverse=False):
-        super(ConvBnRel, self).__init__()
+        super(conv_bn_rel, self).__init__()
         padding = int((kernel_size - 1) / 2) if same_padding else 0
         if not reverse:
             self.conv = Conv(in_channels, out_channels, kernel_size, stride, padding=padding)
@@ -27,6 +27,8 @@ class ConvBnRel(nn.Module):
             self.active_unit = nn.ReLU(inplace=True)
         elif active_unit == 'elu':
             self.active_unit = nn.ELU(inplace=True)
+        elif active_unit =='leaky_relu':
+            self.active_unit = nn.LeakyReLU(inplace=True)
         else:
             self.active_unit = None
 
@@ -144,6 +146,8 @@ def set_trainable(model, requires_grad):
         param.requires_grad = requires_grad
 
 
+
+
 def weights_normal_init(model, dev=0.01):
     if isinstance(model, list):
         for m in model:
@@ -169,3 +173,117 @@ def clip_gradient(model, clip_norm):
     for p in model.parameters():
         if p.requires_grad:
             p.grad.mul_(norm)
+
+
+def space_normal(tensors, std=0.1):
+    """
+    space normalize for the net kernel
+    :param tensor:
+    :param mean:
+    :param std:
+    :return:
+    """
+    if isinstance(tensors, Variable):
+        space_normal(tensors.data, std=std)
+        return tensors
+    for n in range(tensors.size()[0]):
+        for c in range(tensors.size()[1]):
+            dim = tensors[n][c].dim()
+            sz = tensors[n][c].size()
+            mus = np.zeros(dim)
+            stds = std * np.ones(dim)
+            print('WARNING: What should the spacing be here? Needed for new identity map code')
+            raise ValueError('Double check the spacing here before running this code')
+            spacing = np.ones(dim)
+            centered_id = centered_identity_map(sz,spacing)
+            g = compute_normalized_gaussian(centered_id, mus, stds)
+            tensors[n,c] = torch.from_numpy(g)
+
+
+
+
+def weights_init_uniform(m):
+    classname = m.__class__.__name__
+    # print(classname)
+    if classname.find('Conv') != -1:
+        init.uniform(m.weight.data, 0.038, 0.042)
+    elif classname.find('Linear') != -1:
+        init.uniform(m.weight.data, 0.0, 0.02)
+    elif classname.find('BatchNorm2d') != -1:
+        init.uniform(m.weight.data, 1.0, 0.02)
+        init.constant(m.bias.data, 0.0)
+
+def weights_init_normal(m):
+    classname = m.__class__.__name__
+    # print(classname)
+    if classname.find('Conv') != -1:
+        space_normal(m.weight.data)
+    elif classname.find('Linear') != -1:
+        space_normal(m.weight.data)
+    elif classname.find('BatchNorm2d') != -1:
+        init.uniform(m.weight.data, 1.0, 0.02)
+        init.constant(m.bias.data, 0.0)
+
+def weights_init_rd_normal(m):
+    classname = m.__class__.__name__
+    # print(classname)
+    if classname.find('Conv') != -1:
+        init.normal(m.weight.data)
+    elif classname.find('Linear') != -1:
+        init.normal(m.weight.data)
+    elif classname.find('BatchNorm2d') != -1:
+        init.uniform(m.weight.data, 1.0, 0.02)
+        init.constant(m.bias.data, 0.0)
+
+def weights_init_xavier(m):
+    classname = m.__class__.__name__
+    # print(classname)
+    if classname.find('Conv') != -1:
+        init.xavier_normal(m.weight.data, gain=1)
+    elif classname.find('Linear') != -1:
+        init.xavier_normal(m.weight.data, gain=1)
+    elif classname.find('BatchNorm2d') != -1:
+        init.uniform(m.weight.data, 1.0, 0.02)
+        init.constant(m.bias.data, 0.0)
+
+
+def weights_init_kaiming(m):
+    classname = m.__class__.__name__
+    # print(classname)
+    if classname.find('Conv') != -1:
+        init.kaiming_normal(m.weight.data, a=0, mode='fan_in')
+    elif classname.find('Linear') != -1:
+        init.kaiming_normal(m.weight.data, a=0, mode='fan_in')
+    elif classname.find('BatchNorm2d') != -1:
+        init.uniform(m.weight.data, 1.0, 0.02)
+        init.constant(m.bias.data, 0.0)
+
+
+def weights_init_orthogonal(m):
+    classname = m.__class__.__name__
+    print(classname)
+    if classname.find('Conv') != -1:
+        init.orthogonal(m.weight.data, gain=1)
+    elif classname.find('Linear') != -1:
+        init.orthogonal(m.weight.data, gain=1)
+    elif classname.find('BatchNorm2d') != -1:
+        init.uniform(m.weight.data, 1.0, 0.02)
+        init.constant(m.bias.data, 0.0)
+
+
+def init_weights(net, init_type='normal'):
+    print('initialization method [%s]' % init_type)
+    if init_type == 'rd_normal':
+        net.apply(weights_init_rd_normal)
+    elif init_type == 'normal':
+        net.apply(weights_init_normal)
+    elif init_type == 'uniform':
+        net.apply(weights_init_uniform)
+    elif init_type == 'xavier':
+        net.apply(weights_init_xavier)
+    elif init_type == 'kaiming':
+        net.apply(weights_init_kaiming)
+    elif init_type == 'orthogonal':
+        net.apply(weights_init_orthogonal)
+    else:
+        raise NotImplementedError('initialization method [%s] is not implemented' % init_type)

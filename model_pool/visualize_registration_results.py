@@ -5,9 +5,9 @@ from __future__ import absolute_import
 import matplotlib as matplt
 
 from data_pre.reg_data_utils import make_dir
-from .config_parser import MATPLOTLIB_AGG
-if MATPLOTLIB_AGG:
-    matplt.use('Agg')
+#from .config_parser import MATPLOTLIB_AGG
+# if MATPLOTLIB_AGG:
+#     matplt.use('Agg')
 
 """
 Some utility functions to display the registration results
@@ -89,9 +89,9 @@ def _show_current_images_1d(iS, iT, iW, iter, vizImage, vizName, phiWarped,visua
 def checkerboard_2d(I0,I1,nrOfTiles=8):
     """
     Creates a checkerboard between two images
-    
-    :param I0: image 0, size XxYxZ 
-    :param I1: image 1, size XxYxZ 
+
+    :param I0: image 0, size XxYxZ
+    :param I1: image 1, size XxYxZ
     :param nrOfTiles: number of desired tiles in each direction
     :return: returns tiled image
     """
@@ -435,8 +435,10 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
             make_dir(join_p(visual_param['save_fig_path_byiter'], visual_param['iter']))
             plt.savefig(join_p(join_p(visual_param['save_fig_path_byname'], file_name),visual_param['iter']+extension), dpi=dpi)
             plt.savefig(join_p(join_p(visual_param['save_fig_path_byiter'], visual_param['iter']), file_name+extension), dpi=dpi)
+            plt.clf()
     else:
         plt.show()
+        plt.clf()
 
 
 def show_current_images(iter, iS, iT, iW,iSL=None, iTL=None, iWL=None, vizImages=None, vizName=None, phiWarped=None, visual_param=None):

@@ -6,6 +6,11 @@ from torch.utils.data import Dataset
 from data_pre.reg_data_utils import *
 
 from data_pre.oai_longitude_reg import *
+import copy
+
+sesses = ['train', 'val', 'test', 'debug']
+number_of_workers = 10
+warning_once = True
 
 class BaseRegDataSet(object):
 
@@ -31,8 +36,9 @@ class BaseRegDataSet(object):
         self.sched = sched
         """inter or intra, for inter-personal or intra-personal registration"""
         self.dataset_type = dataset_type
+        self.saving_h5py=False
         """custom or mixed"""
-        self.normalize_sched = 'tp'
+        self.normalize= False
         """ settings for normalization, currently not used"""
         self.divided_ratio = (0.7, 0.1, 0.2)
         """divided the data into train, val, test set"""
@@ -68,7 +74,15 @@ class BaseRegDataSet(object):
         :return:
         """
         # img, info = read_itk_img(file_path)
-        img, info = file_io_read_img(file_path, is_label=is_label)
+        try:
+            img, info = file_io_read_img(file_path,normalize_intensities=self.normalize, is_label=is_label)
+        except:
+            global warning_once
+            if warning_once:
+                print("not default file reading function is used, no normalization is applied")
+                warning_once = False
+            img = sitk.GetArrayFromImage(sitk.ReadImage(file_path))
+            info =None
         return img, info
 
     def extract_pair_info(self, info1, info2):
@@ -77,10 +91,14 @@ class BaseRegDataSet(object):
     def save_shared_info(self,info):
         save_sz_sp_to_json(info, self.output_path)
 
-    def save_pair_to_txt(self):
+    def save_pair_to_txt(self,info=None):
+        pass
+    def save_pair_to_h5py(self,info=None):
+        pass
+    def gen_pair_dic(self):
         pass
 
-    def save_file_to_h5py(self):
+    def save_file_to_h5py(self,info=None):
         pass
 
     def initialize_info(self):
@@ -96,9 +114,14 @@ class BaseRegDataSet(object):
         print("starting preapare data..........")
         print("the output file path is: {}".format(self.output_path))
         self.initialize_info()
-        self.save_file_to_h5py()
-        self.pair_path_list = self.generate_pair_list()
-        self.save_pair_to_txt()
+        # self.save_file_to_h5py()
+        # self.pair_path_list = self.generate_pair_list()
+        # self.save_pair_to_txt()
+
+        info=self.gen_pair_dic()
+        self.save_pair_to_txt(copy.deepcopy(info))
+        if self.saving_h5py:
+            self.save_pair_to_h5py(copy.deepcopy(info))
         try:
             print("the total num of pair is {}".format(self.get_file_num()))
         except:
@@ -133,7 +156,7 @@ class UnlabeledDataSet(BaseRegDataSet):
 
 
 
-    def save_file_to_h5py(self):
+    def save_file_to_h5py(self,info=None):
         file_path_list =  get_file_path_list(self.data_path, self.file_type_list)
         file_name_list = [get_file_name(pt) for pt in file_path_list]
         self.pro_data_path = os.path.join(self.output_path,'data')
@@ -227,7 +250,7 @@ class LabeledDataSet(BaseRegDataSet):
 
 
 
-    def save_file_to_h5py(self):
+    def save_file_to_h5py(self=None):
         file_path_list =  get_file_path_list(self.data_path, self.file_type_list)
         file_label_path_list = find_corr_map(file_path_list, self.label_path,self.label_switch)
         file_name_list = [get_file_name(pt) for pt in file_path_list]
@@ -368,7 +391,7 @@ class PatientStructureDataSet(VolumetricDataSet):
         self.__init_patients()
 
     def __init_patients(self):
-        root_path ="/playpen/raid/zyshen/summer/oai_registration/reg_0623/data"
+        root_path ="/playpen/zyshen/summer/oai_registration/reg_0623/data"
         Patient_class = Patients(full_init=True, root_path=root_path)
         self.patients= Patient_class.get_filtered_patients_list(has_complete_label=True, len_time_range=[2, 7], use_random=False)
         print("total {} of  paitents are selected".format(len(self.patients)))
@@ -439,7 +462,7 @@ class PatientStructureDataSet(VolumetricDataSet):
         all_image_list =[all_image_list[i] for i in permute_id_list]
         all_label_list = [all_label_list[i] for i in permute_id_list]
         for _ in range(pair_num_limit):
-            rand_pair_id =[int(1000*random.random()),int(1000*random.random())]
+            rand_pair_id =[int(pair_num_limit*random.random()),int(pair_num_limit*random.random())]
             pair = [all_image_list[rand_pair_id[0]], all_image_list[rand_pair_id[1]],
                     all_label_list[rand_pair_id[0]], all_label_list[rand_pair_id[1]]]
             inter_pair_list.append(pair)
@@ -448,33 +471,73 @@ class PatientStructureDataSet(VolumetricDataSet):
         return inter_pair_list
 
     def __gen_path_and_name_dic(self, pair_list_dic):
-        sesses = ['train', 'val', 'test', 'debug']
+
         divided_path_and_name_dic={}
         divided_path_and_name_dic['pair_path_list'] = pair_list_dic
-        divided_path_and_name_dic['pair_name_list'] = {sess:[get_file_name(path[0])+'_'+get_file_name(path[1]) for path in pair_list_dic[sess]] for sess in sesses}
+        divided_path_and_name_dic['pair_name_list'] = self.__gen_pair_name_list(pair_list_dic)
         return divided_path_and_name_dic
 
 
+    def __gen_pair_name_list(self,pair_list_dic):
+        return {sess:[get_file_name(path[0])+'_'+get_file_name(path[1]) for path in pair_list_dic[sess]] for sess in sesses}
 
 
 
 
 
-    def save_pair_to_txt(self):
+
+
+    def gen_pair_dic(self):
         sub_folder_dic, sub_patients_dic =self.__divide_into_train_val_test_set(self.output_path,self.patients,self.divided_ratio)
-        sesses = ['train', 'val', 'test', 'debug']
         gen_pair_list_func = self. __gen_intra_pair_list if self.sched=='intra' else self.__gen_inter_pair_list
         max_ratio = {'train':self.divided_ratio[0],'val':self.divided_ratio[1],'test':self.divided_ratio[2],'debug':self.divided_ratio[1]}
-        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(1000*max_ratio[sess])) for sess in sesses}
+        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(400*max_ratio[sess])) for sess in sesses}
         divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
-        saving_pair_info(sub_folder_dic,divided_path_and_name_dic)
+        return (sub_folder_dic,divided_path_and_name_dic)
 
-    def save_file_to_h5py(self):
-        """
-        for compatiblity
-        :return:
-        """
-        pass
+
+
+    def save_pair_to_txt(self,info=None):
+        sub_folder_dic, divided_path_and_name_dic = info
+
+        if not self.saving_h5py:
+            saving_pair_info(sub_folder_dic, divided_path_and_name_dic)
+        else:
+            for sess in sesses:
+                h5py_data_folder = sub_folder_dic[sess]
+                pair_path_list = [[os.path.join(h5py_data_folder,get_file_name(fps[i])+'.h5py') for i in [0,1]] for fps in divided_path_and_name_dic['pair_path_list'][sess]]
+                divided_path_and_name_dic['pair_path_list'][sess] = pair_path_list
+            saving_pair_info(sub_folder_dic, divided_path_and_name_dic)
+
+
+
+    def save_pair_to_h5py(self,info=None):
+        sub_folder_dic, divided_path_and_name_dic =info
+        for sess in sesses:
+            self.pro_data_path = sub_folder_dic[sess]
+            pair_path_list_part = np.array_split(divided_path_and_name_dic['pair_path_list'][sess],number_of_workers)
+            with Pool(processes=number_of_workers) as pool:
+                pool.map(self.save_file_to_h5py, pair_path_list_part)
+
+
+
+
+
+    def save_file_to_h5py(self,info=None):
+        file_path_list = info
+        pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(file_path_list)).start()
+        for i, fps in enumerate(file_path_list):
+            for j in range(2):
+                f_path = os.path.join(self.pro_data_path,get_file_name(fps[j])+'.h5py')
+                if not os.path.exists(f_path):
+                    img_np, info = self.read_file(fps[j], is_label=False)
+                    label_np, linfo = self.read_file(fps[j+2], is_label=True)
+                    img_np = img_np.astype(np.float32)
+                    label_np = label_np.astype(np.float32)
+                    save_to_h5py(f_path, img_np, label_np, get_file_name(fps[j]), info, verbose=False)
+                pbar.update(i + 1)
+        pbar.finish()
+
 
     def generate_pair_list(self):
         """

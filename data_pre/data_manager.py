@@ -111,11 +111,11 @@ class DataManager(object):
                              'oasis2d': '/playpen/zyshen/data/oasis',
                              'cumc':'/playpen/data/quicksilver_data/testdata/CUMC12/brain_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/brain_affine_icbm',
-                             'oai':'/playpen/raid/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',   ########################
+                             'oai':'/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',   ########################
                              'brats':'/playpen/zyshen/data/miccia_brats'}
 
         default_label_path = {'lpba': '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm',
-                              'oai': '/playpen/raid/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',   ###################3
+                              'oai': '/playpen/zyshen/unet/data/OAI_segmentation/Nifti_corrected_rescaled',   ###################3
                              'oasis2d': 'None',
                              'cumc': '/playpen/data/quicksilver_data/testdata/CUMC12/label_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm',
@@ -225,8 +225,9 @@ class DataManager(object):
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
+            num_workers_reg ={'train':12,'val':2,'test':2,'debug':2}
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                      shuffle=False, num_workers=4) for x in ['train','val','test','debug']}
+                                                      shuffle=False, num_workers=num_workers_reg[x]) for x in ['train','val','test','debug']}
         elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),
