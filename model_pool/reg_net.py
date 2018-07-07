@@ -11,10 +11,18 @@ from .metrics import get_multi_metric
 from data_pre.partition import Partition
 #from model_pool.utils import weights_init
 from model_pool.utils import *
+from model_pool.mermaid_net import MermaidNet
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
+
+model_pool = {'affine_sim':AffineNet,
+              'affine_unet':Affine_unet,
+              'affine_cycle':AffineNetCycle,
+              'affine_sym': AffineNetSym,
+              'mermaid':MermaidNet}
+
 
 
 
@@ -29,14 +37,22 @@ class RegNet(BaseModel):
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-        self.network = SimpleNet(self.img_sz, resize_factor=self.resize_factor)
+
+        input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        network_name =opt['tsk_set']['network_name']
+        self.debug_mermaid_on = True if 'mermaid' in network_name else False
+        self.debug_sym_on = True if 'sym' in network_name else False
+
+        self.network = model_pool[network_name](input_img_sz, opt)#AffineNetCycle(input_img_sz)#
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
-        if self.continue_train:
-            self.load_network(self.network,'reg_net',which_epoch)
+        # if self.continue_train:
+        #     self.load_network(self.network,'reg_net',which_epoch)
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
+        self.single_mod = opt['tsk_set']['single_mod']
         self.init_optimize_instance(warmming_up=True)
+        self.step_count =0.
         print('---------- Networks initialized -------------')
         networks.print_network(self.network)
         if self.isTrain:
@@ -77,22 +93,51 @@ class RegNet(BaseModel):
         # here input should be Tensor, not Variable
         if input is None:
             input =self.input
-        return self.network.forward(input, self.moving)
+        return self.network.forward(input, self.moving,self.target)
 
     def phi_regularization(self):
-        constr_map  = self.network.hessianField(self.disp)
-        #constr_map = self.network.jacobiField(self.disp)
-        reg =torch.abs(constr_map).sum()
+        if len(self.disp.shape)>2:
+            constr_map  = self.network.hessianField(self.disp)
+            #constr_map = self.network.jacobiField(self.disp)
+        else:
+            constr_map = self.network.affine_cons(self.disp, sched='l2')
+
+        reg = constr_map.sum()
+
         return reg
 
 
     def cal_loss(self):
         # output should be BxCx....
         # target should be Bx1x
-        factor = 1e-7
+        factor = 10# 1e-7
+        factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
         sim_loss  = self.loss_fn.get_loss(self.output,self.target)
-        reg_loss = self.phi_regularization()
+        reg_loss = self.phi_regularization() if self.disp is not None else 0.
+        if self.iter_count%10==0:
+            print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.data.cpu().numpy(), reg_loss.data.cpu().numpy(),factor))
         return sim_loss+reg_loss*factor
+
+    def cal_mermaid_loss(self):
+        loss_overall_energy, sim_energy, reg_energy = self.network.do_criterion_cal( self.moving,self.target)
+        return loss_overall_energy  #*20 ###############################
+    def cal_sym_loss(self):
+        sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
+        sym_reg_loss = self.network.sym_reg_loss(bias_factor=100.)
+        scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
+        factor_scale = 1  # 1e-7
+        factor_scale = sigmoid_decay(self.cur_epoch, static=5, k=4) * factor_scale
+        factor_sym =1
+
+        loss = sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
+
+        if self.iter_count%10==0:
+            print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
+                sim_loss,factor_sym,sym_reg_loss,factor_scale,scale_reg_loss)
+            )
+
+        return loss
+
 
 
     # get image paths
@@ -109,9 +154,12 @@ class RegNet(BaseModel):
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
         self.output, self.phi, self.disp = self.forward()
-        self.loss = self.cal_loss()
-        # criterion = nn.MSELoss()
-        # self.loss = criterion(self.output, self.target)
+        if self.debug_mermaid_on:
+            self.loss = self.cal_mermaid_loss()
+        elif self.debug_sym_on:
+            self.loss = self.cal_sym_loss()
+        else:
+            self.loss = self.cal_loss()
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()
@@ -122,6 +170,14 @@ class RegNet(BaseModel):
 
     def get_current_errors(self):
         return self.loss.data[0]
+
+
+    def get_warped_img_map(self,img, phi):
+        bilinear = Bilinear()
+        warped_img_map = bilinear(img, phi)
+
+        return warped_img_map
+
 
     def get_warped_label_map(self,label_map, phi, sched='nn'):
         if sched == 'nn':
@@ -140,12 +196,25 @@ class RegNet(BaseModel):
         self.get_evaluation()
 
     def get_evaluation(self):
-        self.output, self.phi, self.disp= self.forward()
-        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
-        warped_label_map_np= self.warped_label_map.data.cpu().numpy()
-        self.l_target_np= self.l_target.data.cpu().numpy()
+        if self.single_mod:
+            self.output, self.phi, self.disp= self.forward()
+            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            warped_label_map_np= self.warped_label_map.data.cpu().numpy()
+            self.l_target_np= self.l_target.data.cpu().numpy()
 
-        self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+        else:
+            step = 8
+            print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
+            for i in range(step):
+                self.output, self.phi, self.disp = self.forward()
+                self.input = torch.cat((self.output,self.target),1)
+                self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi)
+                self.l_moving = self.warped_label_map
+
+            warped_label_map_np  =self.warped_label_map.data.cpu().numpy()
+            self.l_target_np = self.l_target.data.cpu().numpy()
+            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
         # if not self.print_val_detail:
         #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
         # else:
@@ -206,9 +275,17 @@ class RegNet(BaseModel):
         visual_param['save_fig_num'] = 5
         visual_param['pair_path'] = self.fname_list
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
-        disp = ((self.disp[:,...]**2).sum(1))**0.5
+        disp=None
+        extra_title = 'disp'
+        if self.disp is not None and len(self.disp.shape)>2 and not self.debug_mermaid_on:
+            disp = ((self.disp[:,...]**2).sum(1))**0.5
+
+
+        if self.debug_mermaid_on:
+            disp = self.disp[:,0,...]
+            extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
-                            disp, 'disp', self.phi, visual_param=visual_param)
+                            disp, extra_title, self.phi, visual_param=visual_param)
 
 
 

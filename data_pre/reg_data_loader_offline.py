@@ -29,12 +29,14 @@ class RegistrationDataset(Dataset):
         self.transform = transform
         self.data_type = '*.nii.gz'
         self.debug_num =-1
+        self.is_llm=reg_option['is_llm']
+
 
         self.get_file_list()
         self.resize = True
         self.reg_option = reg_option
-        self.resize_factor=reg_option['resize_factor']
-        self.load_into_memory= True if phase=='train' else False
+        self.resize_factor=reg_option['input_resize_factor']
+        self.load_into_memory=  False if phase=='train' else False
         self.pair_list = []
         if self.load_into_memory:
             self.init_img_pool()
@@ -51,6 +53,8 @@ class RegistrationDataset(Dataset):
             self.name_list = self.name_list[:self.debug_num]
         if len(self.name_list)==0:
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
+        if self.is_llm:
+            self.path_list = [[pth.replace('/playpen','/playpen/raid') for pth in pths] for pths  in self.path_list]
 
     def read_img_label_into_zipnp(self,img_label_path_dic,img_label_dic):
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(img_label_path_dic)).start()
@@ -170,7 +174,7 @@ class RegistrationDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.name_list)
+        return len(self.name_list)*1000 #############################3
 
 
     def __getitem__(self, idx):
@@ -179,6 +183,7 @@ class RegistrationDataset(Dataset):
         :return: the processed data, return as type of dic
 
         """
+        #idx=0
 
         pair_path = self.path_list[idx]
         filename = self.name_list[idx]

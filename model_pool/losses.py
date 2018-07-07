@@ -27,6 +27,8 @@ class Loss(object):
             self.criterion = nn.L1Loss()
         elif cont_loss_type == 'mse':
             self.criterion = nn.MSELoss()
+        elif cont_loss_type =='ncc':
+            self.criterion = NCCLoss()
         elif cont_loss_type =='ce':
             class_weight = self.cal_class_weight(opt, self.record_weight)
             self.record_weight = class_weight   # update the record weight
@@ -417,7 +419,49 @@ class TverskyLoss(nn.Module):
 
         return dice_total
 
+class NCCLoss(nn.Module):
+    def forward(self,input, target,inst_weights=None, train=None):
+        # nccSqr = (((I0 - I0mean.expand_as(I0)) * (I1 - I1mean.expand_as(I1))).mean() ** 2) / \
+        #          (((I0 - I0mean) ** 2).mean() * ((I1 - I1mean) ** 2).mean())
+        #
+        # return AdaptVal((1 - nccSqr) / self.sigma ** 2)
+        input_minus_mean = input -torch.mean(input.view(input.shape[0],-1),1).view(input.shape[0],1,1,1,1)
+        target_minus_mean = target - torch.mean(input.view(input.shape[0],-1),1).view(input.shape[0],1,1,1,1)
+        nccSqr =((input_minus_mean*target_minus_mean).mean()**2)/(((input_minus_mean**2).mean())*((target_minus_mean**2).mean()))
+        return 1 - nccSqr
 
+# class LNCCLoss(nn.Module):
+#     def __init__(self,win_sz=[9, 9, 9], voxel_weights=None):
+#         self.win_sz = win_sz
+#     def foward(I, J):
+#         I2 = I*I
+#         J2 = J*J
+#         IJ = I*J
+#
+#         filt = tf.ones([win[0], win[1], win[2], 1, 1])
+#
+#         I_sum = tf.nn.conv3d(I, filt, [1, 1, 1, 1, 1], "SAME")
+#         J_sum = tf.nn.conv3d(J, filt, [1, 1, 1, 1, 1], "SAME")
+#         I2_sum = tf.nn.conv3d(I2, filt, [1, 1, 1, 1, 1], "SAME")
+#         J2_sum = tf.nn.conv3d(J2, filt, [1, 1, 1, 1, 1], "SAME")
+#         IJ_sum = tf.nn.conv3d(IJ, filt, [1, 1, 1, 1, 1], "SAME")
+#
+#         win_size = win[0]*win[1]*win[2]
+#         u_I = I_sum/win_size
+#         u_J = J_sum/win_size
+#
+#         cross = IJ_sum - u_J*I_sum - u_I*J_sum + u_I*u_J*win_size
+#         I_var = I2_sum - 2 * u_I * I_sum + u_I*u_I*win_size
+#         J_var = J2_sum - 2 * u_J * J_sum + u_J*u_J*win_size
+#
+#         cc = cross*cross / (I_var*J_var+1e-5)
+#
+#         # if(voxel_weights is not None):
+#         #	cc = cc * voxel_weights
+#
+#         return -1.0*tf.reduce_mean(cc)
+#
+# return loss
 
 
 
@@ -466,6 +510,10 @@ class CrossEntropyLoss(nn.Module):
             return self.loss_fn(output_flat,truths_flat)
         else:
             return torch.mean( inst_weights.view(-1)*self.loss_fn(output_flat,truths_flat))
+
+
+
+
 
 
 

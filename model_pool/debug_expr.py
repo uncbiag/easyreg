@@ -10,7 +10,7 @@ def debug_model(opt,model, dataloaders):
     model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
 
-    phase = 'test'
+    phase = 'val'
     if len(model_path):
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
@@ -25,7 +25,7 @@ def debug_model(opt,model, dataloaders):
         model.set_input(data, is_train)
         model.cal_test_errors()
         if save_fig_on:
-            model.save_fig('best')
+            model.save_fig('debug_model_'+phase)
         loss,_ = model.get_test_res()
         running_test_loss += loss
     test_loss = running_test_loss / dataloaders['data_size'][phase]

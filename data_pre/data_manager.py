@@ -61,6 +61,7 @@ class DataManager(object):
         self.transform_seq = []
         self.seg_option = None
         self.reg_option = None
+        self.phases =['train','val','test','debug']
 
 
     def set_task_type(self,task_type):
@@ -225,9 +226,9 @@ class DataManager(object):
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
-            num_workers_reg ={'train':12,'val':2,'test':2,'debug':2}
+            num_workers_reg ={'train':12,'val':4,'test':4,'debug':4}
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                      shuffle=False, num_workers=num_workers_reg[x]) for x in ['train','val','test','debug']}
+                                                      shuffle=False, num_workers=num_workers_reg[x]) for x in self.phases}
         elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),
@@ -243,17 +244,20 @@ class DataManager(object):
         return dataloaders
 
 
-    def data_loaders(self, batch_size=20):
+    def data_loaders(self, batch_size=20,is_train=True):
         """
         pytorch dataloader
         :param batch_size:  set the batch size
         :return:
         """
-        phases = ['train', 'val','test','debug']
+        if is_train:
+            self.phases = ['train', 'val','test','debug']
+        else:
+            self.phases = ['val','test']
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
         ########################################################################33######3
-        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,seg_option=self.seg_option, reg_option =self.reg_option) for x in phases}
+        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,seg_option=self.seg_option, reg_option =self.reg_option) for x in self.phases}
         # transformed_dataset = {
         # 'train': self.cur_dataset(data_path=self.task_path['train'], phase='train', transform=composed, option=self.seg_option),
         # 'val': self.cur_dataset(data_path=self.task_path['val'], phase='val', transform=composed, option=self.seg_option),
@@ -261,8 +265,8 @@ class DataManager(object):
         # 'debug': self.cur_dataset(data_path=self.task_path['train'], phase='debug', transform=composed, option=self.seg_option),
         # }
         dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
-        dataloaders['data_size'] = {x: len(dataloaders[x]) for x in phases}
-        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in phases}
+        dataloaders['data_size'] = {x: len(dataloaders[x]) for x in self.phases}
+        dataloaders['info'] = {x: transformed_dataset[x].name_list for x in self.phases}
         print('dataloader is ready')
 
 

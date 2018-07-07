@@ -112,7 +112,9 @@ class Initializer():
 
     def get_data_loader(self):
         batch_size = self.task_opt['tsk_set']['batch_sz']
-        return self.data_manager.data_loaders(batch_size=batch_size)
+        is_train = self.task_opt['tsk_set']['train']
+
+        return self.data_manager.data_loaders(batch_size=batch_size,is_train=is_train)
 
 
 
