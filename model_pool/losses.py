@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torchvision.models as models
-from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 from model_pool.metrics import get_multi_metric
@@ -222,12 +221,10 @@ class FocalLoss(nn.Module):
 
     def initialize(self, class_num, alpha=None, gamma=2, size_average=True, verbose=True):
         if alpha is None:
-            self.alpha = Variable(torch.ones(class_num, 1))
+            self.alpha = torch.ones(class_num, 1)
         else:
-            if isinstance(alpha, Variable):
-                self.alpha = alpha
-            else:
-                self.alpha = Variable(alpha)
+            self.alpha = alpha
+
         self.alpha = torch.squeeze(self.alpha)
         if verbose:
             print("the alpha of focal loss is  {}".format(alpha))
@@ -275,12 +272,9 @@ class DiceLoss(nn.Module):
         self.class_num = class_num
         self.class_num = class_num
         if weight is None:
-            self.weight = Variable(torch.ones(class_num, 1))/self.class_num
+            self.weight =torch.ones(class_num, 1)/self.class_num
         else:
-            if isinstance(weight, Variable):
-                self.weight = weight
-            else:
-                self.weight = Variable(weight)
+            self.weight = weight
         self.weight = torch.squeeze(self.weight)
     def forward(self,input, target, inst_weights=None,train=None):
         """
@@ -290,7 +284,7 @@ class DiceLoss(nn.Module):
         in_sz = input.size()
         from functools import reduce
         extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
-        targ_one_hot = Variable(torch.zeros(in_sz[0],in_sz[1],extra_dim)).cuda()
+        targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim).cuda()
         targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1.)
         target = targ_one_hot.view(in_sz).contiguous()
         probs = F.softmax(input,dim=1)
@@ -322,12 +316,10 @@ class GeneralizedDiceLoss(nn.Module):
     def initialize(self, class_num, weight=None):
         self.class_num = class_num
         if weight is None:
-            self.weight = Variable(torch.ones(class_num, 1))
+            self.weight =torch.ones(class_num, 1)
         else:
-            if isinstance(weight, Variable):
-                self.weight = weight
-            else:
-                self.weight = Variable(weight)
+            self.weight = weight
+
         self.weight = torch.squeeze(self.weight)
     def forward(self,input, target,inst_weights=None,train=None):
         """
@@ -337,7 +329,7 @@ class GeneralizedDiceLoss(nn.Module):
         in_sz = input.size()
         from functools import reduce
         extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
-        targ_one_hot = Variable(torch.zeros(in_sz[0],in_sz[1],extra_dim)).cuda()
+        targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim).cuda()
         targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1.)
         target = targ_one_hot.view(in_sz).contiguous()
         probs = F.softmax(input,dim=1)
@@ -370,12 +362,10 @@ class TverskyLoss(nn.Module):
     def initialize(self, class_num, weight=None, alpha=0.5, beta=0.5):
         self.class_num = class_num
         if weight is None:
-            self.weight = Variable(torch.ones(class_num, 1))/self.class_num
+            self.weight = torch.ones(class_num, 1)/self.class_num
         else:
-            if isinstance(weight, Variable):
-                self.weight = weight
-            else:
-                self.weight = Variable(weight)
+            self.weight = weight
+
         self.weight = torch.squeeze(self.weight)
         self.alpha = alpha
         self.beta = beta
@@ -389,7 +379,7 @@ class TverskyLoss(nn.Module):
         in_sz = input.size()
         from functools import reduce
         extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
-        targ_one_hot = Variable(torch.zeros(in_sz[0],in_sz[1],extra_dim)).cuda()
+        targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim).cuda()
         targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1.)
         target = targ_one_hot.view(in_sz).contiguous()
         probs = F.softmax(input,dim=1)

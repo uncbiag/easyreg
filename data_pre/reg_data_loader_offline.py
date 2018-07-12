@@ -36,7 +36,7 @@ class RegistrationDataset(Dataset):
         self.resize = True
         self.reg_option = reg_option
         self.resize_factor=reg_option['input_resize_factor']
-        self.load_into_memory=  False if phase=='train' else False
+        self.load_into_memory=  True if phase=='train' else False
         self.pair_list = []
         if self.load_into_memory:
             self.init_img_pool()
@@ -174,7 +174,7 @@ class RegistrationDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.name_list)*1000 #############################3
+        return len(self.name_list) #############################3
 
 
     def __getitem__(self, idx):

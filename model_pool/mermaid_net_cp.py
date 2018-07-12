@@ -83,7 +83,7 @@ class MermaidNet(nn.Module):
 
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
-        params.load_JSON('../mermaid/demos/cur_settings_lbfgs.json')
+        params.load_JSON('../mermaid/demos/cur_settings_svf.json')
         model_name = params['model']['registration_model']['type']
         use_map = params['model']['deformation']['use_map']
         compute_similarity_measure_at_low_res = params['model']['deformation'][

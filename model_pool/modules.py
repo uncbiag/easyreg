@@ -5,7 +5,6 @@ from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 from models.net_utils import *
 from model_pool.forward_models import RHSLibrary
 from model_pool.rungekutta_integrators import RK4
@@ -496,4 +495,4 @@ class FlowRNN(nn.Module):
         return o_prev, x
 
     def initVec(self, size):
-        return Variable(torch.cuda.FloatTensor(size[0], size[1]*2, size[2],size[3]).zero_())
+        return torch.cuda.FloatTensor(size[0], size[1]*2, size[2],size[3]).zero_()

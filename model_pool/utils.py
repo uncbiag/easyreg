@@ -21,10 +21,11 @@ def sigmoid_explode(ep, static =5, k=5):
 def sigmoid_decay(ep, static =5, k=5):
     static = static
     if ep < static:
-        return 1.
+        return float(1.)
     else:
         ep = ep - static
-        return k/(k + np.exp(ep / k))
+        factor =  k/(k + np.exp(ep / k))
+        return float(factor)
 
 def organize_data(moving, target, sched='depth_concat'):
     if sched == 'depth_concat':
@@ -176,7 +177,7 @@ def t2np(v):
     :return: numpy array
     """
 
-    if type(v) == torch.autograd.variable.Variable:
+    if type(v) == torch.Tensor:
         return (v.data).cpu().numpy()
     else:
         return v.cpu().numpy()

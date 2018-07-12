@@ -938,12 +938,13 @@ tsm.task_par['tsk_set']['low_res_factor'] =0.5
 tsm.task_par['tsk_set']['train'] = True
 tsm.task_par['tsk_set']['dg_key_word'] = ''
 tsm.task_par['tsk_set']['save_by_standard_label'] = True
-tsm.task_par['tsk_set']['continue_train'] =False
+tsm.task_par['tsk_set']['continue_train'] =True
 tsm.task_par['tsk_set']['continue_train_lr'] = 5e-4 ####################################################################3
-tsm.task_par['tsk_set']['old_gpu_ids']=2
-tsm.task_par['tsk_set']['gpu_ids'] = 0  #1
+tsm.task_par['tsk_set']['old_gpu_ids']=0
+tsm.task_par['tsk_set']['gpu_ids'] = 1  #1
 
-tsm.task_par['tsk_set']['model_path'] = "/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_affine_cycle_debug/checkpoints/epoch_360_"
+tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_affine_cycle_debug/checkpoints/epoch_360_'
+    #"/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_debuging_bilinear/checkpoints/epoch_360_"
 if is_llm:
     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
@@ -972,9 +973,9 @@ dm.data_par['datapro']['seg']['partition']['flicker_on']=False
 dm.data_par['datapro']['seg']['partition']['flicker_mode']='rand'
 dm.data_par['datapro']['seg']['partition']['flicker_range']=5
 
-tsm.task_par['tsk_set']['task_name'] = 'reg_sym_affine_debugging'  #task42_unet4_base
+tsm.task_par['tsk_set']['task_name'] = 'reg_cycle_sym_affine_5_step_unet_debugging'  #task42_unet4_base
 tsm.task_par['tsk_set']['network_name'] ='affine_sym'
-tsm.task_par['tsk_set']['epoch'] = 500
+tsm.task_par['tsk_set']['epoch'] = 600
 tsm.task_par['tsk_set']['model'] = 'reg_net'
 tsm.task_par['tsk_set']['batch_sz'] = 1
 tsm.task_par['tsk_set']['val_period'] =10

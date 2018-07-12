@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np
 import torch
-from torch.autograd import Variable
 
 # mermaid_path = "/playpen/xhs400/Research/FPIR/mermaid"
 # sys.path.append(mermaid_path)
@@ -178,11 +177,11 @@ def evaluate_model(ISource_in,ITarget_in,sz,spacing,individual_parameters,shared
     if use_map:
         # create the identity map [-1,1]^d, since we will use a map-based implementation
         _id = py_utils.identity_map_multiN(sz, spacing)
-        identityMap = AdaptVal(Variable(torch.from_numpy(_id), requires_grad=False))
+        identityMap = AdaptVal(torch.from_numpy(_id))
         if map_low_res_factor is not None:
             # create a lower resolution map for the computations
             lowres_id = py_utils.identity_map_multiN(lowResSize, lowResSpacing)
-            lowResIdentityMap = AdaptVal(Variable(torch.from_numpy(lowres_id), requires_grad=False))
+            lowResIdentityMap = AdaptVal(torch.from_numpy(lowres_id))
 
     if False:
         model = model.cuda()

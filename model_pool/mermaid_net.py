@@ -81,7 +81,7 @@ class MermaidNet(nn.Module):
 
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
-        params.load_JSON('../mermaid/demos/cur_settings_lbfgs.json')
+        params.load_JSON('../mermaid/demos/cur_settings_svf.json')
         model_name = params['model']['registration_model']['type']
         use_map = params['model']['deformation']['use_map']
         compute_similarity_measure_at_low_res = params['model']['deformation'][
@@ -116,11 +116,11 @@ class MermaidNet(nn.Module):
         if use_map:
             # create the identity map [-1,1]^d, since we will use a map-based implementation
             _id = py_utils.identity_map_multiN(self.img_sz, spacing)
-            self.identityMap = Variable(torch.from_numpy(_id), requires_grad=False).cuda()
+            self.identityMap = torch.from_numpy(_id).cuda()
             if self.mermaid_low_res_factor is not None:
                 # create a lower resolution map for the computations
                 lowres_id = py_utils.identity_map_multiN(lowResSize, lowResSpacing)
-                self.lowResIdentityMap = Variable(torch.from_numpy(lowres_id), requires_grad=False).cuda()
+                self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
 
         self.mermaid_unit = model.cuda()
         self.criterion = criterion

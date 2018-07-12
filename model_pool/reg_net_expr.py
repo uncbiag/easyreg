@@ -128,6 +128,7 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         moving_cp = moving
         affine_param_last = None
         bilinear = [Bilinear() for i in range(self.step)]
+
         for i in range(self.step):
             affine_param = self.affine_gen(moving,target)
             if i >0:
@@ -157,12 +158,16 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         super(AffineNetSym, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 3
-        self.affine_gen = Affine_unet()
+        self.step = 5
+        self.using_complex_net = False
+        self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
         self.count =0
         self.gen_identity_ap()
+        self.grid_sample = F.grid_sample
+        self.using_cycle = True
+        self.bilinear = Bilinear()
 
 
 
@@ -234,18 +239,25 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
                    / (affine_param[0].shape[0])
             return loss
         elif sched=='det':
-            mean_det = 0.
+            loss = 0.
             for j in range(2):
                 for i in range(affine_param[j].shape[0]):
                     affine_matrix = affine_param[j][i,:9].contiguous().view(3,3)
-                    mean_det += torch.det(affine_matrix)
-            return  mean_det / (affine_param[0].shape[0])
+                    loss += (torch.det(affine_matrix) -1.)**2
+            return  loss / (affine_param[0].shape[0])
+
+
+    def forward(self,input,moving, target):
+        self.count += 1
+        if  not self.using_cycle:
+            return self.single_forward(input,moving,target)
+        else:
+            return self.cycle_forward(input, moving, target)
 
 
 
+    def single_forward(self,input,moving,target):
 
-    def forward(self,input,moving,target):
-        self.count +=1
         self.affine_param = None
         self.output = None
         bilinear = [Bilinear() for _ in range(2)]
@@ -253,12 +265,47 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         affine_param_ts = self.affine_gen(target,moving)
         affine_map_st = self.gen_affine_map(affine_param_st)
         affine_map_ts = self.gen_affine_map(affine_param_ts)
-        output_st = bilinear[0](moving,affine_map_st)
-        output_ts = bilinear[1](target,affine_map_ts)
+        output_st = bilinear[0](moving, affine_map_st)
+        output_ts = bilinear[1](target, affine_map_ts)
+        # output_st = self.grid_sample(moving,affine_map_st.permute([0,2,3,4,1]),mode='trilinear', padding_mode='border')
+        # output_ts = self.grid_sample(target,affine_map_ts.permute([0,2,3,4,1]),mode='trilinear', padding_mode='border')
         output = (output_st, output_ts)
         affine_param = (affine_param_st, affine_param_ts)
         self.affine_param = affine_param
         self.output= output
+
+        return output_st, affine_map_st, affine_param_st
+
+    def cycle_forward(self,input,moving, target):
+        moving_cp = moving
+        target_cp = target
+        affine_param_st_last = None
+        affine_param_ts_last = None
+
+        for i in range(self.step):
+            bilinear = [Bilinear() for _ in range(2)]
+            affine_param_st = self.affine_gen(moving, target_cp)
+            affine_param_ts = self.affine_gen(target, moving_cp)
+            if i > 0:
+                affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
+                affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
+            affine_param_st_last = affine_param_st
+            affine_param_ts_last = affine_param_ts
+            affine_map_st = self.gen_affine_map(affine_param_st)
+            affine_map_ts = self.gen_affine_map(affine_param_ts)
+            # output_st = self.grid_sample(moving_cp, affine_map_st.permute([0, 2, 3, 4, 1]), mode='trilinear',
+            #                              padding_mode='border')
+            # output_ts = self.grid_sample(target_cp, affine_map_ts.permute([0, 2, 3, 4, 1]), mode='trilinear',
+            #                              padding_mode='border')
+            output_st = bilinear[0](moving_cp, affine_map_st)
+            output_ts = bilinear[1](target_cp, affine_map_ts)
+            moving = output_st
+            target = output_ts
+
+        output = (output_st, output_ts)
+        affine_param = (affine_param_st, affine_param_ts)
+        self.affine_param = affine_param
+        self.output = output
 
         return output_st, affine_map_st, affine_param_st
 

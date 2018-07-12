@@ -17,16 +17,8 @@ import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 
-model_pool = {'affine_sim':AffineNet,
-              'affine_unet':Affine_unet,
-              'affine_cycle':AffineNetCycle,
-              'affine_sym': AffineNetSym
-              #'mermaid':MermaidNet
-              }
-
-
-
-
+import mermaid.pyreg.simple_interface as SI
+import mermaid.pyreg.fileio as FIO
 class RegNet(BaseModel):
 
 
@@ -38,46 +30,30 @@ class RegNet(BaseModel):
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         network_name =opt['tsk_set']['network_name']
-        self.mermaid_on = True if 'mermaid' in network_name else False
-        self.debug_sym_on = True if 'sym' in network_name else False
-
-        self.network = model_pool[network_name](input_img_sz, opt)#AffineNetCycle(input_img_sz)#
-        #self.network.apply(weights_init)
+        self.single_mod = True
+        if network_name =='affine':
+            self.affine_on = True
+            self.svf_on = False
+        elif network_name =='svf':
+            self.affine_on = True
+            self.svf_on = True
+        self.si = SI.RegisterImagePair()
+        self.im_io = FIO.ImageIO()
         self.criticUpdates = opt['tsk_set']['criticUpdates']
-        # if self.continue_train:
-        #     self.load_network(self.network,'reg_net',which_epoch)
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
-        self.single_mod = opt['tsk_set']['single_mod']
-        self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
         print('---------- Networks initialized -------------')
         networks.print_network(self.network)
-        if self.isTrain:
-            networks.print_network(self.network)
-        print('-----------------------------------------------')
-
-    def init_optimize_instance(self, warmming_up=False):
-        self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
-                                                                                   warmming_up=warmming_up)
 
 
-    def adjust_learning_rate(self, new_lr=-1):
-        """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-        if new_lr<0:
-            lr = self.opt_optim['lr']
-        else:
-            lr = new_lr
-        for param_group in self.optimizer.param_groups:
-            param_group['lr'] = lr
-        print(" no warming up the learning rate is {}".format(lr))
+
 
 
     def set_input(self, data, is_train=True):
-        data[0]['image'] =data[0]['image'].cuda()
+        data[0]['image'] =(data[0]['image'].cuda()+1)/2
         data[0]['label'] =data[0]['label'].cuda()
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
@@ -89,92 +65,72 @@ class RegNet(BaseModel):
         self.fname_list = list(data[1])
 
 
+
+    def affine_optimization(self):
+        self.si.set_light_analysis_on(True)
+        extra_info={}
+        extra_info['pair_name'] = self.fname_list[0]
+        extra_info['batch_id'] = self.fname_list[0]
+        self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
+                                model_name='affine',
+                                map_low_res_factor=0.5,
+                                nr_of_iterations=100,
+                                visualize_step=None,
+                                optimizer_name='sgd',
+                                use_multi_scale=True,
+                                rel_ftol=0,
+                                similarity_measure_type='ncc',
+                                similarity_measure_sigma=0.5,
+                                json_config_out_filename='cur_settings_affine.json',
+                                params ='cur_settings_affine.json')
+        self.output = self.si.get_warped_image()
+        self.phi = self.si.opt.optimizer.ssOpt.get_map()
+        self.disp = self.si.opt.optimizer.ssOpt.model.Ab
+
+        return self.output, self.phi, self.disp
+
+
+    def svf_optimization(self):
+        self.si.set_light_analysis_on(True)
+        extra_info = {}
+        extra_info['pair_name'] = self.fname_list[0]
+        extra_info['batch_id'] = self.fname_list[0]
+        self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
+        LSource_warped = self.si.get_warped_label()
+
+        self.si.register_images(self.output, self.target, self.spacing, extra_info=extra_info, LSource=LSource_warped,
+                                LTarget=self.l_target,
+                                model_name='svf_vector_momentum_map',
+                                map_low_res_factor=0.5,
+                                nr_of_iterations=100,
+                                visualize_step=None,
+                                optimizer_name='lbfgs_ls',
+                                use_multi_scale=True,
+                                rel_ftol=0,
+                                similarity_measure_type='ncc',
+                                similarity_measure_sigma=0.5,
+                                json_config_out_filename='cur_settings_svf.json',
+                                params='cur_settings_svf.json')
+        self.disp = self.output
+        self.output = self.si.get_warped_image()
+        self.phi = self.si.opt.optimizer.ssOpt.get_map() + self.phi  ############# check if it is true
+
+
     def forward(self,input=None):
-        # here input should be Tensor, not Variable
-        if input is None:
-            input =self.input
-        return self.network.forward(input, self.moving,self.target)
-
-    def phi_regularization(self):
-        if len(self.disp.shape)>2:
-            constr_map  = self.network.hessianField(self.disp)
-            #constr_map = self.network.jacobiField(self.disp)
-        else:
-            constr_map = self.network.affine_cons(self.disp, sched='l2')
-
-        reg = constr_map.sum()
-
-        return reg
-
-
-    def cal_loss(self):
-        # output should be BxCx....
-        # target should be Bx1x
-        factor = 10# 1e-7
-        factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
-        sim_loss  = self.loss_fn.get_loss(self.output,self.target)
-        reg_loss = self.phi_regularization() if self.disp is not None else 0.
-        if self.iter_count%10==0:
-            print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
-        return sim_loss+reg_loss*factor
-
-    def cal_mermaid_loss(self):
-        loss_overall_energy, sim_energy, reg_energy = self.network.do_criterion_cal( self.moving,self.target)
-        return loss_overall_energy  #*20 ###############################
-    def cal_sym_loss(self):
-        sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
-        sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
-        scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
-        factor_scale =1  # 1e-7
-        factor_scale = sigmoid_decay(self.cur_epoch, static=1, k=3) * factor_scale
-        factor_scale = float( max(1e-3,factor_scale))
-        factor_sym =1
-        sim_factor = 1
+        if self.affine_on:
+            return self.affine_optimization()
+        elif self.svf_on:
+            self.affine_optimization()
+            return self.svf_optimization()
 
 
 
-
-        loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
-
-        if self.iter_count%10==0:
-            print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
-                sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
-            )
-
-        return loss
 
 
 
     # get image paths
     def get_image_paths(self):
         return self.fname_list
-
-    def backward_net(self):
-        self.loss.backward()
-
-
-
-    def optimize_parameters(self):
-        self.iter_count+=1
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
-        self.output, self.phi, self.disp = self.forward()
-        if self.mermaid_on:
-            self.loss = self.cal_mermaid_loss()
-        elif self.debug_sym_on:
-            self.loss = self.cal_sym_loss()
-        else:
-            self.loss = self.cal_loss()
-        self.backward_net()
-        if self.iter_count % self.criticUpdates==0:
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-
-    def update_loss(self,epoch, end_of_epoch):
-        pass
-
-    def get_current_errors(self):
-        return self.loss.item()
 
 
     def get_warped_img_map(self,img, phi):
@@ -282,20 +238,15 @@ class RegNet(BaseModel):
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
-        if self.disp is not None and len(self.disp.shape)>2 and not self.mermaid_on:
+        if self.disp is not None and len(self.disp.shape)>2 and not self.debug_svf_on:
             disp = ((self.disp[:,...]**2).sum(1))**0.5
 
 
-        if self.mermaid_on:
+        if self.debug_svf_on:
             disp = self.disp[:,0,...]
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
                             disp, extra_title, self.phi, visual_param=visual_param)
-
-    def set_train(self):
-        self.network.train(True)
-        self.is_train =True
-        torch.set_grad_enabled(True)
 
 
     def set_val(self):

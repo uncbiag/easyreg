@@ -57,7 +57,7 @@ def train_model(opt,model, dataloaders,writer):
     if resume_training:
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        start_epoch, best_prec1, global_step=resume_train(model_path, model.network, model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
+        start_epoch, best_prec1, global_step=resume_train(model_path, model.network,None,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
         if continue_train_lr>0:
             model.adjust_learning_rate(continue_train_lr)
             print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
