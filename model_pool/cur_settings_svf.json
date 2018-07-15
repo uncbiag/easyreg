@@ -2,7 +2,7 @@
     "model": {
         "deformation": {
             "compute_similarity_measure_at_low_res": false, 
-            "map_low_res_factor": 0.3, 
+            "map_low_res_factor": 0.5,
             "use_map": true
         }, 
         "registration_model": {
@@ -34,7 +34,7 @@
             "similarity_measure": {
                 "develop_mod_on": false, 
                 "sigma": 0.5, 
-                "type": "ssd"
+                "type": "ncc"
             }, 
             "spline_order": 1, 
             "type": "svf_vector_momentum_map"

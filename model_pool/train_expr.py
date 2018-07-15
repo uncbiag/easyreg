@@ -104,7 +104,7 @@ def train_model(opt,model, dataloaders,writer):
             for data in dataloaders[phase]:
                 # get the inputs
                 # if time_cc%10==0:
-                #     print("this is just for test speed,time_cc{}".format(time_cc))
+                #     print("this is just for overloading speed,time_cc{}".format(time_cc))
                 #     print(data[0]['image'].shape)
                 # time_cc +=1
                 # sleep(0.2)
@@ -295,7 +295,7 @@ def train_model(opt,model, dataloaders,writer):
         test_loss = running_val_loss /  dataloaders['data_size']['test']
         print('the best epoch is {}, the average_test_loss: {:.4f}'.format(best_epoch, test_loss))
         time_elapsed = time() - since
-        print('the size of val is {}, test evaluation complete in {:.0f}m {:.0f}s'.format( dataloaders['data_size']['test'],
+        print('the size of test is {}, test evaluation complete in {:.0f}m {:.0f}s'.format( dataloaders['data_size']['test'],
             time_elapsed // 60, time_elapsed % 60))
     else:
         dg_key_word = ''

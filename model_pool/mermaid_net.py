@@ -59,6 +59,7 @@ class MermaidNet(nn.Module):
         self.gpu_switcher = (cur_gpu_id, old_gpu_id)
         self.init_affine_net()
         self.low_res_factor = low_res_factor
+        self.using_sym_on = False
         self.momentum_net = MomentumNet(low_res_factor)
 
         spacing = 1. / (np.array(img_sz) - 1)
@@ -70,7 +71,7 @@ class MermaidNet(nn.Module):
         self.affined_img = None
 
     def init_affine_net(self):
-        model_path = "/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_affine_cycle_debug/checkpoints/epoch_360_"
+        model_path = "/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_cycle_sym_affine_net_sim_debugging/checkpoints/epoch_580_"
         checkpoint = torch.load(model_path,
                                 map_location={'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
         self.affine_net = AffineNetCycle(self.img_sz[2:])
@@ -81,7 +82,7 @@ class MermaidNet(nn.Module):
 
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
-        params.load_JSON('../mermaid/demos/cur_settings_svf.json')
+        params.load_JSON('../mermaid/demos/cur_settings_lbfgs.json')
         model_name = params['model']['registration_model']['type']
         use_map = params['model']['deformation']['use_map']
         compute_similarity_measure_at_low_res = params['model']['deformation'][
@@ -133,10 +134,9 @@ class MermaidNet(nn.Module):
                                                                      self.mermaid_unit.get_variables_to_transfer_to_loss_function(),
                                                                      None)
         if self.debug_count % 10 == 0:
-            tofloat = lambda x: x.data.cpu().numpy()[0]
-            print('the loss_over_all:{} sim_energy:{}, reg_energy:{}\n'.format(tofloat(loss_overall_energy),
-                                                                               tofloat(sim_energy),
-                                                                               tofloat(reg_energy)))
+            print('the loss_over_all:{} sim_energy:{}, reg_energy:{}\n'.format(loss_overall_energy.item(),
+                                                                               sim_energy.item(),
+                                                                               reg_energy.item()))
         self.debug_count += 1
         return loss_overall_energy, sim_energy, reg_energy
 
@@ -163,16 +163,11 @@ class MermaidNet(nn.Module):
 
         return rec_IWarped * 2 - 1, rec_phiWarped * 2 - 1
 
-    def forward(self, input, moving, target=None):
-        moving.volatile = True
-        target.volatile = True
-        affine_img, affine_map, _ = self.affine_net(input, moving, target)
+
+    def single_forward(self,input,moving,target=None):
+        with torch.no_grad():
+            affine_img, affine_map, _ = self.affine_net(input, moving, target)
         input = torch.cat((affine_img, target), 1)
-        input.volatile = False
-        affine_img.volatile = False
-        affine_map.volatile = False
-        target.volatile = False
-        moving.volatile = False
         m = self.momentum_net(input)
         # m.register_hook(print)
         # self.momentum_net.register_backward_hook(bh)
@@ -181,7 +176,30 @@ class MermaidNet(nn.Module):
         affine_map = (affine_map + 1) / 2.
         # affine_img = (affine_img +1)/2.
         rec_IWarped, rec_phiWarped = self.do_mermaid_reg(moving, target, m, affine_map)
-        return rec_IWarped, rec_phiWarped, affine_img
+        return rec_IWarped.detach(), rec_phiWarped.detach(), affine_img.detach()
+
+
+
+    def sym_forward(self,input,moving,target=None):
+        raise("not implemented yet")
+        # with torch.no_grad():
+        #     affine_img, affine_map, _ = self.affine_net(input, moving, target)
+        # input_st = torch.cat((affine_img, target), 1)
+        # input_ts = torch.cat((target,affine_img), 1)
+        # m_st = self.momentum_net(input_st)
+        # m_ts = self.momentum_net(input_ts)
+        # moving = (moving + 1) / 2.
+        # target = (target + 1) / 2.
+        # affine_map = (affine_map + 1) / 2.
+        # rec_IWarped, rec_phiWarped = self.do_mermaid_reg(moving, target, m_st, affine_map)
+        # rec_IWarped, rec_phiWarped = self.do_mermaid_reg(moving, target, m_ts, affine_map)
+        # return rec_IWarped.detach_(), rec_phiWarped.detach_(), affine_img.detach_()
+
+    def forward(self, input, moving, target=None):
+        if not self.using_sym_on:
+            return self.single_forward(input,moving, target)
+        else:
+            return self.sym_forward(input,moving,target)
 
 
 def bh(m, gi, go):

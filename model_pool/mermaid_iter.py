@@ -17,11 +17,12 @@ import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 
+import mermaid.pyreg.utils as py_utils
+
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
-class RegNet(BaseModel):
-
-
+class MermaidIter(BaseModel):
+    import mermaid.pyreg.utils as py_utils
     def name(self):
         return 'reg-unet'
 
@@ -29,8 +30,10 @@ class RegNet(BaseModel):
         BaseModel.initialize(self,opt)
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
+        #self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
+
         network_name =opt['tsk_set']['network_name']
         self.single_mod = True
         if network_name =='affine':
@@ -45,8 +48,9 @@ class RegNet(BaseModel):
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
-        print('---------- Networks initialized -------------')
-        networks.print_network(self.network)
+        self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
+        self.identity_map = torch.from_numpy(self.identity_map).cuda()
+
 
 
 
@@ -72,8 +76,8 @@ class RegNet(BaseModel):
         extra_info['pair_name'] = self.fname_list[0]
         extra_info['batch_id'] = self.fname_list[0]
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
-                                model_name='affine',
-                                map_low_res_factor=0.5,
+                                model_name='affine_map',
+                                map_low_res_factor=1.0,
                                 nr_of_iterations=100,
                                 visualize_step=None,
                                 optimizer_name='sgd',
@@ -86,8 +90,9 @@ class RegNet(BaseModel):
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         self.disp = self.si.opt.optimizer.ssOpt.model.Ab
+        self.phi = self.phi*2-1
 
-        return self.output, self.phi, self.disp
+        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
 
     def svf_optimization(self):
@@ -97,6 +102,7 @@ class RegNet(BaseModel):
         extra_info['batch_id'] = self.fname_list[0]
         self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
         LSource_warped = self.si.get_warped_label()
+        LSource_warped.detach_()
 
         self.si.register_images(self.output, self.target, self.spacing, extra_info=extra_info, LSource=LSource_warped,
                                 LTarget=self.l_target,
@@ -108,16 +114,17 @@ class RegNet(BaseModel):
                                 use_multi_scale=True,
                                 rel_ftol=0,
                                 similarity_measure_type='ncc',
-                                similarity_measure_sigma=0.5,
+                                similarity_measure_sigma=1,
                                 json_config_out_filename='cur_settings_svf.json',
                                 params='cur_settings_svf.json')
         self.disp = self.output
         self.output = self.si.get_warped_image()
-        self.phi = self.si.opt.optimizer.ssOpt.get_map() + self.phi  ############# check if it is true
+        self.phi = self.si.opt.optimizer.ssOpt.get_map()*2-1 + self.phi -self.identity_map  ############# check if it is true
+        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
 
     def forward(self,input=None):
-        if self.affine_on:
+        if self.affine_on and not self.svf_on:
             return self.affine_optimization()
         elif self.svf_on:
             self.affine_optimization()
@@ -233,16 +240,16 @@ class RegNet(BaseModel):
         visual_param['save_fig_path'] = self.record_path
         visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
         visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
-        visual_param['save_fig_num'] = 5
+        visual_param['save_fig_num'] = 8
         visual_param['pair_path'] = self.fname_list
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
-        if self.disp is not None and len(self.disp.shape)>2 and not self.debug_svf_on:
+        if self.disp is not None and len(self.disp.shape)>2 and not self.svf_on:
             disp = ((self.disp[:,...]**2).sum(1))**0.5
 
 
-        if self.debug_svf_on:
+        if self.svf_on:
             disp = self.disp[:,0,...]
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,

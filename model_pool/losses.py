@@ -413,12 +413,52 @@ class NCCLoss(nn.Module):
     def forward(self,input, target,inst_weights=None, train=None):
         # nccSqr = (((I0 - I0mean.expand_as(I0)) * (I1 - I1mean.expand_as(I1))).mean() ** 2) / \
         #          (((I0 - I0mean) ** 2).mean() * ((I1 - I1mean) ** 2).mean())
-        #
+
         # return AdaptVal((1 - nccSqr) / self.sigma ** 2)
-        input_minus_mean = input -torch.mean(input.view(input.shape[0],-1),1).view(input.shape[0],1,1,1,1)
-        target_minus_mean = target - torch.mean(input.view(input.shape[0],-1),1).view(input.shape[0],1,1,1,1)
-        nccSqr =((input_minus_mean*target_minus_mean).mean()**2)/(((input_minus_mean**2).mean())*((target_minus_mean**2).mean()))
+        input = input.view(input.shape[0], -1)
+        target = target.view(target.shape[0], -1)
+        input_minus_mean = input - torch.mean(input, 1)
+        target_minus_mean = target - torch.mean(target, 1)
+        nccSqr = ((input_minus_mean * target_minus_mean).mean(1) ** 2) / (
+                    ((input_minus_mean ** 2).mean(1)) * ((target_minus_mean ** 2).mean(1)))
+        nccSqr =  nccSqr.mean()
+
         return 1 - nccSqr
+
+class LNCCLoss(nn.Module):
+    def initialize(self, kernel_sz = [9,9,9], voxel_weights = None):
+        self.kernel_sz = kernel_sz
+        self.numel = np.array(kernel_sz).prod()
+
+    def __init_filter(self):
+        self.filter = torch.ones([1,1]+self.kernel_sz).cuda()
+
+
+    def forward(self, input, target, inst_weights = None, train= None):
+        input_2 = input**2
+        target_2 = target**2
+        input_target = input*target
+
+        input_local_sum = F.conv3d(input, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
+        target_local_sum = F.conv3d(target, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
+        input_2_local_sum = F.conv3d(input_2, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
+        target_2_local_sum = F.conv3d(target_2, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
+        input_target_local_sum = F.conv3d(input_target, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
+
+        input_local_mean = input_local_sum/self.numel
+        target_local_mean = target_local_sum / self.numel
+
+        cross = input_target_local_sum -target_local_mean * input_local_sum  - \
+                input_local_mean * target_local_sum + target_local_mean * input_local_mean * self.numel
+        input_local_var = input_2_local_sum - 2*input_local_mean * input_local_sum + input_local_mean**2 * self.numel
+        target_local_var = target_2_local_sum - 2* target_local_mean* target_local_sum + target_local_mean **2 * self.numel
+
+        lncc = cross*cross /(input_local_var*target_local_var + 1e-5)
+
+        return 1- lncc.mean()
+
+
+
 
 # class LNCCLoss(nn.Module):
 #     def __init__(self,win_sz=[9, 9, 9], voxel_weights=None):

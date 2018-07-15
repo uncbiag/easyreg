@@ -11,7 +11,7 @@ from .metrics import get_multi_metric
 from data_pre.partition import Partition
 #from model_pool.utils import weights_init
 from model_pool.utils import *
-#from model_pool.mermaid_net import MermaidNet
+from model_pool.mermaid_net import MermaidNet
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
@@ -20,8 +20,8 @@ import SimpleITK as sitk
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
-              'affine_sym': AffineNetSym
-              #'mermaid':MermaidNet
+              'affine_sym': AffineNetSym,
+              'mermaid':MermaidNet
               }
 
 

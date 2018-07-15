@@ -28,6 +28,9 @@ def create_model(opt):
     elif model_name == 'reg_net':
         from .reg_net import RegNet
         model = RegNet()
+    elif model_name == 'mermaid_iter':
+        from .mermaid_iter import MermaidIter
+        model = MermaidIter()
     elif opt.model == 'test':
         # from .test_model import TestModel
         # model = TestModel()

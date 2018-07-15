@@ -491,7 +491,7 @@ class PatientStructureDataSet(VolumetricDataSet):
         sub_folder_dic, sub_patients_dic =self.__divide_into_train_val_test_set(self.output_path,self.patients,self.divided_ratio)
         gen_pair_list_func = self. __gen_intra_pair_list if self.sched=='intra' else self.__gen_inter_pair_list
         max_ratio = {'train':self.divided_ratio[0],'val':self.divided_ratio[1],'test':self.divided_ratio[2],'debug':self.divided_ratio[1]}
-        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(1000*max_ratio[sess])) for sess in sesses}
+        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(3000*max_ratio[sess])) for sess in sesses}
         divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
         return (sub_folder_dic,divided_path_and_name_dic)
 
