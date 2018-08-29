@@ -236,8 +236,8 @@ class Patients(object):
             else:
                 patient = self.patients[i]
             modality = patient.modality[0] if modality is None else modality
-            specificity_tmp = patient.specificity[0] if specificity is None else specificity
-            if_taken = patient.check_if_taken(modality=modality,specificity=specificity_tmp,has_complete_label=has_complete_label,len_time_range=len_time_range)
+            specificity = patient.specificity[0] if specificity is None else specificity
+            if_taken = patient.check_if_taken(modality=modality,specificity=specificity,has_complete_label=has_complete_label,len_time_range=len_time_range)
             if if_taken:
                 filtered_patients_list.append(patient)
                 count+=1
@@ -426,29 +426,15 @@ abnormal_example_list=\
 
 class OAIDataPrepare():
     def __init__(self):
-        using_unlabeled_data = True
-        if using_unlabeled_data:
-            self.raw_data_path_list = ["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"]
-            self.raw_label_path_list =[ "/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038",
-                                        "/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"]
-
-            self.output_root_path = "/playpen/zyshen/summer/oai_registration/reg_0623/data"
-            self.output_data_path = "/playpen/zyshen/summer/oai_registration/reg_0623/data/patient_slice"
-        else:
-
-            self.raw_data_path_list = ["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"]
-            self.raw_label_path_list = ["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"]
-            self.output_root_path = "/playpen/zyshen/summer/oai_registration/reg_0820/data"
-            self.output_data_path = "/playpen/zyshen/summer/oai_registration/reg_0820/data/patient_slice"
-
+        self.raw_data_path_list = ["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"]
+        self.raw_label_path_list =["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"]
+        self.output_root_path = "/playpen/zyshen/summer/oai_registration/reg_0820/data"
+        self.output_data_path = "/playpen/zyshen/summer/oai_registration/reg_0820/data/patient_slice"
         self.raw_file_path_list = []
         self.raw_file_label_path_list= []
         self.patient_info_dic= {}
         self.image_file_end = '*image.nii.gz'
-        if using_unlabeled_data:
-            self.label_file_end = '*reflect.nii.gz'
-        else:
-            self.label_file_end = '*label_all.nii.gz'
+        self.label_file_end = '*label_all.nii.gz'
         self.debug = False
 
 
@@ -592,9 +578,9 @@ class OAIDataPrepare():
         return list(slices_name_np)
 
 
-#
-# test = OAIDataPrepare()
-# test.debug=False
-# test.prepare_data()
+
+test = OAIDataPrepare()
+test.debug=False
+test.prepare_data()
 # patients = Patients(full_init=True)
 # filtered_patients = patients.get_filtered_patients_list(specificity='RIGHT',num_of_patients=3, len_time_range=[2,7], use_random=False)

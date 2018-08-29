@@ -31,6 +31,9 @@ def create_model(opt):
     elif model_name == 'mermaid_iter':
         from .mermaid_iter import MermaidIter
         model = MermaidIter()
+    elif model_name == 'nifty_reg':
+        from .nifty_reg_iter import NiftyRegIter
+        model = NiftyRegIter()
     elif opt.model == 'test':
         # from .test_model import TestModel
         # model = TestModel()

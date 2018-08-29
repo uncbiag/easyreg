@@ -19,7 +19,7 @@ class SimpleNet(nn.Module):
         self.hessianField = HessianField()
         self.jacobiField = JacobiField()
         self.identity_map= gen_identity_map(self.img_sz,resize_factor)
-        self.bilinear = Bilinear()
+        self.bilinear = Bilinear(zero_boundary=False)
     def forward(self, input, moving):
         disField = self.denseGen(input)
         #hessianField = self.hessianField(disField)
@@ -47,7 +47,7 @@ class AffineNet(nn.Module):
         self.affine_gen = Affine_unet_im()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
-        self.bilinear = Bilinear()
+        self.bilinear = Bilinear(zero_boundary=False)
 
     def gen_affine_map(self,Ab):
         Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
@@ -98,7 +98,9 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
-        self.bilinear =Bilinear()
+        self.zero_boundary = True
+        self.bilinear =Bilinear(self.zero_boundary)
+
 
 
 
@@ -128,7 +130,7 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         output = None
         moving_cp = moving
         affine_param_last = None
-        bilinear = [Bilinear() for i in range(self.step)]
+        bilinear = [Bilinear(self.zero_boundary) for i in range(self.step)]
 
         for i in range(self.step):
             affine_param = self.affine_gen(moving,target)
@@ -168,7 +170,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.gen_identity_ap()
         self.grid_sample = F.grid_sample
         self.using_cycle = True
-        self.bilinear = Bilinear()
+        self.zero_boundary = True
+        self.bilinear = Bilinear(self.zero_boundary)
+        print("the affineNetSym is initialized")
+
 
 
 
@@ -211,10 +216,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         ap_ts = ap_ts.view(-1, 4, 3)
         ac = None
         ad_b = None
-
+        ################################################ check if ad_b is right
         if self.dim == 3:
             ac = torch.matmul(ap_st[:, :3, :], ap_ts[:, :3, :])
-            ad_b = - ap_st[:, 3, :] + torch.squeeze(
+            ad_b = ap_st[:, 3, :] + torch.squeeze(
                 torch.matmul(ap_st[:, :3, :], torch.transpose(ap_ts[:, 3:, :], 1, 2)), 2)
         identity_matrix = self.affine_identity.view(4,3)[:3,:3]
 
@@ -261,15 +266,15 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
         self.affine_param = None
         self.output = None
-        bilinear = [Bilinear() for _ in range(2)]
+        bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
         affine_param_st = self.affine_gen(moving,target)
         affine_param_ts = self.affine_gen(target,moving)
         affine_map_st = self.gen_affine_map(affine_param_st)
         affine_map_ts = self.gen_affine_map(affine_param_ts)
         output_st = bilinear[0](moving, affine_map_st)
         output_ts = bilinear[1](target, affine_map_ts)
-        # output_st = self.grid_sample(moving,affine_map_st.permute([0,2,3,4,1]),mode='trilinear', padding_mode='border')
-        # output_ts = self.grid_sample(target,affine_map_ts.permute([0,2,3,4,1]),mode='trilinear', padding_mode='border')
+        # output_st = self.grid_sample(moving,affine_map_st.permute([0,2,3,4,1]),mode='trilinear', padding_mode='zeros')
+        # output_ts = self.grid_sample(target,affine_map_ts.permute([0,2,3,4,1]),mode='trilinear', padding_mode='zeros')
         output = (output_st, output_ts)
         affine_param = (affine_param_st, affine_param_ts)
         self.affine_param = affine_param
@@ -284,7 +289,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         affine_param_ts_last = None
 
         for i in range(self.step):
-            bilinear = [Bilinear() for _ in range(2)]
+            bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
             affine_param_st = self.affine_gen(moving, target_cp)
             affine_param_ts = self.affine_gen(target, moving_cp)
             if i > 0:
@@ -294,10 +299,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             affine_param_ts_last = affine_param_ts
             affine_map_st = self.gen_affine_map(affine_param_st)
             affine_map_ts = self.gen_affine_map(affine_param_ts)
-            # output_st = self.grid_sample(moving_cp, affine_map_st.permute([0, 2, 3, 4, 1]), mode='trilinear',
-            #                              padding_mode='border')
-            # output_ts = self.grid_sample(target_cp, affine_map_ts.permute([0, 2, 3, 4, 1]), mode='trilinear',
-            #                              padding_mode='border')
+            # output_st = self.grid_sample(moving_cp, affine_map_st.permute([0, 2, 3, 4, 1]),
+            #                              padding_mode='zeros')
+            # output_ts = self.grid_sample(target_cp, affine_map_ts.permute([0, 2, 3, 4, 1]),
+            #                              padding_mode='zeros')
             output_st = bilinear[0](moving_cp, affine_map_st)
             output_ts = bilinear[1](target_cp, affine_map_ts)
             moving = output_st
@@ -317,7 +322,7 @@ class MomentumNet(nn.Module):
     def __init__(self, low_res_factor):
         super(MomentumNet,self).__init__()
         self.low_res_factor = low_res_factor
-        self.mom_gen = MomentumGen_im(low_res_factor)
+        self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
 
     def forward(self,input):
         return self.mom_gen(input)

@@ -265,15 +265,15 @@ def saving_pair_info(sub_folder_dic, divided_path_dic):
 
 
 def write_list_into_txt(file_path, list_to_write):
-    assert len(list_to_write)>0
     with open(file_path, 'w') as f:
-        if isinstance(list_to_write[0],(float, int, str)):
-            f.write("\n".join(list_to_write))
-        elif isinstance(list_to_write[0],(list, tuple)):
-            new_list = ["     ".join(sub_list) for sub_list in list_to_write]
-            f.write("\n".join(new_list))
-        else:
-            raise(ValueError,"not implemented yet")
+        if len(list_to_write):
+            if isinstance(list_to_write[0],(float, int, str)):
+                f.write("\n".join(list_to_write))
+            elif isinstance(list_to_write[0],(list, tuple)):
+                new_list = ["     ".join(sub_list) for sub_list in list_to_write]
+                f.write("\n".join(new_list))
+            else:
+                raise(ValueError,"not implemented yet")
 
 def read_txt_into_list(file_path):
     lists= []

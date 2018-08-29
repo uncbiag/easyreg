@@ -12,7 +12,7 @@ import data_pre.seg_data_loader_online_old as seg_loader_ol_old
 import data_pre.seg_data_loader_offline as seg_loader_fl
 import  data_pre.seg_data_pool as seg_pool
 import data_pre.data
-
+#torch.multiprocessing.set_start_method("spawn")
 
 class DataManager(object):
     def __init__(self, task_name, dataset_name):
@@ -226,9 +226,10 @@ class DataManager(object):
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
-            num_workers_reg ={'train':12,'val':4,'test':4,'debug':4}
+            num_workers_reg ={'train':4,'val':4,'test':4,'debug':4}
+            shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                      shuffle=False, num_workers=num_workers_reg[x]) for x in self.phases}
+                                                      shuffle=shuffle_list[x], num_workers=num_workers_reg[x]) for x in self.phases}
         elif self.task_type=='seg':
             dataloaders = {'train':   torch.utils.data.DataLoader(transformed_dataset['train'],
                                                                   batch_size=batch_size,shuffle=True, num_workers=4),

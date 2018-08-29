@@ -262,29 +262,29 @@ class MomentumGen(nn.Module):
 
 
 class MomentumGen_im(nn.Module):
-    def __init__(self, low_res_factor=1):
+    def __init__(self, low_res_factor=1,bn=False):
         super(MomentumGen_im,self).__init__()
         self.low_res_factor = low_res_factor
         self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_1 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
-        self.down_path_4_1 = conv_bn_rel(32, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
-        self.down_path_4_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False)
-        self.down_path_8_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
-        self.down_path_8_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=False)
-        self.down_path_16 = conv_bn_rel(64, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
+        self.down_path_4_1 = conv_bn_rel(32, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16 = conv_bn_rel(64, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
 
 
         # output_size = strides * (input_size-1) + kernel_size - 2*padding
-        self.up_path_8_1 = conv_bn_rel(64, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=False,reverse=True)
-        self.up_path_8_2= conv_bn_rel(128, 64, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=False)
-        self.up_path_4_1 = conv_bn_rel(64, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=False,reverse=True)
-        self.up_path_4_2 = conv_bn_rel(96, 32, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=False)
-        self.up_path_2_1 = conv_bn_rel(32, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=False,reverse=True)
+        self.up_path_8_1 = conv_bn_rel(64, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_8_2= conv_bn_rel(128, 64, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_1 = conv_bn_rel(64, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_4_2 = conv_bn_rel(96, 32, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_2_1 = conv_bn_rel(32, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
         if low_res_factor==1  or low_res_factor==None or low_res_factor ==[1.,1.,1.]:
-            self.up_path_2_2 = conv_bn_rel(64, 8, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=False)
-            self.up_path_1_1 = conv_bn_rel(8, 8, 2, stride=2, active_unit='None', same_padding=False, bn=False, reverse=True)
-            self.up_path_1_2 = conv_bn_rel(24, 3, 3, stride=1, active_unit='None', same_padding=True, bn=False)
+            self.up_path_2_2 = conv_bn_rel(64, 8, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+            self.up_path_1_1 = conv_bn_rel(8, 8, 2, stride=2, active_unit='None', same_padding=False, bn=bn, reverse=True)
+            self.up_path_1_2 = conv_bn_rel(24, 3, 3, stride=1, active_unit='None', same_padding=True, bn=bn)
         elif low_res_factor ==0.5 :
             self.up_path_2_2 = conv_bn_rel(64, 16, 3, stride=1, active_unit='None', same_padding=True)
             self.up_path_2_3 = conv_bn_rel(16, 3, 3, stride=1, active_unit='None', same_padding=True)
@@ -312,6 +312,77 @@ class MomentumGen_im(nn.Module):
             raise('low resolution only')
 
         return output
+
+
+class MomentumGen_resid(nn.Module):
+    def __init__(self, low_res_factor=1, bn=False):
+        super(MomentumGen_resid,self).__init__()
+        self.low_res_factor = low_res_factor
+        self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_1 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_3 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_1 = conv_bn_rel(64, 128, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_2 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_3 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16_1 = conv_bn_rel(128, 256, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16_2 = conv_bn_rel(256, 256, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+
+
+        # output_size = strides * (input_size-1) + kernel_size - 2*padding
+        self.up_path_8_1 = conv_bn_rel(256, 128, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_8_2= conv_bn_rel(128+128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_8_3= conv_bn_rel(128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_1 = conv_bn_rel(128, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_4_2 = conv_bn_rel(64+64, 32, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_2_1 = conv_bn_rel(32, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_2_2 = conv_bn_rel(32+32, 16, 3, stride=1, active_unit='None', same_padding=True)
+        self.up_path_2_3 = conv_bn_rel(16, 3, 3, stride=1, active_unit='None', same_padding=True)
+
+    def forward(self, x):
+        d1 = self.down_path_1(x)
+        d2_1 = self.down_path_2_1(d1)
+        d2_2 = self.down_path_2_2(d2_1)
+        d2_2 = d2_1 + d2_2
+        d2_3 = self.down_path_2_3(d2_2)
+        d2_3 = d2_1 + d2_3
+        d4_1 = self.down_path_4_1(d2_3)
+        d4_2 = self.down_path_4_2(d4_1)
+        d4_2 = d4_1 + d4_2
+        d4_3 = self.down_path_4_3(d4_2)
+        d4_3 = d4_2 + d4_3
+        d8_1 = self.down_path_8_1(d4_3)
+        d8_2 = self.down_path_8_2(d8_1)
+        d8_2 = d8_1 + d8_2
+        d8_3 = self.down_path_8_3(d8_2)
+        d8_3 = d8_2+ d8_3
+        d16_1 = self.down_path_16_1(d8_3)
+        d16_2 = self.down_path_16_2(d16_1)
+        d16_2 = d16_1 + d16_2
+
+
+        u8_1 = self.up_path_8_1(d16_2)
+        u8_2 = self.up_path_8_2(torch.cat((d8_3,u8_1),1))
+        u8_3 = self.up_path_8_3(u8_2)
+        u8_3 = u8_2 + u8_3
+        u4_1 = self.up_path_4_1(u8_3)
+        u4_2 = self.up_path_4_2(torch.cat((d4_3,u4_1),1))
+        u4_3 = self.up_path_4_3(u4_2)
+        u4_3 = u4_2 + u4_3
+        u2_1 = self.up_path_2_1(u4_3)
+        u2_2 = self.up_path_2_2(torch.cat((d2_3, u2_1), 1))
+        output = self.up_path_2_3(u2_2)
+        if not self.low_res_factor==0.5:
+            raise('low resolution only')
+
+        return output
+
+
+
 
 
 

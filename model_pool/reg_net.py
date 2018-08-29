@@ -119,7 +119,7 @@ class RegNet(BaseModel):
         return sim_loss+reg_loss*factor
 
     def cal_mermaid_loss(self):
-        loss_overall_energy, sim_energy, reg_energy = self.network.do_criterion_cal( self.moving,self.target)
+        loss_overall_energy, sim_energy, reg_energy = self.network.do_criterion_cal( self.moving,self.target, cur_epoch=self.cur_epoch)
         return loss_overall_energy  #*20 ###############################
     def cal_sym_loss(self):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
@@ -128,7 +128,7 @@ class RegNet(BaseModel):
         factor_scale =1  # 1e-7
         factor_scale = sigmoid_decay(self.cur_epoch, static=1, k=3) * factor_scale
         factor_scale = float( max(1e-3,factor_scale))
-        factor_sym =1
+        factor_sym =10  ###################################3
         sim_factor = 1
 
 
@@ -270,6 +270,7 @@ class RegNet(BaseModel):
             save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
 
     def save_fig(self,phase,standard_record=False,saving_gt=True):
+        pass
         from model_pool.visualize_registration_results import  show_current_images
         visual_param={}
         visual_param['visualize'] = False
@@ -277,7 +278,7 @@ class RegNet(BaseModel):
         visual_param['save_fig_path'] = self.record_path
         visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
         visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
-        visual_param['save_fig_num'] = 5
+        visual_param['save_fig_num'] = 2
         visual_param['pair_path'] = self.fname_list
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None

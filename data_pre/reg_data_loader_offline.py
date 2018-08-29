@@ -11,7 +11,7 @@ from torchvision import transforms, utils
 from data_pre.reg_data_utils import *
 from time import time
 from multiprocessing import *
-num_of_workers = 20
+num_of_workers = 12
 blosc.set_nthreads(1)
 import progressbar as pb
 
@@ -28,7 +28,7 @@ class RegistrationDataset(Dataset):
         self.phase = phase
         self.transform = transform
         self.data_type = '*.nii.gz'
-        self.debug_num =-1
+        self.debug_num = -1
         self.is_llm=reg_option['is_llm']
 
 
@@ -36,7 +36,8 @@ class RegistrationDataset(Dataset):
         self.resize = True
         self.reg_option = reg_option
         self.resize_factor=reg_option['input_resize_factor']
-        self.load_into_memory=  True if phase=='train' else False
+        self.load_into_memory= True if phase=='train' else False
+        self.turn_on_pair_regis = True
         self.pair_list = []
         if self.load_into_memory:
             self.init_img_pool()
@@ -49,8 +50,9 @@ class RegistrationDataset(Dataset):
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
         self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
         if self.debug_num>0:
-            self.path_list = self.path_list[:self.debug_num]
-            self.name_list = self.name_list[:self.debug_num]
+            read_num = min(self.debug_num, len(self.path_list))
+            self.path_list = self.path_list[:read_num]
+            self.name_list = self.name_list[:read_num]
         if len(self.name_list)==0:
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
         if self.is_llm:
@@ -99,6 +101,8 @@ class RegistrationDataset(Dataset):
                 if fn not in img_label_path_dic:
                     img_label_path_dic[fn] = {'img':fps[i], 'label':fps[i+2]}
             pair_name_list.append([get_file_name(fps[0]), get_file_name(fps[1])])
+            if self.turn_on_pair_regis:
+                pair_name_list.append([get_file_name(fps[1]), get_file_name(fps[0])])
 
         split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
         procs =[]
@@ -202,6 +206,7 @@ class RegistrationDataset(Dataset):
             pair_list = [blosc.unpack_array(item) for item in zipnp_pair_list]
 
         sample = {'image': np.asarray([pair_list[0]*2.-1.,pair_list[1]*2.-1.])}
+        sample['pair_path'] = pair_path
 
         if len(pair_path)==4:
             try:

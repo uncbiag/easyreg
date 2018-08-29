@@ -392,8 +392,9 @@ class PatientStructureDataSet(VolumetricDataSet):
 
     def __init_patients(self):
         root_path ="/playpen/zyshen/summer/oai_registration/reg_0623/data"
+        #root_path ="/playpen/zyshen/summer/oai_registration/reg_0820/data"
         Patient_class = Patients(full_init=True, root_path=root_path)
-        self.patients= Patient_class.get_filtered_patients_list(has_complete_label=True, len_time_range=[2, 7], use_random=False)
+        self.patients= Patient_class.get_filtered_patients_list(has_complete_label=True, len_time_range=[1, 10], use_random=False)
         print("total {} of  paitents are selected".format(len(self.patients)))
 
     def __divide_into_train_val_test_set(self,root_path, patients, ratio):
@@ -402,9 +403,9 @@ class PatientStructureDataSet(VolumetricDataSet):
         val_ratio = ratio[1]
         sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test', 'debug']}
         nt = [make_dir(sub_path[key]) for key in sub_path]
-        # if sum(nt):
-        #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
-        #                      "manually delete the folder to reprepare the data")
+        if sum(nt):
+            raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
+                             "manually delete the folder to reprepare the data")
 
         train_num = int(train_ratio * num_patient)
         val_num = int(val_ratio * num_patient)
@@ -437,35 +438,59 @@ class PatientStructureDataSet(VolumetricDataSet):
     def __gen_intra_pair_list(self,patients, pair_num_limit = 1000):
         intra_pair_list = []
         for patient in patients:
-            intra_image_list = patient.get_slice_path_list()
-            intra_label_list = patient.get_label_path_list()
-            num_images = len(intra_image_list)
-            for i, image in enumerate(intra_image_list):
-                for j in range(i+1, num_images):
-                    intra_pair_list.append([intra_image_list[i],intra_image_list[j],
-                                            intra_label_list[i],intra_label_list[j]])
-            if len(intra_pair_list)> 3*pair_num_limit:
-                break
-        random.shuffle(intra_pair_list)
-        self.__initialize_info(patients[0].get_label_path_list()[0])
-        return intra_pair_list[:pair_num_limit]
+            for modality in patient.modality:
+                for specificity in patient.specificity:
+                    intra_image_list = patient.get_slice_path_list(modality,specificity)
+                    intra_label_list = patient.get_label_path_list(modality,specificity)
+                    num_images = len(intra_image_list)
+                    for i, image in enumerate(intra_image_list):
+                        for j in range(i+1, num_images):
+                            intra_pair_list.append([intra_image_list[i],intra_image_list[j],
+                                                    intra_label_list[i],intra_label_list[j]])
+                            # intra_pair_list.append([intra_image_list[j], intra_image_list[i],
+                            #                         intra_label_list[j], intra_label_list[i]])
+            # if pair_num_limit>=0 and len(intra_pair_list)> 5*pair_num_limit:
+            #     break
+        if len(patients)>0:
+            self.__initialize_info(patients[0].get_label_path_list()[0])
+        if pair_num_limit >= 0:
+            random.shuffle(intra_pair_list)
+            return intra_pair_list[:pair_num_limit]
+        else:
+            return intra_pair_list
 
 
     def __gen_inter_pair_list(self, patients,pair_num_limit = 1000):
+        """
+        here we only use the first time period for inter image registration
+        :param patients:
+        :param pair_num_limit:
+        :return:
+        """
         inter_pair_list = []
-        all_image_list = []
-        all_label_list = []
-        for patient in patients:
-            all_image_list.append(patient.get_slice_path_list())
-            all_label_list.append(patient.get_label_path_list())
-        permute_id_list = list(range(len(all_image_list)))
-        all_image_list =[all_image_list[i] for i in permute_id_list]
-        all_label_list = [all_label_list[i] for i in permute_id_list]
-        for _ in range(pair_num_limit):
-            rand_pair_id =[int(pair_num_limit*random.random()),int(pair_num_limit*random.random())]
-            pair = [all_image_list[rand_pair_id[0]], all_image_list[rand_pair_id[1]],
-                    all_label_list[rand_pair_id[0]], all_label_list[rand_pair_id[1]]]
-            inter_pair_list.append(pair)
+        num_patients = len(patients)
+        while True:
+            rand_pair_id = [int(num_patients * random.random()), int(num_patients * random.random())]
+            patient_a = patients[rand_pair_id[0]]
+            patient_b = patients[rand_pair_id[1]]
+            modality_list = patient_a.modality
+            specificity_list = patient_a.specificity
+            modality_id = int(len(modality_list)*random.random())
+            specificity_id = int(len(specificity_list)*random.random())
+            patient_a_slice = patient_a.get_slice_path_list(modality_list[modality_id],specificity_list[specificity_id])
+            patient_a_label = patient_a.get_label_path_list(modality_list[modality_id],specificity_list[specificity_id])
+            patient_b_slice = patient_b.get_slice_path_list(modality_list[modality_id],specificity_list[specificity_id])
+            patient_b_label = patient_b.get_label_path_list(modality_list[modality_id],specificity_list[specificity_id])
+
+            slice_id_a = int(len(patient_a_slice)*random.random())
+            slice_id_b = int(len(patient_b_slice)*random.random())
+            if modality_list[modality_id] in patient_b.modality:
+                if specificity_list[specificity_id] in patient_b.specificity:
+                    pair = [patient_a_slice[slice_id_a], patient_b_slice[slice_id_b],
+                            patient_a_label[slice_id_a], patient_b_label[slice_id_b]]
+                    inter_pair_list.append(pair)
+                    if len(inter_pair_list)> pair_num_limit:
+                        break
 
         self.__initialize_info(patients[0].get_label_path_list()[0])
         return inter_pair_list
@@ -488,10 +513,13 @@ class PatientStructureDataSet(VolumetricDataSet):
 
 
     def gen_pair_dic(self):
+        #self.divided_ratio = [0.,0.,1.] ##############################################
+        #num_pair_limit = -1
+        num_pair_limit = 3000  #-1
         sub_folder_dic, sub_patients_dic =self.__divide_into_train_val_test_set(self.output_path,self.patients,self.divided_ratio)
         gen_pair_list_func = self. __gen_intra_pair_list if self.sched=='intra' else self.__gen_inter_pair_list
         max_ratio = {'train':self.divided_ratio[0],'val':self.divided_ratio[1],'test':self.divided_ratio[2],'debug':self.divided_ratio[1]}
-        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(3000*max_ratio[sess])) for sess in sesses}
+        pair_list_dic ={sess: gen_pair_list_func(sub_patients_dic[sess],int(num_pair_limit*max_ratio[sess])) for sess in sesses}
         divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
         return (sub_folder_dic,divided_path_and_name_dic)
 

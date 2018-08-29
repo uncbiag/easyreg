@@ -1,0 +1,74 @@
+{
+    "model": {
+        "deformation": {
+            "compute_similarity_measure_at_low_res": false, 
+            "map_low_res_factor": 0.5,
+            "use_map": true
+        }, 
+        "registration_model": {
+            "forward_model": {
+                "number_of_time_steps": 10, 
+                "smoother": {
+                    "multi_gaussian_stds": [
+                        0.05, 
+                        0.1, 
+                        0.15, 
+                        0.2, 
+                        0.25
+                    ], 
+                    "multi_gaussian_weights": [
+                        0.06666666666666667, 
+                        0.13333333333333333, 
+                        0.19999999999999998, 
+                        0.26666666666666666, 
+                        0.3333333333333333
+                    ], 
+                    "type": "multiGaussian"
+                }
+            }, 
+            "loss": {
+                "display_max_displacement": false, 
+                "limit_displacement": false, 
+                "max_displacement": 0.05
+            }, 
+            "similarity_measure": {
+                "develop_mod_on": false, 
+                "sigma": 0.5, 
+                "type": "ncc"
+            }, 
+            "spline_order": 1, 
+            "type": "svf_vector_momentum_map"
+        }
+    }, 
+    "optimizer": {
+        "lbfgs": {
+            "history_size": 5, 
+            "line_search_fn": "backtracking", 
+            "max_eval": 5, 
+            "max_iter": 1
+        }, 
+        "multi_scale": {
+            "scale_factors": [
+                1.0,
+                0.5,
+                0.25
+            ], 
+            "scale_iterations": [
+                30,
+                30,
+                30
+            ]
+        }, 
+        "name": "lbfgs_ls", 
+        "scheduler": {
+            "factor": 0.5, 
+            "patience": 10, 
+            "verbose": true
+        }, 
+        "single_scale": {
+            "nr_of_iterations": 100, 
+            "rel_ftol": 1e-09
+        }, 
+        "use_step_size_scheduler": true
+    }
+}

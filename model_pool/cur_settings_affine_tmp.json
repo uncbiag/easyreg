@@ -27,15 +27,15 @@
                 0.25
             ],
             "scale_iterations": [
-                200,
-                200,
-                200
+                500,
+                500,
+                500
             ]
         },
         "name": "sgd",
         "scheduler": {
             "factor": 0.5,
-            "patience": 10,
+            "patience": 100,
             "verbose": true
         },
         "sgd": {

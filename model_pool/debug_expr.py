@@ -11,7 +11,7 @@ def debug_model(opt,model, dataloaders):
         model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
 
-    phases = ['val','test']
+    phases = ['test'] #['val','test']  ###################################3
     if len(model_path):
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
@@ -26,12 +26,14 @@ def debug_model(opt,model, dataloaders):
             is_train = False
             if model.network is not None:
                 model.network.train(False)
+            model.set_val()
             model.set_input(data, is_train)
             model.cal_test_errors()
             if save_fig_on:
                 model.save_fig('debug_model_'+phase)
             loss,_ = model.get_test_res()
             running_test_loss += loss * len(data[0]['image'])
+            print('the current running_loss:{}'.format(loss))
         test_loss = running_test_loss / len(dataloaders[phase].dataset)
         print('the average {}_loss: {:.4f}'.format(phase,test_loss))
         time_elapsed = time() - since

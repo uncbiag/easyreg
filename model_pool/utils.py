@@ -16,7 +16,8 @@ def sigmoid_explode(ep, static =5, k=5):
         return 1.
     else:
         ep = ep - static
-        return (k + np.exp(ep / k))/k
+        factor= (k + np.exp(ep / k))/k
+        return float(factor)
 
 def sigmoid_decay(ep, static =5, k=5):
     static = static
@@ -26,6 +27,12 @@ def sigmoid_decay(ep, static =5, k=5):
         ep = ep - static
         factor =  k/(k + np.exp(ep / k))
         return float(factor)
+
+
+def factor_tuple(input,factor):
+    input_np = np.array(list(input))
+    input_np = input_np*factor
+    return tuple(list(input_np))
 
 def organize_data(moving, target, sched='depth_concat'):
     if sched == 'depth_concat':
@@ -178,9 +185,13 @@ def t2np(v):
     """
 
     if type(v) == torch.Tensor:
-        return (v.data).cpu().numpy()
+        return v.detach().cpu().numpy()
     else:
-        return v.cpu().numpy()
+        try:
+            return v.cpu().numpy()
+        except:
+            return v
+
 
 
 def make_dir(path):

@@ -28,6 +28,10 @@ class Loss(object):
             self.criterion = nn.MSELoss()
         elif cont_loss_type =='ncc':
             self.criterion = NCCLoss()
+        elif cont_loss_type =='lncc':
+            lncc =  LNCCLoss()
+            lncc.initialize()
+            self.criterion =lncc
         elif cont_loss_type =='ce':
             class_weight = self.cal_class_weight(opt, self.record_weight)
             self.record_weight = class_weight   # update the record weight
@@ -428,7 +432,8 @@ class NCCLoss(nn.Module):
 class LNCCLoss(nn.Module):
     def initialize(self, kernel_sz = [9,9,9], voxel_weights = None):
         self.kernel_sz = kernel_sz
-        self.numel = np.array(kernel_sz).prod()
+        self.numel = float(np.array(kernel_sz).prod())
+        self.__init_filter()
 
     def __init_filter(self):
         self.filter = torch.ones([1,1]+self.kernel_sz).cuda()
@@ -439,11 +444,11 @@ class LNCCLoss(nn.Module):
         target_2 = target**2
         input_target = input*target
 
-        input_local_sum = F.conv3d(input, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
-        target_local_sum = F.conv3d(target, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
-        input_2_local_sum = F.conv3d(input_2, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
-        target_2_local_sum = F.conv3d(target_2, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
-        input_target_local_sum = F.conv3d(input_target, self.filter, padding= -1, dilation = 2).view(input.shape[0],-1)
+        input_local_sum = F.conv3d(input, self.filter, padding= 0, dilation = 2).view(input.shape[0],-1)
+        target_local_sum = F.conv3d(target, self.filter, padding= 0, dilation = 2).view(input.shape[0],-1)
+        input_2_local_sum = F.conv3d(input_2, self.filter, padding= 0, dilation = 2).view(input.shape[0],-1)
+        target_2_local_sum = F.conv3d(target_2, self.filter, padding= 0, dilation = 2).view(input.shape[0],-1)
+        input_target_local_sum = F.conv3d(input_target, self.filter, padding= 0, dilation = 2).view(input.shape[0],-1)
 
         input_local_mean = input_local_sum/self.numel
         target_local_mean = target_local_sum / self.numel
