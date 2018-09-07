@@ -2,7 +2,13 @@
 net for image registration
 # paper underwriting:
 
+Training Ensemble in Once: Adaptive Cascaded Nets for Patch Based 3D Image Segmentation
+
 https://www.overleaf.com/15181855brynfgjjfnmk
+
+One Stop Mapping: Joint Networks for Longitudinal Image Registration
+
+https://v2.overleaf.com/18560374xmmwkmtqmpzw
 
 # Under developing
 * 11.30 update dataloader 

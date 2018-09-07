@@ -20,6 +20,7 @@ import mermaid.pyreg.utils as py_utils
 from functools import partial
 import mermaid.pyreg.image_sampling as py_is
 from mermaid.pyreg.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
+from model_pool.global_variable import *
 
 class MermaidNet(nn.Module):
     """
@@ -60,7 +61,7 @@ class MermaidNet(nn.Module):
         self.gpu_switcher = (cur_gpu_id, old_gpu_id)
         self.init_affine_net()
         self.low_res_factor = low_res_factor
-        self.using_sym_on = True
+        self.using_sym_on = use_sym
         self.sym_factor = 1.
         self.momentum_net = MomentumNet(low_res_factor)
 
@@ -74,6 +75,7 @@ class MermaidNet(nn.Module):
 
     def init_affine_net(self):
         model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_sym_cycle_affine_net_symf10_rerun/checkpoints/epoch_780_'
+        #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_cycle/checkpoints/epoch_480_"
         checkpoint = torch.load(model_path,
                             map_location={'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
 

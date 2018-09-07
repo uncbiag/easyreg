@@ -388,11 +388,14 @@ class PatientStructureDataSet(VolumetricDataSet):
     def __init__(self, dataset_type, file_type_list, sched):
         VolumetricDataSet.__init__(self, dataset_type, file_type_list,sched)
         self.patients = []
+        self.process_gt_set=True
         self.__init_patients()
 
     def __init_patients(self):
-        root_path ="/playpen/zyshen/summer/oai_registration/reg_0623/data"
-        #root_path ="/playpen/zyshen/summer/oai_registration/reg_0820/data"
+        if not self.process_gt_set:
+            root_path ="/playpen/zyshen/summer/oai_registration/reg_0623/data"
+        else:
+            root_path ="/playpen/zyshen/summer/oai_registration/reg_0820/data"
         Patient_class = Patients(full_init=True, root_path=root_path)
         self.patients= Patient_class.get_filtered_patients_list(has_complete_label=True, len_time_range=[1, 10], use_random=False)
         print("total {} of  paitents are selected".format(len(self.patients)))
@@ -469,6 +472,8 @@ class PatientStructureDataSet(VolumetricDataSet):
         """
         inter_pair_list = []
         num_patients = len(patients)
+        if pair_num_limit==0:
+            return inter_pair_list
         while True:
             rand_pair_id = [int(num_patients * random.random()), int(num_patients * random.random())]
             patient_a = patients[rand_pair_id[0]]
@@ -513,9 +518,12 @@ class PatientStructureDataSet(VolumetricDataSet):
 
 
     def gen_pair_dic(self):
-        #self.divided_ratio = [0.,0.,1.] ##############################################
-        #num_pair_limit = -1
-        num_pair_limit = 3000  #-1
+        if self.process_gt_set:
+            self.divided_ratio = [0.,0.,1.] ##############################################
+            num_pair_limit = -1 if self.sched=='intra' else 300
+
+        else:
+            num_pair_limit = 2000  #-1
         sub_folder_dic, sub_patients_dic =self.__divide_into_train_val_test_set(self.output_path,self.patients,self.divided_ratio)
         gen_pair_list_func = self. __gen_intra_pair_list if self.sched=='intra' else self.__gen_inter_pair_list
         max_ratio = {'train':self.divided_ratio[0],'val':self.divided_ratio[1],'test':self.divided_ratio[2],'debug':self.divided_ratio[1]}

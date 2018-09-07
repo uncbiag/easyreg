@@ -9,6 +9,7 @@ from torch.autograd import *
 from model_pool.modules import *
 from functions.bilinear import *
 from models.net_utils import init_weights
+from model_pool.global_variable import *
 
 class SimpleNet(nn.Module):
     def __init__(self, img_sz=None, resize_factor=1.):
@@ -322,7 +323,12 @@ class MomentumNet(nn.Module):
     def __init__(self, low_res_factor):
         super(MomentumNet,self).__init__()
         self.low_res_factor = low_res_factor
-        self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
+        if use_resid_momentum:
+            self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
+            print("=================    resid version momentum network is used==============")
+        else:
+            self.mom_gen = MomentumGen_im(low_res_factor, bn=False)
+            print("=================    im version momentum network is used==============")
 
     def forward(self,input):
         return self.mom_gen(input)
