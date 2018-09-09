@@ -94,7 +94,7 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         super(AffineNetCycle, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 3
+        self.step = 5   #############################################################
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()

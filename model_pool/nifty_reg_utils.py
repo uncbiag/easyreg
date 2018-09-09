@@ -10,7 +10,7 @@ import numpy as np
 #     nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'
 # else:
 #     nifty_bin = '/playpen/raid/zyshen/package/niftyreg-git/niftyreg_install/bin'
-nifty_bin = '/playpen/raid/zyshen/package/niftyreg-git/niftyreg_install/bin'
+nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'
 
 
 def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, levels=None,aff= None):
@@ -30,7 +30,7 @@ def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, leve
         cmd += ' -fmask ' + fmask
     if levels != None:
         cmd += ' -lp ' + str(levels)
-    cmd = cmd + ' -sx -10 --lncc 40 -pad 0 '
+    cmd = cmd +  ' -sx -10 --lncc 40 -pad 0 ' #' -pad 0 '  #' -sx -10 --lncc 40 -pad 0 '
     #    cmd = cmd + ' -sx 10 --nmi --rbn 100 --fbn 100 -gpu -pad 0 -pert 1'
 
     return cmd

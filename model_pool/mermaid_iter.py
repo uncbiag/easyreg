@@ -86,7 +86,7 @@ class MermaidIter(BaseModel):
                                 optimizer_name='sgd',
                                 use_multi_scale=True,
                                 rel_ftol=0,
-                                similarity_measure_type='ncc',
+                                similarity_measure_type='lncc',
                                 similarity_measure_sigma=0.5,
                                 json_config_out_filename='cur_settings_affine_output_tmp.json',
                                 params ='cur_settings_affine_tmp.json')
@@ -121,7 +121,7 @@ class MermaidIter(BaseModel):
                                 optimizer_name='lbfgs_ls',
                                 use_multi_scale=True,
                                 rel_ftol=0,
-                                similarity_measure_type='ncc',
+                                similarity_measure_type='lncc',
 
                                 similarity_measure_sigma=1,
                                 json_config_out_filename='cur_settings_svf_output_tmp.json',

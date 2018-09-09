@@ -14,28 +14,28 @@
             "similarity_measure": {
                 "sigma": 0.5, 
                 "type": "ncc"
-            }, 
-            "spline_order": 1, 
+            },
+            "spline_order": 1,
             "type": "affine_map"
         }
-    }, 
+    },
     "optimizer": {
         "multi_scale": {
             "scale_factors": [
-                1.0, 
+                1.0,
                 0.5,
                 0.25
             ],
             "scale_iterations": [
-                200,
-                200,
-                200
+                500,
+                500,
+                500
             ]
         },
         "name": "sgd",
         "scheduler": {
             "factor": 0.5,
-            "patience": 10,
+            "patience": 100,
             "verbose": true
         },
         "sgd": {

@@ -51,7 +51,7 @@
             "scale_factors": [
                 1.0,
                 0.5,
-                0.25
+                0.25 
             ],
             "scale_iterations": [
                 30,

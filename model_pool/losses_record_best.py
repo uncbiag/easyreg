@@ -434,38 +434,31 @@ class LNCCLoss(nn.Module):
         pass
 
 
-    def __stepup(self,img_sz, use_multi_scale=True):
-        max_scale  = min(img_sz)
-        if use_multi_scale:
-            if max_scale>128:
-                self.scale = [int(max_scale/16), int(max_scale/8), int(max_scale/4)]
-                self.scale_weight = [0.1, 0.3, 0.6]
-                self.dilation = [2,2,2]
-
-
-            elif max_scale>64:
-                self.scale = [int(max_scale / 4), int(max_scale / 2)]
-                self.scale_weight = [0.3,0.7]
-                self.dilation = [2,2]
-            else :
-                self.scale = [int(max_scale / 2)]
-                self.scale_weight = [1.0]
-                self.dilation = [1]
+    def __stepup(self, img_sz):
+        max_scale = min(img_sz)
+        if max_scale > 128:
+            self.scale = [int(max_scale / 16), int(max_scale / 8), int(max_scale / 4)]
+            self.scale_weight = [0.8, 0.1, 0.1]
+        elif max_scale > 64:
+            self.scale = [int(max_scale / 4), int(max_scale / 2)]
+            self.scale_weight = [0.4, 0.6]
         else:
-            self.scale_weight =  [int(max_scale/4)]
+            self.scale = [int(max_scale / 2)]
             self.scale_weight = [1.0]
         self.num_scale = len(self.scale)
-        self.kernel_sz = [[scale for _ in range(3)] for scale in self.scale]
-        self.step = [[max(int((ksz + 1) / 4),1) for ksz in self.kernel_sz[scale_id]] for scale_id in range(self.num_scale)]
+        self.kernel_sz = [[scale for _ in range(self.dim)] for scale in self.scale]
+        self.step = [[max(int((ksz + 1) / 2), 1) for ksz in self.kernel_sz[scale_id]] for scale_id in
+                     range(self.num_scale)]
+        self.dilation = [2 for _ in range(self.num_scale)]
         self.filter = [torch.ones([1, 1] + self.kernel_sz[scale_id]).cuda() for scale_id in range(self.num_scale)]
 
         self.conv = F.conv3d
 
 
 
-
     def forward(self, input, target, inst_weights = None, train= None):
         self.__stepup(img_sz=list(input.shape[2:]))
+
         input_2 = input ** 2
         target_2 = target ** 2
         input_target = input * target

@@ -209,14 +209,18 @@ class RegNet(BaseModel):
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
         else:
-            step = 8
+            step = 3
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
+            phi = None
             for i in range(step):
-                self.output, self.phi, self.disp = self.forward()
+                self.output, phi_cur, self.disp = self.forward()
                 self.input = torch.cat((self.output,self.target),1)
-                self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi)
-                self.l_moving = self.warped_label_map
-
+                if i>0:
+                    bilinear = Bilinear(zero_boundary=False)
+                    phi_cur = bilinear(phi,phi_cur)
+                phi = phi_cur
+            self.phi = phi
+            self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi)
             warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
             self.l_target_np = self.l_target.detach().cpu().numpy()
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
