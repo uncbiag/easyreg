@@ -141,7 +141,7 @@ def resume_train(model_path, model,optimizer,old_gpu=0,cur_gpu=0):
     if os.path.isfile(model_path):
         print("=> loading checkpoint '{}'".format(model_path))
         print("load from old gpu {} to cur gpu {}".format(old_gpu, cur_gpu))
-        checkpoint = torch.load(model_path,map_location={'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
+        checkpoint = torch.load(model_path,map_location='cpu')#{'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
         start_epoch = 0
         best_prec1 = 0.0
         load_only_one=False

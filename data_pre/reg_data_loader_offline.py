@@ -28,8 +28,9 @@ class RegistrationDataset(Dataset):
         self.phase = phase
         self.transform = transform
         self.data_type = '*.nii.gz'
-        self.debug_num = -1
+        self.debug_num = -1 if phase!='test' else 150#
         self.is_llm=reg_option['is_llm']
+        self.turn_on_pair_regis = True
 
 
         self.get_file_list()
@@ -37,7 +38,6 @@ class RegistrationDataset(Dataset):
         self.reg_option = reg_option
         self.resize_factor=reg_option['input_resize_factor']
         self.load_into_memory= True if phase=='train' else False
-        self.turn_on_pair_regis = True
         self.pair_list = []
         if self.load_into_memory:
             self.init_img_pool()
@@ -49,10 +49,21 @@ class RegistrationDataset(Dataset):
         """
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
         self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+
         if self.debug_num>0:
             read_num = min(self.debug_num, len(self.path_list))
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
+
+        if self.turn_on_pair_regis and (self.phase=='train' or self.phase == 'test'): #self.phase =='test' and self.turn_on_pair_regis:
+            path_list_inverse = [[path[1],path[0], path[3], path[2]] for path in self.path_list]
+            name_list_inverse = [self.__inverse_name(name) for name in self.name_list]
+            self.path_list += path_list_inverse
+            self.name_list += name_list_inverse
+
+
+
+
         if len(self.name_list)==0:
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
         if self.is_llm:
@@ -101,8 +112,8 @@ class RegistrationDataset(Dataset):
                 if fn not in img_label_path_dic:
                     img_label_path_dic[fn] = {'img':fps[i], 'label':fps[i+2]}
             pair_name_list.append([get_file_name(fps[0]), get_file_name(fps[1])])
-            if self.turn_on_pair_regis:
-                pair_name_list.append([get_file_name(fps[1]), get_file_name(fps[0])])
+
+
 
         split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
         procs =[]
@@ -170,6 +181,12 @@ class RegistrationDataset(Dataset):
             dj=dict(dict_to_split_items[index_split[i][0]:index_split[i][-1]+1])
             split_dict.append(dj)
         return split_dict
+
+    def __inverse_name(self,name):
+        n_parts= name.split('_image_')
+        inverse_name = n_parts[1]+'_'+n_parts[0]+'_image'
+        return inverse_name
+
 
 
 

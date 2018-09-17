@@ -311,6 +311,7 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
     plt.suptitle('Iteration = ' + str(iter))
     plt.setp(plt.gcf(), 'facecolor', 'white')
     plt.style.use('bmh')
+    #plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0.15, wspace=0.04)
 
     ivsx = viewers.ImageViewer3D_Sliced(ax[0][0], utils.t2np(iS), 0, 'source X', True)
     ivsy = viewers.ImageViewer3D_Sliced(ax[0][1], utils.t2np(iS), 1, 'source Y', True)
@@ -336,23 +337,23 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
 
     if iSL is not None and iTL is not None:
         ivslxc = viewers.ImageViewer3D_Sliced(ax[iSL_a][0], utils.lift_to_dimension(utils.t2np(iSL), 3), 0,
-                                              'Lsource X', True)
+                                              'Lsource X', True, True)
         ivslyc = viewers.ImageViewer3D_Sliced(ax[iSL_a][1], utils.lift_to_dimension(utils.t2np(iSL), 3), 1,
-                                              'Lsource Y', True)
+                                              'Lsource Y', True, True)
         ivslzc = viewers.ImageViewer3D_Sliced(ax[iSL_a][2], utils.lift_to_dimension(utils.t2np(iSL), 3), 2,
-                                              'Lsource Z', True)
+                                              'Lsource Z', True, True)
         ivtlxc = viewers.ImageViewer3D_Sliced(ax[iTL_a][0], utils.lift_to_dimension(utils.t2np(iTL), 3), 0,
-                                              'LTarget X', True)
+                                              'LTarget X', True, True)
         ivtlyc = viewers.ImageViewer3D_Sliced(ax[iTL_a][1], utils.lift_to_dimension(utils.t2np(iTL), 3), 1,
-                                              'LTarget Y', True)
+                                              'LTarget Y', True, True)
         ivtlzc = viewers.ImageViewer3D_Sliced(ax[iTL_a][2], utils.lift_to_dimension(utils.t2np(iTL), 3), 2,
-                                              'LTarget Z', True)
+                                              'LTarget Z', True, True)
         ivwlxc = viewers.ImageViewer3D_Sliced(ax[iWL_a][0], utils.lift_to_dimension(utils.t2np(iWL), 3), 0,
-                                              'LWarpped X', True)
+                                              'LWarpped X', True, True)
         ivwlyc = viewers.ImageViewer3D_Sliced(ax[iWL_a][1], utils.lift_to_dimension(utils.t2np(iWL), 3), 1,
-                                              'LWarpped Y', True)
+                                              'LWarpped Y', True, True)
         ivwlzc = viewers.ImageViewer3D_Sliced(ax[iWL_a][2], utils.lift_to_dimension(utils.t2np(iWL), 3), 2,
-                                              'LWarpped Z', True)
+                                              'LWarpped Z', True, True)
 
     feh = viewers.FigureEventHandler(fig)
 

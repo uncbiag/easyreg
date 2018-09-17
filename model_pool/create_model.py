@@ -34,6 +34,9 @@ def create_model(opt):
     elif model_name == 'nifty_reg':
         from .nifty_reg_iter import NiftyRegIter
         model = NiftyRegIter()
+    elif model_name == 'ants':
+        from .ants_iter import AntsRegIter
+        model = AntsRegIter()
     elif opt.model == 'test':
         # from .test_model import TestModel
         # model = TestModel()

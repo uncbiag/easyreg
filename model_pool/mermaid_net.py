@@ -52,18 +52,22 @@ class MermaidNet(nn.Module):
 
     def __init__(self, img_sz=None, opt=None):
         super(MermaidNet, self).__init__()
+        self.load_external_model = True
+
+
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         low_res_factor = opt['tsk_set']['low_res_factor']
         batch_sz = opt['tsk_set']['batch_sz']
+        self.loss_type = opt['tsk_set']['loss']['type']
         self.img_sz = [batch_sz, 1] + img_sz
         self.dim = len(img_sz)
         self.gpu_switcher = (cur_gpu_id, old_gpu_id)
-        self.init_affine_net()
         self.low_res_factor = low_res_factor
         self.using_sym_on = use_sym
         self.sym_factor = 1.
         self.momentum_net = MomentumNet(low_res_factor)
+        self.init_affine_net()
 
         spacing = 1. / (np.array(img_sz) - 1)
         self.spacing = spacing
@@ -74,24 +78,41 @@ class MermaidNet(nn.Module):
         self.affined_img = None
 
     def init_affine_net(self):
-        model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_sym_cycle_affine_net_symf10_rerun/checkpoints/epoch_780_'
+        self.affine_net = AffineNetCycle(self.img_sz[2:])
+
+        if self.load_external_model:
+            model_path = "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_ncc/checkpoints/epoch_120_"
+            checkpoint = torch.load(model_path,  map_location='cpu')
+            self.load_state_dict(checkpoint['state_dict'])
+            self.cuda()
+            print("Attention, the external model is loaded !!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+        model_path ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+            #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+            #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_sym_cycle_affine_net_symf10_rerun/checkpoints/epoch_780_'
         #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_cycle/checkpoints/epoch_480_"
         checkpoint = torch.load(model_path,
-                            map_location={'cuda:' + str(self.gpu_switcher[0]): 'cuda:' + str(self.gpu_switcher[1])})
+                                map_location='cpu')
 
-        self.affine_net = AffineNetCycle(self.img_sz[2:])
         self.affine_net.load_state_dict(checkpoint['state_dict'])
+        self.affine_net.cuda()
         print("Affine network successfully initialized,{}".format(model_path))
         print(self.affine_net)
         self.affine_net.eval()
 
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
-        params.load_JSON( '../mermaid/demos/cur_settings_lbfgs.json') #''../model_pool/cur_settings_svf.json')
+        if not use_llddmm:
+            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs.json') #''../model_pool/cur_settings_svf.json')
+        else:
+            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         model_name = params['model']['registration_model']['type']
         use_map = params['model']['deformation']['use_map']
         compute_similarity_measure_at_low_res = params['model']['deformation'][
             ('compute_similarity_measure_at_low_res', False, 'to compute Sim at lower resolution')]
+        params['model']['registration_model']['similarity_measure']['type'] =self.loss_type
+        params.print_settings_off()
+
         self.mermaid_low_res_factor = self.low_res_factor
 
         lowResSize = None
@@ -120,13 +141,14 @@ class MermaidNet(nn.Module):
         # model.eval()
 
         if use_map:
-            # create the identity map [-1,1]^d, since we will use a map-based implementation
+            # create the identity map [0,1]^d, since we will use a map-based implementation
             _id = py_utils.identity_map_multiN(self.img_sz, spacing)
             self.identityMap = torch.from_numpy(_id).cuda()
             if self.mermaid_low_res_factor is not None:
                 # create a lower resolution map for the computations
                 lowres_id = py_utils.identity_map_multiN(lowResSize, lowResSpacing)
                 self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
+                print(torch.min(self.lowResIdentityMap))
 
         self.mermaid_unit = model.cuda()
         self.criterion = criterion
@@ -137,7 +159,12 @@ class MermaidNet(nn.Module):
         identity_map  = self.identityMap.expand_as(self.rec_phiWarped[0])
         trans_st  = trans1(identity_map,self.rec_phiWarped[0])
         trans_st_ts = trans2(trans_st,self.rec_phiWarped[1])
-        return torch.mean((trans_st- trans_st_ts)**2)
+        # print(torch.mean((identity_map- trans_st_ts)**2).detach().cpu().numpy())
+        # print("llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll")
+        # print(torch.mean((identity_map- trans_st)**2).detach().cpu().numpy())
+        # print(torch.mean((trans_st- trans_st_ts)**2).detach().cpu().numpy())
+        #raise ValueError
+        return torch.mean((identity_map- trans_st_ts)**2)
 
 
 
@@ -167,7 +194,7 @@ class MermaidNet(nn.Module):
             sim_energy =  (sim_energy_st + sim_energy_ts)/2
             reg_energy = (reg_energy_st + reg_energy_ts)/2
             sym_energy = self.__cal_sym_loss()
-            sym_factor = min(sigmoid_explode(cur_epoch,static=5, k=4)*0.01,1)
+            sym_factor = min(sigmoid_explode(cur_epoch,static=10, k=10)*0.01*100,1.*100) #static=5, k=4)*0.01,1)
             loss_overall_energy = loss_overall_energy + sym_factor*sym_energy
             if self.debug_count % 10 == 0:
                 print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}\n'.format(loss_overall_energy.item(),
@@ -199,7 +226,7 @@ class MermaidNet(nn.Module):
             self.set_mermaid_param(s, t, m)
             maps = self.mermaid_unit(self.identityMap, s)
             rec_phiWarped = maps
-        rec_IWarped = py_utils.compute_warped_image_multiNC(s, rec_phiWarped, self.spacing, 1,zero_boundary=False)
+        rec_IWarped = py_utils.compute_warped_image_multiNC(s, rec_phiWarped, self.spacing, 1,zero_boundary=True)
         self.rec_phiWarped = rec_phiWarped
 
         return rec_IWarped, rec_phiWarped
@@ -236,6 +263,7 @@ class MermaidNet(nn.Module):
         moving = (moving + 1) / 2.
         target = (target + 1) / 2.
         affine_map_st = (affine_map_st + 1) / 2.
+        affine_map_ts = (affine_map_ts + 1) / 2.
         rec_IWarped_st, rec_phiWarped_st = self.do_mermaid_reg(moving, target, m_st, affine_map_st)
         rec_IWarped_ts, rec_phiWarped_ts = self.do_mermaid_reg(target, moving, m_ts, affine_map_ts)
         self.rec_phiWarped = (rec_phiWarped_st,rec_phiWarped_ts)

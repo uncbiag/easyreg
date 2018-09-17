@@ -291,7 +291,7 @@ class ImageViewer3D_Sliced(ImageViewer3D):
     3D image viewer specialization to 3D sliced viewing
     """
 
-    def __init__(self, ax, data, sliceDim, textStr='Slice', showColorbar=False):
+    def __init__(self, ax, data, sliceDim, textStr='Slice', showColorbar=False,using_grid=False):
         """
         Constructor
         
@@ -309,6 +309,8 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         """slice index to display"""
         self.showColorbar = showColorbar
         """dispaly colorbar True/False"""
+        self.using_grid = using_grid
+        """ display grid , only True when plot label"""
         super(ImageViewer3D_Sliced,self).__init__(ax,data)
 
     def _get_slice_at_dimension(self, index):
@@ -335,6 +337,8 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         plt.cla()
         self.index = (self.index + 1) % self.data.shape[self.sliceDim]
         self.ax.imshow(self._get_slice_at_dimension(self.index))
+        plt.axis('off')
+
         #self.ax.images[0].set_array(self.get_slice_at_dimension(self.index))
 
     def set_synchronize(self, index):
@@ -362,9 +366,9 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         """
         Display figure title
         """
-        font = {'size': 10}
+        font = {'size': 5}
         plt.sca(self.ax)
-        plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1),font )
+        plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1),font,y=0.85 )
 
     def show(self):
         """
@@ -375,8 +379,18 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         plt.cla()
         #print('debugging {}'.format(self.index), 'slice_dim{}'.format(self.sliceDim),'img_shape{}'.format(self.data.shape))
         cim = self.ax.imshow(self._get_slice_at_dimension(self.index))
+        self.ax.yaxis.grid(self.using_grid)
+        self.ax.xaxis.grid(self.using_grid)
+        if(self.using_grid):
+            self.ax.xaxis.set_tick_params(labelsize=4)
+            self.ax.yaxis.set_tick_params(labelsize=4)
+            self.ax.tick_params(axis='x', colors='white')
+            self.ax.tick_params(axis='y', colors='white')
+        else:
+            plt.axis('off')
+
         divider = make_axes_locatable(self.ax)
-        cax = divider.append_axes('right', size='5%', pad=0.05)
+        cax = divider.append_axes('right', size='5%', pad=0.01)
         plt.gcf().colorbar(cim, cax=cax, orientation='vertical').ax.tick_params(labelsize=3)
         self.display_title()
 

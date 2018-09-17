@@ -213,7 +213,7 @@ class BaseModel():
             lr = opt['lr']
             print(" no warming up the learning rate is {}".format(lr))
         else:
-            lr = 0.0005
+            lr = 2e-4
             print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
         lr_sched_opt = opt['lr_scheduler']
@@ -460,11 +460,15 @@ class BaseModel():
             self.opt.print_settings_off()
 
 
-    def get_val_res(self):
-        return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['batch_avg_res']['dice']
+    def get_val_res(self, detail = False):
+        if not detail:
+            return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['batch_avg_res']['dice']
+        else:
+            return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['multi_metric_res']
 
-    def get_test_res(self):
-        return self.get_val_res()
+
+    def get_test_res(self, detail=False):
+        return self.get_val_res(detail = detail)
 
 
     def get_current_visuals(self):

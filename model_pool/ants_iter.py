@@ -3,6 +3,8 @@ import torch
 import os
 from collections import OrderedDict
 from torch.autograd import Variable
+
+from data_pre.reg_data_utils import get_file_name
 from .base_model import BaseModel
 from .reg_net_expr import *
 from . import networks
@@ -16,15 +18,15 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
-
+from model_pool.ants_reg_utils import *
 import mermaid.pyreg.utils as py_utils
 
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
-class MermaidIter(BaseModel):
+class AntsRegIter(BaseModel):
     import mermaid.pyreg.utils as py_utils
     def name(self):
-        return 'reg-unet'
+        return 'ants_reg iter'
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
@@ -33,15 +35,17 @@ class MermaidIter(BaseModel):
         #self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
+        self.resize_factor = opt['tsk_set']['input_resize_factor']
 
         network_name =opt['tsk_set']['network_name']
+        self.network_name = network_name
         self.single_mod = True
         if network_name =='affine':
             self.affine_on = True
-            self.svf_on = False
-        elif network_name =='svf':
-            self.affine_on = True
-            self.svf_on = True
+            self.syn_on = False
+        elif network_name =='syn':
+            self.affine_on = False
+            self.syn_on = True
         self.si = SI.RegisterImagePair()
         self.im_io = FIO.ImageIO()
         self.criticUpdates = opt['tsk_set']['criticUpdates']
@@ -67,77 +71,87 @@ class MermaidIter(BaseModel):
         self.l_target = l_target
         self.input = input
         self.fname_list = list(data[1])
+        self.pair_path = data[0]['pair_path']
+        self.pair_path = [path[0] for path in self.pair_path]
+        self.resized_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[0],is_label=False,fname='moving.nii.gz')
+        self.resized_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[1],is_label= False, fname='target.nii.gz')
+        self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True, fname='l_moving.nii.gz')
+        self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz')
+
+
+    def resize_input_img_and_save_it_as_tmp(self, img_pth, is_label=False,fname=None):
+        """
+        :param img: sitk input, factor is the outputsize/patched_sized
+        :return:
+        """
+        img_org = sitk.ReadImage(img_pth)
+        img = self.__read_and_clean_itk_info(img_pth)
+        resampler= sitk.ResampleImageFilter()
+        dimension =3
+        factor = np.flipud(self.resize_factor)
+        img_sz = img.GetSize()
+        affine = sitk.AffineTransform(dimension)
+        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+        after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
+        after_size = [int(sz) for sz in after_size]
+        matrix[0, 0] =1./ factor[0]
+        matrix[1, 1] =1./ factor[1]
+        matrix[2, 2] =1./ factor[2]
+        affine.SetMatrix(matrix.ravel())
+        resampler.SetSize(after_size)
+        resampler.SetTransform(affine)
+        if is_label:
+            resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        else:
+            resampler.SetInterpolator(sitk.sitkBSpline)
+        img_resampled = resampler.Execute(img)
+        fpth = os.path.join(self.record_path,fname)
+        img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
+        img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+        img_resampled.SetDirection(img_org.GetDirection())
+        sitk.WriteImage(img_resampled, fpth)
+        return fpth
+
+
+    def __read_and_clean_itk_info(self,path):
+        return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(path)))
+
+
 
 
 
     def affine_optimization(self):
-        self.si.set_light_analysis_on(True)
-        extra_info={}
-        extra_info['pair_name'] = self.fname_list[0]
-        extra_info['batch_id'] = self.fname_list[0]
-        self.si.opt = None
-        self.si.set_initial_map(None)
+        output, loutput, phi = performAntsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
 
-        self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
-                                model_name='affine_map',
-                                map_low_res_factor=1.0,
-                                nr_of_iterations=100,
-                                visualize_step=None,
-                                optimizer_name='sgd',
-                                use_multi_scale=True,
-                                rel_ftol=0,
-                                similarity_measure_type='lncc',
-                                similarity_measure_sigma=0.5,
-                                json_config_out_filename='cur_settings_affine_output_tmp.json',
-                                params ='cur_settings_affine_tmp.json')
-        self.output = self.si.get_warped_image()
-        self.phi = self.si.opt.optimizer.ssOpt.get_map()
-        self.disp = self.si.opt.optimizer.ssOpt.model.Ab
-        self.phi = self.phi*2-1
+        self.output = output
+        self.warped_label_map = loutput
 
-        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+        self.disp = None
+        self.phi = None
+        # self.phi = self.phi*2-1
+
+        return self.output, None, None
 
 
-    def svf_optimization(self):
-        self.si.set_light_analysis_on(True)
-        extra_info = {}
-        extra_info['pair_name'] = self.fname_list[0]
-        extra_info['batch_id'] = self.fname_list[0]
-        # self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
-        # LSource_warped = self.si.get_warped_label()
-        # LSource_warped.detach_()
+    def bspline_optimization(self):
+        output, loutput, phi = performAntsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
 
 
-        affine_map = self.si.opt.optimizer.ssOpt.get_map()
-        self.si.opt = None
-        self.si.set_initial_map(affine_map.detach())
+        self.disp = None
+        self.output = output
+        self.warped_label_map = loutput
 
-        self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
-                                LTarget=self.l_target,
-                                model_name='svf_vector_momentum_map',
-                                map_low_res_factor=0.5,
-                                nr_of_iterations=100,
-                                visualize_step=None,
-                                optimizer_name='lbfgs_ls',
-                                use_multi_scale=True,
-                                rel_ftol=0,
-                                similarity_measure_type='lncc',
-
-                                similarity_measure_sigma=1,
-                                json_config_out_filename='cur_settings_svf_output_tmp.json',
-                                params='cur_settings_svf_tmp.json')
-        self.disp = self.output
-        self.output = self.si.get_warped_image()
-        self.phi = self.si.opt.optimizer.ssOpt.get_map()*2-1
-        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+        self.phi = phi
+        # self.phi = self.phi*2-1
+        return self.output,None, None
 
 
     def forward(self,input=None):
-        if self.affine_on and not self.svf_on:
+        if self.affine_on and not self.syn_on:
             return self.affine_optimization()
-        elif self.svf_on:
-            self.affine_optimization()
-            return self.svf_optimization()
+        elif self.syn_on:
+            #self.affine_optimization()
+            return self.bspline_optimization()
 
 
 
@@ -149,22 +163,6 @@ class MermaidIter(BaseModel):
         return self.fname_list
 
 
-    def get_warped_img_map(self,img, phi):
-        bilinear = Bilinear()
-        warped_img_map = bilinear(img, phi)
-
-        return warped_img_map
-
-
-    def get_warped_label_map(self,label_map, phi, sched='nn'):
-        if sched == 'nn':
-            warped_label_map = get_nn_interpolation(label_map, phi)
-            # check if here should be add assert
-            assert abs(torch.sum(
-                warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
-        else:
-            raise ValueError(" the label warpping method is not implemented")
-        return warped_label_map
 
     def cal_val_errors(self):
         self.cal_test_errors()
@@ -175,8 +173,8 @@ class MermaidIter(BaseModel):
     def get_evaluation(self):
         if self.single_mod:
             self.output, self.phi, self.disp= self.forward()
-            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
-            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
+            #self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            warped_label_map_np= self.warped_label_map
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
@@ -192,11 +190,8 @@ class MermaidIter(BaseModel):
             warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
             self.l_target_np = self.l_target.detach().cpu().numpy()
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
-        # if not self.print_val_detail:
-        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
-        # else:
-        #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
-        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+
+
 
 
 
@@ -247,11 +242,11 @@ class MermaidIter(BaseModel):
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
-        if self.disp is not None and len(self.disp.shape)>2 and not self.svf_on:
+        if self.disp is not None and len(self.disp.shape)>2 and not self.syn_on:
             disp = ((self.disp[:,...]**2).sum(1))**0.5
 
 
-        if self.svf_on:
+        if self.syn_on and self.disp is not None:
             disp = self.disp[:,0,...]
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,

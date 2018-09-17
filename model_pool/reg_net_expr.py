@@ -5,11 +5,13 @@ from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torch.autograd import *
 from model_pool.modules import *
 from functions.bilinear import *
 from models.net_utils import init_weights
 from model_pool.global_variable import *
+from torch.utils.checkpoint import checkpoint
 
 class SimpleNet(nn.Module):
     def __init__(self, img_sz=None, resize_factor=1.):
@@ -291,8 +293,14 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
         for i in range(self.step):
             bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
-            affine_param_st = self.affine_gen(moving, target_cp)
-            affine_param_ts = self.affine_gen(target, moving_cp)
+            # affine_param_st = self.affine_gen(moving, target_cp)
+            # affine_param_ts = self.affine_gen(target, moving_cp)
+            if i==0:
+                affine_param_st = self.affine_gen(moving, target_cp)
+                affine_param_ts = self.affine_gen(target, moving_cp)
+            else:
+                affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
+                affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
             if i > 0:
                 affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
                 affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
@@ -300,12 +308,14 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             affine_param_ts_last = affine_param_ts
             affine_map_st = self.gen_affine_map(affine_param_st)
             affine_map_ts = self.gen_affine_map(affine_param_ts)
-            # output_st = self.grid_sample(moving_cp, affine_map_st.permute([0, 2, 3, 4, 1]),
-            #                              padding_mode='zeros')
-            # output_ts = self.grid_sample(target_cp, affine_map_ts.permute([0, 2, 3, 4, 1]),
-            #                              padding_mode='zeros')
+
+
             output_st = bilinear[0](moving_cp, affine_map_st)
             output_ts = bilinear[1](target_cp, affine_map_ts)
+
+            # output_st = checkpoint(bilinear[0], moving_cp, affine_map_st)
+            # output_ts = checkpoint(bilinear[1], target_cp, affine_map_ts)
+
             moving = output_st
             target = output_ts
 

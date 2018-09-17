@@ -231,12 +231,6 @@ class RegNet(BaseModel):
         #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
 
 
-    def get_val_res(self):
-        return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['batch_avg_res']['dice']
-
-    def get_test_res(self):
-        return self.get_val_res()
-
 
 
 
