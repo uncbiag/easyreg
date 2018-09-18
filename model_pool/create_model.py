@@ -37,6 +37,9 @@ def create_model(opt):
     elif model_name == 'ants':
         from .ants_iter import AntsRegIter
         model = AntsRegIter()
+    elif model_name == 'demons':
+        from .demons_iter import DemonsRegIter
+        model = DemonsRegIter()
     elif opt.model == 'test':
         # from .test_model import TestModel
         # model = TestModel()

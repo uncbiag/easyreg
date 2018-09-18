@@ -48,8 +48,17 @@ def get_list_from_dic(data_dic):
 data_dic = {}
 
 
+
+#######################################
+##############intra##################
+#############################################
+
+
+
 data_dic['affine_opt'] = get_experiment_data_from_record_detail('/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_affine_lncc_bi/records/records_detail.npy')
-# data_dic['svf_opt'] = get_experiment_data_from_record_detail()
+data_dic['svf_opt'] = get_experiment_data_from_record_detail('/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
+data_dic['af_ants'] = get_experiment_data_from_record('/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_affine/records/records.npy')
+data_dic['syn_ants'] = get_experiment_data_from_record('/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants/records/records.npy')
 # data_dic['affine_nifty_reg_nmi'] = get_experiment_data_from_record()
 # data_dic['bspline_nifty_reg_nmi'] = get_experiment_data_from_record()
 # data_dic['affine_nifty_reg_lncc'] = get_experiment_data_from_record()
@@ -63,9 +72,22 @@ plot_box(data_list, name_list)
 
 
 
+###############################
+####### inter ######
+#############################
 
+data_dic['affine_opt'] = get_experiment_data_from_record_detail('')
+data_dic['svf_opt'] = get_experiment_data_from_record_detail('/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
+data_dic['af_ants'] = get_experiment_data_from_record('/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_affine/records/records.npy')
+data_dic['syn_ants'] = get_experiment_data_from_record('/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants/records/records.npy')
 
-
+# data_dic['affine_nifty_reg_nmi'] = get_experiment_data_from_record()
+# data_dic['bspline_nifty_reg_nmi'] = get_experiment_data_from_record()
+# data_dic['affine_nifty_reg_lncc'] = get_experiment_data_from_record()
+# data_dic['bspline_nifty_reg_lncc'] = get_experiment_data_from_record()
+# data_dic['affine_network_3step_lncc'] = get_experiment_data_from_record_detail()
+# data_dic['affine_network_5step_lncc']= get_experiment_data_from_record_detail()
+# data_dic['svf_network_lncc'] = get_experiment_data_from_record()
 
 
 

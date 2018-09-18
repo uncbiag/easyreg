@@ -4,6 +4,7 @@ import sys
 import subprocess
 import nibabel as nib
 import numpy as np
+from model_pool.global_variable import *
 # from model_pool.task_pool_reg import is_llm
 #
 # if not is_llm:
@@ -30,7 +31,7 @@ def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, leve
         cmd += ' -fmask ' + fmask
     if levels != None:
         cmd += ' -lp ' + str(levels)
-    cmd = cmd +  ' -sx -10 --lncc 40 -pad 0 ' #' -pad 0 '  #' -sx -10 --lncc 40 -pad 0 '
+    cmd = cmd +  nifty_reg_cmd #' -pad 0 '  #' -sx -10 --lncc 40 -pad 0 '
     #    cmd = cmd + ' -sx 10 --nmi --rbn 100 --fbn 100 -gpu -pad 0 -pert 1'
 
     return cmd

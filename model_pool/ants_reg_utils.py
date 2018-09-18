@@ -37,8 +37,16 @@ def performAntsRegistration(mv_path, target_path, registration_type='syn', recor
     if registration_type =='syn':
         syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyN')
         if ml_path is not None:
+            print(syn_res['fwdtransforms'])
+            matfile = None
+            for tfile in syn_res['fwdtransforms']:
+                if 'GenericAffine.mat'  in tfile:
+                    matfile = tfile
+            print(matfile)
+            time.sleep(5)  # pause 5.5 seconds
+
             loutput = ants.apply_transforms(fixed=l_target, moving=l_moving,
-                                          transformlist=syn_res['fwdtransforms'],
+                                          transformlist=matfile,
                                           interpolator='nearestNeighbor')
             loutput = loutput.numpy()
         output = syn_res['warpedmovout'].numpy()

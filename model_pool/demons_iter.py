@@ -18,15 +18,15 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
-from model_pool.ants_reg_utils import *
+from model_pool.demons_utils import *
 import mermaid.pyreg.utils as py_utils
 
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
-class AntsRegIter(BaseModel):
+class DemonsRegIter(BaseModel):
     import mermaid.pyreg.utils as py_utils
     def name(self):
-        return 'ants_reg iter'
+        return 'demons_reg iter'
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
@@ -42,10 +42,12 @@ class AntsRegIter(BaseModel):
         self.single_mod = True
         if network_name =='affine':
             self.affine_on = True
-            self.syn_on = False
-        elif network_name =='syn':
+            self.demon_on = False
+            raise ValueError("affine is not separately used in demons")
+
+        elif network_name =='demons':
             self.affine_on = False
-            self.syn_on = True
+            self.demon_on = True
         self.si = SI.RegisterImagePair()
         self.im_io = FIO.ImageIO()
         self.criticUpdates = opt['tsk_set']['criticUpdates']
@@ -84,7 +86,6 @@ class AntsRegIter(BaseModel):
         :param img: sitk input, factor is the outputsize/patched_sized
         :return:
         """
-        img_org = sitk.ReadImage(img_pth)
         img = self.__read_and_clean_itk_info(img_pth)
         resampler= sitk.ResampleImageFilter()
         dimension =3
@@ -106,9 +107,11 @@ class AntsRegIter(BaseModel):
             resampler.SetInterpolator(sitk.sitkBSpline)
         img_resampled = resampler.Execute(img)
         fpth = os.path.join(self.record_path,fname)
-        img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-        img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
-        img_resampled.SetDirection(img_org.GetDirection())
+        #############################  be attention the original of the image is no consistent which may cause the demos fail
+        # so this should be checked
+        # img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
+        # img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+        # img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
 
@@ -121,7 +124,8 @@ class AntsRegIter(BaseModel):
 
 
     def affine_optimization(self):
-        output, loutput, phi = performAntsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
+
+        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
 
         self.output = output
         self.warped_label_map = loutput
@@ -133,8 +137,8 @@ class AntsRegIter(BaseModel):
         return self.output, None, None
 
 
-    def syn_optimization(self):
-        output, loutput, phi = performAntsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
+    def demons_optimization(self):
+        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
 
 
         self.disp = None
@@ -147,11 +151,11 @@ class AntsRegIter(BaseModel):
 
 
     def forward(self,input=None):
-        if self.affine_on and not self.syn_on:
+        if self.affine_on and not self.demon_on:
             return self.affine_optimization()
-        elif self.syn_on:
+        elif self.demon_on:
             #self.affine_optimization()
-            return self.syn_optimization()
+            return self.demons_optimization()
 
 
 
@@ -242,11 +246,11 @@ class AntsRegIter(BaseModel):
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
-        if self.disp is not None and len(self.disp.shape)>2 and not self.syn_on:
+        if self.disp is not None and len(self.disp.shape)>2 and not self.demon_on:
             disp = ((self.disp[:,...]**2).sum(1))**0.5
 
 
-        if self.syn_on and self.disp is not None:
+        if self.demon_on and self.disp is not None:
             disp = self.disp[:,0,...]
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
