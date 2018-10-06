@@ -2,11 +2,11 @@ import os
 import numpy as np
 import time
 import SimpleITK as sitk
-
-from model_pool.nifty_reg_utils import expand_batch_ch_dim
+import subprocess
+from model_pool.nifty_reg_utils import expand_batch_ch_dim, nifty_reg_affine, nifty_reg_resample
 
 from model_pool.utils import factor_tuple
-
+from model_pool.global_variable import *
 
 def smooth_and_resample(image, shrink_factor, smoothing_sigma):
     """
@@ -28,6 +28,31 @@ def smooth_and_resample(image, shrink_factor, smoothing_sigma):
                          sitk.sitkLinear, image.GetOrigin(),
                          new_spacing, image.GetDirection(), 0.0,
                          image.GetPixelID())
+
+
+def get_affined_moving_image(fixed_image_pth, moving_image_path,ml_path=None):
+    affine_path =moving_image_path.replace('moving.nii.gz','affine.nii.gz')
+    affine_txt = moving_image_path.replace('moving.nii.gz', 'affine_transform.txt')
+    cmd = nifty_reg_affine(ref=fixed_image_pth, flo=moving_image_path, aff=affine_txt, res=affine_path)
+    affine_label_path = None
+
+    if ml_path is not None:
+        affine_label_path =moving_image_path.replace('moving.nii.gz', 'warped_label.nii.gz')
+        cmd += '\n' + nifty_reg_resample(ref=fixed_image_pth,flo=ml_path,trans=affine_txt, res=affine_label_path, inter= 0)
+    process = subprocess.Popen(cmd, shell=True)
+    process.wait()
+
+    affine_image_cp = sitk.ReadImage(affine_path)
+    affine_image_array = sitk.GetArrayFromImage(affine_image_cp)
+    affine_image_array[np.isnan(affine_image_array)] = 0.
+    affine_image = sitk.GetImageFromArray(affine_image_array)
+    affine_image.SetSpacing(affine_image_cp.GetSpacing())
+    affine_image.SetOrigin(affine_image_cp.GetOrigin())
+    affine_image.SetDirection(affine_image_cp.GetDirection())
+    sitk.WriteImage(affine_image, affine_path)
+
+
+    return affine_path, affine_label_path
 
 
 
@@ -108,19 +133,22 @@ def performDemonsRegistration(mv_path, target_path, registration_type='demons', 
     print("start demons registration")
     assert registration_type =='demons'
 
+    mv_path, ml_path = get_affined_moving_image(target_path, mv_path, ml_path=ml_path)
+
 
     demons_filter = sitk.FastSymmetricForcesDemonsRegistrationFilter()
     demons_filter.SetNumberOfIterations(30)
     # Regularization (update field - viscous, total field - elastic).
     demons_filter.SetSmoothDisplacementField(True)
-    demons_filter.SetStandardDeviations(1.)
+    demons_filter.SetStandardDeviations(0.5)  #1,4
 
     # Run the registration.
+    print("!!!!!!!!!!demons param{}".format(param_in_demons) )
     tx = multiscale_demons(registration_algorithm=demons_filter,
                            fixed_image_pth=target_path,
                            moving_image_pth=mv_path,
-                           shrink_factors=[4, 2],
-                           smoothing_sigmas=[0.2, 0.1])
+                           shrink_factors=None,#[4, 2],
+                           smoothing_sigmas=param_in_demons) #[2,1],[4, 2]) (8,4)
     warped_img = sitk_grid_sampling(sitk.ReadImage(target_path), sitk.ReadImage(mv_path), tx,
                                     is_label=False)
     warped_label = sitk_grid_sampling(sitk.ReadImage(tl_path), sitk.ReadImage(ml_path), tx,

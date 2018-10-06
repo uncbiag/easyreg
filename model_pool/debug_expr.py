@@ -14,13 +14,31 @@ def debug_model(opt,model, dataloaders):
         model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
 
+
+
+
+
+
     phases = ['test'] #['val','test']  ###################################3
     if len(model_path):
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        get_test_model(model_path, model.network, model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
+        get_test_model(model_path, model.network,  model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)     ##############TODO  model.optimizer
     else:
         print("Warning, the model is not manual loaded, make sure your model itself has been inited")
+
+        ##################################TODO #########################################################
+    #
+    # model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_symstep5_lncc_bi/checkpoints/epoch_60_' # '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+    # # '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+    # # '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_sym_cycle_affine_net_symf10_rerun/checkpoints/epoch_780_'
+    # # "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_cycle/checkpoints/epoch_480_"
+    # checkpoint = torch.load(model_path, map_location='cpu')
+    # model.network.affine_net.load_state_dict(checkpoint['state_dict'])
+    # model.network.affine_net.cuda()
+
+
+
 
     for phase in phases:
         num_samples = len(dataloaders[phase])

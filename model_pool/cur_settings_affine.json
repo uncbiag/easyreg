@@ -27,21 +27,21 @@
                 0.25
             ],
             "scale_iterations": [
-                500,
-                500,
-                500
+                50,
+                200,
+                200
             ]
         },
         "name": "sgd",
         "scheduler": {
             "factor": 0.5,
-            "patience": 100,
+            "patience": 20,
             "verbose": true
         },
         "sgd": {
             "individual": {
                 "dampening": 0.0,
-                "lr": 5e-04,
+                "lr": 5e-05,
                 "momentum": 0.9,
                 "nesterov": true,
                 "weight_decay": 0.0

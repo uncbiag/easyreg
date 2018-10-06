@@ -56,6 +56,11 @@ from .unet_expr_extreme_deep import UNet3D_Deep
 from .unet_expr_multi_mod import UNet3DMM
 import SimpleITK as sitk
 from glob import glob
+import mermaid.pyreg.finite_differences as fdt
+
+
+
+
 model_pool_1 = {
     'UNet3D': UNet3D,
     'UNet3D2': UNet3D2,
@@ -213,7 +218,7 @@ class BaseModel():
             lr = opt['lr']
             print(" no warming up the learning rate is {}".format(lr))
         else:
-            lr = 2e-4
+            lr = 1e-4
             print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
         lr_sched_opt = opt['lr_scheduler']
@@ -390,6 +395,18 @@ class BaseModel():
         self.input= None
         self.output = self.partition.assemble(pred_patched.data[:,0], self.img_sz)
         self.gt_np = self.gt.data.cpu().numpy()
+
+
+
+    def compute_jacobi_map(self,map):
+        dim = 3
+        jacobi_abs = 0.
+        for i in range(dim):
+            jacobi_tmp_matrix = np.abs(fdt.dXc(map[:, i, ...])) + np.abs(self.fdt.dYc(map[:, i, ...])) + np.abs(self.fdt.dZc(map[:, i, ...]))
+            jacobi_abs += np.sum(jacobi_tmp_matrix)
+        jacobi_abs_mean = jacobi_abs / np.prod(map)
+        return jacobi_abs_mean
+
 
 
     def cal_val_errors(self, split_size=2):

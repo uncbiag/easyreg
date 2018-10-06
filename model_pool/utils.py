@@ -6,6 +6,10 @@ import os
 import torchvision.utils as utils
 from skimage import color
 
+from models.net_utils import gen_identity_map
+from functions.bilinear import Bilinear
+
+
 def get_pair(data, pair= True, target=None):
      return data['image'][:,0:1], data['image'][:,1:2],data['label'][:,0:1],data['label'][:,1:2]
 
@@ -222,6 +226,47 @@ def lift_to_dimension(A,dim):
         return A.reshape([1]*(dim-current_dim)+list(A.shape))
 
 
+
+
+
+def update_affine_param( cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
+    cur_af = cur_af.view(cur_af.shape[0], 4, 3)
+    last_af = last_af.view(last_af.shape[0],4,3)
+    updated_af = torch.zeros_like(cur_af.data).cuda()
+    dim =3
+    updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
+    updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
+    updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
+    return updated_af
+
+def get_inverse_affine_param(affine_param):
+    """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
+
+    affine_param = affine_param.view(affine_param.shape[0], 4, 3)
+    inverse_param = torch.zeros_like(affine_param.data).cuda()
+    for n in range(affine_param.shape[0]):
+        tm_inv = torch.inverse(affine_param[n, :3,:])
+        inverse_param[n, :3, :] = tm_inv
+        inverse_param[n, 3, :] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+    inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
+    return inverse_param
+
+def gen_affine_map(Ab, img_sz, dim=3):
+    Ab = Ab.view(Ab.shape[0], 4, 3)  # 3d: (batch,3)
+    phi = gen_identity_map(img_sz)
+    phi_cp = phi.view(dim, -1)
+    affine_map = None
+    if dim == 3:
+        affine_map = torch.matmul(Ab[:, :3, :], phi_cp)
+        affine_map = Ab[:, 3, :].contiguous().view(-1, 3, 1) + affine_map
+        affine_map = affine_map.view([Ab.shape[0]] + list(phi.shape))
+    return affine_map
+
+def get_warped_img_map_param( Ab, img_sz, moving, dim=3, zero_boundary=True):
+    bilinear = Bilinear(zero_boundary)
+    affine_map = gen_affine_map(Ab,img_sz,dim)
+    output = bilinear(moving, affine_map)
+    return output, affine_map, Ab
 
 
 

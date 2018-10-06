@@ -28,9 +28,13 @@ class RegistrationDataset(Dataset):
         self.phase = phase
         self.transform = transform
         self.data_type = '*.nii.gz'
-        self.debug_num = -1 if phase!='test' else 150#
+        self.debug_num = -1 if phase!='test' else 150 #300 when test intra 150     ###################TODO ###################################3
         self.is_llm=reg_option['is_llm']
-        self.turn_on_pair_regis = True
+        self.test_fail_case=reg_option['test_fail_case']
+        self.turn_on_pair_regis = True  if phase!='test' else False  #True when test inter   ##########TODO ########################
+
+        if self.test_fail_case:
+            self.data_path = self.data_path.replace('test','fail')
 
 
         self.get_file_list()
@@ -49,6 +53,7 @@ class RegistrationDataset(Dataset):
         """
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
         self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+
 
         if self.debug_num>0:
             read_num = min(self.debug_num, len(self.path_list))

@@ -3,7 +3,7 @@ import numpy as np
 import ants
 import time
 import SimpleITK as sitk
-
+from model_pool.global_variable import param_in_ants
 from model_pool.nifty_reg_utils import expand_batch_ch_dim
 
 
@@ -33,9 +33,16 @@ def performAntsRegistration(mv_path, target_path, registration_type='syn', recor
             loutput = loutput.numpy()
         output = af_img.numpy()
         print('affine registration finished and takes: :', time.time() - start)
-
+    #print("param_in_ants:{}".format(param_in_ants))
     if registration_type =='syn':
-        syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyN')
+        syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyN',grad_step=0.2,
+                 flow_sigma=3,
+                 total_sigma=0.1,
+                 aff_metric='mattes',
+                 aff_sampling=8,
+                 syn_metric='mattes',
+                 syn_sampling=64,
+                 reg_iterations=(80,40,0))
         if ml_path is not None:
             print(syn_res['fwdtransforms'])
             matfile = None

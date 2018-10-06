@@ -96,7 +96,7 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         super(AffineNetCycle, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 5   #############################################################
+        self.step = 7   #############################################################
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
@@ -126,6 +126,18 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
             updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
         updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
         return updated_af
+
+    def get_inverse_affine_param(self,affine_param):
+        """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
+
+        affine_param = affine_param.view(affine_param.shape[0], 4, 3)
+        inverse_param = torch.zeros_like(affine_param.data).cuda()
+        for n in range(affine_param.shape[0]):
+            tm_inv = torch.inverse(affine_param[n, :3,:])
+            inverse_param[n, :3, :] = tm_inv
+            inverse_param[n, :, 3] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+            inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
+        return inverse_param
 
 
 
@@ -164,7 +176,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         super(AffineNetSym, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 3
+        self.step = 5
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
@@ -175,6 +187,17 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.using_cycle = True
         self.zero_boundary = True
         self.bilinear = Bilinear(self.zero_boundary)
+
+        #############################################TODO###########################################3
+
+        model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+        checkpoint = torch.load(model_path,
+                                map_location='cpu')
+
+        self.load_state_dict(checkpoint['state_dict'])
+        self.cuda()
+        print("ATTENTION!!!!!   AFFINE NET INITIALIZED BY ENTERNAL MODEL")
+
         print("the affineNetSym is initialized")
 
 
@@ -239,7 +262,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sim_st = loss_fn(output[0],target)
         sim_ts = loss_fn(output[1], moving)
         sim_loss = sim_st +sim_ts
-        return sim_loss / moving.shape[0]
+        return sim_loss / moving.shape[0]/2.
 
     def scale_reg_loss(self,sched='l2'):
         affine_param = self.affine_param
@@ -295,12 +318,14 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
             # affine_param_st = self.affine_gen(moving, target_cp)
             # affine_param_ts = self.affine_gen(target, moving_cp)
-            if i==0:
-                affine_param_st = self.affine_gen(moving, target_cp)
-                affine_param_ts = self.affine_gen(target, moving_cp)
-            else:
-                affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
-                affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
+            # if i==0:
+            #     affine_param_st = self.affine_gen(moving, target_cp)
+            #     affine_param_ts = self.affine_gen(target, moving_cp)
+            # else:
+            #     affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
+            #     affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
+            affine_param_st = self.affine_gen(moving, target_cp)
+            affine_param_ts = self.affine_gen(target, moving_cp)
             if i > 0:
                 affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
                 affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
@@ -313,8 +338,6 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             output_st = bilinear[0](moving_cp, affine_map_st)
             output_ts = bilinear[1](target_cp, affine_map_ts)
 
-            # output_st = checkpoint(bilinear[0], moving_cp, affine_map_st)
-            # output_ts = checkpoint(bilinear[1], target_cp, affine_map_ts)
 
             moving = output_st
             target = output_ts

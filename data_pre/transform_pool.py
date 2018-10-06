@@ -671,7 +671,7 @@ class MyBalancedRandomCrop(object):
                 start_coord = random_nd_coordinates(np.array(size_old) - np.array(size_new),
                                                                   self.random_state)
                 seg_crop_np = cropping(seg_np,start_coord,size_new)
-                label_ratio = np.sum(seg_crop_np==cur_label) / seg_crop_np.size
+                label_ratio = np.sum(seg_crop_np==cur_label) / float(seg_crop_np.size)
 
                 count += 1
                 if count>10000:

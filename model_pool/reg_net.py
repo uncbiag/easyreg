@@ -125,10 +125,10 @@ class RegNet(BaseModel):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
         sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
         scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
-        factor_scale =1  # 1e-7
-        factor_scale = sigmoid_decay(self.cur_epoch, static=1, k=3) * factor_scale
+        factor_scale =1  # 1  ############################# TODo #####################
+        factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
         factor_scale = float( max(1e-3,factor_scale))
-        factor_sym =10  ###################################3
+        factor_sym =1#10 ################################### ToDo ####################################
         sim_factor = 1
 
 

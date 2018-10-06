@@ -18,7 +18,6 @@ from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 
 import mermaid.pyreg.utils as py_utils
-
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
 class MermaidIter(BaseModel):
@@ -88,7 +87,7 @@ class MermaidIter(BaseModel):
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=0.5,
-                                json_config_out_filename='cur_settings_affine_output_tmp.json',
+                                json_config_out_filename='cur_settings_affine_output_tmp.json',  #########################################
                                 params ='cur_settings_affine_tmp.json')
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
@@ -180,6 +179,8 @@ class MermaidIter(BaseModel):
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            self.jacobi_val = self.compute_jacobi_map(self.phi)
+            print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
         else:
             step = 8
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
@@ -192,11 +193,21 @@ class MermaidIter(BaseModel):
             warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
             self.l_target_np = self.l_target.detach().cpu().numpy()
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
+            jacobi_val = self.compute_jacobi_map(self.phi)
+            print(" the current jcobi value of the phi is {}".format(jacobi_val))
         # if not self.print_val_detail:
         #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
         # else:
         #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
         #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+
+
+
+    def get_the_jacobi_val(self):
+        return self.jacobi_val
+
+
+
 
 
 

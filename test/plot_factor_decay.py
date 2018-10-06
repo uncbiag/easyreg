@@ -15,5 +15,5 @@ plt.show()
 y = [min(sigmoid_explode(iterm,static=10, k=10)*0.01,1) for iterm in x]
 plt.plot(x,y)
 plt.xlabel('epoch')
-plt.title('inverse sigmoid decay factor')
+plt.title('inverse sigmoid increase factor')
 plt.show()

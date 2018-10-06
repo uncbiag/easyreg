@@ -450,8 +450,8 @@ class PatientStructureDataSet(VolumetricDataSet):
                         for j in range(i+1, num_images):
                             intra_pair_list.append([intra_image_list[i],intra_image_list[j],
                                                     intra_label_list[i],intra_label_list[j]])
-                            # intra_pair_list.append([intra_image_list[j], intra_image_list[i],
-                            #                         intra_label_list[j], intra_label_list[i]])
+                            intra_pair_list.append([intra_image_list[j], intra_image_list[i],
+                                                    intra_label_list[j], intra_label_list[i]])
             # if pair_num_limit>=0 and len(intra_pair_list)> 5*pair_num_limit:
             #     break
         if len(patients)>0:
