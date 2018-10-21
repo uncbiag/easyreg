@@ -20,33 +20,22 @@ class RegistrationDataset(Dataset):
 
     def __init__(self, data_path,phase=None, transform=None, seg_option=None, reg_option=None):
         """
+        the dataloader for registration task, to avoid frequent disk communication, all pairs are compressed into memory
+        :param data_path:  string, path to the data
+            the data should be preprocessed and saved into txt
+        :param phase:  string, 'train'/'val'/ 'test'/ 'debug' ,    debug here means a subset of train data, to check if model is overfitting
+        :param transform: function,  apply transform on data
+        : seg_option: pars,  settings for segmentation task,  None for registration task
+        : reg_option:  pars, settings for registration task, None for segmentation task
 
-        :param data_path:  string, path to processed data
-        :param transform: function,   apply transform on data
         """
         self.data_path = data_path
         self.phase = phase
         self.transform = transform
         self.data_type = '*.nii.gz'
-        from model_pool.global_variable import use_extra_inter_intra_judge
-        self.is_intra_reg = True
-        if use_extra_inter_intra_judge:
-            self.is_intra_reg = True if 'intra' in data_path else False
-
-        if self.is_intra_reg:
-            self.debug_num = -1 if phase!='test' else 300 #300 when test intra    150     ###################TODO ###################################3
-            self.turn_on_pair_regis = True if phase!='test' else False  #True when test inter   ##########TODO ########################
-        else:
-            self.debug_num = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
-            self.turn_on_pair_regis = True #if phase!='test' else False  #True when test inter   ##########TODO ########################
-
-        self.is_llm = reg_option['is_llm']
-        self.test_fail_case = reg_option['test_fail_case']
-
-        if self.test_fail_case:
-            self.data_path = self.data_path.replace('test','fail')
-
-
+        self.turn_on_pair_regis = False
+        self.max_num_pair_to_load = -1 if phase!='test' else 150 #300 when test intra    150     ###################TODO ###################################3
+        """ the max number of pairs to be loaded into the memory"""
         self.get_file_list()
         self.resize = True
         self.reg_option = reg_option
@@ -65,8 +54,8 @@ class RegistrationDataset(Dataset):
         self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
 
 
-        if self.debug_num>0:
-            read_num = min(self.debug_num, len(self.path_list))
+        if self.max_num_pair_to_load>0:
+            read_num = min(self.max_num_pair_to_load, len(self.path_list))
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
 
@@ -76,17 +65,10 @@ class RegistrationDataset(Dataset):
             self.path_list += path_list_inverse
             self.name_list += name_list_inverse
 
-
-
-
         if len(self.name_list)==0:
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
-        if self.is_llm:
-            self.path_list = [[pth.replace('/playpen','/playpen/raid') for pth in pths] for pths  in self.path_list]
-        if self.phase=='test':
-            self.path_list = [[pth.replace('zhenlinx/Data/OAI_segmentation', 'zyshen/oai_data') for pth in pths] for pths in self.path_list]
 
-    def read_img_label_into_zipnp(self,img_label_path_dic,img_label_dic):
+    def __read_img_label_into_zipnp(self,img_label_path_dic,img_label_dic):
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(img_label_path_dic)).start()
         count = 0
         for fn, img_label_path in img_label_path_dic.items():
@@ -115,7 +97,7 @@ class RegistrationDataset(Dataset):
         img_label_path_dic:{img_name:{'img':img_fp,'label':label_fp,...}
         img_label_dic: {img_name:{'img':img_np,'label':label_np},......}
         pair_name_list:[[pair1_s,pair1_t],[pair2_s,pair2_t],....]
-        pair_list [[s_np,t_np,sl_np,tl_np],....]]
+        pair_list [[s_np,t_np,sl_np,tl_np],....]
         only the pair_list need to be used by get_item method
         """
         manager = Manager()
@@ -135,7 +117,7 @@ class RegistrationDataset(Dataset):
         split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
         procs =[]
         for i in range(num_of_workers):
-            p = Process(target=self.read_img_label_into_zipnp,args=(split_dict[i], img_label_dic,))
+            p = Process(target=self.__read_img_label_into_zipnp,args=(split_dict[i], img_label_dic,))
             p.start()
             print("pid:{} start:".format(p.pid))
 

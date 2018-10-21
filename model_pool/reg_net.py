@@ -53,7 +53,7 @@ class RegNet(BaseModel):
         #     self.load_network(self.network,'reg_net',which_epoch)
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
-        self.single_mod = opt['tsk_set']['single_mod']
+        self.single_mod = opt['tsk_set']['reg'][('single_mod',True,'whether iter the whole model')]
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
         print('---------- Networks initialized -------------')
@@ -203,37 +203,15 @@ class RegNet(BaseModel):
         self.get_evaluation()
 
     def get_evaluation(self):
-        if self.single_mod:
 
-            self.output, self.phi, self.disp= self.forward()
-            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
-            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np= self.l_target.detach().cpu().numpy()
+        self.output, self.phi, self.disp= self.forward()
+        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+        warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
+        self.l_target_np= self.l_target.detach().cpu().numpy()
 
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-            self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
-            print("current batch jacobi is {}".format(self.jacobi_val))
-        else:
-            step = 3
-            print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
-            phi = None
-            for i in range(step):
-                self.output, phi_cur, self.disp = self.forward()
-                self.input = torch.cat((self.output,self.target),1)
-                if i>0:
-                    bilinear = Bilinear(zero_boundary=False)
-                    phi_cur = bilinear(phi,phi_cur)
-                phi = phi_cur
-            self.phi = phi
-            self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi)
-            warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np = self.l_target.detach().cpu().numpy()
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
-        # if not self.print_val_detail:
-        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
-        # else:
-        #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
-        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+        self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+        self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
+        print("current batch jacobi is {}".format(self.jacobi_val))
 
     def get_extra_res(self):
         return self.jacobi_val
@@ -246,34 +224,6 @@ class RegNet(BaseModel):
         self.save_network(self.network, 'unet', label, self.gpu_ids)
 
 
-
-    def save_fig_3D(self,phase):
-        saving_folder_path = os.path.join(self.record_path, '3D')
-        make_dir(saving_folder_path)
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
-            saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
-            output = sitk.GetImageFromArray(self.moving[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
-            output = sitk.GetImageFromArray(self.target[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_reproduce.nii.gz"
-            output = sitk.GetImageFromArray(self.output[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-
-    def save_fig_2D(self,phase):
-        saving_folder_path = os.path.join(self.record_path, '2D')
-        make_dir(saving_folder_path)
-
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+"_iter_" + str(self.iter_count)
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_moving.tif", self.moving[i, 0, ...])
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_target.tif", self.target[i, 0, ...])
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
 
     def save_fig(self,phase,standard_record=False,saving_gt=True):
         pass

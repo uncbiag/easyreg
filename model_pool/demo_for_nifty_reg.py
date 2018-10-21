@@ -20,7 +20,7 @@ moving_label_path ='/playpen/zyshen/debugs/demons/l_moving.nii.gz'
 
 
 #
-phi = nifty_read_phi('/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi/records/deformation.nii.gz')
+phi = nifty_read_phi('./deformation.nii.gz')
 disp = nifty_read_phi('./displacement.nii')
 spacing = 1. / (np.array(phi.shape[2:]) - 1)
 sz = phi.shape[2:]

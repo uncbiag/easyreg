@@ -157,6 +157,7 @@ def resize_input_img_and_save_it_as_tmp(img_pth, is_label=False,fname=None,debug
         :param img: sitk input, factor is the outputsize/patched_sized
         :return:
         """
+        img_org = sitk.ReadImage(img_pth)
         img = __read_and_clean_itk_info(img_pth)
         resampler= sitk.ResampleImageFilter()
         dimension =3
@@ -178,9 +179,9 @@ def resize_input_img_and_save_it_as_tmp(img_pth, is_label=False,fname=None,debug
             resampler.SetInterpolator(sitk.sitkBSpline)
         img_resampled = resampler.Execute(img)
         fpth = os.path.join(debug_path,fname)
-        # img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-        # img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
-        # img_resampled.SetDirection(img_org.GetDirection())
+        img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
+        img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+        img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
 

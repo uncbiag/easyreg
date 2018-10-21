@@ -5,9 +5,9 @@ import subprocess
 import nibabel as nib
 import numpy as np
 from model_pool.global_variable import *
-# from model_pool.task_pool_reg import is_llm
+# from model_pool.task_pool_reg import redirect_data_path
 #
-# if not is_llm:
+# if not redirect_data_path:
 #     nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'
 # else:
 #     nifty_bin = '/playpen/raid/zyshen/package/niftyreg-git/niftyreg_install/bin'

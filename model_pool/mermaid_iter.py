@@ -27,9 +27,7 @@ class MermaidIter(BaseModel):
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
-        which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        #self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
 

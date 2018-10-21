@@ -47,8 +47,8 @@ dm.data_par['datapro']['dataset']['dataset_name']='lpba'
 # tsm.task_par['tsk_set']['save_fig_on'] = False
 
 
-is_llm = False
-dm.data_par['datapro']['reg']['is_llm'] = is_llm
+redirect_data_path = False
+dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 
 
 tsm.task_par['tsk_set']['train'] = True

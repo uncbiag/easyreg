@@ -16,7 +16,6 @@ class BaseRegDataSet(object):
 
     def __init__(self, dataset_type, file_type_list, sched=None):
         """
-
         :param name: name of data set
         :param dataset_type: ''mixed' like oasis including inter and  intra person  or 'custom' like LPBA40, only includes inter person
         :param file_type_list: the file types to be filtered, like [*1_a.bmp, *2_a.bmp]
@@ -73,7 +72,6 @@ class BaseRegDataSet(object):
         :param  is_label: the file_path is label_file
         :return:
         """
-        # img, info = read_itk_img(file_path)
         try:
             img, info = file_io_read_img(file_path,normalize_intensities=self.normalize, is_label=is_label)
         except:
@@ -114,9 +112,6 @@ class BaseRegDataSet(object):
         print("starting preapare data..........")
         print("the output file path is: {}".format(self.output_path))
         self.initialize_info()
-        # self.save_file_to_h5py()
-        # self.pair_path_list = self.generate_pair_list()
-        # self.save_pair_to_txt()
 
         info=self.gen_pair_dic()
         self.save_pair_to_txt(copy.deepcopy(info))
@@ -132,18 +127,19 @@ class BaseRegDataSet(object):
 
 class UnlabeledDataSet(BaseRegDataSet):
     """
+    This class only compatible with dataset_type "mixed" and "custom"
     unlabeled dataset
     """
     def __init__(self,dataset_type, file_type_list, sched=None):
         BaseRegDataSet.__init__(self,dataset_type, file_type_list,sched)
 
-    def save_pair_to_txt(self):
+    def save_pair_to_txt(self, info=None):
         """
         save the file into h5py
         :param pair_path_list: N*2  [[full_path_img1, full_path_img2],[full_path_img2, full_path_img3]
-        :param pair_name_list: N*1 for 'mix': [folderName1_sliceName1_folderName2_sliceName2, .....]  for custom: [sliceName1_sliceName2, .....]
+        :param pair_name_list: N*1 for 'mix': [patientName1_volumeName1_patientName2_volumeName2, .....]  for custom: [volumeName1_volumeName2, .....]
         :param ratio:  divide dataset into training val and test, based on ratio, e.g [0.7, 0.1, 0.2]
-        :param saving_path_list: N*1 list of path for output files e.g [ouput_path/train/sliceName1_sliceName2.h5py,.........]
+        :param saving_path_list: N*1 list of path for output files e.g [ouput_path/train/volumeName1_volumeName2.h5py,.........]
         :param info: dic including pair information
         :param normalized_sched: normalized the image
         """
@@ -184,6 +180,8 @@ class UnlabeledDataSet(BaseRegDataSet):
 
 class LabeledDataSet(BaseRegDataSet):
     """
+    This class only compatible with dataset_type "mixed" and "custom"
+
     labeled dataset
     """
     def __init__(self, dataset_type, file_type_list, sched=None):
@@ -235,9 +233,9 @@ class LabeledDataSet(BaseRegDataSet):
         """
         save the file into h5py
         :param pair_path_list: N*2  [[full_path_img1, full_path_img2],[full_path_img2, full_path_img3]
-        :param pair_name_list: N*1 for 'mix': [folderName1_sliceName1_folderName2_sliceName2, .....]  for custom: [sliceName1_sliceName2, .....]
+        :param pair_name_list: N*1 for 'mix': [patientName1_volumeName1_patientName2_volumeName2, .....]  for custom: [volumeName1_volumeName2, .....]
         :param ratio:  divide dataset into training val and test, based on ratio, e.g [0.7, 0.1, 0.2]
-        :param saving_path_list: N*1 list of path for output files e.g [ouput_path/train/sliceName1_sliceName2.h5py,.........]
+        :param saving_path_list: N*1 list of path for output files e.g [ouput_path/train/volumeName1_volumeName2.h5py,.........]
         :param info: dic including pair information
         :param normalized_sched: normalized the image
         """
@@ -379,23 +377,31 @@ class MixedDataSet(BaseRegDataSet):
 
 class PatientStructureDataSet(VolumetricDataSet):
     """
-    the dataset is organized in the patients,  in the way as patient_id/modality/specificity/
-    each folder include a series slices which obtained at different time period
 
-
+    The data in self.data_root_path would be loaded,
     """
 
     def __init__(self, dataset_type, file_type_list, sched):
         VolumetricDataSet.__init__(self, dataset_type, file_type_list,sched)
         self.patients = []
-        self.process_gt_set=True
+        self.only_test_set=True
+        """all available data would be regarded as test data, no training and validation set would be generated"""
         self.__init_patients()
+        """we """
+        self.data_root_path = None
+
+    def set_data_root_path(self,data_root_path):
+        self.data_root_path = data_root_path
 
     def __init_patients(self):
-        if not self.process_gt_set:
-            root_path ="/playpen/zyshen/summer/oai_registration/reg_0623/data"
+        if self.data_root_path is None:
+            if not self.only_test_set:
+                root_path ="/playpen/zyshen/summer/oai_registration/reg_0623/data"
+            else:
+                root_path ="/playpen/zyshen/summer/oai_registration/reg_0820/data"
         else:
-            root_path ="/playpen/zyshen/summer/oai_registration/reg_0820/data"
+            root_path = self.data_root_path
+
         Patient_class = Patients(full_init=True, root_path=root_path)
         self.patients= Patient_class.get_filtered_patients_list(has_complete_label=True, len_time_range=[1, 10], use_random=False)
         print("total {} of  paitents are selected".format(len(self.patients)))
@@ -518,7 +524,7 @@ class PatientStructureDataSet(VolumetricDataSet):
 
 
     def gen_pair_dic(self):
-        if self.process_gt_set:
+        if self.only_test_set:
             self.divided_ratio = [0.,0.,1.] ##############################################
             num_pair_limit = -1 if self.sched=='intra' else 300
 

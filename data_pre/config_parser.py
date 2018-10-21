@@ -19,9 +19,7 @@ respro_settings_filename = os.path.join(this_directory, r'../settings/respro_set
 respro_settings_filename_comments = os.path.join(this_directory, r'../settings/respro_settings_comments.json')
 
 
-
-
-
+# noinspection PyStatementEffect
 def get_task_settings( task_settings_filename = None ):
 
     # These are the parameters for the general I/O and example cases

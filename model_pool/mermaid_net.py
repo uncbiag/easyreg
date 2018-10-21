@@ -28,23 +28,23 @@ class MermaidNet(nn.Module):
     this network is an end to end system for momentum generation and mermaid registration
     include the following parts
 
-    1 . affine net the affine network is used to affine the source and target image (though this is optional, we currently put it here)
+    1 . affine net the affine network is used to affine the source and target image (though affine is optional, we currently put it here)
     2. the  momentum generation net work, this network should be an auto-encoder system like the Xiao's work
     3. the mermaid part, an single optimizer would be called from the mermaid code
 
     In detail of implementation, we should take care of the memory issue, one possible solution is using low-resolution mapping
 
     1. affinenet work, this is a pretrained network, so the only the forward flow is used, the input should be set as volatile,
-        in current  design, the input and output of this net is of the original size
-    2. momentum generation net, this is a trainable network, but we would have a low-res factor to make it train at a low-resolution
+        in current  design, the input and output of this net is of the full resolution
+    2. momentum generation net, this is a trainable network, but we would have a low-res factor to train it at a low-resolution
         the input may still at original resolution, but the output size may be determined by the low-res factor
 
-    3. mermaid part, this is an inference unit, where should call the single-scale optimizer, and the output should be upsampled to the
-        original size.
+    3. mermaid part, this is an shooting unit, where should call the single-scale optimizer, and the output should be upsampled to the
+        full resolution size.
 
     so the input and the output of each part should be
 
-    1. affine: input: st_concated, s,   output: s_warped -> s
+    1. affine: input: st_concated, s,   output: s_warped, affine_map
     2. momentum: input: st_concated , low_res_factor  output: m
     3. mermaid: input: s,t,m, low_res_factor  output: s_warped
 
@@ -53,13 +53,13 @@ class MermaidNet(nn.Module):
 
     def __init__(self, img_sz=None, opt=None):
         super(MermaidNet, self).__init__()
-        self.load_external_model = True
+        self.load_external_model = False
         self.intra_training = intra_training
 
 
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        low_res_factor = opt['tsk_set']['low_res_factor']
+        low_res_factor = opt['tsk_set']['reg'][('low_res_factor',1.,"factor of low-resolution map")]
         batch_sz = opt['tsk_set']['batch_sz']
         self.loss_type = opt['tsk_set']['loss']['type']
         self.img_sz = [batch_sz, 1] + img_sz
@@ -85,30 +85,11 @@ class MermaidNet(nn.Module):
         self.affine_net = AffineNetCycle(self.img_sz[2:])
 
         if self.load_external_model:
-            # if not self.intra_training:
-            #     model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_mermaid_net_lncc_bi/checkpoints/epoch_60_'
-            # else:
-            #     model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_lncc/checkpoints/epoch_100_'
-                    #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_ncc/checkpoints/epoch_120_"
             model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_reisd_2step_lncc_recbi/checkpoints/epoch_270_'
             checkpoint = torch.load(model_path,  map_location='cpu')
             self.load_state_dict(checkpoint['state_dict'])
             self.cuda()
             print("Attention, the external model is loaded !!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
-        # if not self.intra_training:
-        #     model_path ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_symstep5_lncc_bi/checkpoints/epoch_60_'
-        # else:
-        #     model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
-        #     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_sym_cycle_affine_net_symf10_rerun/checkpoints/epoch_780_'
-        # #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_cycle/checkpoints/epoch_480_"
-        # checkpoint = torch.load(model_path,
-        #                         map_location='cpu')
-        #
-        # self.affine_net.load_state_dict(checkpoint['state_dict'])
-        # self.affine_net.cuda()
-        # print("Affine network successfully initialized,{}".format(model_path))
-        # print(self.affine_net)
         self.affine_net.eval()
 
     def init_mermaid_env(self, spacing):
@@ -170,11 +151,6 @@ class MermaidNet(nn.Module):
         identity_map  = self.identityMap.expand_as(self.rec_phiWarped[0])
         trans_st  = trans1(identity_map,self.rec_phiWarped[0])
         trans_st_ts = trans2(trans_st,self.rec_phiWarped[1])
-        # print(torch.mean((identity_map- trans_st_ts)**2).detach().cpu().numpy())
-        # print("llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll")
-        # print(torch.mean((identity_map- trans_st)**2).detach().cpu().numpy())
-        # print(torch.mean((trans_st- trans_st_ts)**2).detach().cpu().numpy())
-        #raise ValueError
         return torch.mean((identity_map- trans_st_ts)**2)
 
 

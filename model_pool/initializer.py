@@ -26,11 +26,7 @@ class Initializer():
         self.task_name = self.task_opt['tsk_set']['task_name']
         par_dataset = pars.ParameterDict()
         par_dataset.load_JSON(os.path.join(self.task_root_path,'data_settings.json'))
-        self.task_opt['dataset'] = self.task_opt[('dataset',{},'dataset path')]
-        self.task_opt['dataset']['tile_size'] = par_dataset['datapro']['seg']['patch_size']
-        self.task_opt['dataset']['overlap_size'] = par_dataset['datapro']['seg']['partition']['overlap_size']
-        self.task_opt['dataset']['padding_mode'] = par_dataset['datapro']['seg']['partition']['padding_mode']
-        self.task_opt['dataset']['raw_data_path'] = par_dataset['datapro']['dataset']['data_path']
+        self.task_opt['dataset'] = self.task_opt[('dataset',{},'settings for dataset')]
         return self.task_opt
 
     def get_task_option(self):
@@ -58,13 +54,14 @@ class Initializer():
         divided_ratio = par_dataset['datapro']['dataset']['divided_ratio']
     
     
-    
+        # settings for reg
         sched = par_dataset['datapro']['reg']['sched'] if task_type=='reg' else par_dataset['datapro']['seg']['sched']
         reg_full_comb = par_dataset['datapro']['reg']['all_comb']
         reg_slicing = par_dataset['datapro']['reg']['slicing']
         reg_axis = par_dataset['datapro']['reg']['axis']
         reg_option = par_dataset['datapro']['reg']
-    
+
+        # settings for seg
         seg_option = par_dataset['datapro']['seg']
         seg_transform_seq  = par_dataset['datapro']['seg']['transform']['transform_seq']
 
@@ -87,8 +84,8 @@ class Initializer():
             # seg
             self.data_manager.set_seg_option(seg_option)
             self.data_manager.set_transform_seq(seg_transform_seq)
-    
-            self.data_manager.generate_saving_path()
+
+            self.data_manager.generate_saving_path(auto=False)
             self.data_manager.generate_task_path()
             if prepare_data:
                 self.data_manager.init_dataset()
@@ -97,7 +94,7 @@ class Initializer():
                 # par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_data_path()############################3
                 # par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))############3
 
-            par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_default_dataset_path(False)
+            #par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_default_dataset_path(False)
             par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(), 'data_settings.json'))
 
             task_root_path = self.data_manager.get_task_root_path()

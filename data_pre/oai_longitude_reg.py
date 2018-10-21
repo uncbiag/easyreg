@@ -425,6 +425,18 @@ abnormal_example_list=\
 
 
 class OAIDataPrepare():
+    """
+    the dataset is organized in the following style:  patient_id/modality/specificity/
+    each folder a txt file named "slice_label.txt"  Note the 'slice' here actually means volume !!!
+    each line includes a path of volume and path for corresponding label(None if no label),
+
+    e.g of slice_label.txt
+
+    /playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_image.nii.gz	/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_label_all.nii.gz
+    /playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20060322_SAG_3D_DESS_LEFT_016610899303_image.nii.gz	/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20060322_SAG_3D_DESS_LEFT_016610899303_label_all.nii.gz
+
+
+    """
     def __init__(self):
         using_unlabeled_data = True
         if using_unlabeled_data:

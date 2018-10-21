@@ -1,18 +1,12 @@
 from data_pre.reg_data_utils import *
 from torchvision import transforms
 import torch
-import data_pre.reg_data_loader as  reg_loader
 import data_pre.reg_data_loader_offline as  reg_loader_of
 from data_pre.seg_data_loader import ToTensor
 import data_pre.module_parameters as pars
 import  data_pre.reg_data_pool as reg_pool
-import data_pre.seg_data_loader as  seg_loader
 import data_pre.seg_data_loader_online as seg_loader_ol
-import data_pre.seg_data_loader_online_old as seg_loader_ol_old
-import data_pre.seg_data_loader_offline as seg_loader_fl
 import  data_pre.seg_data_pool as seg_pool
-import data_pre.data
-#torch.multiprocessing.set_start_method("spawn")
 
 class DataManager(object):
     def __init__(self, task_name, dataset_name):
@@ -131,25 +125,28 @@ class DataManager(object):
                                'lpba': './settings/lpba.json',
                                'brats': './settings/brats.json',
                                'cumc': './settings/cumc.json',
-                               'ibsr': './settings/ibsr.json',}
+                               'ibsr': './settings/ibsr.json'}
 
         return default_setting_path[self.dataset_name]
 
 
 
 
-    def generate_saving_path(self):
-        slicing_info = '_slicing_{}_axis_{}'.format(self.slicing, self.axis) if self.slicing>0 else ''
-        comb_info = '_full_comb' if self.full_comb else ''
-        reg_info = slicing_info+comb_info
-        transfrom_info=''
-        from functools import reduce
-        if len(self.transform_seq):
-            transfrom_info = reduce((lambda x,y: x+y),self.transform_seq)
-        extend_info = reg_info if self.task_type=='reg' else transfrom_info
-        full_task_name = self.task_name+'_'+self.dataset_name+ '_'+ self.task_type+'_'+self.sched+extend_info
-        self.set_full_task_name(full_task_name)
-        self.task_root_path = os.path.join(self.output_path,full_task_name)
+    def generate_saving_path(self, auto=True):
+        if auto:
+            slicing_info = '_slicing_{}_axis_{}'.format(self.slicing, self.axis) if self.slicing>0 else ''
+            comb_info = '_full_comb' if self.full_comb else ''
+            reg_info = slicing_info+comb_info
+            transfrom_info=''
+            from functools import reduce
+            if len(self.transform_seq):
+                transfrom_info = reduce((lambda x,y: x+y),self.transform_seq)
+            extend_info = reg_info if self.task_type=='reg' else transfrom_info
+            full_task_name = self.task_name+'_'+self.dataset_name+ '_'+ self.task_type+'_'+self.sched+extend_info
+            self.set_full_task_name(full_task_name)
+            self.task_root_path = os.path.join(self.output_path,full_task_name)
+        else:
+            self.task_root_path =  os.path.join(self.output_path,self.task_name)
 
     def generate_task_path(self):
         self.task_path = {x:os.path.join(self.task_root_path,x) for x in ['train','val', 'test','debug']}
@@ -226,7 +223,7 @@ class DataManager(object):
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
-            num_workers_reg ={'train':4,'val':4,'test':4,'debug':4}
+            num_workers_reg ={'train':8,'val':4,'test':4,'debug':4}
             shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
                                                       shuffle=shuffle_list[x], num_workers=num_workers_reg[x]) for x in self.phases}
@@ -257,14 +254,7 @@ class DataManager(object):
             self.phases = ['val','test']
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
-        ########################################################################33######3
         transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,seg_option=self.seg_option, reg_option =self.reg_option) for x in self.phases}
-        # transformed_dataset = {
-        # 'train': self.cur_dataset(data_path=self.task_path['train'], phase='train', transform=composed, option=self.seg_option),
-        # 'val': self.cur_dataset(data_path=self.task_path['val'], phase='val', transform=composed, option=self.seg_option),
-        # 'test': self.cur_dataset(data_path=self.task_path['test'], phase='test', transform=composed, option=self.seg_option),
-        # 'debug': self.cur_dataset(data_path=self.task_path['train'], phase='debug', transform=composed, option=self.seg_option),
-        # }
         dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
         dataloaders['data_size'] = {x: len(dataloaders[x]) for x in self.phases}
         dataloaders['info'] = {x: transformed_dataset[x].name_list for x in self.phases}

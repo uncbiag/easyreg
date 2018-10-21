@@ -6,26 +6,9 @@ def create_model(opt):
     sz = opt
     torch.cuda.set_device(gpu_id)
     print(model_name)
-    if model_name == 'context_net':
-        from .context_net import ContextNet
-        model = ContextNet()
-    elif model_name == 'unet':
-        from .unet import Unet
-        model = Unet()
-    elif model_name == 'vonet':
-        from .vonet import Vonet
-        model = Vonet()
-    elif model_name == 'pnet':
-        from .pnet import Pnet
-        model = Pnet()
-    elif model_name == 'gbnet':
-        from .gb_net import GBnet
-        model = GBnet()
-    elif model_name == 'asm_net_test':
-        from .assemble_net import Asm_test
-        model = Asm_test()
 
-    elif model_name == 'reg_net':
+    ################ models for registration ########################
+    if model_name == 'reg_net':
         from .reg_net import RegNet
         model = RegNet()
     elif model_name == 'mermaid_iter':

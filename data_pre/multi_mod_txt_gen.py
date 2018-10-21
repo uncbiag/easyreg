@@ -1,6 +1,5 @@
 from data_pre.seg_data_utils import *
 import os
-import numpy as np
 class MultiTxtGen(object):
     def __init__(self, mode_list, data_path, output_path, img_type='.nii',label_replace=''):
         self.mode_list = mode_list

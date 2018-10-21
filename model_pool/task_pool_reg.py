@@ -926,11 +926,11 @@ class ModelTask(BaseTask):
 # ################ Task 0   input -1 1#############
 # tsm = ModelTask('task_reg')
 # dm = DataTask('task_reg')
-# is_llm = False
+# redirect_data_path = False
 # dm.data_par['datapro']['task_type']='reg'
 # dm.data_par['datapro']['dataset']['dataset_name']='oai'
 # dm.data_par['datapro']['reg']['sched']='intra'
-# dm.data_par['datapro']['reg']['is_llm'] = is_llm
+# dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 #
 # dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -948,7 +948,7 @@ class ModelTask(BaseTask):
 # #""/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_debuging_bilinear/checkpoints/epoch_360_"
 # #'/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_mermaid_end2end_debug/checkpoints/epoch_100_'
 # #''/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_affine_sym_cycle_ncc/checkpoints/epoch_440_'
-# if is_llm:
+# if redirect_data_path:
 #     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
 #     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 #
@@ -1036,11 +1036,11 @@ class ModelTask(BaseTask):
 # ################ Task 0   input -1 1#############
 # tsm = ModelTask('task_reg')
 # dm = DataTask('task_reg')
-# is_llm = False
+# redirect_data_path = False
 # dm.data_par['datapro']['task_type']='reg'
 # dm.data_par['datapro']['dataset']['dataset_name']='oai'
 # dm.data_par['datapro']['reg']['sched']='inter'
-# dm.data_par['datapro']['reg']['is_llm'] = is_llm
+# dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 #
 # dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -1064,7 +1064,7 @@ class ModelTask(BaseTask):
 # #""/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_debuging_bilinear/checkpoints/epoch_360_"
 # #'/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_mermaid_end2end_debug/checkpoints/epoch_100_'
 # #''/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_affine_sym_cycle_ncc/checkpoints/epoch_440_'
-# if is_llm:
+# if redirect_data_path:
 #     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
 #     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 #
@@ -1155,11 +1155,11 @@ class ModelTask(BaseTask):
 # ################ Task 0   input -1 1#############
 # tsm = ModelTask('task_reg')
 # dm = DataTask('task_reg')
-# is_llm = False
+# redirect_data_path = False
 # dm.data_par['datapro']['task_type']='reg'
 # dm.data_par['datapro']['dataset']['dataset_name']='oai'
 # dm.data_par['datapro']['reg']['sched']='inter'  ##########33
-# dm.data_par['datapro']['reg']['is_llm'] = is_llm
+# dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 #
 # dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -1180,7 +1180,7 @@ class ModelTask(BaseTask):
 # #""/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_debuging_bilinear/checkpoints/epoch_360_"
 # #'/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_mermaid_end2end_debug/checkpoints/epoch_100_'
 # #''/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_affine_sym_cycle_ncc/checkpoints/epoch_440_'
-# if is_llm:
+# if redirect_data_path:
 #     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
 #     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 #
@@ -1276,11 +1276,11 @@ class ModelTask(BaseTask):
 # ################ Task 0   input -1 1#############
 # tsm = ModelTask('task_reg')
 # dm = DataTask('task_reg')
-# is_llm = False
+# redirect_data_path = False
 # dm.data_par['datapro']['task_type']='reg'
 # dm.data_par['datapro']['dataset']['dataset_name']='oai'
 # dm.data_par['datapro']['reg']['sched']='intra'        ######################3
-# dm.data_par['datapro']['reg']['is_llm'] = is_llm
+# dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 #
 # dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -1302,7 +1302,7 @@ class ModelTask(BaseTask):
 # #""/playpen/zyshen/data/reg_debug_oai_reg_intra/reg_debuging_bilinear/checkpoints/epoch_360_"
 # #'/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_mermaid_end2end_debug/checkpoints/epoch_100_'
 # #''/playpen/zyshen/data/reg_debug_2000_oai_reg_intra/reg_affine_sym_cycle_ncc/checkpoints/epoch_440_'
-# if is_llm:
+# if redirect_data_path:
 #     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
 #     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 #
@@ -1390,11 +1390,11 @@ class ModelTask(BaseTask):
 for sess in ['inter','intra']:
     tsm = ModelTask('task_reg')
     dm = DataTask('task_reg')
-    is_llm = False
+    redirect_data_path = False
     dm.data_par['datapro']['task_type']='reg'
     dm.data_par['datapro']['dataset']['dataset_name']='oai'
     dm.data_par['datapro']['reg']['sched']= sess
-    dm.data_par['datapro']['reg']['is_llm'] = is_llm
+    dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 
     dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
     # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -1413,7 +1413,7 @@ for sess in ['inter','intra']:
     tsm.task_par['tsk_set']['model_path'] ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_inter_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_100_'
     #                                        '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_220_',
 
-    if is_llm:
+    if redirect_data_path:
         dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
         tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 
@@ -1502,11 +1502,11 @@ for sess in ['inter','intra']:
 # ################ Task 0   input -1 1#############
 # tsm = ModelTask('task_reg')
 # dm = DataTask('task_reg')
-# is_llm = False
+# redirect_data_path = False
 # dm.data_par['datapro']['task_type']='reg'
 # dm.data_par['datapro']['dataset']['dataset_name']='oai'
 # dm.data_par['datapro']['reg']['sched']='inter'
-# dm.data_par['datapro']['reg']['is_llm'] = is_llm
+# dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 #
 # dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -1525,7 +1525,7 @@ for sess in ['inter','intra']:
 # tsm.task_par['tsk_set']['model_path'] ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_220_'
 #                                         #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_reisd_2step_lncc_lgreg10_sym200_recbi/checkpoints/epoch_200_'
 #
-# if is_llm:
+# if redirect_data_path:
 #     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
 #     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 #
@@ -1614,11 +1614,11 @@ for sess in ['inter','intra']:
 # ################ Task 0   input -1 1#############
 # tsm = ModelTask('task_reg')
 # dm = DataTask('task_reg')
-# is_llm = False
+# redirect_data_path = False
 # dm.data_par['datapro']['task_type']='reg'
 # dm.data_par['datapro']['dataset']['dataset_name']='oai'
 # dm.data_par['datapro']['reg']['sched']='inter'
-# dm.data_par['datapro']['reg']['is_llm'] = is_llm
+# dm.data_par['datapro']['reg']['redirect_data_path'] = redirect_data_path
 #
 # dm.data_par['datapro']['dataset']['output_path']='/playpen/zyshen/data/'
 # # tsm.task_par['tsk_set']['save_fig_on'] = False
@@ -1636,7 +1636,7 @@ for sess in ['inter','intra']:
 #
 # tsm.task_par['tsk_set']['model_path'] ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_reisd_2step_lncc_lgreg10_sym200_recbi/checkpoints/epoch_200_'
 #
-# if is_llm:
+# if redirect_data_path:
 #     dm.data_par['datapro']['dataset']['output_path'] = dm.data_par['datapro']['dataset']['output_path'].replace('/playpen','/playpen/raid')
 #     tsm.task_par['tsk_set']['model_path'] = tsm.task_par['tsk_set']['model_path'].replace('/playpen','/playpen/raid')
 #
