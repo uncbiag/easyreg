@@ -197,10 +197,12 @@ def sitk_grid_sampling(fixed,moving, displacement,is_label=False):
 
 debug_path = '/playpen/zyshen/debugs/demons/'
 
-moving_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled/9991313_20050623_SAG_3D_DESS_RIGHT_10564014_image.nii.gz'
-target_img_path = '/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz'
-ml_path = '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038/9991313_20050623_SAG_3D_DESS_RIGHT_10564014_prediction_step1_batch6_16_reflect.nii.gz'
-tl_path = '/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz'
+moving_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9047800_20050111_SAG_3D_DESS_LEFT_016610322306_image.nii.gz'
+target_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_image.nii.gz'
+ml_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9047800_20050111_SAG_3D_DESS_LEFT_016610322306_label_all.nii.gz'
+tl_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_label_all.nii.gz'
+#ml_path = '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038/9991313_20050623_SAG_3D_DESS_RIGHT_10564014_prediction_step1_batch6_16_reflect.nii.gz'
+#tl_path = '/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz'
 
 af_warped_path = '/playpen/zyshen/debugs/af_warped_img.nii.gz'
 af_warped_lpath = '/playpen/zyshen/debugs/af_warped_label.nii.gz'

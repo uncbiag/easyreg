@@ -71,7 +71,7 @@ class MermaidNet(nn.Module):
         self.sym_factor = 1.
         self.momentum_net = MomentumNet(low_res_factor)
         self.init_affine_net()
-        self.step = 1 if not use_mermaid_multi_step else 2
+        self.step = 1 if not use_mermaid_multi_step else 6
 
         spacing = 1. / (np.array(img_sz) - 1)
         self.spacing = spacing
@@ -114,7 +114,7 @@ class MermaidNet(nn.Module):
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
         if not use_llddmm:
-            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs.json') #''../model_pool/cur_settings_svf.json')
+            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_debug.json') #''../model_pool/cur_settings_svf.json')######TODO ###########
         else:
             params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         model_name = params['model']['registration_model']['type']
@@ -330,6 +330,11 @@ class MermaidNet(nn.Module):
         self.rec_phiWarped = (rec_phiWarped_st,rec_phiWarped_ts)
 
         return warped_img_st.detach(), (rec_phiWarped_st * 2. - 1.).detach(), affine_img_st.detach()
+
+    def get_affine_map(self,moving, target):
+        with torch.no_grad():
+            affine_img, affine_map, _ = self.affine_net(input, moving, target)
+        return affine_map
 
 
     def forward(self, input, moving, target=None):

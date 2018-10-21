@@ -266,5 +266,7 @@ class DemonsRegIter(BaseModel):
     def set_test(self):
         self.is_train = False
 
+    def get_extra_res(self):
+        return self.jacobi_val
 
 

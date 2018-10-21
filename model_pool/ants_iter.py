@@ -20,6 +20,7 @@ from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 from model_pool.ants_reg_utils import *
 import mermaid.pyreg.utils as py_utils
+import mermaid.pyreg.finite_differences as fdt
 
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
@@ -79,6 +80,8 @@ class AntsRegIter(BaseModel):
         self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz')
 
 
+
+
     def resize_input_img_and_save_it_as_tmp(self, img_pth, is_label=False,fname=None):
         """
         :param img: sitk input, factor is the outputsize/patched_sized
@@ -111,6 +114,9 @@ class AntsRegIter(BaseModel):
         img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
+
+
+
 
 
     def __read_and_clean_itk_info(self,path):
@@ -261,6 +267,26 @@ class AntsRegIter(BaseModel):
 
     def set_test(self):
         self.is_train = False
+
+    def get_extra_res(self):
+        return self.jacobi_val
+
+
+    def compute_jacobi_map(self,map):
+        if type(map) == torch.Tensor:
+            map = map.detach().cpu().numpy()
+        dim = 3
+        jacobi_abs = 0.
+        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        spacing = 1. / (np.array(input_img_sz) - 1)
+        fd = fdt.FD_np(spacing)
+        dfx= fd.dXc(map[:, 0, ...])
+        dfy= fd.dYc(map[:, 1, ...])
+        dfz= fd.dZc(map[:, 2, ...])
+        jacobi_abs = np.sum(dfx<0.) + np.sum(dfy<0.) + np.sum(dfz<0.)
+            #np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
+        jacobi_abs_mean = jacobi_abs/ map.shape[0] #/ np.prod(map.shape)
+        return jacobi_abs_mean
 
 
 

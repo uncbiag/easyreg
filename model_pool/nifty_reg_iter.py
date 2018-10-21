@@ -105,9 +105,9 @@ class NiftyRegIter(BaseModel):
             resampler.SetInterpolator(sitk.sitkBSpline)
         img_resampled = resampler.Execute(img)
         fpth = os.path.join(self.record_path,fname)
-        img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-        img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
-        img_resampled.SetDirection(img_org.GetDirection())
+        # img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
+        # img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+        # img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
 
@@ -140,8 +140,8 @@ class NiftyRegIter(BaseModel):
         self.output = output
         self.warped_label_map = loutput
 
-        # self.phi = phi
-        # self.phi = self.phi*2-1
+        self.phi = phi
+        self.phi = self.phi*2-1
         return self.output,None, None
 
 
@@ -187,12 +187,14 @@ class NiftyRegIter(BaseModel):
 
     def get_evaluation(self):
         if self.single_mod:
-            self.output, self.phi, self.disp= self.forward()
+            self.output, _,_= self.forward()
             #self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
             warped_label_map_np= self.warped_label_map
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            self.jacobi_val = self.compute_jacobi_map(self.phi)
+            self.phi = None
         else:
             step = 8
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
@@ -281,6 +283,9 @@ class NiftyRegIter(BaseModel):
 
     def set_test(self):
         self.is_train = False
+
+    def get_extra_res(self):
+        return self.jacobi_val
 
 
 

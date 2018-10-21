@@ -5,6 +5,18 @@ import time
 import SimpleITK as sitk
 from model_pool.global_variable import param_in_ants
 from model_pool.nifty_reg_utils import expand_batch_ch_dim
+from mermaid.pyreg.utils import identity_map_multiN
+
+def __init_identity_map(moving,spacing):
+    spacing = 1. / (np.array(moving.shape) - 1)
+    identity_map = identity_map_multiN(moving.shape, spacing)
+    phi_tmp = np.zeros( list(identity_map.shape[2:])+[3])
+    phi_tmp[...,0] = identity_map[ 0, 0,...]
+    phi_tmp[...,1] = identity_map[0, 1,...]
+    phi_tmp[..., 2] = identity_map[0, 2,...]
+    return phi_tmp
+
+
 
 
 def performAntsRegistration(mv_path, target_path, registration_type='syn', record_path = None, ml_path=None,tl_path= None):
@@ -47,13 +59,13 @@ def performAntsRegistration(mv_path, target_path, registration_type='syn', recor
             print(syn_res['fwdtransforms'])
             matfile = None
             for tfile in syn_res['fwdtransforms']:
-                if 'GenericAffine.mat'  in tfile:
+                if 'GenericAffine.mat' in tfile:
                     matfile = tfile
             print(matfile)
             time.sleep(5)  # pause 5.5 seconds
 
             loutput = ants.apply_transforms(fixed=l_target, moving=l_moving,
-                                          transformlist=matfile,
+                                          transformlist=syn_res['fwdtransforms'],
                                           interpolator='nearestNeighbor')
             loutput = loutput.numpy()
         output = syn_res['warpedmovout'].numpy()
@@ -64,6 +76,7 @@ def performAntsRegistration(mv_path, target_path, registration_type='syn', recor
 
     output = np.transpose(output,(2,1,0))
     loutput = np.transpose(loutput,(2,1,0))
+
 
 
 

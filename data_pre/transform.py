@@ -114,6 +114,11 @@ class Transform(object):
         sample_threshold = label_density * scale * scale_ratio
         #np.clip(sample_threshold,0,0.06,out=sample_threshold)
         sample_threshold[0] = bg_th_ratio
+
+        ########################################TODO ############################################
+        #sample_threshold = sample_threshold*0.
+
+        #################################################333
         my_balanced_random_crop = bio_transform.MyBalancedRandomCrop(self.patch_size, threshold=sample_threshold.tolist(),label_list =label_list,max_crop_num=max_crop_num )
         #print("Count init:", id(my_balanced_random_crop.np_coord_count))
         return my_balanced_random_crop

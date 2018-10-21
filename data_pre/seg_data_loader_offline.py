@@ -20,9 +20,12 @@ class SegmentationDataset(Dataset):
         """
         self.data_path = data_path
         self.is_train = phase=='train'
+        self.is_llm = reg_option['is_llm']
         self.transform = transform
         self.data_type = '*.h5py'
         self.path_list , self.name_list= self.get_file_list()
+        if self.is_llm:
+            self.path_list = [[pth.replace('/playpen','/ms/home/z/y') for pth in pths] for pths  in self.path_list]
 
     def get_file_list(self):
         """

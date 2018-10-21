@@ -28,10 +28,20 @@ class RegistrationDataset(Dataset):
         self.phase = phase
         self.transform = transform
         self.data_type = '*.nii.gz'
-        self.debug_num = -1 if phase!='test' else 150 #300 when test intra 150     ###################TODO ###################################3
-        self.is_llm=reg_option['is_llm']
-        self.test_fail_case=reg_option['test_fail_case']
-        self.turn_on_pair_regis = True  if phase!='test' else False  #True when test inter   ##########TODO ########################
+        from model_pool.global_variable import use_extra_inter_intra_judge
+        self.is_intra_reg = True
+        if use_extra_inter_intra_judge:
+            self.is_intra_reg = True if 'intra' in data_path else False
+
+        if self.is_intra_reg:
+            self.debug_num = -1 if phase!='test' else 300 #300 when test intra    150     ###################TODO ###################################3
+            self.turn_on_pair_regis = True if phase!='test' else False  #True when test inter   ##########TODO ########################
+        else:
+            self.debug_num = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
+            self.turn_on_pair_regis = True #if phase!='test' else False  #True when test inter   ##########TODO ########################
+
+        self.is_llm = reg_option['is_llm']
+        self.test_fail_case = reg_option['test_fail_case']
 
         if self.test_fail_case:
             self.data_path = self.data_path.replace('test','fail')
@@ -73,6 +83,8 @@ class RegistrationDataset(Dataset):
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
         if self.is_llm:
             self.path_list = [[pth.replace('/playpen','/playpen/raid') for pth in pths] for pths  in self.path_list]
+        if self.phase=='test':
+            self.path_list = [[pth.replace('zhenlinx/Data/OAI_segmentation', 'zyshen/oai_data') for pth in pths] for pths in self.path_list]
 
     def read_img_label_into_zipnp(self,img_label_path_dic,img_label_dic):
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(img_label_path_dic)).start()

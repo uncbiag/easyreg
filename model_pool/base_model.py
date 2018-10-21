@@ -399,12 +399,19 @@ class BaseModel():
 
 
     def compute_jacobi_map(self,map):
+        if type(map) == torch.Tensor:
+            map = map.detach().cpu().numpy()
         dim = 3
         jacobi_abs = 0.
-        for i in range(dim):
-            jacobi_tmp_matrix = np.abs(fdt.dXc(map[:, i, ...])) + np.abs(self.fdt.dYc(map[:, i, ...])) + np.abs(self.fdt.dZc(map[:, i, ...]))
-            jacobi_abs += np.sum(jacobi_tmp_matrix)
-        jacobi_abs_mean = jacobi_abs / np.prod(map)
+        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        spacing = 1. / (np.array(input_img_sz) - 1)
+        fd = fdt.FD_np(spacing)
+        dfx= fd.dXc(map[:, 0, ...])
+        dfy= fd.dYc(map[:, 1, ...])
+        dfz= fd.dZc(map[:, 2, ...])
+        jacobi_abs = np.sum(dfx<0.) + np.sum(dfy<0.) + np.sum(dfz<0.)
+            #np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
+        jacobi_abs_mean = jacobi_abs/ map.shape[0] #/ np.prod(map.shape)
         return jacobi_abs_mean
 
 
@@ -486,6 +493,9 @@ class BaseModel():
 
     def get_test_res(self, detail=False):
         return self.get_val_res(detail = detail)
+
+    def get_extra_res(self):
+        return None
 
 
     def get_current_visuals(self):

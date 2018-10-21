@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import os
+from time import time
+
 from collections import OrderedDict
 from torch.autograd import Variable
 from .base_model import BaseModel
@@ -202,12 +204,15 @@ class RegNet(BaseModel):
 
     def get_evaluation(self):
         if self.single_mod:
+
             self.output, self.phi, self.disp= self.forward()
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
             warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
+            print("current batch jacobi is {}".format(self.jacobi_val))
         else:
             step = 3
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
@@ -229,6 +234,9 @@ class RegNet(BaseModel):
         # else:
         #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
         #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+
+    def get_extra_res(self):
+        return self.jacobi_val
 
 
 

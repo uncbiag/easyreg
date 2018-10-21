@@ -51,18 +51,18 @@ def final_layer( in_channels, out_channels, kernel_size, stride=1, padding=0,
 class UNet_Fea(nn.Module):
     def __init__(self, in_channel, bias=True, BN=True):
         super(UNet_Fea, self).__init__()
-        self.e0cb = encoder(in_channel, 32, bias=True, batchnorm=True)
-        self.e0ce = encoder(32, 64, bias=True, batchnorm=True)
+        self.e0cb = encoder(in_channel, 32, bias=True, batchnorm=BN)
+        self.e0ce = encoder(32, 64, bias=True, batchnorm=BN)
         self.e0_sq = nn.Sequential(self.e0cb, self.e0ce)
         self.pool0 = encoder(64, 64, kernel_size=3, stride=2, padding=1,
             bias=True, batchnorm=True)
-        self.e1cb = encoder(64, 64, bias=True, batchnorm=True)
-        self.e1ce = encoder(64, 128, bias=True, batchnorm=True)
+        self.e1cb = encoder(64, 64, bias=True, batchnorm=BN)
+        self.e1ce = encoder(64, 128, bias=True, batchnorm=BN)
         self.e1_sq = nn.Sequential(self.pool0, self.e1cb, self.e1ce)
         self.pool1 = encoder(128, 128, kernel_size=3, stride=2, padding=1,
-            bias=True, batchnorm=True)
-        self.e2cb = encoder(128, 128, bias=True, batchnorm=True)
-        self.e2ce = encoder(128, 256, bias=True, batchnorm=True)
+            bias=True, batchnorm=BN)
+        self.e2cb = encoder(128, 128, bias=True, batchnorm=BN)
+        self.e2ce = encoder(128, 256, bias=True, batchnorm=BN)
         self.e2_sq = nn.Sequential(self.pool1, self.e2cb, self.e2ce)
 
     def forward(self, x):
@@ -79,24 +79,24 @@ class UNet_Dis(nn.Module):
 
         self.pool2 = encoder(256, 256, kernel_size=3, stride=2, padding=1,
             bias=True, batchnorm=True)
-        self.e3cb = encoder(256, 256, bias=True, batchnorm=True)
-        self.e3c1 = encoder(256, 512, bias=True, batchnorm=True)
-        self.e3ce = decoder(512, 512, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.e3cb = encoder(256, 256, bias=True, batchnorm=BN)
+        self.e3c1 = encoder(256, 512, bias=True, batchnorm=BN)
+        self.e3ce = decoder(512, 512, kernel_size=2, stride=2, bias=True, batchnorm=BN)
         self.e3_sq = nn.Sequential(self.pool2, self.e3cb, self.e3c1, self.e3ce)
 
-        self.d2cb = decoder(256 + 512, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d2c1 = decoder(256, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d2ce = decoder(256, 256, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.d2cb = decoder(256 + 512, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=BN)
+        self.d2c1 = decoder(256, 256, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=BN)
+        self.d2ce = decoder(256, 256, kernel_size=2, stride=2, bias=True, batchnorm=BN)
         self.d2_sq = nn.Sequential(self.d2cb, self.d2c1, self.d2ce)
 
-        self.d1cb = decoder(128 + 256, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d1c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d1ce = decoder(128, 128, kernel_size=2, stride=2, bias=True, batchnorm=True)
+        self.d1cb = decoder(128 + 256, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=BN)
+        self.d1c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=BN)
+        self.d1ce = decoder(128, 128, kernel_size=2, stride=2, bias=True, batchnorm=BN)
         self.d1_sq = nn.Sequential(self.d1cb, self.d1c1, self.d1ce)
 
-        self.d0cb = decoder(64 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d0c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=True)
-        self.d0ce = final_layer(128, n_classes, kernel_size=1, stride=1, bias=True, batchnorm=True)
+        self.d0cb = decoder(64 + 128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=BN)
+        self.d0c1 = decoder(128, 128, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=BN)
+        self.d0ce = final_layer(128, n_classes, kernel_size=1, stride=1, bias=True, batchnorm=BN)
         self.d0_sq = nn.Sequential(self.d0cb, self.d0c1, self.d0ce)
 
 

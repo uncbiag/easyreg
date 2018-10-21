@@ -99,12 +99,23 @@ def nifty_read(path):
 def expand_batch_ch_dim(input):
     return np.expand_dims(np.expand_dims(input,0),0)
 
+def nifty_read_phi(path):
+    phi_nib = nib.load(path)
+    phi = phi_nib.get_fdata()
+    phi_tmp = np.zeros([1,3]+list(phi.shape[:3]))
+    phi_tmp[0,0] = -phi[...,0,0]
+    phi_tmp[0,1] = -phi[...,0,1]
+    phi_tmp[0,2] =  phi[...,0,2]
+    return phi_tmp
+
+
+
 
 def performRegistration(mv_path, target_path, registration_type='bspline', record_path = None, ml_path=None):
     if record_path is None:
         record_path = './'
-    deformation_path = os.path.join(record_path, 'deformation.nii')
-    displacement_path = os.path.join(record_path, 'displacement.nii')
+    deformation_path = os.path.join(record_path, 'deformation.nii.gz')
+    displacement_path = os.path.join(record_path, 'displacement.nii.gz')
     affine_path = os.path.join(record_path, 'affine_image.nii.gz')
     bspline_path = os.path.join(record_path, 'bspline_image.nii.gz')
     output_path = None
@@ -121,7 +132,7 @@ def performRegistration(mv_path, target_path, registration_type='bspline', recor
         output_path = bspline_path
         output_txt = bspline_txt
 
-    # cmd += '\n' + nifty_reg_transform(ref=target_path, def1=output_txt, def2=deformation_path)
+    cmd += '\n' + nifty_reg_transform(ref=target_path, def1=output_txt, def2=deformation_path)
     #cmd += '\n' + nifty_reg_transform(ref=target_path, disp1=output_txt, disp2=displacement_path)
     if ml_path is not None:
         loutput_path = os.path.join(record_path, 'warped_label.nii.gz')
@@ -131,8 +142,10 @@ def performRegistration(mv_path, target_path, registration_type='bspline', recor
     process.wait()
 
     output = nifty_read(output_path)
-    #phi = nifty_read(displacement_path)
+    phi = nifty_read_phi(deformation_path)
+
+
     if ml_path:
         loutput = nifty_read(loutput_path)
 
-    return expand_batch_ch_dim(output), expand_batch_ch_dim(loutput), None
+    return expand_batch_ch_dim(output), expand_batch_ch_dim(loutput), phi
