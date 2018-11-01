@@ -226,7 +226,7 @@ class DataManager(object):
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         if self.task_type=='reg':
-            num_workers_reg ={'train':4,'val':4,'test':4,'debug':4}
+            num_workers_reg ={'train':8,'val':4,'test':4,'debug':4}
             shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
             dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
                                                       shuffle=shuffle_list[x], num_workers=num_workers_reg[x]) for x in self.phases}

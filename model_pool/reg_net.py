@@ -93,6 +93,8 @@ class RegNet(BaseModel):
 
     def forward(self,input=None):
         # here input should be Tensor, not Variable
+        if hasattr(self.network, 'set_cur_epoch'):
+            self.network.set_cur_epoch(self.cur_epoch)
         if input is None:
             input =self.input
         return self.network.forward(input, self.moving,self.target)

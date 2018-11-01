@@ -10,14 +10,10 @@
                 "number_of_time_steps": 10, 
                 "smoother": {
                     "multi_gaussian_stds": [
-                        0.05,
-                        0.1,
-                        0.15
+                        0.1
                     ],
                     "multi_gaussian_weights": [
-                        0.26666666666666667,
-                        0.33333333333333333,
-                        0.39999999999999999
+                        1.0
                     ],
                     "type": "multiGaussian"
                 }
@@ -50,9 +46,9 @@
                 0.25
             ],
             "scale_iterations": [
-                60,
-                60,
-                60
+                30,
+                30,
+                30
             ]
         }, 
         "name": "lbfgs_ls", 

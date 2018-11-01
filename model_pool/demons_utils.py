@@ -4,7 +4,7 @@ import time
 import SimpleITK as sitk
 import subprocess
 from model_pool.nifty_reg_utils import expand_batch_ch_dim, nifty_reg_affine, nifty_reg_resample
-
+import copy
 from model_pool.utils import factor_tuple
 from model_pool.global_variable import *
 
@@ -60,7 +60,7 @@ def get_affined_moving_image(fixed_image_pth, moving_image_path,ml_path=None):
 
 def multiscale_demons(registration_algorithm,
                       fixed_image_pth, moving_image_pth, initial_transform=None,
-                      shrink_factors=None, smoothing_sigmas=None):
+                      shrink_factors=None, smoothing_sigmas=None,record_path=None,fname=None):
     """
     Run the given registration algorithm in a multiscale fashion. The original scale should not be given as input as the
     original images are implicitly incorporated as the base of the pyramid.
@@ -111,7 +111,12 @@ def multiscale_demons(registration_algorithm,
     for f_image, m_image in reversed(list(zip(fixed_images[0:-1], moving_images[0:-1]))):
         initial_displacement_field = sitk.Resample(initial_displacement_field, f_image)
         initial_displacement_field = registration_algorithm.Execute(f_image, m_image, initial_displacement_field)
-    return sitk.DisplacementFieldTransform(initial_displacement_field)
+    if record_path is not None:
+        sitk.WriteImage(initial_displacement_field, os.path.join(record_path, fname + '_disp.nii.gz'))
+    jacobi_filter = sitk.DisplacementFieldJacobianDeterminantFilter()
+    jacobi_image = jacobi_filter.Execute(initial_displacement_field)
+
+    return sitk.DisplacementFieldTransform(initial_displacement_field),jacobi_image
 
 
 
@@ -126,7 +131,7 @@ def sitk_grid_sampling(fixed,moving, displacement,is_label=False):
     return out
 
 
-def performDemonsRegistration(mv_path, target_path, registration_type='demons', record_path = None, ml_path=None,tl_path= None):
+def performDemonsRegistration(mv_path, target_path, registration_type='demons', record_path = None, ml_path=None,tl_path= None,fname=None):
 
     start = time.time()
 
@@ -137,18 +142,19 @@ def performDemonsRegistration(mv_path, target_path, registration_type='demons', 
 
 
     demons_filter = sitk.FastSymmetricForcesDemonsRegistrationFilter()
-    demons_filter.SetNumberOfIterations(30)
+    demons_filter.SetNumberOfIterations(100)
     # Regularization (update field - viscous, total field - elastic).
     demons_filter.SetSmoothDisplacementField(True)
-    demons_filter.SetStandardDeviations(0.5)  #1,4
+    demons_filter.SetStandardDeviations(1)  #1,4
 
     # Run the registration.
     print("!!!!!!!!!!demons param{}".format(param_in_demons) )
-    tx = multiscale_demons(registration_algorithm=demons_filter,
+    tx,jacobi_image = multiscale_demons(registration_algorithm=demons_filter,
                            fixed_image_pth=target_path,
                            moving_image_pth=mv_path,
                            shrink_factors=None,#[4, 2],
-                           smoothing_sigmas=param_in_demons) #[2,1],[4, 2]) (8,4)
+                           smoothing_sigmas=param_in_demons,
+                                record_path=record_path,fname =fname) #[2,1],[4, 2]) (8,4)
     warped_img = sitk_grid_sampling(sitk.ReadImage(target_path), sitk.ReadImage(mv_path), tx,
                                     is_label=False)
     warped_label = sitk_grid_sampling(sitk.ReadImage(tl_path), sitk.ReadImage(ml_path), tx,
@@ -159,9 +165,10 @@ def performDemonsRegistration(mv_path, target_path, registration_type='demons', 
 
     output  = sitk.GetArrayFromImage(warped_img)
     loutput = sitk.GetArrayFromImage(warped_label)
+    jacobian_np = sitk.GetArrayFromImage(jacobi_image)
     # phi = sitk.GetArrayFromImage(tx.GetDisplacementField())
     # """ todo  check that whether the xyz order is the same as the interpolation assumed"""
     # phi = np.transpose(phi,(3,0,1,2))
 
 
-    return expand_batch_ch_dim(output), expand_batch_ch_dim(loutput), None #np.expand_dims(phi,0)
+    return expand_batch_ch_dim(output), expand_batch_ch_dim(loutput), None ,jacobian_np#np.expand_dims(phi,0)

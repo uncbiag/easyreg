@@ -30,8 +30,11 @@ class MermaidIter(BaseModel):
         which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         #self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-        input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
+        self.input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        self.spacing= 1. / (np.array(self.input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
+        #self.spacing[0] = self.spacing[1]   #######################################TODO###################333
+        # self.spacing[1] = self.spacing[0]   #######################################TODO###################333
+        # self.spacing[2] = self.spacing[0]   #######################################TODO###################333
 
         network_name =opt['tsk_set']['network_name']
         self.single_mod = True
@@ -47,7 +50,7 @@ class MermaidIter(BaseModel):
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
-        self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
+        self.identity_map = py_utils.identity_map_multiN([1,1]+self.input_img_sz, self.spacing)*2-1
         self.identity_map = torch.from_numpy(self.identity_map).cuda()
 
 
@@ -124,10 +127,12 @@ class MermaidIter(BaseModel):
 
                                 similarity_measure_sigma=1,
                                 json_config_out_filename='cur_settings_svf_output_tmp.json',
-                                params='cur_settings_svf_tmp.json')
+                                params='cur_settings_svf.json')  # should be tmp  ################TODO ######################
         self.disp = self.output
         self.output = self.si.get_warped_image()
-        self.phi = self.si.opt.optimizer.ssOpt.get_map()*2-1
+        self.phi = self.si.opt.optimizer.ssOpt.get_map()
+        for i in range(self.dim):         #######################TODO #######################
+            self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
 
@@ -175,6 +180,7 @@ class MermaidIter(BaseModel):
         if self.single_mod:
             self.output, self.phi, self.disp= self.forward()
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            #self.warped_label_map = py_utils.compute_warped_image_multiNC(self.l_moving, self.phi, self.spacing, 1,zero_boundary=True)
             warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
@@ -204,6 +210,10 @@ class MermaidIter(BaseModel):
 
 
     def get_the_jacobi_val(self):
+        return self.jacobi_val
+
+
+    def get_extra_res(self):
         return self.jacobi_val
 
 

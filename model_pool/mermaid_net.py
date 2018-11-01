@@ -21,7 +21,7 @@ from functools import partial
 import mermaid.pyreg.image_sampling as py_is
 from mermaid.pyreg.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
 from model_pool.global_variable import *
-
+import copy
 
 class MermaidNet(nn.Module):
     """
@@ -71,15 +71,22 @@ class MermaidNet(nn.Module):
         self.sym_factor = 1.
         self.momentum_net = MomentumNet(low_res_factor)
         self.init_affine_net()
-        self.step = 1 if not use_mermaid_multi_step else 6
+        self.step = 1 if not use_mermaid_multi_step else mermaid_step
 
         spacing = 1. / (np.array(img_sz) - 1)
         self.spacing = spacing
         self.mermaid_unit = None
-        self.init_mermaid_env(spacing)
         self.bilinear = Bilinear()
         self.debug_count = 0
         self.affined_img = None
+        self.physical_mode_off = physical_mode_off
+        self.double_loss = True
+
+        if physical_mode_off:
+            self.spacing_record = copy.deepcopy(spacing)
+            self.spacing[0] = self.spacing[1]
+        self.init_mermaid_env(self.spacing)
+
 
     def init_affine_net(self):
         self.affine_net = AffineNetCycle(self.img_sz[2:])
@@ -90,11 +97,17 @@ class MermaidNet(nn.Module):
             # else:
             #     model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_lncc/checkpoints/epoch_100_'
                     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_ncc/checkpoints/epoch_120_"
-            model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_reisd_2step_lncc_recbi/checkpoints/epoch_270_'
+            model_path ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_70_'
+                #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_reisd_2step_lncc_recbi/checkpoints/epoch_270_'
+                #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_inter_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_100_'
+                #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_mermaid_net_lncc_bi/checkpoints/epoch_60_'
+                #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_reisd_2step_lncc_recbi/checkpoints/epoch_270_'
             checkpoint = torch.load(model_path,  map_location='cpu')
+
             self.load_state_dict(checkpoint['state_dict'])
             self.cuda()
             print("Attention, the external model is loaded !!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("the name of external mode is {}".format(model_path))
 
         # if not self.intra_training:
         #     model_path ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_affine_symstep5_lncc_bi/checkpoints/epoch_60_'
@@ -110,11 +123,14 @@ class MermaidNet(nn.Module):
         # print("Affine network successfully initialized,{}".format(model_path))
         # print(self.affine_net)
         self.affine_net.eval()
+    def set_cur_epoch(self,epoch):
+        self.epoch = epoch
 
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
         if not use_llddmm:
-            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_debug.json') #''../model_pool/cur_settings_svf.json')######TODO ###########
+            params.load_JSON(mermaid_net_setting_file) #''../model_pool/cur_settings_svf.json')######TODO ###########
+            print("the current mermaid net setting is loaded from {}".format(mermaid_net_setting_file))
         else:
             params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         model_name = params['model']['registration_model']['type']
@@ -164,12 +180,12 @@ class MermaidNet(nn.Module):
         self.mermaid_unit = model.cuda()
         self.criterion = criterion
 
-    def __cal_sym_loss(self,source=None):
+    def __cal_sym_loss(self,rec_phiWarped):
         trans1 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
         trans2 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
-        identity_map  = self.identityMap.expand_as(self.rec_phiWarped[0])
-        trans_st  = trans1(identity_map,self.rec_phiWarped[0])
-        trans_st_ts = trans2(trans_st,self.rec_phiWarped[1])
+        identity_map  = self.identityMap.expand_as(rec_phiWarped[0])
+        trans_st  = trans1(identity_map,rec_phiWarped[0])
+        trans_st_ts = trans2(trans_st,rec_phiWarped[1])
         # print(torch.mean((identity_map- trans_st_ts)**2).detach().cpu().numpy())
         # print("llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll")
         # print(torch.mean((identity_map- trans_st)**2).detach().cpu().numpy())
@@ -204,8 +220,8 @@ class MermaidNet(nn.Module):
             loss_overall_energy = (loss_overall_energy_st + loss_overall_energy_ts)/2
             sim_energy =  (sim_energy_st + sim_energy_ts)/2
             reg_energy = (reg_energy_st + reg_energy_ts)/2
-            sym_energy = self.__cal_sym_loss()
-            sym_factor = min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
+            sym_energy = self.__cal_sym_loss(self.rec_phiWarped)
+            sym_factor = gl_sym_factor #min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
             loss_overall_energy = loss_overall_energy + sym_factor*sym_energy
             if self.debug_count % 10 == 0:
                 print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}\n'.format(loss_overall_energy.item(),
@@ -213,9 +229,10 @@ class MermaidNet(nn.Module):
                                                                                     sym_factor,
                                                                                      sym_energy.item(),
                                                                                    reg_energy.item()))
-
-
-
+            if self.double_loss and self.loss_iter1 is not None:
+                loss_overall_energy += self.loss_iter1
+            if self.double_loss and self.loss_iter1 is None:
+                self.debug_count -= 1
         self.debug_count += 1
         return loss_overall_energy, sim_energy, reg_energy
 
@@ -238,7 +255,7 @@ class MermaidNet(nn.Module):
             maps = self.mermaid_unit(self.identityMap, s)
             rec_phiWarped = maps
         rec_IWarped = py_utils.compute_warped_image_multiNC(s, rec_phiWarped, self.spacing, 1,zero_boundary=True)
-        self.rec_phiWarped = rec_phiWarped
+        #self.rec_phiWarped = rec_phiWarped #ToDO  I made change here to see it would broke anything
 
         return rec_IWarped, rec_phiWarped
 
@@ -246,15 +263,23 @@ class MermaidNet(nn.Module):
     def single_forward(self,input,moving,target=None):
         with torch.no_grad():
             affine_img, affine_map, _ = self.affine_net(input, moving, target)
+            affine_map = (affine_map + 1) / 2.
+            if self.physical_mode_off:
+                affine_map[:, 0] = affine_map[:, 0] * self.spacing_record[1] / self.spacing_record[0]
         input = torch.cat((affine_img, target), 1)
         m = self.momentum_net(input)
         # m.register_hook(print)
         # self.momentum_net.register_backward_hook(bh)
         moving = (moving + 1) / 2.
         target = (target + 1) / 2.
-        affine_map = (affine_map + 1) / 2.
+
         rec_IWarped, rec_phiWarped = self.do_mermaid_reg(moving, target, m, affine_map)
-        return (rec_IWarped*2.-1.).detach(), (rec_phiWarped*2.-1.).detach(), affine_img.detach()
+        self.rec_phiWarped = rec_phiWarped
+        rec_phiWarped_tmp = rec_phiWarped.detach().clone()
+        if self.physical_mode_off:
+            rec_phiWarped_tmp[:, 0] = rec_phiWarped[:, 0] * self.spacing_record[0] / self.spacing_record[1]
+        
+        return (rec_IWarped*2.-1.).detach(), (rec_phiWarped_tmp*2.-1.).detach(), affine_img.detach()
 
 
 
@@ -267,6 +292,11 @@ class MermaidNet(nn.Module):
             else:
                 affine_inverse = get_inverse_affine_param(affine_param)
                 affine_img_ts,affine_map_ts, _ = get_warped_img_map_param(affine_inverse,self.img_sz[2:],target)
+            affine_map_st = (affine_map_st + 1) / 2.
+            affine_map_ts = (affine_map_ts + 1) / 2.
+            if self.physical_mode_off:
+                affine_map_st[:, 0] = affine_map_st[:, 0] * self.spacing_record[1] / self.spacing_record[0]
+                affine_map_ts[:, 0] = affine_map_ts[:, 0] * self.spacing_record[1] / self.spacing_record[0]
 
         input_st = torch.cat((affine_img_st, target), 1)
         input_ts = torch.cat((affine_img_ts, moving), 1)
@@ -274,12 +304,14 @@ class MermaidNet(nn.Module):
         m_ts = self.momentum_net(input_ts)
         moving = (moving + 1) / 2.
         target = (target + 1) / 2.
-        affine_map_st = (affine_map_st + 1) / 2.
-        affine_map_ts = (affine_map_ts + 1) / 2.
+
         rec_IWarped_st, rec_phiWarped_st = self.do_mermaid_reg(moving, target, m_st, affine_map_st)
         rec_IWarped_ts, rec_phiWarped_ts = self.do_mermaid_reg(target, moving, m_ts, affine_map_ts)
         self.rec_phiWarped = (rec_phiWarped_st,rec_phiWarped_ts)
-        return (rec_IWarped_st * 2. - 1.).detach_(), (rec_phiWarped_st * 2. - 1.).detach_(), affine_img_st.detach_()
+        rec_phiWarped_tmp = rec_phiWarped_st.detach().clone()
+        if self.physical_mode_off:
+            rec_phiWarped_tmp[:, 0] = rec_phiWarped_st[:, 0] * self.spacing_record[0] / self.spacing_record[1]
+        return (rec_IWarped_st * 2. - 1.).detach_(), (rec_phiWarped_tmp * 2. - 1.).detach(), affine_img_st.detach_()
 
     def cyc_forward(self,input,moving,target=None):
 
@@ -288,6 +320,8 @@ class MermaidNet(nn.Module):
             moving_n = (moving + 1) / 2.  # [-1,1] ->[0,1]
             target_n = (target + 1) / 2.  # [-1,1] ->[0,1]
             affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
+            if self.physical_mode_off:
+                affine_map[:,0] = affine_map[:,0] * self.spacing_record[1]/self.spacing_record[0]
 
         warped_img =affine_img
         init_map = affine_map
@@ -298,11 +332,16 @@ class MermaidNet(nn.Module):
             rec_IWarped, rec_phiWarped = self.do_mermaid_reg(moving_n, target_n, m, init_map)
             warped_img = rec_IWarped*2-1 #[0,1] -> [-1,1]
             init_map = rec_phiWarped #[0,1]
+        self.rec_phiWarped = rec_phiWarped
+        rec_phiWarped_tmp = rec_phiWarped.detach().clone()
+        if self.physical_mode_off:
+            rec_phiWarped_tmp[:,0] = rec_phiWarped[:,0] * self.spacing_record[0]/self.spacing_record[1]
 
-        return (rec_IWarped*2.-1.).detach(), (rec_phiWarped*2.-1.).detach(), affine_img.detach()
+        return (rec_IWarped*2.-1.).detach(), (rec_phiWarped_tmp*2.-1.).detach(), affine_img.detach()
 
 
     def cyc_sym_forward(self,input,moving, target= None):
+        self.loss_iter1=None
         with torch.no_grad():
             affine_img_st, affine_map_st, _ = self.affine_net(input, moving, target)
             affine_img_ts, affine_map_ts, _ = self.affine_net(input, target, moving)
@@ -310,13 +349,15 @@ class MermaidNet(nn.Module):
             target_n = (target + 1) / 2.  # [-1,1] ->[0,1]
             affine_map_st = (affine_map_st + 1) / 2.  # [-1,1] ->[0,1]
             affine_map_ts = (affine_map_ts + 1) / 2.  # [-1,1] ->[0,1]
+            if self.physical_mode_off:
+                affine_map_st[:,0] = affine_map_st[:,0] * self.spacing_record[1]/self.spacing_record[0]
+                affine_map_ts[:,0] = affine_map_ts[:,0] * self.spacing_record[1]/self.spacing_record[0]
 
         warped_img_st = affine_img_st
         init_map_st = affine_map_st
         warped_img_ts = affine_img_ts
         init_map_ts = affine_map_ts
-
-        for _ in range(self.step):
+        for i in range(self.step):
             input_st = torch.cat((warped_img_st, target), 1)
             input_ts = torch.cat((warped_img_ts, moving), 1)
             m_st = self.momentum_net(input_st)
@@ -327,9 +368,15 @@ class MermaidNet(nn.Module):
             init_map_st = rec_phiWarped_st  # [0,1]
             warped_img_ts = rec_IWarped_ts * 2 - 1
             init_map_ts = rec_phiWarped_ts
-        self.rec_phiWarped = (rec_phiWarped_st,rec_phiWarped_ts)
+            self.rec_phiWarped = (rec_phiWarped_st,rec_phiWarped_ts)
+            if self.double_loss and i==0:
+                self.loss_iter1,_,_ = self.do_criterion_cal(moving,target,self.epoch)
+        rec_phiWarped_tmp = rec_phiWarped_st.detach().clone()
+        if self.physical_mode_off:
+            rec_phiWarped_tmp[:,0] = rec_phiWarped_st[:,0] * self.spacing_record[0]/self.spacing_record[1]
 
-        return warped_img_st.detach(), (rec_phiWarped_st * 2. - 1.).detach(), affine_img_st.detach()
+
+        return warped_img_st.detach(), (rec_phiWarped_tmp * 2. - 1.).detach(), affine_img_st.detach()
 
     def get_affine_map(self,moving, target):
         with torch.no_grad():

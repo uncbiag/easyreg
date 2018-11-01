@@ -120,7 +120,7 @@ class NiftyRegIter(BaseModel):
 
 
     def affine_optimization(self):
-        output, loutput, phi = performRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path)
+        output, loutput, phi,_ = performRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -133,12 +133,13 @@ class NiftyRegIter(BaseModel):
 
 
     def bspline_optimization(self):
-        output, loutput, phi = performRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path)
+        output, loutput, phi,jacobian = performRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
 
 
         self.disp = None
         self.output = output
         self.warped_label_map = loutput
+        self.jacobian = jacobian
 
         self.phi = phi
         self.phi = self.phi*2-1
@@ -193,7 +194,9 @@ class NiftyRegIter(BaseModel):
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-            self.jacobi_val = self.compute_jacobi_map(self.phi)
+            self.jacobi_val= None
+            if self.bspline_on:
+                self.jacobi_val = self.compute_jacobi_map(self.jacobian)
             self.phi = None
         else:
             step = 8
@@ -212,6 +215,14 @@ class NiftyRegIter(BaseModel):
         # else:
         #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
         #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
+    def compute_jacobi_map(self,jacobian):
+        jacobi_abs = - np.sum(jacobian[jacobian < 0.])  #
+        jacobi_num = np.sum(jacobian < 0.)
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
+        # np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
+        jacobi_abs_mean = jacobi_abs  # / np.prod(map.shape)
+        return jacobi_abs_mean,jacobi_num
 
 
 

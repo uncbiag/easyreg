@@ -27,6 +27,12 @@ transform_types = {'SynBold',
 'BOLDRigid'}
 
 
+
+
+
+
+
+
 moving_img_path = '/playpen/zyshen/debugs/demons/moving.nii.gz'
 target_img_path = '/playpen/zyshen/debugs/demons/target.nii.gz'
 ml_path = '/playpen/zyshen/debugs/demons/l_moving.nii.gz'
@@ -66,6 +72,7 @@ syn_warp_tmp = ants.apply_transforms(fixed=target, moving=moving,
                                       transformlist=syn_res['fwdtransforms'])
 syn_label = ants.apply_transforms(fixed=l_target, moving=l_moving,
                                       transformlist=syn_res['fwdtransforms'],interpolator='nearestNeighbor') #interpolator
+jacobian = ants.create_jacobian_determinant_image(target,syn_res['fwdtransforms'][0],False)
 
 ants.image_write(syn_res['warpedmovout'],syn_warped_path)
 ants.image_write(syn_warp_tmp,syn_warped_path2)

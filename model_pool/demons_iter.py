@@ -125,7 +125,7 @@ class DemonsRegIter(BaseModel):
 
     def affine_optimization(self):
 
-        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
+        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -138,12 +138,13 @@ class DemonsRegIter(BaseModel):
 
 
     def demons_optimization(self):
-        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
+        output, loutput, phi,jacobian = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
 
         self.disp = None
         self.output = output
         self.warped_label_map = loutput
+        self.jacobian =jacobian
 
         self.phi = phi
         # self.phi = self.phi*2-1
@@ -180,7 +181,7 @@ class DemonsRegIter(BaseModel):
             #self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
             warped_label_map_np= self.warped_label_map
             self.l_target_np= self.l_target.detach().cpu().numpy()
-
+            self.jacobi_val= self.compute_jacobi_map(self.jacobian)
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
         else:
             step = 8
@@ -194,6 +195,15 @@ class DemonsRegIter(BaseModel):
             warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
             self.l_target_np = self.l_target.detach().cpu().numpy()
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
+
+    def compute_jacobi_map(self,jacobian):
+        jacobi_abs = - np.sum(jacobian[jacobian < 0.])  #
+        jacobi_num = np.sum(jacobian < 0.)
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
+        # np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
+        jacobi_abs_mean = jacobi_abs  # / np.prod(map.shape)
+        return jacobi_abs_mean, jacobi_num
 
 
 

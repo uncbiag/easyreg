@@ -251,7 +251,6 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
         linear_transfer_part = torch.sum((ac-identity_matrix)**2)
         translation_part = bias_factor * (torch.sum(ad_b**2))
-
         sym_reg_loss = linear_transfer_part + translation_part
         if self.count %10 ==0:
             print("linear_transfer_part:{}, translation_part:{}, bias_factor:{}".format(linear_transfer_part.cpu().data.numpy(), translation_part.cpu().data.numpy(),bias_factor))

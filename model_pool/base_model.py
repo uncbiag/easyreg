@@ -142,9 +142,10 @@ class BaseModel():
         self.iter_count = 0
         self.dim = len(self.img_sz)
         self.network =None
+        self.cur_epoch=0
 
 
-######## seg #######
+        ######## seg #######
         self.n_class = opt['tsk_set']['extra_info']['num_label']
         self.standard_label = opt['tsk_set']['extra_info']['standard_label_index']
         self.save_by_standard_label = opt['tsk_set']['save_by_standard_label']
@@ -404,15 +405,41 @@ class BaseModel():
         dim = 3
         jacobi_abs = 0.
         input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        spacing = 1. / (np.array(input_img_sz) - 1)
+        spacing = 2. / (np.array(input_img_sz) - 1) # the disp coorindate is [-1,1]
         fd = fdt.FD_np(spacing)
         dfx= fd.dXc(map[:, 0, ...])
         dfy= fd.dYc(map[:, 1, ...])
         dfz= fd.dZc(map[:, 2, ...])
-        jacobi_abs = np.sum(dfx<0.) + np.sum(dfy<0.) + np.sum(dfz<0.)
+        jacobi_det = dfx*dfy*dfz
+        #self.temp_save_Jacobi_image(jacobi_det,map)
+        jacobi_abs =- np.sum(jacobi_det[jacobi_det<0.])  #
+        jacobi_num = np.sum(jacobi_det < 0.)
+        print("debugging {},{},{}".format(np.sum(dfx < 0.),np.sum(dfy < 0.),np.sum(dfz < 0.)))
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
             #np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
         jacobi_abs_mean = jacobi_abs/ map.shape[0] #/ np.prod(map.shape)
-        return jacobi_abs_mean
+        jacobi_num_mean = jacobi_num/ map.shape[0] #/ np.prod(map.shape)
+        return jacobi_abs_mean, jacobi_num_mean
+
+    def temp_save_Jacobi_image(self,jacobi_image_in,map_in):
+        import ants
+        jacobi_image = np.squeeze(jacobi_image_in)
+        map = (np.squeeze(map_in)+1)/2
+        spacing = 1. / (np.array(jacobi_image.shape)- 1)
+        map[0] = map[0]/spacing[0]
+        map[1] = map[1]/spacing[1]
+        map[2] = map[2]/spacing[2]
+        sz = jacobi_image.shape
+        identity_map = np.mgrid[0:sz[0], 0:sz[1], 0:sz[2]]
+        disp = map -identity_map
+        disp = np.transpose(disp,(3,2,1,0))
+        fold_image = np.zeros_like(jacobi_image)
+        fold_image[jacobi_image<0]  = 1
+        fold_image = sitk.GetImageFromArray(fold_image)
+        sitk.WriteImage(fold_image, os.path.join(self.record_path,self.fname_list[0]+'fold.nii.gz'))
+
+        ants.image_write(ants.from_numpy(disp),os.path.join(self.record_path,self.fname_list[0]+'map.nii.gz'))
 
 
 
