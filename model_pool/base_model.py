@@ -1,122 +1,12 @@
-import os
-from collections import OrderedDict
 
-import torch
-
-from data_pre.partition import Partition
-from model_pool.losses import Loss
-from model_pool.metrics import get_multi_metric
 from model_pool.utils import *
 import torch.optim.lr_scheduler as lr_scheduler
-from .unet_expr import UNet3D
-from .unet_expr2 import UNet3D2
-from .unet_expr3 import UNet3D3
-from .unet_expr4 import UNet3D4
-from .unet_expr5 import UNet3D5
-from .unet_expr4_test import UNet3Dt1
-from .unet_expr4_test2 import UNet3Dt2
-from .unet_expr4_test3 import UNet3Dt3
-from .unet_expr4_test4 import UNet3Dt4
-from .unet_expr4_test5 import UNet3Dt5
-from .unet_expr4_test6 import UNet3Dt6
-from .unet_expr4_test7 import UNet3Dt7
-from .unet_expr4_test8 import UNet3Dt8
-from .unet_expr4_test9 import UNet3Dt9
-from .unet_expr4_test10 import UNet3Dt9_sim
-from .unet_expr_bon import UNet3DB
-from .unet_expr_bon_loc import UNet3DB_loc
-from .unet_expr_bon_s import UNet3DBS
-from .unet_expr_bon_s_prelu import UNet3DBS_Prelu
-from .unet_expr4_bon import UNet3D4B
-from .unet_expr4_ens_nr import UNet3D4BNR
-from .unet_expr5_bon import UNet3D5B
-from .unet_expr5_ens import UNet3D5BE
-from .unet_expr6_bon import UNet3D5BM
-from .unet_expr7_bon import UNet3DB7
-from .unet_expr8_bon import UNet3DB8
-from .unet_expr9_bon import UNet3DB9
-from .unet_expr10_bon import UNet3DB10
-from .unet_expr11_bon import UNet3DB11
-from .unet_expr12_bon import UNet3DB12
-from .unet_expr13_bon import UNet3DB13
-from .unet_expr14_bon import UNet3DB14
-from .unet_expr15_bon import UNet3DB15
-from .unet_expr16_bon import UNet3DB16
-from .unet_expr17_bon import UNet3DB17
-from .vnet_expr import VNet
-from  .zhenlin_net import *
-from .vonet_pool import UNet_asm
-from .vonet_pool_un import UNet_asm_full,Vonet_test
-from .vonet_pool_t9 import UNet_asm_t9
-from .vonet_pool_t9_concise import UNet_asm_t9_con
-from .vonet_pool_sim_prelu import UNet_asm_sim_prelu
-from .prior_net import  PriorNet
-from .gb_net_pool import  gbNet
-from .unet_expr_extreme_deep import UNet3D_Deep
-from .unet_expr_multi_mod import UNet3DMM
-import SimpleITK as sitk
-from glob import glob
+
 import mermaid.pyreg.finite_differences as fdt
 
 
 
 
-model_pool_1 = {
-    'UNet3D': UNet3D,
-    'UNet3D2': UNet3D2,
-    'UNet3D3': UNet3D3,
-    'UNet3D4': UNet3D4,
-    'UNet3D5': UNet3D5,
-    'UNet3Dt1': UNet3Dt1,
-    'UNet3Dt2': UNet3Dt2,
-    'UNet3Dt3': UNet3Dt3,
-    'UNet3Dt4': UNet3Dt4,
-    'UNet3Dt5': UNet3Dt5,
-    'UNet3Dt6': UNet3Dt6,
-    'UNet3Dt7': UNet3Dt7,
-    'UNet3Dt8': UNet3Dt8,
-    'UNet3Dt9': UNet3Dt9,
-    'UNet3Dt9_sim':UNet3Dt9_sim,
-    'UNet3DBS_Prelu':UNet3DBS_Prelu,
-    'UNet3DB': UNet3DB,
-    'UNet3DB_loc':UNet3DB_loc,
-    'UNet3DBS': UNet3DBS,
-    'UNet3D4B': UNet3D4B,
-    'UNet3D4BNR': UNet3D4BNR,
-    'UNet3D5B': UNet3D5B,
-    'UNet3D5BE': UNet3D5BE,
-    'UNet3D5BM': UNet3D5BM,
-    'UNet3DB7': UNet3DB7,
-    'UNet3DB8': UNet3DB8,
-    'UNet3DB9': UNet3DB9,
-    'UNet3DB10': UNet3DB10,
-    'UNet3DB11': UNet3DB11,
-    'UNet3DB12': UNet3DB12,
-    'UNet3DB13': UNet3DB13,
-    'UNet3DB14': UNet3DB14,
-    'UNet3DB15': UNet3DB15,
-    'UNet3DB16': UNet3DB16,
-    'UNet3DB17': UNet3DB17,
-    'VNet': VNet,
-    'UNet_asm':UNet_asm,
-    'UNet_asm_f':UNet_asm_full,
-    'UNet_asm_t9':UNet_asm_t9,
-    'UNet_asm_t9_con':UNet_asm_t9_con,
-    'UNet_asm_sim_prelu':UNet_asm_sim_prelu,
-    'Vonet_test':Vonet_test,
-    'UNet3D_Deep':UNet3D_Deep,
-    'UNet3DMM':UNet3DMM,
-    'prior_net':PriorNet,
-    'gb_net':gbNet
-}
-
-
-def get_from_model_pool(model_name,n_in_channel, n_class):
-        if model_name in model_pool_1:
-            return model_pool_1[model_name](n_in_channel, n_class)
-        if model_name =='Cascaded_light1_4':
-            model = CascadedModel([UNet_light1(n_in_channel,n_class,bias=True,BN=True)]+[UNet_light1(n_in_channel+n_class,n_class,bias=True,BN=True) for _ in range(3)],end2end=True, auto_context=True,residual=True)
-            return model
 
 
 class BaseModel():

@@ -66,9 +66,7 @@ for sess in ['inter','intra']:
     tsm.task_par['tsk_set']['gpu_ids'] = 0  #1
     """ the gpu id of the current task"""
     tsm.task_par['tsk_set']['model_path'] =''
-
         #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_inter_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_100_'
-    #                                        '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_220_',
     """the path of saved checkpoint, should always be '' unless model is 'reg_net' and need to continue the training from the checkpoints"""
     tsm.task_par['tsk_set']['input_resize_factor'] =  dm.data_par['datapro']['reg']['input_resize_factor']
     tsm.task_par['tsk_set']['img_size'] =  dm.data_par['datapro']['dataset']['img_size']
