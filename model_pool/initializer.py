@@ -61,9 +61,6 @@ class Initializer():
         reg_axis = par_dataset['datapro']['reg']['axis']
         reg_option = par_dataset['datapro']['reg']
 
-        # settings for seg
-        seg_option = par_dataset['datapro']['seg']
-        seg_transform_seq  = par_dataset['datapro']['seg']['transform']['transform_seq']
 
     
         self.data_manager = DataManager(task_name=data_pro_task_name, dataset_name=dataset_name)
@@ -81,9 +78,6 @@ class Initializer():
             self.data_manager.set_reg_option(reg_option)
             self.data_manager.set_full_comb(reg_full_comb)
             self.data_manager.set_slicing(reg_slicing, reg_axis)
-            # seg
-            self.data_manager.set_seg_option(seg_option)
-            self.data_manager.set_transform_seq(seg_transform_seq)
 
             self.data_manager.generate_saving_path(auto=False)
             self.data_manager.generate_task_path()
@@ -91,10 +85,7 @@ class Initializer():
                 self.data_manager.init_dataset()
                 self.data_manager.prepare_data()
                 par_dataset.load_JSON(setting_path)
-                # par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_data_path()############################3
-                # par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(),'data_settings.json'))############3
 
-            #par_dataset['datapro']['dataset']['data_path'] = self.data_manager.get_default_dataset_path(False)
             par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(), 'data_settings.json'))
 
             task_root_path = self.data_manager.get_task_root_path()

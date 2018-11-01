@@ -2,18 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import *
 
-from model_pool.mermaid_call import _get_low_res_size_from_size, _get_low_res_spacing_from_spacing, \
-    _compute_low_res_image
-from model_pool.modules import *
-from functions.bilinear import *
-from model_pool.reg_net_expr import *
+from model_pool.network_pool import *
 from model_pool.utils import sigmoid_explode, get_inverse_affine_param, get_warped_img_map_param, update_affine_param
-from models.net_utils import init_weights
 import mermaid.pyreg.module_parameters as pars
 import mermaid.pyreg.model_factory as py_mf
 import mermaid.pyreg.utils as py_utils
@@ -21,6 +12,49 @@ from functools import partial
 import mermaid.pyreg.image_sampling as py_is
 from mermaid.pyreg.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
 from model_pool.global_variable import *
+
+
+
+def _get_low_res_size_from_size(sz, factor):
+    """
+    Returns the corresponding low-res size from a (high-res) sz
+    :param sz: size (high-res)
+    :param factor: low-res factor (needs to be <1)
+    :return: low res size
+    """
+    if (factor is None) :
+        print('WARNING: Could not compute low_res_size as factor was ' + str( factor ))
+        return sz
+    else:
+        lowResSize = np.array(sz)
+        if not isinstance(factor, list):
+            lowResSize[2::] = (np.ceil((np.array(sz[2:]) * factor))).astype('int16')
+        else:
+            lowResSize[2::] = (np.ceil((np.array(sz[2:]) * np.array(factor)))).astype('int16')
+
+        if lowResSize[-1]%2!=0:
+            lowResSize[-1]-=1
+            print('\n\nWARNING: forcing last dimension to be even: fix properly in the Fourier transform later!\n\n')
+
+        return lowResSize
+
+
+def _get_low_res_spacing_from_spacing(spacing, sz, lowResSize):
+    """
+    Computes spacing for the low-res parameterization from image spacing
+    :param spacing: image spacing
+    :param sz: size of image
+    :param lowResSize: size of low re parameterization
+    :return: returns spacing of low res parameterization
+    """
+    #todo: check that this is the correct way of doing it
+    return spacing * (np.array(sz[2::])-1) / (np.array(lowResSize[2::])-1)
+
+def _compute_low_res_image(I,spacing,low_res_size):
+    sampler = py_is.ResampleImage()
+    low_res_image, _ = sampler.downsample_image_to_size(I, spacing, low_res_size[2::],1)
+    return low_res_image
+
 
 
 class MermaidNet(nn.Module):

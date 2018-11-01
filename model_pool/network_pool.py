@@ -1,264 +1,348 @@
-import torch
-import torch.nn as nn
-from torch.nn import init
-import numpy as np
-import functools
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 
 
-##############################################################################
-# Classes
-##############################################################################
+from model_pool.modules import *
+from functions.bilinear import *
+from model_pool.global_variable import *
+from torch.utils.checkpoint import checkpoint
 
 
-# Defines the generator that consists of Resnet blocks between a few
-# downsampling/upsampling operations.
-# Code and idea originally from Justin Johnson's architecture.
-# https://github.com/jcjohnson/fast-neural-style/
-class ResnetGenerator(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6,
-                 gpu_ids=[], use_parallel=True, learn_residual=False, padding_type='reflect'):
-        assert (n_blocks >= 0)
-        super(ResnetGenerator, self).__init__()
-        self.input_nc = input_nc
-        self.output_nc = output_nc
-        self.ngf = ngf
-        self.gpu_ids = gpu_ids
-        self.use_parallel = use_parallel
-        self.learn_residual = learn_residual
-        if type(norm_layer) == functools.partial:
-            use_bias = norm_layer.func == nn.InstanceNorm2d
+
+class AffineNet(nn.Module):
+    """
+    here we need two affine net,
+    1. do the affine by training single forward network
+    # in this case if we want to do the affine
+    we need to  warp the image then made it as a new input
+
+    2. do affine by training a cycle network
+    in this case, it is like svf , we would feed raw image once, and the
+    network would warp the phi, the advantage of this method is we don't need
+    to warp the image for several time as interpolation would introduce unstability
+    """
+    def __init__(self, img_sz=None, resize_factor=1.):
+        super(AffineNet, self).__init__()
+        self.img_sz = img_sz if len(img_sz)<4 else img_sz[2:]
+        self.dim = len(self.img_sz)
+        self.affine_gen = Affine_unet_im()
+        self.affine_cons= AffineConstrain()
+        self.phi= gen_identity_map(self.img_sz)
+        self.bilinear = Bilinear(zero_boundary=False)
+
+    def gen_affine_map(self,Ab):
+        Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
+        phi = self.phi.view(self.dim, -1)
+        affine_map = None
+        # if self.dim == 2:
+        #     affine_map[0, ...] = Ab[0] * self.phi[0, ...] + Ab[2] * self.phi[1, ...] + Ab[4]  # a_11x+a_21y+b1
+        #     affine_map[1, ...] = Ab[1] * self.phi[0, ...] + Ab[3] * self.phi[1, ...] + Ab[5]  # a_12x+a_22y+b2
+        # elif self.dim == 3:
+        #     affine_map[0, ...] = Ab[0] * self.phi[0, ...] + Ab[3] * self.phi[1, ...] + Ab[6] * self.phi[2, ...] + Ab[9]
+        #     affine_map[1, ...] = Ab[1] * self.phi[0, ...] + Ab[4] * self.phi[1, ...] + Ab[7] * self.phi[2, ...] + Ab[10]
+        #     affine_map[2, ...] = Ab[2] * self.phi[0, ...] + Ab[5] * self.phi[1, ...] + Ab[8] * self.phi[2, ...] + Ab[11]
+        if self.dim == 3:
+            affine_map = torch.matmul( Ab[:,:3,:], phi)
+            affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
+            affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
+        return affine_map
+
+
+    def forward(self,input,moving,target=None):
+        affine_param = self.affine_gen(moving,target)
+        affine_map = self.gen_affine_map(affine_param)
+        #affine_map=affine_map.repeat(input.shape[0],1,1,1,1)
+        output = self.bilinear(moving,affine_map)
+        return output, affine_map, affine_param
+
+
+
+
+class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    """
+    here we need two affine net,
+    1. do the affine by training single forward network
+    # in this case if we want to do the affine
+    we need to  warp the image then made it as a new input
+
+    2. do affine by training a cycle network
+    in this case, it is like svf , we would feed raw image once, and the
+    network would warp the phi, the advantage of this method is we don't need
+    to warp the image for several time as interpolation would introduce unstability
+    """
+    def __init__(self, img_sz=None, resize_factor=1.):
+        super(AffineNetCycle, self).__init__()
+        self.img_sz = img_sz
+        self.dim = len(img_sz)
+        self.step = 7   #############################################################
+        self.using_complex_net = True
+        self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
+        self.affine_cons= AffineConstrain()
+        self.phi= gen_identity_map(self.img_sz)
+        self.zero_boundary = True
+        self.bilinear =Bilinear(self.zero_boundary)
+
+
+
+
+    def gen_affine_map(self,Ab):
+        Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
+        phi = self.phi.view(self.dim, -1)
+        affine_map = None
+        if self.dim == 3:
+            affine_map = torch.matmul( Ab[:,:3,:], phi)
+            affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
+            affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
+        return affine_map
+
+    def update_affine_param(self, cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
+        cur_af = cur_af.view(cur_af.shape[0], 4, 3)
+        last_af = last_af.view(last_af.shape[0],4,3)
+        updated_af = Variable(torch.zeros_like(cur_af.data)).cuda()
+        if self.dim==3:
+            updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
+            updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
+        updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
+        return updated_af
+
+    def get_inverse_affine_param(self,affine_param):
+        """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
+
+        affine_param = affine_param.view(affine_param.shape[0], 4, 3)
+        inverse_param = torch.zeros_like(affine_param.data).cuda()
+        for n in range(affine_param.shape[0]):
+            tm_inv = torch.inverse(affine_param[n, :3,:])
+            inverse_param[n, :3, :] = tm_inv
+            inverse_param[n, :, 3] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+            inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
+        return inverse_param
+
+
+
+    def forward(self,input,moving,target):
+        output = None
+        moving_cp = moving
+        affine_param_last = None
+        bilinear = [Bilinear(self.zero_boundary) for i in range(self.step)]
+
+        for i in range(self.step):
+            affine_param = self.affine_gen(moving,target)
+            if i >0:
+                affine_param = self.update_affine_param(affine_param,affine_param_last)
+            affine_param_last = affine_param
+            affine_map = self.gen_affine_map(affine_param)
+            output = bilinear[i](moving_cp,affine_map)
+            moving = output
+
+        return output, affine_map, affine_param
+
+
+
+class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    """
+    here we need two affine net,
+    1. do the affine by training single forward network
+    # in this case if we want to do the affine
+    we need to  warp the image then made it as a new input
+
+    2. do affine by training a cycle network
+    in this case, it is like svf , we would feed raw image once, and the
+    network would warp the phi, the advantage of this method is we don't need
+    to warp the image for several time as interpolation would introduce unstability
+    """
+    def __init__(self, img_sz=None, resize_factor=1.):
+        super(AffineNetSym, self).__init__()
+        self.img_sz = img_sz
+        self.dim = len(img_sz)
+        self.step = 5
+        self.using_complex_net = True
+        self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
+        self.affine_cons= AffineConstrain()
+        self.phi= gen_identity_map(self.img_sz)
+        self.count =0
+        self.gen_identity_ap()
+        self.grid_sample = F.grid_sample
+        self.using_cycle = True
+        self.zero_boundary = True
+        self.bilinear = Bilinear(self.zero_boundary)
+
+        #############################################TODO###########################################3
+
+        model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+        checkpoint = torch.load(model_path,
+                                map_location='cpu')
+
+        self.load_state_dict(checkpoint['state_dict'])
+        self.cuda()
+        print("ATTENTION!!!!!   AFFINE NET INITIALIZED BY ENTERNAL MODEL")
+
+        print("the affineNetSym is initialized")
+
+
+
+
+    def gen_affine_map(self,Ab):
+        Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
+        phi = self.phi.view(self.dim, -1)
+        affine_map = None
+        if self.dim == 3:
+            affine_map = torch.matmul( Ab[:,:3,:], phi)
+            affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
+            affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
+        return affine_map
+
+
+    def update_affine_param(self, cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
+        cur_af = cur_af.view(cur_af.shape[0], 4, 3)
+        last_af = last_af.view(last_af.shape[0],4,3)
+        updated_af = Variable(torch.zeros_like(cur_af.data)).cuda()
+        if self.dim==3:
+            updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
+            updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
+        updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
+        return updated_af
+
+    def gen_identity_ap(self):
+        self.affine_identity = Variable(torch.zeros(12)).cuda()
+        self.affine_identity[0] = 1.
+        self.affine_identity[4] = 1.
+        self.affine_identity[8] = 1.
+
+    def sym_reg_loss(self, bias_factor=1.):
+        """
+        y = ax+b = a(cy+d)+b = acy +ad+b =y
+        then ac = I, ad+b = 0
+        :return:
+        """
+        ap_st, ap_ts  = self.affine_param
+
+        ap_st = ap_st.view(-1, 4, 3)
+        ap_ts = ap_ts.view(-1, 4, 3)
+        ac = None
+        ad_b = None
+        ################################################ check if ad_b is right
+        if self.dim == 3:
+            ac = torch.matmul(ap_st[:, :3, :], ap_ts[:, :3, :])
+            ad_b = ap_st[:, 3, :] + torch.squeeze(
+                torch.matmul(ap_st[:, :3, :], torch.transpose(ap_ts[:, 3:, :], 1, 2)), 2)
+        identity_matrix = self.affine_identity.view(4,3)[:3,:3]
+
+        linear_transfer_part = torch.sum((ac-identity_matrix)**2)
+        translation_part = bias_factor * (torch.sum(ad_b**2))
+
+        sym_reg_loss = linear_transfer_part + translation_part
+        if self.count %10 ==0:
+            print("linear_transfer_part:{}, translation_part:{}, bias_factor:{}".format(linear_transfer_part.cpu().data.numpy(), translation_part.cpu().data.numpy(),bias_factor))
+        return sym_reg_loss/ap_st.shape[0]
+
+    def sym_sim_loss(self,loss_fn,moving,target):
+        output = self.output
+        sim_st = loss_fn(output[0],target)
+        sim_ts = loss_fn(output[1], moving)
+        sim_loss = sim_st +sim_ts
+        return sim_loss / moving.shape[0]/2.
+
+    def scale_reg_loss(self,sched='l2'):
+        affine_param = self.affine_param
+        if sched=='l2':
+            loss = torch.sum((affine_param[0]-self.affine_identity)**2 + (affine_param[1]-self.affine_identity)**2 )\
+                   / (affine_param[0].shape[0])
+            return loss
+        elif sched=='det':
+            loss = 0.
+            for j in range(2):
+                for i in range(affine_param[j].shape[0]):
+                    affine_matrix = affine_param[j][i,:9].contiguous().view(3,3)
+                    loss += (torch.det(affine_matrix) -1.)**2
+            return  loss / (affine_param[0].shape[0])
+
+
+    def forward(self,input,moving, target):
+        self.count += 1
+        if  not self.using_cycle:
+            return self.single_forward(input,moving,target)
         else:
-            use_bias = norm_layer == nn.InstanceNorm2d
+            return self.cycle_forward(input, moving, target)
 
-        model = [nn.ReflectionPad2d(3),
-                 nn.Conv2d(input_nc, ngf, kernel_size=7, padding=0,
-                           bias=use_bias),
-                 norm_layer(ngf),
-                 nn.ReLU(True)]
 
-        n_downsampling = 2
-        for i in range(n_downsampling):
-            mult = 2 ** i
-            model += [nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3,
-                                stride=2, padding=1, bias=use_bias),
-                      norm_layer(ngf * mult * 2),
-                      nn.ReLU(True)]
 
-        mult = 2 ** n_downsampling
-        for i in range(n_blocks):
-            model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout,
-                                  use_bias=use_bias)]
+    def single_forward(self,input,moving,target):
 
-        for i in range(n_downsampling):
-            mult = 2 ** (n_downsampling - i)
-            model += [nn.ConvTranspose2d(ngf * mult, int(ngf * mult / 2),
-                                         kernel_size=3, stride=2,
-                                         padding=1, output_padding=1,
-                                         bias=use_bias),
-                      norm_layer(int(ngf * mult / 2)),
-                      nn.ReLU(True)]
-        model += [nn.ReflectionPad2d(3)]
-        model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
-        model += [nn.Tanh()]
+        self.affine_param = None
+        self.output = None
+        bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
+        affine_param_st = self.affine_gen(moving,target)
+        affine_param_ts = self.affine_gen(target,moving)
+        affine_map_st = self.gen_affine_map(affine_param_st)
+        affine_map_ts = self.gen_affine_map(affine_param_ts)
+        output_st = bilinear[0](moving, affine_map_st)
+        output_ts = bilinear[1](target, affine_map_ts)
+        # output_st = self.grid_sample(moving,affine_map_st.permute([0,2,3,4,1]),mode='trilinear', padding_mode='zeros')
+        # output_ts = self.grid_sample(target,affine_map_ts.permute([0,2,3,4,1]),mode='trilinear', padding_mode='zeros')
+        output = (output_st, output_ts)
+        affine_param = (affine_param_st, affine_param_ts)
+        self.affine_param = affine_param
+        self.output= output
 
-        self.model = nn.Sequential(*model)
+        return output_st, affine_map_st, affine_param_st
 
-    def forward(self, input):
-        if self.gpu_ids and isinstance(input.data, torch.cuda.FloatTensor) and self.use_parallel:
-            output = nn.parallel.data_parallel(self.model, input, self.gpu_ids)
+    def cycle_forward(self,input,moving, target):
+        moving_cp = moving
+        target_cp = target
+        affine_param_st_last = None
+        affine_param_ts_last = None
+
+        for i in range(self.step):
+            bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
+            # affine_param_st = self.affine_gen(moving, target_cp)
+            # affine_param_ts = self.affine_gen(target, moving_cp)
+            # if i==0:
+            #     affine_param_st = self.affine_gen(moving, target_cp)
+            #     affine_param_ts = self.affine_gen(target, moving_cp)
+            # else:
+            #     affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
+            #     affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
+            affine_param_st = self.affine_gen(moving, target_cp)
+            affine_param_ts = self.affine_gen(target, moving_cp)
+            if i > 0:
+                affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
+                affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
+            affine_param_st_last = affine_param_st
+            affine_param_ts_last = affine_param_ts
+            affine_map_st = self.gen_affine_map(affine_param_st)
+            affine_map_ts = self.gen_affine_map(affine_param_ts)
+
+
+            output_st = bilinear[0](moving_cp, affine_map_st)
+            output_ts = bilinear[1](target_cp, affine_map_ts)
+
+
+            moving = output_st
+            target = output_ts
+
+        output = (output_st, output_ts)
+        affine_param = (affine_param_st, affine_param_ts)
+        self.affine_param = affine_param
+        self.output = output
+
+        return output_st, affine_map_st, affine_param_st
+
+
+
+
+class MomentumNet(nn.Module):
+    def __init__(self, low_res_factor):
+        super(MomentumNet,self).__init__()
+        self.low_res_factor = low_res_factor
+        if use_resid_momentum:
+            self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
+            print("=================    resid version momentum network is used==============")
         else:
-            output = self.model(input)
-        if self.learn_residual:
-            output = input + output
-            output = torch.clamp(output, min=-1, max=1)
-        return output
+            self.mom_gen = MomentumGen_im(low_res_factor, bn=False)
+            print("=================    im version momentum network is used==============")
 
+    def forward(self,input):
+        return self.mom_gen(input)
 
-# Define a resnet block
-class ResnetBlock(nn.Module):
-    def __init__(self, dim, padding_type, norm_layer, use_dropout, use_bias):
-        super(ResnetBlock, self).__init__()
-        self.conv_block = self.build_conv_block(dim, padding_type, norm_layer, use_dropout, use_bias)
-
-    def build_conv_block(self, dim, padding_type, norm_layer, use_dropout, use_bias):
-        conv_block = []
-        p = 0
-        if padding_type == 'reflect':
-            conv_block += [nn.ReflectionPad2d(1)]
-        elif padding_type == 'replicate':
-            conv_block += [nn.ReplicationPad2d(1)]
-        elif padding_type == 'zero':
-            p = 1
-        else:
-            raise NotImplementedError('padding [%s] is not implemented' % padding_type)
-
-        conv_block += [nn.Conv2d(dim, dim, kernel_size=3, padding=p, bias=use_bias),
-                       norm_layer(dim),
-                       nn.ReLU(True)]
-        if use_dropout:
-            conv_block += [nn.Dropout(0.5)]
-
-        p = 0
-        if padding_type == 'reflect':
-            conv_block += [nn.ReflectionPad2d(1)]
-        elif padding_type == 'replicate':
-            conv_block += [nn.ReplicationPad2d(1)]
-        elif padding_type == 'zero':
-            p = 1
-        else:
-            raise NotImplementedError('padding [%s] is not implemented' % padding_type)
-        conv_block += [nn.Conv2d(dim, dim, kernel_size=3, padding=p, bias=use_bias),
-                       norm_layer(dim)]
-
-        return nn.Sequential(*conv_block)
-
-    def forward(self, x):
-        out = x + self.conv_block(x)
-        return out
-
-
-# Defines the Unet generator.
-# |num_downs|: number of downsamplings in UNet. For example,
-# if |num_downs| == 7, image of size 128x128 will become of size 1x1
-# at the bottleneck
-class UnetGenerator(nn.Module):
-    def __init__(self, input_nc, output_nc, num_downs, ngf=64,
-                 norm_layer=nn.BatchNorm2d, use_dropout=False, gpu_ids=[], use_parallel=True, learn_residual=False):
-        super(UnetGenerator, self).__init__()
-        self.gpu_ids = gpu_ids
-        self.use_parallel = use_parallel
-        self.learn_residual = learn_residual
-        # currently support only input_nc == output_nc
-        assert (input_nc == output_nc)
-
-        # construct unet structure
-        unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, norm_layer=norm_layer, innermost=True)
-        for i in range(num_downs - 5):
-            unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, unet_block, norm_layer=norm_layer,
-                                                 use_dropout=use_dropout)
-        unet_block = UnetSkipConnectionBlock(ngf * 4, ngf * 8, unet_block, norm_layer=norm_layer)
-        unet_block = UnetSkipConnectionBlock(ngf * 2, ngf * 4, unet_block, norm_layer=norm_layer)
-        unet_block = UnetSkipConnectionBlock(ngf, ngf * 2, unet_block, norm_layer=norm_layer)
-        unet_block = UnetSkipConnectionBlock(output_nc, ngf, unet_block, outermost=True, norm_layer=norm_layer)
-
-        self.model = unet_block
-
-    def forward(self, input):
-        if self.gpu_ids and isinstance(input.data, torch.cuda.FloatTensor) and self.use_parallel:
-            output = nn.parallel.data_parallel(self.model, input, self.gpu_ids)
-        else:
-            output = self.model(input)
-        if self.learn_residual:
-            output = input + output
-            output = torch.clamp(output, min=-1, max=1)
-        return output
-
-
-# Defines the submodule with skip connection.
-# X -------------------identity---------------------- X
-#   |-- downsampling -- |submodule| -- upsampling --|
-class UnetSkipConnectionBlock(nn.Module):
-    def __init__(self, outer_nc, inner_nc,
-                 submodule=None, outermost=False, innermost=False, norm_layer=nn.BatchNorm2d, use_dropout=False):
-        super(UnetSkipConnectionBlock, self).__init__()
-        self.outermost = outermost
-        if type(norm_layer) == functools.partial:
-            use_bias = norm_layer.func == nn.InstanceNorm2d
-        else:
-            use_bias = norm_layer == nn.InstanceNorm2d
-
-        downconv = nn.Conv2d(outer_nc, inner_nc, kernel_size=4,
-                             stride=2, padding=1, bias=use_bias)
-        downrelu = nn.LeakyReLU(0.2, True)
-        downnorm = norm_layer(inner_nc)
-        uprelu = nn.ReLU(True)
-        upnorm = norm_layer(outer_nc)
-
-        if outermost:
-            upconv = nn.ConvTranspose2d(inner_nc * 2, outer_nc,
-                                        kernel_size=4, stride=2,
-                                        padding=1)
-            down = [downconv]
-            up = [uprelu, upconv, nn.Tanh()]
-            model = down + [submodule] + up
-        elif innermost:
-            upconv = nn.ConvTranspose2d(inner_nc, outer_nc,
-                                        kernel_size=4, stride=2,
-                                        padding=1, bias=use_bias)
-            down = [downrelu, downconv]
-            up = [uprelu, upconv, upnorm]
-            model = down + up
-        else:
-            upconv = nn.ConvTranspose2d(inner_nc * 2, outer_nc,
-                                        kernel_size=4, stride=2,
-                                        padding=1, bias=use_bias)
-            down = [downrelu, downconv, downnorm]
-            up = [uprelu, upconv, upnorm]
-
-            if use_dropout:
-                model = down + [submodule] + up + [nn.Dropout(0.5)]
-            else:
-                model = down + [submodule] + up
-
-        self.model = nn.Sequential(*model)
-
-    def forward(self, x):
-        if self.outermost:
-            return self.model(x)
-        else:
-            return torch.cat([self.model(x), x], 1)
-
-
-# Defines the PatchGAN discriminator with the specified arguments.
-class NLayerDiscriminator(nn.Module):
-    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False, gpu_ids=[],
-                 use_parallel=True):
-        super(NLayerDiscriminator, self).__init__()
-        self.gpu_ids = gpu_ids
-        self.use_parallel = use_parallel
-        if type(norm_layer) == functools.partial:
-            use_bias = norm_layer.func == nn.InstanceNorm2d
-        else:
-            use_bias = norm_layer == nn.InstanceNorm2d
-
-        kw = 4
-        padw = int(np.ceil((kw - 1) / 2))
-        sequence = [
-            nn.Conv2d(input_nc, ndf, kernel_size=kw, stride=2, padding=padw),
-            nn.LeakyReLU(0.2, True)
-        ]
-
-        nf_mult = 1
-        nf_mult_prev = 1
-        for n in range(1, n_layers):
-            nf_mult_prev = nf_mult
-            nf_mult = min(2 ** n, 8)
-            sequence += [
-                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
-                          kernel_size=kw, stride=2, padding=padw, bias=use_bias),
-                norm_layer(ndf * nf_mult),
-                nn.LeakyReLU(0.2, True)
-            ]
-
-        nf_mult_prev = nf_mult
-        nf_mult = min(2 ** n_layers, 8)
-        sequence += [
-            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
-                      kernel_size=kw, stride=1, padding=padw, bias=use_bias),
-            norm_layer(ndf * nf_mult),
-            nn.LeakyReLU(0.2, True)
-        ]
-
-        sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]
-
-        if use_sigmoid:
-            sequence += [nn.Sigmoid()]
-
-        self.model = nn.Sequential(*sequence)
-
-    def forward(self, input):
-        if len(self.gpu_ids) and isinstance(input.data, torch.cuda.FloatTensor) and self.use_parallel:
-            return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
-        else:
-            return self.model(input)

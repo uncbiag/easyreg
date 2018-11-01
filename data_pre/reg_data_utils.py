@@ -180,6 +180,12 @@ def make_dir(path):
         os.makedirs(path)
     return is_exist
 
+
+def str_concat(lists,linker='_'):
+    from functools import reduce
+    str_concated = reduce((lambda x,y:str(x)+linker+str(y)), lists)
+    return str_concated
+
 # def divide_data_set(root_path, pair_name_list, ratio):
 #     """
 #     divide the dataset into root_path/train root_path/val root_path/test

@@ -3,21 +3,14 @@ import torch
 import os
 from time import time
 
-from collections import OrderedDict
-from torch.autograd import Variable
 from .base_model import BaseModel
-from .reg_net_expr import *
-from . import networks
+from .network_pool import *
+from .net_utils import print_network
 from .losses import Loss
 from .metrics import get_multi_metric
-from data_pre.partition import Partition
-#from model_pool.utils import weights_init
 from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
-import torch.nn as nn
-import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
-import SimpleITK as sitk
 
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
@@ -57,9 +50,9 @@ class RegNet(BaseModel):
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
         print('---------- Networks initialized -------------')
-        networks.print_network(self.network)
+        print_network(self.network)
         if self.isTrain:
-            networks.print_network(self.network)
+            print_network(self.network)
         print('-----------------------------------------------')
 
     def init_optimize_instance(self, warmming_up=False):

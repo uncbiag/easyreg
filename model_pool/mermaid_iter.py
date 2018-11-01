@@ -1,19 +1,8 @@
-import numpy as np
-import torch
-import os
-from collections import OrderedDict
-from torch.autograd import Variable
+
 from .base_model import BaseModel
-from .reg_net_expr import *
-from . import networks
 from .losses import Loss
 from .metrics import get_multi_metric
-from data_pre.partition import Partition
-#from model_pool.utils import weights_init
 from model_pool.utils import *
-#from model_pool.mermaid_net import MermaidNet
-import torch.nn as nn
-import matplotlib.pyplot as plt
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 
@@ -21,7 +10,6 @@ import mermaid.pyreg.utils as py_utils
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
 class MermaidIter(BaseModel):
-    import mermaid.pyreg.utils as py_utils
     def name(self):
         return 'reg-unet'
 

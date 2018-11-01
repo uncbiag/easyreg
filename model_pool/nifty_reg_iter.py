@@ -1,21 +1,11 @@
-import numpy as np
-import torch
-import os
-from collections import OrderedDict
-from torch.autograd import Variable
 
-from data_pre.reg_data_utils import get_file_name
 from .base_model import BaseModel
-from .reg_net_expr import *
-from . import networks
+from .network_pool import *
 from .losses import Loss
 from .metrics import get_multi_metric
-from data_pre.partition import Partition
-#from model_pool.utils import weights_init
+
 from model_pool.utils import *
-#from model_pool.mermaid_net import MermaidNet
-import torch.nn as nn
-import matplotlib.pyplot as plt
+
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 from model_pool.nifty_reg_utils import *
@@ -24,7 +14,6 @@ import mermaid.pyreg.utils as py_utils
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
 class NiftyRegIter(BaseModel):
-    import mermaid.pyreg.utils as py_utils
     def name(self):
         return 'nifty_reg iter'
 

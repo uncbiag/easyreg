@@ -6,7 +6,7 @@ import os
 import torchvision.utils as utils
 from skimage import color
 
-from models.net_utils import gen_identity_map
+from model_pool.net_utils import gen_identity_map
 from functions.bilinear import Bilinear
 
 
@@ -104,18 +104,6 @@ def CrossCorrelationLoss(input, target):
 
 
 
-def get_criterion(sched):
-    if sched == 'L1-loss':
-         sched_sel = torch.nn.L1Loss()
-    elif sched == "L2-loss":
-         sched_sel = torch.nn.MSELoss()
-    elif sched == "W-GAN":
-        raise ValueError(' not implemented')
-    elif sched == 'NCC-loss':
-        sched_sel = CrossCorrelationLoss
-    else:
-        raise ValueError(' the criterion is not implemented')
-    return sched_sel
 
 
 def make_image_summary(images, truths, raw_output, maxoutput=4, overlap=True):
@@ -165,19 +153,6 @@ def labels2colors(labels, images=None, overlap=False):
 
 
 
-def clip_gradient(model, clip_norm):
-    """Computes a gradient clipping coefficient based on gradient norm."""
-    totalnorm = 0
-    for p in model.parameters():
-        if p.requires_grad:
-            modulenorm = p.grad.data.norm()
-            totalnorm += modulenorm ** 2
-    totalnorm = np.sqrt(totalnorm)
-
-    norm = clip_norm / max(totalnorm, clip_norm)
-    for p in model.parameters():
-        if p.requires_grad:
-            p.grad.mul_(norm)
 
 
 def t2np(v):
@@ -272,7 +247,7 @@ def get_warped_img_map_param( Ab, img_sz, moving, dim=3, zero_boundary=True):
 
 def show_current_images_3d(iS,iT):
     import matplotlib.pyplot as plt
-    import model_pool.viewers_old as viewers
+    import model_pool.viewers as viewers
     fig, ax = plt.subplots(2,3)
     plt.setp(plt.gcf(), 'facecolor', 'white')
     plt.style.use('bmh')
