@@ -53,14 +53,6 @@ class Affine_unet_im(nn.Module):
 
     def __init__(self):
         super(Affine_unet_im,self).__init__()
-        #(W−F+2P)/S+1, W - input size, F - filter size, P - padding size, S - stride.
-        # self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1,active_unit='relu', same_padding=True, bn=False)
-        # self.down_path_2 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
-        # self.down_path_4 = conv_bn_rel(32, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
-        # self.down_path_8 = conv_bn_rel(32, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
-        # self.down_path_16 = conv_bn_rel(32, 16, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
-        # self.fc_1 = FcRel(16*5*12*12,144,active_unit='relu')
-        # self.fc_2 = FcRel(144,12,active_unit = 'None')
 
         self.down_path_1 = conv_bn_rel(1, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False)
 
@@ -84,12 +76,6 @@ class Affine_unet_im(nn.Module):
         d1_m = self.down_path_1(m)
         d1_t = self.down_path_1(t)
         d1 = torch.cat((d1_m,d1_t),1)
-
-        # d2 = self.down_path_2(d1)
-        # d4 = self.down_path_4(d2)
-        # d8 = self.down_path_8(d4)
-        # d16 = self.down_path_16(d8)
-        # d32 = self.down_path_32(d16)
 
         d4 = self.down_path_1_t_4(d1)
         d32 = self.down_path_4_t_32(d4)

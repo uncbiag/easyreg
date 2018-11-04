@@ -53,7 +53,5 @@
         "print_val_detail": "print details of validation results",
         "save_val_fig_epoch": "epoch to save val fig",
         "task_name": "task_name",
-        "train": "if training",
-        "which_epoch": "if continue_train, given the epoch"
-    }
+        "train": "if training"}
 }

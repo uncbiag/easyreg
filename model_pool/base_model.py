@@ -32,6 +32,7 @@ class BaseModel():
         self.dim = len(self.img_sz)
         self.network =None
         self.val_res_dic = {}
+        self.fname_list = None
 
 
 
@@ -187,10 +188,10 @@ class BaseModel():
 
 
     def do_some_clean(self):
-        self.loss= None
-        self.gt=None
+        self.loss = None
+        self.gt = None
         self.input = None
-        self.output= None
+        self.output = None
 
 
 

@@ -72,7 +72,6 @@
         "save_fig_on": true,
         "task_name": "",
         "train": true,
-        "which_epoch": "",
         "check_best_model_period": 5
     }
 }

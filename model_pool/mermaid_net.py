@@ -11,7 +11,6 @@ import mermaid.pyreg.utils as py_utils
 from functools import partial
 import mermaid.pyreg.image_sampling as py_is
 from mermaid.pyreg.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
-from model_pool.global_variable import *
 
 
 
@@ -88,11 +87,10 @@ class MermaidNet(nn.Module):
     def __init__(self, img_sz=None, opt=None):
         super(MermaidNet, self).__init__()
         self.load_external_model = False
-        self.intra_training = intra_training
-
 
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
+        opt_mermaid = opt['tsk_set']['reg']['mermaid_net']
         low_res_factor = opt['tsk_set']['reg'][('low_res_factor',1.,"factor of low-resolution map")]
         batch_sz = opt['tsk_set']['batch_sz']
         self.loss_type = opt['tsk_set']['loss']['type']
@@ -100,12 +98,14 @@ class MermaidNet(nn.Module):
         self.dim = len(img_sz)
         self.gpu_switcher = (cur_gpu_id, old_gpu_id)
         self.low_res_factor = low_res_factor
-        self.using_sym_on = use_sym
-        self.using_analyic_af_inverse = using_analyic_af_inverse
-        self.sym_factor = 1.
-        self.momentum_net = MomentumNet(low_res_factor)
+        self.using_sym_on = opt_mermaid['using_sym']
+        self.using_llddmm = opt_mermaid['using_llddmm']
+        self.using_mermaid_multi_step = opt_mermaid['using_multi_step']
+        self.using_analyic_af_inverse = False
+        self.sym_factor = opt_mermaid['sym_factor']
+        self.momentum_net = MomentumNet(low_res_factor,opt_mermaid)
         self.init_affine_net()
-        self.step = 1 if not use_mermaid_multi_step else 6
+        self.step = 1 if not self.use_mermaid_multi_step else opt_mermaid['mermaid_net_iter']
 
         spacing = 1. / (np.array(img_sz) - 1)
         self.spacing = spacing
@@ -128,7 +128,7 @@ class MermaidNet(nn.Module):
 
     def init_mermaid_env(self, spacing):
         params = pars.ParameterDict()
-        if not use_llddmm:
+        if not self.use_llddmm:
             params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_debug.json') #''../model_pool/cur_settings_svf.json')######TODO ###########
         else:
             params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
@@ -215,7 +215,7 @@ class MermaidNet(nn.Module):
             sim_energy =  (sim_energy_st + sim_energy_ts)/2
             reg_energy = (reg_energy_st + reg_energy_ts)/2
             sym_energy = self.__cal_sym_loss()
-            sym_factor = min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
+            sym_factor = min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*self.sym_factor,1.*self.sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
             loss_overall_energy = loss_overall_energy + sym_factor*sym_energy
             if self.debug_count % 10 == 0:
                 print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}\n'.format(loss_overall_energy.item(),
@@ -349,9 +349,9 @@ class MermaidNet(nn.Module):
 
     def forward(self, input, moving, target=None):
 
-        if use_mermaid_multi_step and self.using_sym_on:
+        if self.use_mermaid_multi_step and self.using_sym_on:
             return self.cyc_sym_forward(input,moving,target)
-        if use_mermaid_multi_step:
+        if self.use_mermaid_multi_step:
             return self.cyc_forward(input, moving, target)
         if not self.using_sym_on:
             return self.single_forward(input,moving, target)

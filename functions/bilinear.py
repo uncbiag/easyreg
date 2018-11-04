@@ -6,7 +6,6 @@ Spatial transform functions in 1D, 2D, and 3D.
 
 import torch
 from torch.autograd import Function
-from lib._ext import  my_lib_1D,my_lib_2D,my_lib_3D
 from cffi import FFI
 from torch.autograd import Variable
 from torch.nn import Module

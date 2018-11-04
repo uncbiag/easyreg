@@ -8,7 +8,6 @@ sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
 #os.environ["CUDA_CACHE_PATH"] = "/playpen/zhenlinx/.cuda_cache
-from model_pool.global_variable import *
 import data_pre.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task

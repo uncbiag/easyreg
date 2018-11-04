@@ -6,7 +6,6 @@ from __future__ import print_function
 
 from model_pool.modules import *
 from functions.bilinear import *
-from model_pool.global_variable import *
 from torch.utils.checkpoint import checkpoint
 
 
@@ -23,7 +22,7 @@ class AffineNet(nn.Module):
     network would warp the phi, the advantage of this method is we don't need
     to warp the image for several time as interpolation would introduce unstability
     """
-    def __init__(self, img_sz=None, resize_factor=1.):
+    def __init__(self, img_sz=None, opt=None):
         super(AffineNet, self).__init__()
         self.img_sz = img_sz if len(img_sz)<4 else img_sz[2:]
         self.dim = len(self.img_sz)
@@ -36,18 +35,16 @@ class AffineNet(nn.Module):
         Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
         phi = self.phi.view(self.dim, -1)
         affine_map = None
-        # if self.dim == 2:
-        #     affine_map[0, ...] = Ab[0] * self.phi[0, ...] + Ab[2] * self.phi[1, ...] + Ab[4]  # a_11x+a_21y+b1
-        #     affine_map[1, ...] = Ab[1] * self.phi[0, ...] + Ab[3] * self.phi[1, ...] + Ab[5]  # a_12x+a_22y+b2
-        # elif self.dim == 3:
-        #     affine_map[0, ...] = Ab[0] * self.phi[0, ...] + Ab[3] * self.phi[1, ...] + Ab[6] * self.phi[2, ...] + Ab[9]
-        #     affine_map[1, ...] = Ab[1] * self.phi[0, ...] + Ab[4] * self.phi[1, ...] + Ab[7] * self.phi[2, ...] + Ab[10]
-        #     affine_map[2, ...] = Ab[2] * self.phi[0, ...] + Ab[5] * self.phi[1, ...] + Ab[8] * self.phi[2, ...] + Ab[11]
         if self.dim == 3:
             affine_map = torch.matmul( Ab[:,:3,:], phi)
             affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
             affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
         return affine_map
+
+    def scale_reg_loss(self,sched='l2'):
+        constr_map =self.affine_cons(self.extra, sched=sched)
+        reg = constr_map.sum()
+        return reg
 
 
     def forward(self,input,moving,target=None):
@@ -72,17 +69,19 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
     network would warp the phi, the advantage of this method is we don't need
     to warp the image for several time as interpolation would introduce unstability
     """
-    def __init__(self, img_sz=None, resize_factor=1.):
+    def __init__(self, img_sz=None, opt=None):
         super(AffineNetCycle, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 7   #############################################################
+
+        self.step = opt['tsk_set']['reg']['affine_net']['affine_net_iter']
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
         self.zero_boundary = True
         self.bilinear =Bilinear(self.zero_boundary)
+        self.gen_identity_ap()
 
 
 
@@ -119,6 +118,11 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
             inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
         return inverse_param
 
+    def scale_reg_loss(self,sched='l2'):
+        constr_map =self.affine_cons(self.extra, sched=sched)
+        reg = constr_map.sum()
+        return reg
+
 
 
     def forward(self,input,moving,target):
@@ -152,12 +156,12 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
     network would warp the phi, the advantage of this method is we don't need
     to warp the image for several time as interpolation would introduce unstability
     """
-    def __init__(self, img_sz=None, resize_factor=1.):
+    def __init__(self, img_sz=None, opt=None):
         super(AffineNetSym, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 5
-        self.using_complex_net = True
+        self.step = opt['tsk_set']['reg']['affine_net']['affine_net_iter']
+        self.using_complex_net = opt['tsk_set']['reg']['affine_net']['using_complex_net']
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
@@ -168,17 +172,17 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.zero_boundary = True
         self.bilinear = Bilinear(self.zero_boundary)
 
-        #############################################TODO###########################################3
-
-        model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
-        checkpoint = torch.load(model_path,
-                                map_location='cpu')
-
-        self.load_state_dict(checkpoint['state_dict'])
-        self.cuda()
-        print("ATTENTION!!!!!   AFFINE NET INITIALIZED BY ENTERNAL MODEL")
-
-        print("the affineNetSym is initialized")
+        # #############################################TODO###########################################3
+        #
+        # model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+        # checkpoint = torch.load(model_path,
+        #                         map_location='cpu')
+        #
+        # self.load_state_dict(checkpoint['state_dict'])
+        # self.cuda()
+        # print("ATTENTION!!!!!   AFFINE NET INITIALIZED BY ENTERNAL MODEL")
+        #
+        # print("the affineNetSym is initialized")
 
 
 
@@ -333,10 +337,12 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
 class MomentumNet(nn.Module):
-    def __init__(self, low_res_factor):
+    def __init__(self, low_res_factor,opt):
         super(MomentumNet,self).__init__()
         self.low_res_factor = low_res_factor
-        if use_resid_momentum:
+        using_complex_net = opt['using_complex_net']=True
+
+        if using_complex_net:
             self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
             print("=================    resid version momentum network is used==============")
         else:

@@ -3,7 +3,6 @@ import numpy as np
 import ants
 import time
 import SimpleITK as sitk
-from model_pool.global_variable import param_in_ants
 from model_pool.nifty_reg_utils import expand_batch_ch_dim
 from mermaid.pyreg.utils import identity_map_multiN
 

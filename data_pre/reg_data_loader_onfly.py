@@ -247,6 +247,4 @@ class ToTensor(object):
 
     def __call__(self, sample):
         n_tensor = torch.from_numpy(sample)
-        if n_tensor.shape[0] != 1:
-            n_tensor.unsqueeze_(0)
         return n_tensor

@@ -2,11 +2,9 @@
 net for image registration
 
 
-One Stop Mapping: Joint Networks for Longitudinal Image Registration
+Joint Networks for Diffeomorphic Image Registration
 
-https://v2.overleaf.com/18560374xmmwkmtqmpzw
-
-This is the concise version for registration network
+This concise version only includes registration part (master branch for both seg and reg tasks)
 
 # Guide
 1 . prepare the data

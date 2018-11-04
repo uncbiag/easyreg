@@ -30,20 +30,17 @@ class RegNet(BaseModel):
 
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
-        which_epoch = opt['tsk_set']['which_epoch']
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
 
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         network_name =opt['tsk_set']['network_name']
         self.mermaid_on = True if 'mermaid' in network_name else False
-        self.debug_sym_on = True if 'sym' in network_name else False
+        self.using_sym_loss = True if 'sym' in network_name else False
 
         self.network = model_pool[network_name](input_img_sz, opt)#AffineNetCycle(input_img_sz)#
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
-        # if self.continue_train:
-        #     self.load_network(self.network,'reg_net',which_epoch)
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.single_mod = opt['tsk_set']['reg'][('single_mod',True,'whether iter the whole model')]
@@ -51,9 +48,8 @@ class RegNet(BaseModel):
         self.step_count =0.
         print('---------- Networks initialized -------------')
         print_network(self.network)
-        if self.isTrain:
-            print_network(self.network)
         print('-----------------------------------------------')
+
 
     def init_optimize_instance(self, warmming_up=False):
         self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
@@ -61,14 +57,13 @@ class RegNet(BaseModel):
 
 
     def adjust_learning_rate(self, new_lr=-1):
-        """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
         if new_lr<0:
             lr = self.opt_optim['lr']
         else:
             lr = new_lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
-        print(" no warming up the learning rate is {}".format(lr))
+        print(" the learning rate now is set to {}".format(lr))
 
 
     def set_input(self, data, is_train=True):
@@ -90,16 +85,10 @@ class RegNet(BaseModel):
             input =self.input
         return self.network.forward(input, self.moving,self.target)
 
-    def phi_regularization(self):
-        if len(self.disp.shape)>2:
-            constr_map  = self.network.hessianField(self.disp)
-            #constr_map = self.network.jacobiField(self.disp)
-        else:
-            constr_map = self.network.affine_cons(self.disp, sched='l2')
-
-        reg = constr_map.sum()
-
-        return reg
+    # def phi_regularization(self):
+    #     constr_map = self.network.affine_cons(self.extra, sched='l2')
+    #     reg = constr_map.sum()
+    #     return reg
 
 
     def cal_loss(self):
@@ -108,14 +97,14 @@ class RegNet(BaseModel):
         factor = 10# 1e-7
         factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
         sim_loss  = self.loss_fn.get_loss(self.output,self.target)
-        reg_loss = self.phi_regularization() if self.disp is not None else 0.
+        reg_loss = self.network.scale_reg_loss() if self.extra is not None else 0.
         if self.iter_count%10==0:
             print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
         return sim_loss+reg_loss*factor
 
     def cal_mermaid_loss(self):
         loss_overall_energy, sim_energy, reg_energy = self.network.do_criterion_cal( self.moving,self.target, cur_epoch=self.cur_epoch)
-        return loss_overall_energy  #*20 ###############################
+        return loss_overall_energy
     def cal_sym_loss(self):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
         sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
@@ -125,9 +114,6 @@ class RegNet(BaseModel):
         factor_scale = float( max(1e-3,factor_scale))
         factor_sym =1#10 ################################### ToDo ####################################
         sim_factor = 1
-
-
-
 
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
 
@@ -140,9 +126,6 @@ class RegNet(BaseModel):
 
 
 
-    # get image paths
-    def get_image_paths(self):
-        return self.fname_list
 
     def backward_net(self):
         self.loss.backward()
@@ -153,13 +136,13 @@ class RegNet(BaseModel):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        self.output, self.phi, self.disp = self.forward()
+        self.output, self.phi, self.extra = self.forward()
         if self.mermaid_on:
             self.loss = self.cal_mermaid_loss()
-        elif self.debug_sym_on:
+        elif self.using_sym_loss:
             self.loss = self.cal_sym_loss()
         else:
-            self.loss = self.cal_loss()
+            self.loss=self.cal_loss()
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()
@@ -197,7 +180,7 @@ class RegNet(BaseModel):
 
     def get_evaluation(self):
 
-        self.output, self.phi, self.disp= self.forward()
+        self.output, self.phi, self.extra= self.forward()
         self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
         warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
         self.l_target_np= self.l_target.detach().cpu().numpy()
@@ -212,15 +195,8 @@ class RegNet(BaseModel):
 
 
 
-
-    def save(self, label):
-        self.save_network(self.network, 'unet', label, self.gpu_ids)
-
-
-
     def save_fig(self,phase,standard_record=False,saving_gt=True):
-        pass
-        from model_pool.visualize_registration_results import  show_current_images
+        from model_pool.visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True
@@ -232,12 +208,12 @@ class RegNet(BaseModel):
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
-        if self.disp is not None and len(self.disp.shape)>2 and not self.mermaid_on:
-            disp = ((self.disp[:,...]**2).sum(1))**0.5
+        if self.extra is not None and len(self.extra.shape)>2 and not self.mermaid_on:
+            disp = ((self.extra[:,...]**2).sum(1))**0.5
 
 
         if self.mermaid_on:
-            disp = self.disp[:,0,...]
+            disp = self.extra[:,0,...]
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
                             disp, extra_title, self.phi, visual_param=visual_param)

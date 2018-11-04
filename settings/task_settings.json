@@ -59,7 +59,6 @@
         "save_fig_on": true,
         "task_name": "net_dev_2",
         "train": true,
-        "which_epoch": "",
         "check_best_model_period": 5
     }
 }

@@ -24,70 +24,7 @@
             "slicing": "the index to be sliced from the 3d image dataset, support lpba, ibsr, cmuc"
         },
         "seg": {
-            "__doc__": "general settings for dataset",
-            "num_crop_per_class_per_train_img": "num_crop_per_class_per_train_img",
-            "partition": {
-                "__doc__": "settings for the partition",
-                "mode": "eval or pred",
-                "overlap_size": "overlap_size",
-                "padding_mode": "padding_mode"
-            },
-            "patch_size": "patch size",
-            "sched": "['patched'|'nopatched'], patched or whole image",
-            "transform": {
-                "__doc__": "settings for transform",
-                "bal_rand_crop": {
-                    "__doc__": "settings for balanced random crop"
-                },
-                "bilateral_filter": {
-                    "__doc__": "settins for bilateral_filter",
-                    "bilateral_ratio": "bilateral_ratio ratio",
-                    "domain_sigma": "domain_sigma",
-                    "range_sigma": "range_sigma"
-                },
-                "bspline_trans": {
-                    "__doc__": "settins for bspline_transform",
-                    "bspline_order": "bspline order",
-                    "deform_ratio": "deform ratio",
-                    "deform_scale": "deform scale",
-                    "interpolator": "interpolation sched, linear or Bspline"
-                },
-                "default": {
-                    "__doc__": "only used when transform_seq is not given, get default transform setting",
-                    "deform_scale": "deform scale",
-                    "deform_target": "deform mode: global, local or padded",
-                    "using_bspline_deform": "using bspline transform"
-                },
-                "gaussian_blur": {
-                    "__doc__": "settins for gaussian_blur",
-                    "blur_ratio": "blur ratio",
-                    "gaussian_var": "gaussian_var ",
-                    "gaussian_width": "gaussian_width",
-                    "maximumError": "maximumError"
-                },
-                "my_bal_rand_crop": {
-                    "__doc__": "settings for balanced random crop",
-                    "bg_th_ratio": "threshold for background ratio",
-                    "scale_ratio": "scale_ratio for patch sampling"
-                },
-                "my_rand_crop": {
-                    "__doc__": "settings for balanced random crop",
-                    "bg_label": "background label",
-                    "crop_bg_ratio": "ratio of background crops",
-                    "scale_ratio": "scale_ratio for patch sampling"
-                },
-                "rand_rigid_trans": {
-                    "__doc__": "settins for random_rigid_transform",
-                    "rigid_mode": "three mode: both , img, seg",
-                    "rigid_ratio": "rigid ratio",
-                    "rotation": "rotation for each dimension",
-                    "transition": "transtion for each dimension"
-                },
-                "shared_info": {
-                    "__doc__": "info shared by different transformers"
-                },
-                "transform_seq": "transform seqence list"
-            }
+
         },
         "switch": {
             "switch_to_exist_task": "switch to existed task without modify other datapro settings",

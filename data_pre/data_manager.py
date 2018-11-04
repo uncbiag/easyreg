@@ -94,6 +94,11 @@ class DataManager(object):
         return os.path.split(self.task_root_path)[1]
 
     def get_default_dataset_path(self,is_label):
+        """
+        We only test on  oai dataset processor. for other dataset, write your own
+        :param is_label:
+        :return:
+        """
         default_data_path = {'lpba':'/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis',
                              'oasis2d': '/playpen/zyshen/data/oasis',
                              'cumc':'/playpen/data/quicksilver_data/testdata/CUMC12/brain_affine_icbm',
@@ -107,6 +112,8 @@ class DataManager(object):
                              'cumc': '/playpen/data/quicksilver_data/testdata/CUMC12/label_affine_icbm',
                              'ibsr': '/playpen/data/quicksilver_data/testdata/IBSR18/label_affine_icbm',
                              'brats': ''}
+        if self.dataset_name !='oai':
+            raise ValueError("Dataset not supported! Default data is designed for OAI data, however you can add new processing into reg_data_pool.py and data_manager.py")
         if is_label:
             return default_label_path[self.dataset_name]
         else:

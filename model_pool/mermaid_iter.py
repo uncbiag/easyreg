@@ -6,7 +6,6 @@ from model_pool.utils import *
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
 
-import mermaid.pyreg.utils as py_utils
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
 class MermaidIter(BaseModel):
@@ -18,7 +17,6 @@ class MermaidIter(BaseModel):
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
-
         network_name =opt['tsk_set']['network_name']
         self.single_mod = True
         if network_name =='affine':
@@ -33,8 +31,6 @@ class MermaidIter(BaseModel):
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
-        self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
-        self.identity_map = torch.from_numpy(self.identity_map).cuda()
 
 
 
@@ -52,6 +48,7 @@ class MermaidIter(BaseModel):
         self.l_target = l_target
         self.input = input
         self.fname_list = list(data[1])
+        #print(moving.shape,target.shape)
 
 
 
@@ -88,9 +85,7 @@ class MermaidIter(BaseModel):
         extra_info = {}
         extra_info['pair_name'] = self.fname_list[0]
         extra_info['batch_id'] = self.fname_list[0]
-        # self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
-        # LSource_warped = self.si.get_warped_label()
-        # LSource_warped.detach_()
+
 
 
         affine_map = self.si.opt.optimizer.ssOpt.get_map()
@@ -181,25 +176,11 @@ class MermaidIter(BaseModel):
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
             jacobi_val = self.compute_jacobi_map(self.phi)
             print(" the current jcobi value of the phi is {}".format(jacobi_val))
-        # if not self.print_val_detail:
-        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
-        # else:
-        #     print('batch_avg_res{}'.format(self.val_res_dic['batch_avg_res']))
-        #     print('batch_label_avg_res:{}'.format(self.val_res_dic['batch_label_avg_res']))
 
 
 
     def get_the_jacobi_val(self):
         return self.jacobi_val
-
-
-
-
-
-
-
-    def save(self, label):
-        self.save_network(self.network, 'unet', label, self.gpu_ids)
 
 
 

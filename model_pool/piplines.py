@@ -9,7 +9,6 @@ from model_pool.initializer import Initializer
 from model_pool.create_model import create_model
 from model_pool.train_expr import train_model
 from model_pool.test_expr import test_model
-from model_pool.debug_expr import debug_model
 
 
 class Pipline():
@@ -27,11 +26,8 @@ class Pipline():
             train_model(self.tsk_opt, self.model, self.data_loaders,self.writer)
 
         else:
-            debug_model(self.tsk_opt, self.model, self.data_loaders)
-            #test_model(self.tsk_opt,self.model,self.data_loaders)
-        # test_model(self.tsk_opt,self.model,self.data_loaders)
-        # else:
-        #     test_expr(self.tsk_opt, self.data_loaders)
+            test_model(self.tsk_opt, self.model, self.data_loaders)
+
 
 
 def run_one_task():
