@@ -111,7 +111,7 @@ def get_res_dic(draw_intra, draw_trendency):
     if draw_intra:
         if not draw_trendency:
             #data_dic['af_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_affine_bi/records/records.npy')
-            data_dic['affine_niftyreg'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_affine_jacobi/records/records.npy')
+            data_dic['affine_niftyreg'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_affine_jacobi/records/records_detail.npy')
             data_dic['affine_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_affine_lncc_bi/records/records_detail.npy')
             #data_dic['affine_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_single_bi/records/records_detail.npy')
             #data_dic['affine_cycle_step3'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_cycle_step3_bi/records/records_detail.npy')
@@ -119,15 +119,15 @@ def get_res_dic(draw_intra, draw_trendency):
             #data_dic['affine_sym_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_sym_bi/records/records_detail.npy')
             data_dic['affine_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_sym_lncc_bi/records/records_detail.npy')
 
-            data_dic['demons'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_dev1_recbi/records/records.npy')
-            data_dic['syn_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_refine_jacobi/records/records.npy')
-            data_dic['niftyreg_nmi'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi/records/records.npy')
-            data_dic['niftyreg_lncc'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_interv10_jacobi/records/records.npy')
-            data_dic['svf_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi/records/records_detail.npy')
-            data_dic['ASVM'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/train_mermaid_net_reisd_2_4step_lncc_recbi/records/records_detail.npy')
+            data_dic['demons'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_jacobi/records/records_detail.npy')
+            data_dic['syn_ants'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_refine_jacobi/records/records_detail.npy')
+            data_dic['niftyreg_nmi'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_detail.npy')
+            data_dic['niftyreg_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_interv10_jacobi_save_img/records/records_detail.npy')
+            data_dic['svf_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_new2_moreiter_fixed/records/records_detail.npy')
+            data_dic['AVSM'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/train_mermaid_net_reisd_2_4step_lncc_recbi/records/records_detail.npy')
             #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
         else:
-            data_dic['vSVF_iter1'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_mermaid_net_reisd_lncc_bi/records/records.npy')
+            data_dic['vSVF_iter1'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_mermaid_net_reisd_lncc_bi/records/records_detail.npy')
             data_dic['vSVF_iter2'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_mermaid_net_reisd_2intra_2step_lncc_recbi/records/records_detail.npy')
             data_dic['vSVF_iter3'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_mermaid_net_reisd_2intra_3step_lncc_recbi/records/records_detail.npy')
             data_dic['vSVF_iter4'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_mermaid_net_reisd_2intra_4step_lncc_recbi/records/records_detail.npy')
@@ -140,25 +140,25 @@ def get_res_dic(draw_intra, draw_trendency):
     else:
         if not draw_trendency:
             #data_dic['af_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_affine_bi/records/records.npy')
-            data_dic['affine_niftyreg'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_affine_jacobi/records/records.npy')
+            data_dic['affine_niftyreg'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_affine_jacobi/records/records_detail.npy')
             data_dic['affine_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_affine_recbi/records/records_detail.npy')
             #data_dic['affine_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_single_recbi/records/records_detail.npy')
             #data_dic['affine_cycle_step3'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_step3_recbi/records/records_detail.npy')
             #data_dic['affine_cycle_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_recbi/records/records_detail.npy')
             #data_dic['affine_sym_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_recbi/records/records_detail.npy')
-            data_dic['affine_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_lncc_step7_recbi/records/records_detail.npy')
+            data_dic['affine_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_from_intra_recbi/records/records_detail.npy')
 
-            data_dic['demons'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_dev1_recbi/records/records.npy')
-            data_dic['syn_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_refine_jacobi/records/records.npy')
-            data_dic['niftyreg_nmi'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi/records/records.npy')
+            data_dic['demons'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_jacobi/records/records_detail.npy')
+            data_dic['syn_ants'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_refine_jacobi/records/records_detail.npy')
+            data_dic['niftyreg_nmi'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_detail.npy')
             #data_dic['niftyreg_improve'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv20_bi/records/records.npy')
-            data_dic['niftyreg_lncc'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv10_jacobi/records/records.npy')
-            data_dic['svf_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi/records/records_detail.npy')
-            data_dic['ASVM'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_2_7step_lncc_recbi/records/records_detail.npy')
+            data_dic['niftyreg_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv10_jacobi_save_img/records/records_detail.npy')
+            data_dic['svf_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_new2_moreiter_fixed/records/records_detail.npy')
+            data_dic['AVSM'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_detail.npy')
             #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_sym_lncc_recbi/records/records_detail.npy')
             #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
         else:
-            data_dic['vSVF_iter1'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_resid_lncc_recbi/records/records.npy')
+            data_dic['vSVF_iter1'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_resid_lncc_recbi/records/records_detail.npy')
             data_dic['vSVF_iter2'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_2_2step_lncc_recbi/records/records_detail.npy')
             data_dic['vSVF_iter3'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_2_3step_lncc_recbi/records/records_detail.npy')
             data_dic['vSVF_iter4'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_2_4step_lncc_recbi/records/records_detail.npy')
@@ -167,6 +167,101 @@ def get_res_dic(draw_intra, draw_trendency):
             data_dic['vSVF_iter7'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_2_7step_lncc_recbi/records/records_detail.npy')
 
     return data_dic
+
+
+
+
+def get_jacobi_dic(draw_intra, draw_trendency):
+    data_dic = {}
+    if draw_intra:
+
+            data_dic['demons'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_jacobi/records/records_jacobi_num.npy')
+            data_dic['syn_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_refine_jacobi/records/records_jacobi_num.npy')
+            data_dic['niftyreg_nmi'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi_num.npy')
+            data_dic['niftyreg_lncc'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_interv10_jacobi_save_img/records/records_jacobi_num.npy')
+            data_dic['svf_opt'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_new2_moreiter_fixed/records/records_jacobi_num.npy')
+            #data_dic['AVSM'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/train_mermaid_net_reisd_2_4step_lncc_recbi/records/records_jacobi.npy')
+    else:
+            data_dic['demons'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_jacobi/records/records_jacobi_num.npy')
+            data_dic['syn_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_refine_jacobi/records/records_jacobi_num.npy')
+            data_dic['niftyreg_nmi'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi_num.npy')
+            data_dic['niftyreg_lncc'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv10_jacobi_save_img/records/records_jacobi_num.npy')
+            data_dic['svf_opt'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_new2_moreiter_fixed/records/records_jacobi_num.npy')
+            data_dic['AVSM'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_jacobi_num.npy')
+
+    return data_dic
+
+
+def get_multi_step_affine_dic(draw_intra):
+    data_dic = {}
+    if draw_intra:
+        data_dic['iter2'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_2/records/records_detail.npy')
+        data_dic['iter3'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_3/records/records_detail.npy')
+        data_dic['iter4'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_4/records/records_detail.npy')
+        data_dic['iter5'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_5/records/records_detail.npy')
+        data_dic['iter6'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_6/records/records_detail.npy')
+        data_dic['iter7'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_7/records/records_detail.npy')
+        data_dic['iter8'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_8/records/records_detail.npy')
+
+    else:
+        data_dic['iter2'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_2/records/records_detail.npy')
+        data_dic['iter3'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_3/records/records_detail.npy')
+        data_dic['iter4'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_4/records/records_detail.npy')
+        data_dic['iter5'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_5/records/records_detail.npy')
+        data_dic['iter6'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_6/records/records_detail.npy')
+        data_dic['iter7'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_7/records/records_detail.npy')
+        data_dic['iter8'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_8/records/records_detail.npy')
+
+
+    return data_dic
+
+
+
+def get_sym_dic(draw_intra):
+    data_dic = {}
+    if draw_intra:
+        #data_dic['demons'] = get_experiment_data_from_record(inc(),
+        #                                                     '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_jacobi/records/records_jacobi_num.npy')
+        data_dic['syn_ants'] = get_experiment_data_from_record(inc(),
+                                                               '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_refine_jacobi/records/records_jacobi_num.npy')
+        data_dic['niftyreg_nmi'] = get_experiment_data_from_record(inc(),
+                                                                   '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi_num.npy')
+        data_dic['niftyreg_lncc'] = get_experiment_data_from_record(inc(),
+                                                                    '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_interv10_jacobi_save_img/records/records_jacobi_num.npy')
+        data_dic['svf_opt'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_new2_moreiter_fixed/records/records_jacobi_num.npy')
+        # data_dic['AVSM'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/train_mermaid_net_reisd_2_4step_lncc_recbi/records/records_jacobi.npy')
+    else:
+        # data_dic['demons'] = get_experiment_data_from_record(inc(),
+        #                                                      '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_jacobi/records/records_jacobi_num.npy')
+        data_dic['syn_ants'] = get_experiment_data_from_record(inc(),
+                                                               '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_refine_jacobi/records/records_jacobi_num.npy')
+        data_dic['niftyreg_nmi'] = get_experiment_data_from_record(inc(),
+                                                                   '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi_num.npy')
+        data_dic['niftyreg_lncc'] = get_experiment_data_from_record(inc(),
+                                                                    '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_interv10_jacobi_save_img/records/records_jacobi_num.npy')
+        data_dic['svf_opt'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_new2_moreiter_fixed/records/records_jacobi_num.npy')
+        # data_dic['AVSM'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/train_mermaid_net_reisd_2_4step_lncc_recbi/records/records_jacobi.npy')
+
+    return data_dic
+
+
+
 
 
 def draw_group_boxplot(name_list,data_list1,data_list2):
@@ -180,7 +275,7 @@ def draw_group_boxplot(name_list,data_list1,data_list2):
     sn.set_ylabel('Dice Score')
     # plt.xticks(rotation=45)
     ax.yaxis.grid(True)
-    leg=plt.legend(prop={'size': 18})
+    leg=plt.legend(prop={'size': 18},loc=4)
     leg.get_frame().set_alpha(0.2)
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                  ax.get_xticklabels() + ax.get_yticklabels()):
@@ -242,27 +337,63 @@ def inc():
 
 
 
+draw_trendency = True
+draw_boxplot = False
+
+##################################Get Data ##############################################################
+
+
+# # get dice box plot data
+
+# data_list1, name_list = get_list_from_dic(get_res_dic(draw_intra=True, draw_trendency=False))
+# order = -1
+# data_list2, _ = get_list_from_dic(get_res_dic(draw_intra=False, draw_trendency=False))
+# order = -1
 
 
 
-draw_intra = True
-draw_trendency = False
-data_list1, name_list = get_list_from_dic(get_res_dic(draw_intra=True, draw_trendency=False))
+# ##  get multi-step svf trend data
+# data_list1, name_list = get_list_from_dic(get_res_dic(draw_intra=True, draw_trendency=True))
+# order = -1
+# data_list2, _ = get_list_from_dic(get_res_dic(draw_intra=False, draw_trendency=True))
+# order = -1
+## get multi-step affine trend data
+
+data_list1, name_list = get_list_from_dic(get_multi_step_affine_dic(draw_intra=True))
 order = -1
-data_list2, _ = get_list_from_dic(get_res_dic(draw_intra=False, draw_trendency=False))
+data_list2, _ = get_list_from_dic(get_multi_step_affine_dic(draw_intra=False))
 order = -1
 
-trend1, trend_name = get_list_from_dic(get_res_dic(draw_intra=True, draw_trendency=True))
-order = -1
-trend2, _ = get_list_from_dic(get_res_dic(draw_intra=False, draw_trendency=True))
+
 
 # if not draw_trendency:
 #     plot_box(data_list1, name_list)
 # else:
 #     plot_trendency(data_list1,name_list)
+
+
+######################################################compute mean and std ##################################3
+
+
 compute_std(data_list1, name_list)
 print( "now compute the cross subject ")
 compute_std(data_list2, name_list)
-#draw_group_boxplot(name_list,data_list1,data_list2)
+if draw_boxplot:
+    draw_group_boxplot(name_list,data_list1,data_list2)
+if draw_trendency:
+    plot_group_trendency(name_list, data_list1, data_list2)
 
-plot_group_trendency(trend_name, trend1, trend2)
+
+
+
+
+##############################################Jacobian###############################################
+# print("Now lets compute jacobi")
+# order = -1
+# jacobi_list1, jacobi_name_list = get_list_from_dic(get_jacobi_dic(draw_intra=True, draw_trendency=False))
+# order = -1
+# jacobi_list2, _ = get_list_from_dic(get_jacobi_dic(draw_intra=False, draw_trendency=False))
+# compute_std(jacobi_list1, jacobi_name_list)
+# print( "now compute the cross subject ")
+# compute_std(jacobi_list2, jacobi_name_list)
+# #draw_group_boxplot(jacobi_name_list, jacobi_list1, jacobi_list2)

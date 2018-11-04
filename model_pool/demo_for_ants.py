@@ -68,8 +68,15 @@ start = time.time()
 
 
 syn_res = ants.registration(fixed=target, moving=moving, type_of_transform ='SyN')
+if 'GenericAffine.mat' in syn_res['fwdtransforms'][0]:
+    tmp1 = syn_res['fwdtransforms'][0]
+    tmp2 = syn_res['fwdtransforms'][1]
+    syn_res['fwdtransforms'][0] = tmp2
+    syn_res['fwdtransforms'][1] = tmp1
 syn_warp_tmp = ants.apply_transforms(fixed=target, moving=moving,
-                                      transformlist=syn_res['fwdtransforms'])
+                                      transformlist=syn_res['fwdtransforms'],compose= '/playpen/zyshen/debugs/')
+syn_warp_tmp2 = ants.apply_transforms(fixed=target, moving=moving,
+                                      transformlist=syn_warp_tmp)
 syn_label = ants.apply_transforms(fixed=l_target, moving=l_moving,
                                       transformlist=syn_res['fwdtransforms'],interpolator='nearestNeighbor') #interpolator
 jacobian = ants.create_jacobian_determinant_image(target,syn_res['fwdtransforms'][0],False)
@@ -88,7 +95,7 @@ from model_pool.nifty_reg_utils import *
 phi = ants.image_read(syn_res['fwdtransforms'][1])
 id_grid =  phi
 id_grid.dimension= 4
-phi_ants = ants.apply_transforms( fixed=target, moving=id_grid, transformlist=syn_res['fwdtransforms'])
+phi_ants = ants.apply_transforms( fixed=target, moving=moving, transformlist=syn_res['fwdtransforms'])
 ants.image_write(phi_ants,'/playpen/zyshen/debugs/phi_ants.nii.gz')
 phi_warped = ants.image_read('/playpen/zyshen/debugs/phi_ants.nii.gz')
 print(phi_warped.numpy().shape)

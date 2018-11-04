@@ -1,9 +1,11 @@
 from time import time
+
+from model_pool.nifty_reg_utils import nifty_reg_resample
 from pipLine.utils import *
 import os
 import SimpleITK as sitk
 import ants
-
+import subprocess
 
 
 def compute_jacobi_map(jacobian):
@@ -19,12 +21,21 @@ def compute_jacobi_map(jacobian):
 
 def cal_ants_jacobi(shared_reference_path,record_path,fname):
     disp_pth =os.path.join(record_path,fname+'_disp.nii.gz')
+    mat_pth = os.path.join(record_path,fname+"_affine.mat")
     reference = ants.image_read(shared_reference_path)
-    jacobian = ants.create_jacobian_determinant_image(reference, disp_pth, False)
+    warp_tmp = ants.apply_transforms(fixed=reference, moving=reference,
+                                         transformlist=[disp_pth,mat_pth], compose=record_path)
+    jacobian = ants.create_jacobian_determinant_image(reference, warp_tmp, False)
     jacobian_np = jacobian.numpy()
+    jacobian_np[jacobian_np==0]=-1
     return jacobian_np
 
 def cal_demons_jacobi(shared_reference_path,record_path,fname):
+    # af_txt = os.path.join(record_path,fname+'_af.txt')
+    # output_pth = os.path.join(record_path,'tmp_output.nii.gz')
+    # cmd = nifty_reg_resample(ref=shared_reference_path, flo=shared_reference_path, trans=af_txt, res=output_pth, inter=0)
+    # process = subprocess.Popen(cmd, shell=True)
+    # process.wait()
     disp_pth =os.path.join(record_path,fname+'_disp.nii.gz')
     disp = sitk.ReadImage(disp_pth)
     jacobi_filter = sitk.DisplacementFieldJacobianDeterminantFilter()

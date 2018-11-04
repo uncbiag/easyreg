@@ -73,6 +73,8 @@ class MermaidIter(BaseModel):
 
 
     def affine_optimization(self):
+        self.si = SI.RegisterImagePair()
+
         self.si.set_light_analysis_on(True)
         extra_info={}
         extra_info['pair_name'] = self.fname_list[0]
@@ -101,6 +103,9 @@ class MermaidIter(BaseModel):
 
 
     def svf_optimization(self):
+        affine_map = self.si.opt.optimizer.ssOpt.get_map()
+
+        self.si =  SI.RegisterImagePair()
         self.si.set_light_analysis_on(True)
         extra_info = {}
         extra_info['pair_name'] = self.fname_list[0]
@@ -110,7 +115,6 @@ class MermaidIter(BaseModel):
         # LSource_warped.detach_()
 
 
-        affine_map = self.si.opt.optimizer.ssOpt.get_map()
         self.si.opt = None
         self.si.set_initial_map(affine_map.detach())
 
@@ -127,7 +131,7 @@ class MermaidIter(BaseModel):
 
                                 similarity_measure_sigma=1,
                                 json_config_out_filename='cur_settings_svf_output_tmp.json',
-                                params='cur_settings_svf.json')  # should be tmp  ################TODO ######################
+                                params='cur_settings_svf_tmp.json')  # should be tmp  ################TODO ######################
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
@@ -143,8 +147,12 @@ class MermaidIter(BaseModel):
             self.affine_optimization()
             return self.svf_optimization()
 
-
-
+    def save_deformation(self):
+        import nibabel as nib
+        phi_np = self.phi.detach().cpu().numpy()
+        for i in range(phi_np.shape[0]):
+            phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+            nib.save(phi, os.path.join(self.record_path,self.fname_list[i])+ '_phi.nii.gz')
 
 
 
@@ -187,6 +195,7 @@ class MermaidIter(BaseModel):
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
             self.jacobi_val = self.compute_jacobi_map(self.phi)
             print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
+            self.save_deformation()
         else:
             step = 8
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))

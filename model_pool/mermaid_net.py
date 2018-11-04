@@ -92,12 +92,10 @@ class MermaidNet(nn.Module):
         self.affine_net = AffineNetCycle(self.img_sz[2:])
 
         if self.load_external_model:
-            # if not self.intra_training:
-            #     model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_mermaid_net_lncc_bi/checkpoints/epoch_60_'
-            # else:
-            #     model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_lncc/checkpoints/epoch_100_'
-                    #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_resid_ncc/checkpoints/epoch_120_"
-            model_path ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_70_'
+            if not self.intra_training:
+                model_path ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_70_'
+            else:
+                model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_intra_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_90_'
                 #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_mermaid_net_reisd_2step_lncc_recbi/checkpoints/epoch_270_'
                 #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_inter_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_100_'
                 #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_mermaid_net_lncc_bi/checkpoints/epoch_60_'

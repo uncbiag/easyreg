@@ -215,6 +215,7 @@ class RegNet(BaseModel):
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
             self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
             print("current batch jacobi is {}".format(self.jacobi_val))
+            #self.save_deformation() ##########################################TODO########################################################################
         else:
             step = 3
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
@@ -246,6 +247,12 @@ class RegNet(BaseModel):
 
     def save(self, label):
         self.save_network(self.network, 'unet', label, self.gpu_ids)
+    def save_deformation(self):
+        import nibabel as nib
+        phi_np = self.phi.detach().cpu().numpy()
+        for i in range(phi_np.shape[0]):
+            phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+            nib.save(phi, os.path.join(self.record_path,self.fname_list[i])+ '_phi.nii.gz')
 
 
 

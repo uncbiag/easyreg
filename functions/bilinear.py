@@ -19,7 +19,7 @@ class Bilinear(Module):
    Spatial transform function for 1D, 2D, and 3D. In BCXYZ format (this IS the format used in the current toolbox).
    """
 
-    def __init__(self, zero_boundary=False):
+    def __init__(self, zero_boundary=False,using_scale=True):
         """
         Constructor
 
@@ -27,6 +27,7 @@ class Bilinear(Module):
         """
         super(Bilinear, self).__init__()
         self.zero_boundary = 'zeros' if zero_boundary else 'border'
+        self.using_scale = using_scale
 
     def forward_stn(self, input1, input2):
         input2_ordered = torch.zeros_like(input2)
@@ -46,8 +47,12 @@ class Bilinear(Module):
         :param input2: spatial transform in BdimXYZ format
         :return: spatially transformed image in BCXYZ format
         """
+        if self.using_scale:
 
-
-        output = self.forward_stn((input1+1)/2, input2)
-        # print(STNVal(output, ini=-1).sum())
-        return output*2-1
+            output = self.forward_stn((input1+1)/2, input2)
+            # print(STNVal(output, ini=-1).sum())
+            return output*2-1
+        else:
+            output = self.forward_stn(input1, input2)
+            # print(STNVal(output, ini=-1).sum())
+            return output

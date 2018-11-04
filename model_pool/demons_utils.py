@@ -30,9 +30,9 @@ def smooth_and_resample(image, shrink_factor, smoothing_sigma):
                          image.GetPixelID())
 
 
-def get_affined_moving_image(fixed_image_pth, moving_image_path,ml_path=None):
+def get_affined_moving_image(fixed_image_pth, moving_image_path,ml_path=None,fname = None):
     affine_path =moving_image_path.replace('moving.nii.gz','affine.nii.gz')
-    affine_txt = moving_image_path.replace('moving.nii.gz', 'affine_transform.txt')
+    affine_txt = moving_image_path.replace('moving.nii.gz', fname+'_af.txt')
     cmd = nifty_reg_affine(ref=fixed_image_pth, flo=moving_image_path, aff=affine_txt, res=affine_path)
     affine_label_path = None
 
@@ -138,7 +138,7 @@ def performDemonsRegistration(mv_path, target_path, registration_type='demons', 
     print("start demons registration")
     assert registration_type =='demons'
 
-    mv_path, ml_path = get_affined_moving_image(target_path, mv_path, ml_path=ml_path)
+    mv_path, ml_path = get_affined_moving_image(target_path, mv_path, ml_path=ml_path,fname=fname)
 
 
     demons_filter = sitk.FastSymmetricForcesDemonsRegistrationFilter()

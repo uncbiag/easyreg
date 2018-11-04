@@ -11,7 +11,7 @@ from model_pool.train_expr import train_model
 from model_pool.test_expr import test_model
 from model_pool.debug_expr import debug_model
 from model_pool.cal_saved_jacobi import cal_jacobi
-
+from model_pool.compare_different_sym import cal_sym
 class Pipline():
     def initialize(self):
         initializer = Initializer()
@@ -29,6 +29,7 @@ class Pipline():
         else:
             debug_model(self.tsk_opt, self.model, self.data_loaders)
             #cal_jacobi(self.tsk_opt, self.data_loaders)
+            #cal_sym(self.tsk_opt, self.data_loaders)
 
             #test_model(self.tsk_opt,self.model,self.data_loaders)
         # test_model(self.tsk_opt,self.model,self.data_loaders)

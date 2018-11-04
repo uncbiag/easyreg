@@ -43,7 +43,7 @@ class AffineNet(nn.Module):
     network would warp the phi, the advantage of this method is we don't need
     to warp the image for several time as interpolation would introduce unstability
     """
-    def __init__(self, img_sz=None, resize_factor=1.):
+    def __init__(self, img_sz=None, opt=None):
         super(AffineNet, self).__init__()
         self.img_sz = img_sz if len(img_sz)<4 else img_sz[2:]
         self.dim = len(self.img_sz)
@@ -92,11 +92,12 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
     network would warp the phi, the advantage of this method is we don't need
     to warp the image for several time as interpolation would introduce unstability
     """
-    def __init__(self, img_sz=None, resize_factor=1.):
+    def __init__(self, img_sz=None, opt=None):
         super(AffineNetCycle, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = 7   #############################################################
+        self.step = opt['tsk_set'][('num_af_cycle',7,'number of affine step')]
+        print("In current affine_net : {} step is used".format(self.step))
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
@@ -172,7 +173,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
     network would warp the phi, the advantage of this method is we don't need
     to warp the image for several time as interpolation would introduce unstability
     """
-    def __init__(self, img_sz=None, resize_factor=1.):
+    def __init__(self, img_sz=None, opt=None):
         super(AffineNetSym, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
