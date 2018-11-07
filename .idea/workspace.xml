@@ -2,40 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6276e5ba-c766-4737-8ef1-b118f0ca9119" name="Default" comment="'update reg data procss strategy, add networks, add multi-dice, add focal loss'">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/registration_net.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/registration_net.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_pre/data_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_pre/data_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_pre/oai_longitude_reg_for_labeled_data.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_pre/reg_data_loader_onfly.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_pre/reg_data_loader_onfly.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/demo_for_reg.py" beforeDir="false" afterPath="$PROJECT_DIR$/demo/demo_for_reg.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/bilinear.py" beforeDir="false" afterPath="$PROJECT_DIR$/functions/bilinear.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/ants_reg_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/ants_reg_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/base_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/base_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/cur_settings_affine.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/cur_settings_affine_record_best.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/cur_settings_svf.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/cur_settings_svf_record_best.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/debug_expr.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/global_variable.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/global_variable.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/mermaid_iter.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/mermaid_iter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/mermaid_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/mermaid_net.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/modules.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/modules.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/network_pool.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/network_pool.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/piplines.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/piplines.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/reg_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/reg_net.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/reg_net_pool.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/task_pool_reg.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/task_pool_reg.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/task_pool_reg_ex.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/task_pool_reg_ex.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/test_expr.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/test_expr.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model_pool/train_expr.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/train_expr.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/base_data_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/base_data_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/base_task_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/base_task_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/data_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/data_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/data_settings_comments.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/data_settings_comments.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/task_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/task_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/task_settings_comments.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/task_settings_comments.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -80,29 +48,31 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="reg_net.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/model_pool/reg_net.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="307">
-              <caret line="90" column="20" lean-forward="true" selection-start-line="88" selection-start-column="36" selection-end-line="90" selection-end-column="20" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="mermaid_net.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="523">
-              <caret line="224" column="102" lean-forward="true" selection-start-line="224" selection-start-column="102" selection-end-line="224" selection-end-column="102" />
+            <state relative-caret-position="1489">
+              <caret line="105" column="36" lean-forward="true" selection-start-line="105" selection-start-column="36" selection-end-line="105" selection-end-column="36" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="network_pool.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="demo_for_ants.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/model_pool/demo_for_ants.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-972">
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="network_pool.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/network_pool.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="98">
-              <caret line="119" lean-forward="true" selection-start-line="119" selection-end-line="119" />
+            <state relative-caret-position="431">
+              <caret line="345" column="37" selection-start-line="345" selection-start-column="37" selection-end-line="345" selection-end-column="37" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -110,11 +80,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="net_utils.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/model_pool/net_utils.py">
+      <file leaf-file-name="modules.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_pool/modules.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="164" column="8" selection-start-line="164" selection-start-column="8" selection-end-line="164" selection-end-column="8" />
+            <state relative-caret-position="776">
+              <caret line="207" column="110" lean-forward="true" selection-start-line="207" selection-start-column="110" selection-end-line="207" selection-end-column="110" />
             </state>
           </provider>
         </entry>
@@ -122,8 +92,8 @@
       <file leaf-file-name="train_expr.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/train_expr.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2359">
-              <caret line="181" lean-forward="true" selection-start-line="181" selection-end-line="181" />
+            <state relative-caret-position="18">
+              <caret line="94" selection-start-line="94" selection-end-line="94" />
             </state>
           </provider>
         </entry>
@@ -131,7 +101,7 @@
       <file leaf-file-name="base_model.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/base_model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="228">
+            <state relative-caret-position="504">
               <caret line="31" column="15" selection-start-line="31" selection-start-column="15" selection-end-line="31" selection-end-column="15" />
             </state>
           </provider>
@@ -140,8 +110,8 @@
       <file leaf-file-name="reg_data_loader_onfly.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data_pre/reg_data_loader_onfly.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4464">
-              <caret line="248" column="43" lean-forward="true" selection-start-line="248" selection-start-column="43" selection-end-line="248" selection-end-column="43" />
+            <state relative-caret-position="4248">
+              <caret line="248" column="43" selection-start-line="248" selection-start-column="43" selection-end-line="248" selection-end-column="43" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -152,7 +122,7 @@
       <file leaf-file-name="data_manager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data_pre/data_manager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="262">
+            <state relative-caret-position="3654">
               <caret line="208" column="45" selection-start-line="208" selection-start-column="45" selection-end-line="208" selection-end-column="45" />
             </state>
           </provider>
@@ -161,7 +131,7 @@
       <file leaf-file-name="piplines.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/piplines.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
+            <state relative-caret-position="432">
               <caret line="25" column="67" selection-start-line="25" selection-start-column="67" selection-end-line="25" selection-end-column="67" />
             </state>
           </provider>
@@ -170,8 +140,8 @@
       <file leaf-file-name="mermaid_iter.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/mermaid_iter.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="346">
-              <caret line="42" column="48" lean-forward="true" selection-start-line="42" selection-start-column="48" selection-end-line="42" selection-end-column="48" />
+            <state relative-caret-position="612">
+              <caret line="42" column="48" selection-start-line="42" selection-start-column="48" selection-end-line="42" selection-end-column="48" />
             </state>
           </provider>
         </entry>
@@ -298,10 +268,10 @@
         <option value="$PROJECT_DIR$/model_pool/piplines.py" />
         <option value="$PROJECT_DIR$/data_pre/reg_data_loader_onfly.py" />
         <option value="$PROJECT_DIR$/model_pool/base_model.py" />
-        <option value="$PROJECT_DIR$/model_pool/train_expr.py" />
         <option value="$PROJECT_DIR$/model_pool/mermaid_net.py" />
         <option value="$PROJECT_DIR$/model_pool/reg_net.py" />
         <option value="$PROJECT_DIR$/model_pool/network_pool.py" />
+        <option value="$PROJECT_DIR$/model_pool/train_expr.py" />
       </list>
     </option>
   </component>
@@ -315,10 +285,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="65" />
-    <option name="y" value="-4" />
+    <option name="x" value="188" />
+    <option name="y" value="376" />
     <option name="width" value="1855" />
-    <option name="height" value="1084" />
+    <option name="height" value="1056" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -355,17 +325,17 @@
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
               <item name="registration_net" type="462c0819:PsiDirectoryNode" />
-              <item name="data_pre" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
-              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
               <item name="demo" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
               <item name="registration_net" type="462c0819:PsiDirectoryNode" />
               <item name="functions" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
@@ -392,7 +362,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../registration_net" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="PyConsoleOptionsProvider">
@@ -548,9 +518,9 @@
       <list>
         <item itemvalue="Python.demo_for_reg" />
         <item itemvalue="Python.analysis_result" />
-        <item itemvalue="Python.task_pool2" />
-        <item itemvalue="Python.multi_mod_txt_gen" />
         <item itemvalue="Python.priority_sampler" />
+        <item itemvalue="Python.multi_mod_txt_gen" />
+        <item itemvalue="Python.task_pool2" />
       </list>
     </recent_temporary>
   </component>
@@ -633,19 +603,18 @@
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49806523" weight="0.33010754" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.2106136" side_tool="true" visible="true" weight="0.17349137" />
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="File Transfer" order="13" sideWeight="0.68601435" weight="0.27262932" />
-      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.7893864" weight="0.17349137" />
       <window_info anchor="bottom" id="Version Control" order="8" sideWeight="0.49806523" weight="0.32903227" />
       <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49585405" weight="0.32885572" />
+      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.7893864" weight="0.17349137" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.4936429" weight="0.3268817" />
       <window_info anchor="right" id="Remote Host" order="5" side_tool="true" weight="0.32946378" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49740162" visible="true" weight="0.1116639" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49740162" visible="true" weight="0.11387507" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
       <window_info anchor="right" id="SciView" order="6" weight="0.024875622" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.671089" weight="0.30064654" />
       <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.671089" weight="0.30064654" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -653,6 +622,7 @@
       <window_info anchor="right" id="Data View" order="4" weight="0.32888147" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="File Transfer" order="13" sideWeight="0.6854616" weight="0.27262932" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4991708" weight="0.3275862" />
       <window_info anchor="bottom" id="Concurrent Activities Diagram" order="12" sideWeight="0.4990614" weight="0.32686567" />
     </layout>
@@ -662,25 +632,25 @@
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.4665561" weight="0.21612903" />
       <window_info anchor="right" id="Remote Host" order="5" side_tool="true" weight="0.32946378" />
+      <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
       <window_info anchor="right" id="Data View" order="4" weight="0.32888147" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49806523" weight="0.33010754" />
-      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49585405" weight="0.32885572" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Version Control" order="8" sideWeight="0.49806523" weight="0.32903227" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32815966" />
       <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49806523" weight="0.32794458" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.5041459" side_tool="true" weight="0.32903227" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Version Control" order="8" sideWeight="0.49806523" weight="0.32903227" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="right" id="SciView" order="6" weight="0.106371194" />
       <window_info anchor="bottom" id="File Transfer" order="13" sideWeight="0.49359658" weight="0.24193548" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.46684635" weight="0.30107528" />
       <window_info anchor="bottom" id="Concurrent Activities Diagram" order="12" weight="0.3268817" />
-      <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
+      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49585405" weight="0.32885572" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -739,7 +709,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/data_pre/transform.py" />
     <entry file="file://$PROJECT_DIR$/data_pre/partition.py" />
     <entry file="file://$USER_HOME$/.PyCharm2017.3/system/remote_sources/-400033717/-2035662808/numpy/core/fromnumeric.py" />
     <entry file="file://$PROJECT_DIR$/model_pool/unet_expr.py" />
@@ -863,22 +832,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/modules.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2430">
-          <caret line="141" column="8" selection-start-line="141" selection-start-column="8" selection-end-line="141" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data_pre/oai_longitude_reg_for_labeled_data.py" />
     <entry file="file://$PROJECT_DIR$/data_pre/multi_mod_txt_gen.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/data_pre/oai_longitude_reg.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -901,9 +857,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="702">
           <caret line="39" column="23" selection-start-line="39" selection-start-column="22" selection-end-line="39" selection-end-column="23" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -944,86 +897,99 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/model_pool/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="12" column="4" selection-start-line="12" selection-start-column="4" selection-end-line="12" selection-end-column="4" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="2916">
+          <caret line="170" column="4" selection-start-line="170" selection-start-column="4" selection-end-line="170" selection-end-column="4" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_iter.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/reg_net.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="346">
-          <caret line="42" column="48" lean-forward="true" selection-start-line="42" selection-start-column="48" selection-end-line="42" selection-end-column="48" />
+        <state relative-caret-position="1404">
+          <caret line="90" column="20" selection-start-line="88" selection-start-column="36" selection-end-line="90" selection-end-column="20" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/piplines.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/net_utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="25" column="67" selection-start-line="25" selection-start-column="67" selection-end-line="25" selection-end-column="67" />
+        <state relative-caret-position="2844">
+          <caret line="164" column="8" selection-start-line="164" selection-start-column="8" selection-end-line="164" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data_pre/data_manager.py">
+    <entry file="file://$PROJECT_DIR$/model_pool/base_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="262">
-          <caret line="208" column="45" selection-start-line="208" selection-start-column="45" selection-end-line="208" selection-end-column="45" />
+        <state relative-caret-position="504">
+          <caret line="31" column="15" selection-start-line="31" selection-start-column="15" selection-end-line="31" selection-end-column="15" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/data_pre/reg_data_loader_onfly.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4464">
-          <caret line="248" column="43" lean-forward="true" selection-start-line="248" selection-start-column="43" selection-end-line="248" selection-end-column="43" />
+        <state relative-caret-position="4248">
+          <caret line="248" column="43" selection-start-line="248" selection-start-column="43" selection-end-line="248" selection-end-column="43" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/data_pre/data_manager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3654">
+          <caret line="208" column="45" selection-start-line="208" selection-start-column="45" selection-end-line="208" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/piplines.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="25" column="67" selection-start-line="25" selection-start-column="67" selection-end-line="25" selection-end-column="67" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_iter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="42" column="48" selection-start-line="42" selection-start-column="48" selection-end-line="42" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/model_pool/train_expr.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2359">
-          <caret line="181" lean-forward="true" selection-start-line="181" selection-end-line="181" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/base_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="228">
-          <caret line="31" column="15" selection-start-line="31" selection-start-column="15" selection-end-line="31" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="523">
-          <caret line="224" column="102" lean-forward="true" selection-start-line="224" selection-start-column="102" selection-end-line="224" selection-end-column="102" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/reg_net.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="307">
-          <caret line="90" column="20" lean-forward="true" selection-start-line="88" selection-start-column="36" selection-end-line="90" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/net_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="164" column="8" selection-start-line="164" selection-start-column="8" selection-end-line="164" selection-end-column="8" />
+        <state relative-caret-position="18">
+          <caret line="94" selection-start-line="94" selection-end-line="94" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model_pool/network_pool.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="98">
-          <caret line="119" lean-forward="true" selection-start-line="119" selection-end-line="119" />
+        <state relative-caret-position="431">
+          <caret line="345" column="37" selection-start-line="345" selection-start-column="37" selection-end-line="345" selection-end-column="37" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/modules.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="776">
+          <caret line="207" column="110" lean-forward="true" selection-start-line="207" selection-start-column="110" selection-end-line="207" selection-end-column="110" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1489">
+          <caret line="105" column="36" lean-forward="true" selection-start-line="105" selection-start-column="36" selection-end-line="105" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/demo_for_ants.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-972">
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

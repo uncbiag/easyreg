@@ -155,8 +155,8 @@ def train_model(opt,model, dataloaders,writer):
 
 
             if phase == 'debug':
-                epoch_debug_loss = running_debug_score / min(max_batch_num_per_epoch['debug'], dataloaders['data_size']['debug'])
-                print('{} epoch_debug_score: {:.4f}'.format(epoch, epoch_debug_loss))
+                epoch_debug_score = running_debug_score / min(max_batch_num_per_epoch['debug'], dataloaders['data_size']['debug'])
+                print('{} epoch_debug_score: {:.4f}'.format(epoch, epoch_debug_score))
         print()
 
 
