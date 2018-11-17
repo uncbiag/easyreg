@@ -31,6 +31,21 @@ transform_types = {'SynBold',
 
 
 
+def read_nifty_reg_affine(affine_txt):
+    res = np.loadtxt(affine_txt, delimiter=' ')
+    matrix = res[:3,:3]
+    matrix_cp = matrix.copy()
+    matrix[0,2]=-matrix[0,2]
+    matrix[1,2]=-matrix[1,2]
+    matrix[2,0]=-matrix[2,0]
+    matrix[2,1]=-matrix[2,1]
+    matrix[0,0]= matrix_cp[0,0]
+    matrix[1,1]= matrix_cp[1,1]
+    trans = res[:3,3]
+    trans_cp = trans.copy()
+    trans[1] =-trans_cp[1]
+    trans[0] =-trans_cp[0]
+    return matrix, trans
 
 
 moving_img_path = '/playpen/zyshen/debugs/demons/moving.nii.gz'
@@ -39,12 +54,51 @@ ml_path = '/playpen/zyshen/debugs/demons/l_moving.nii.gz'
 tl_path = '/playpen/zyshen/debugs/demons/l_target.nii.gz'
 
 af_warped_path = '/playpen/zyshen/debugs/af_warped_img.nii.gz'
+
 af_warped_lpath = '/playpen/zyshen/debugs/af_warped_label.nii.gz'
 syn_warped_path = '/playpen/zyshen/debugs/syn_warped_img.nii.gz'
 syn_warped_path2 = '/playpen/zyshen/debugs/syn_warped_img2.nii.gz'
 syn_warped_lpath = '/playpen/zyshen/debugs/syn_warped_label.nii.gz'
 
 
+
+
+from model_pool.nifty_reg_utils import nifty_reg_affine, nifty_reg_resample
+import subprocess
+# moving_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20060322_SAG_3D_DESS_LEFT_016610899303_image.nii.gz'
+# target_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9357383_20040927_SAG_3D_DESS_LEFT_016610250606_image.nii.gz'
+af_pth = '/playpen/zyshen/debugs/nifty_affine/affine.txt'
+af_nifty_warped_path =  '/playpen/zyshen/debugs/nifty_affine/af_nifty_warped_img.nii.gz'
+af_nifty_warped2_path =  '/playpen/zyshen/debugs/nifty_affine/af_nifty_warped2_img.nii.gz'
+af_sitk_warped_path = '/playpen/zyshen/debugs/nifty_affine/af_sitk_warped_img.nii.gz'
+#
+# cmd = nifty_reg_affine(ref=target_img_path, flo=moving_img_path, aff=af_pth, res=af_nifty_warped_path)
+cmd = '\n' + nifty_reg_resample(ref=target_img_path,flo=moving_img_path,trans=af_pth, res=af_nifty_warped2_path)
+process = subprocess.Popen(cmd, shell=True)
+process.wait()
+
+
+moving = sitk.ReadImage(moving_img_path)
+target = sitk.ReadImage(target_img_path)
+
+dimension=3
+matrix, trans=read_nifty_reg_affine(af_pth)
+affine = sitk.AffineTransform(dimension)
+affine.SetMatrix(matrix.ravel())
+affine.SetTranslation(trans)
+#affine = affine.GetInverse()
+initial_displacement_field = sitk.TransformToDisplacementField(affine,
+                                                                sitk.sitkVectorFloat64,
+                                                               target.GetSize(),
+                                                               target.GetOrigin(),
+                                                               target.GetSpacing(),
+                                                               target.GetDirection())
+tx = sitk.DisplacementFieldTransform(initial_displacement_field)
+from model_pool.demons_utils_old import sitk_grid_sampling
+
+warped_img = sitk_grid_sampling(target,moving, tx,
+                                    is_label=False)
+sitk.WriteImage(warped_img,af_sitk_warped_path)
 
 
 moving = ants.image_read(moving_img_path)

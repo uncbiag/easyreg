@@ -31,6 +31,26 @@ class SimpleNet(nn.Module):
         output = self.bilinear(moving,gridField)
         return output, gridField, disField
 
+class SimpleUNet(nn.Module):
+    def __init__(self, img_sz=None,opt=None ):
+        resize_factor=1
+        super(SimpleUNet,self).__init__()
+        self.img_sz = img_sz
+        self.denseGen = DisGen_unetim()
+        init_weights(self.denseGen,init_type='kaiming')
+        self.hessianField = HessianField()
+        self.jacobiField = JacobiField()
+        self.identity_map= gen_identity_map(self.img_sz,resize_factor)
+        self.bilinear = Bilinear(zero_boundary=False)
+    def forward(self, input, moving,target=None):
+        disField = self.denseGen(input)
+        #print(disField.shape)
+        #hessianField = self.hessianField(disField)
+        gridField = torch.add(self.identity_map,disField)
+        #gridField= torch.tanh(gridField)
+        output = self.bilinear(moving,gridField)
+        return output, gridField, disField
+
 class AffineNet(nn.Module):
     """
     here we need two affine net,
@@ -358,6 +378,9 @@ class MomentumNet(nn.Module):
         self.low_res_factor = low_res_factor
         if use_resid_momentum:
             self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
+            print("=================    resid version momentum network is used==============")
+        elif use_lconv_momentum:
+            self.mom_gen = MomentumGen_lconv(low_res_factor, bn=False)
             print("=================    resid version momentum network is used==============")
         else:
             self.mom_gen = MomentumGen_im(low_res_factor, bn=False)

@@ -1,25 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Create some mock data
-t = np.arange(0.01, 10.0, 0.01)
-data1 = np.exp(t)
-data2 = np.sin(2 * np.pi * t)
+np.random.seed(19680801)
 
-fig, ax1 = plt.subplots()
+n_bins = 10
+x = np.random.randn(1000, 3)
 
-color = 'tab:red'
-ax1.set_xlabel('time (s)')
-ax1.set_ylabel('exp', color=color)
-ax1.plot(t, data1, color=color)
-ax1.tick_params(axis='y', labelcolor=color)
+fig, axes = plt.subplots(nrows=1, ncols=1)
+#ax0, ax1, ax2, ax3 = axes.flatten()
 
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+x_multi = [np.random.randn(n) for n in [10000, 5000, 2000]]
+axes.hist(x_multi, n_bins, histtype='bar')
+axes.set_title('different sample sizes')
 
-color = 'tab:blue'
-ax2.set_ylabel('sin', color=color)  # we already handled the x-label with ax1
-ax2.plot(t, data2, color=color)
-ax2.tick_params(axis='y', labelcolor=color)
-
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
+fig.tight_layout()
 plt.show()

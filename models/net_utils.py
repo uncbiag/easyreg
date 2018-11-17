@@ -17,9 +17,12 @@ conv = F.conv2d if dim==2 else F.conv3d
 class conv_bn_rel(nn.Module):
     # conv + bn (optional) + relu
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, active_unit='relu', same_padding=False,
-                 bn=False, reverse=False,group = 1,dilation = 1):
+                 bn=False, reverse=False,group = 1,dilation = 1,padding_num=None):
         super(conv_bn_rel, self).__init__()
-        padding = int((kernel_size - 1) / 2) if same_padding else 0
+        if padding_num is None:
+            padding = int((kernel_size - 1) / 2) if same_padding else 0
+        else:
+            padding = padding_num
         if not reverse:
             self.conv = Conv(in_channels, out_channels, kernel_size, stride, padding=padding, groups=1,dilation=1)
         else:
@@ -129,17 +132,17 @@ class HessianField(object):
             dx = Variable(torch.cuda.FloatTensor([[[-1., -3., -1.], [-3., -6., -3.], [-1., -3., -1.]],
                                                             [[0., 0., 0.], [0., 0, 0.], [0., 0., 0.]],
                                                             [[1., 3., 1.], [3., 6., 3.], [1., 3., 1.]]]
-                                                           )).view(1,1,3,3,3)
+                                                           )).view(1,1,3,3,3)/10
             dy  = Variable(
                 torch.cuda.FloatTensor([[[1., 3., 1.], [0., 0., 0.], [-1., -3., -1.]],
                                         [[3., 6., 3.], [0., 0, 0.], [-3., -6., -3.]],
                                         [[1., 3., 1.], [0., 0., 0.], [-1., -3., -1.]]]
-                                       )).view(1, 1, 3, 3, 3)
+                                       )).view(1, 1, 3, 3, 3)/10
             dz = Variable(
                 torch.cuda.FloatTensor([[[-1., 0., 1.], [-3., 0., 3.], [-1., 0., 1.]],
                                         [[-3., 0., 3.], [-6., 0, 6.], [-3., 0., 3.]],
                                         [[-1., 0., 1.], [-3., 0., 3.], [-1., 0., 1.]]]
-                                       )).view(1, 1, 3, 3, 3)
+                                       )).view(1, 1, 3, 3, 3)/10
             self.spatial_filter = torch.cat((dx, dy,dz), 1)
             self.spatial_filter=self.spatial_filter.repeat(3,1,1,1,1)
 

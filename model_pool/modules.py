@@ -9,7 +9,7 @@ from models.net_utils import *
 from model_pool.forward_models import RHSLibrary
 from model_pool.rungekutta_integrators import RK4
 from model_pool.forward_models import AdvectMap
-
+from model_pool.global_variable import conv_size, conv_size2
 
 
 
@@ -95,9 +95,9 @@ class DisGen_unet(nn.Module):
         self.up_path_8 = conv_bn_rel(32, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=False,reverse=True)
         self.up_path_4 = conv_bn_rel(64, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=False,reverse=True)
         self.up_path_2_1 = conv_bn_rel(64, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=False,reverse=True)
-        self.up_path_2_2 = conv_bn_rel(64, 8, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=False)
-        self.up_path_1_1 = conv_bn_rel(8, 8, 2, stride=2, active_unit='None', same_padding=False, bn=False,reverse=True)
-        self.up_path_1_2 = conv_bn_rel(24, 3, 3, stride=1, active_unit='None', same_padding=True, bn=False)
+        self.up_path_2_2 = conv_bn_rel(64, 16, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=False)
+        self.up_path_1_1 = conv_bn_rel(16, 16, 2, stride=2, active_unit='None', same_padding=False, bn=False,reverse=True)
+        self.up_path_1_2 = conv_bn_rel(16, 3, 3, stride=1, active_unit='None', same_padding=True, bn=False)
 
     def forward(self, x):
         d1 = self.down_path_1(x)
@@ -113,9 +113,77 @@ class DisGen_unet(nn.Module):
         u2_2 = self.up_path_2_2(torch.cat((u2_1,d2),1))
         del d2
         u1_1 = self.up_path_1_1(u2_2)
-        u1_2 = self.up_path_1_2(torch.cat((u1_1,d1),1))
+        u1_2 = self.up_path_1_2(u1_1)
         del d1
         return u1_2
+
+
+class DisGen_unetim(nn.Module):
+    def __init__(self, low_res_factor=1, bn=False):
+        super(DisGen_unetim,self).__init__()
+        self.low_res_factor = low_res_factor
+        self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2) #8
+        self.down_path_2_1 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)  # 16
+        self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2) # 16
+        self.down_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn) #32
+        self.down_path_4_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)  #64
+        self.down_path_4_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn) # 64
+        self.down_path_4_3 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_1 = conv_bn_rel(64, 128, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_2 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_3 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16_1 = conv_bn_rel(128, 256, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16_2 = conv_bn_rel(256, 256, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+
+
+        # output_size = strides * (input_size-1) + kernel_size - 2*padding
+        self.up_path_8_1 = conv_bn_rel(256, 128, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_8_2= conv_bn_rel(128+128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_8_3= conv_bn_rel(128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_1 = conv_bn_rel(128, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_4_2 = conv_bn_rel(64+64, 64, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_3 = conv_bn_rel(64, 64, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_2_1 = conv_bn_rel(64, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_2_2 = conv_bn_rel(32+32, 32, 3, stride=1, active_unit='None', same_padding=True)
+        self.up_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='None', same_padding=True)
+        self.up_path_1_1 = conv_bn_rel(32, 3, 2, stride=2, active_unit='None', same_padding=True,reverse=True)
+
+    def forward(self, x):
+        d1 = self.down_path_1(x)
+        d2_1 = self.down_path_2_1(d1)
+        d2_2 = self.down_path_2_2(d2_1)
+        d2_2 = d2_1 + d2_2
+        d2_3 = self.down_path_2_3(d2_2)
+        d2_3 = d2_1 + d2_3
+        d4_1 = self.down_path_4_1(d2_3)
+        d4_2 = self.down_path_4_2(d4_1)
+        d4_2 = d4_1 + d4_2
+        d4_3 = self.down_path_4_3(d4_2)
+        d4_3 = d4_2 + d4_3
+        d8_1 = self.down_path_8_1(d4_3)
+        d8_2 = self.down_path_8_2(d8_1)
+        d8_2 = d8_1 + d8_2
+        d8_3 = self.down_path_8_3(d8_2)
+        d8_3 = d8_2+ d8_3
+        d16_1 = self.down_path_16_1(d8_3)
+        d16_2 = self.down_path_16_2(d16_1)
+        d16_2 = d16_1 + d16_2
+
+
+        u8_1 = self.up_path_8_1(d16_2)
+        u8_2 = self.up_path_8_2(torch.cat((d8_3,u8_1),1))
+        u8_3 = self.up_path_8_3(u8_2)
+        u8_3 = u8_2 + u8_3
+        u4_1 = self.up_path_4_1(u8_3)
+        u4_2 = self.up_path_4_2(torch.cat((d4_3,u4_1),1))
+        u4_3 = self.up_path_4_3(u4_2)
+        u4_3 = u4_2 + u4_3
+        u2_1 = self.up_path_2_1(u4_3)
+        u2_2 = self.up_path_2_2(torch.cat((d2_3, u2_1), 1))
+        output = self.up_path_2_3(u2_2)
+        output = self.up_path_1_1(output)
+
+        return output
 
 
 
@@ -318,12 +386,12 @@ class MomentumGen_resid(nn.Module):
     def __init__(self, low_res_factor=1, bn=False):
         super(MomentumGen_resid,self).__init__()
         self.low_res_factor = low_res_factor
-        self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
-        self.down_path_2_1 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
-        self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
-        self.down_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
-        self.down_path_4_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
-        self.down_path_4_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2) #8
+        self.down_path_2_1 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)  # 16
+        self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2) # 16
+        self.down_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn) #32
+        self.down_path_4_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)  #64
+        self.down_path_4_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn) # 64
         self.down_path_4_3 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
         self.down_path_8_1 = conv_bn_rel(64, 128, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
         self.down_path_8_2 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
@@ -381,6 +449,73 @@ class MomentumGen_resid(nn.Module):
 
         return output
 
+
+class MomentumGen_lconv(nn.Module):
+    def __init__(self, low_res_factor=1, bn=False):
+        super(MomentumGen_lconv,self).__init__()
+        self.low_res_factor = low_res_factor
+        self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_1 = conv_bn_rel(16, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_3 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_1 = conv_bn_rel(64, 128, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_2 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_3 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16_1 = conv_bn_rel(128, 256, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_16_2 = conv_bn_rel(256, 256, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+
+
+        # output_size = strides * (input_size-1) + kernel_size - 2*padding
+        self.up_path_8_1 = conv_bn_rel(256, 128, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_8_2= conv_bn_rel(128+128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_8_3= conv_bn_rel(128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_1 = conv_bn_rel(128, 64, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_4_2 = conv_bn_rel(64+64, 32, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_2_1 = conv_bn_rel(32, 32, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_2_2_e = conv_bn_rel(32+32, 18, conv_size, stride=1, active_unit='None', same_padding=True,group=3,padding_num=int((conv_size-1)/2))
+        self.up_path_2_3_e = conv_bn_rel(18, 3, conv_size2, stride=1, active_unit='None', same_padding=True,group=3,padding_num=int((conv_size2-1)/2))
+
+    def forward(self, x):
+        d1 = self.down_path_1(x)
+        d2_1 = self.down_path_2_1(d1)
+        d2_2 = self.down_path_2_2(d2_1)
+        d2_2 = d2_1 + d2_2
+        d2_3 = self.down_path_2_3(d2_2)
+        d2_3 = d2_1 + d2_3
+        d4_1 = self.down_path_4_1(d2_3)
+        d4_2 = self.down_path_4_2(d4_1)
+        d4_2 = d4_1 + d4_2
+        d4_3 = self.down_path_4_3(d4_2)
+        d4_3 = d4_2 + d4_3
+        d8_1 = self.down_path_8_1(d4_3)
+        d8_2 = self.down_path_8_2(d8_1)
+        d8_2 = d8_1 + d8_2
+        d8_3 = self.down_path_8_3(d8_2)
+        d8_3 = d8_2+ d8_3
+        d16_1 = self.down_path_16_1(d8_3)
+        d16_2 = self.down_path_16_2(d16_1)
+        d16_2 = d16_1 + d16_2
+
+
+        u8_1 = self.up_path_8_1(d16_2)
+        u8_2 = self.up_path_8_2(torch.cat((d8_3,u8_1),1))
+        u8_3 = self.up_path_8_3(u8_2)
+        u8_3 = u8_2 + u8_3
+        u4_1 = self.up_path_4_1(u8_3)
+        u4_2 = self.up_path_4_2(torch.cat((d4_3,u4_1),1))
+        u4_3 = self.up_path_4_3(u4_2)
+        u4_3 = u4_2 + u4_3
+        u2_1 = self.up_path_2_1(u4_3)
+        u2_2 = self.up_path_2_2_e(torch.cat((d2_3, u2_1), 1))
+        output = self.up_path_2_3_e(u2_2)
+        if not self.low_res_factor==0.5:
+            raise('low resolution only')
+
+        return output
 
 
 

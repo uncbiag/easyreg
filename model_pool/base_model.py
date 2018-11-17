@@ -424,6 +424,9 @@ class BaseModel():
 
     def temp_save_Jacobi_image(self,jacobi_image_in,map_in):
         import ants
+        saving_folder_path = os.path.join(self.record_path, '3D')
+        if not os.path.exists(saving_folder_path):
+            make_dir(saving_folder_path)
         jacobi_image = np.squeeze(jacobi_image_in)
         map = (np.squeeze(map_in)+1)/2
         spacing = 1. / (np.array(jacobi_image.shape)- 1)
@@ -437,9 +440,8 @@ class BaseModel():
         fold_image = np.zeros_like(jacobi_image)
         fold_image[jacobi_image<0]  = 1
         fold_image = sitk.GetImageFromArray(fold_image)
-        sitk.WriteImage(fold_image, os.path.join(self.record_path,self.fname_list[0]+'fold.nii.gz'))
-
-        ants.image_write(ants.from_numpy(disp),os.path.join(self.record_path,self.fname_list[0]+'map.nii.gz'))
+        sitk.WriteImage(fold_image, os.path.join(saving_folder_path,self.fname_list[0]+'fold.nii.gz'))
+        ants.image_write(ants.from_numpy(disp),os.path.join(saving_folder_path,self.fname_list[0]+'map.nii.gz'))
 
 
 

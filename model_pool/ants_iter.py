@@ -277,7 +277,7 @@ class AntsRegIter(BaseModel):
 
     def compute_jacobi_map(self,jacobian):
         jacobi_abs = - np.sum(jacobian[jacobian < 0.])  #
-        jacobi_num = np.sum(jacobian < 0.)
+        jacobi_num = np.sum(jacobian <=0.)
         print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
         print("the number of fold points for current batch is {}".format(jacobi_num))
         # np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))

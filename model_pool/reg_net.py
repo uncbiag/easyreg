@@ -23,7 +23,8 @@ model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
               'affine_sym': AffineNetSym,
-              'mermaid':MermaidNet
+              'mermaid':MermaidNet,
+              'sim_unet':SimpleUNet
               }
 
 
@@ -101,7 +102,8 @@ class RegNet(BaseModel):
 
     def phi_regularization(self):
         if len(self.disp.shape)>2:
-            constr_map  = self.network.hessianField(self.disp)
+            constr_map  = self.disp**2 #self.network.hessianField(self.disp)
+            return constr_map.mean()
             #constr_map = self.network.jacobiField(self.disp)
         else:
             constr_map = self.network.affine_cons(self.disp, sched='l2')
@@ -206,16 +208,19 @@ class RegNet(BaseModel):
 
     def get_evaluation(self):
         if self.single_mod:
-
+            s1 = time()
             self.output, self.phi, self.disp= self.forward()
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            print("!!!!!!!!!!!!!!!!testing the time cost is {}".format(time()-s1))
+
             warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
             self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
             print("current batch jacobi is {}".format(self.jacobi_val))
-            #self.save_deformation() ##########################################TODO########################################################################
+            self.save_deformation() ##########################################TODO########################################################################
+            #self.save_fig_3D('test')
         else:
             step = 3
             print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
@@ -247,6 +252,7 @@ class RegNet(BaseModel):
 
     def save(self, label):
         self.save_network(self.network, 'unet', label, self.gpu_ids)
+
     def save_deformation(self):
         import nibabel as nib
         phi_np = self.phi.detach().cpu().numpy()
@@ -258,20 +264,21 @@ class RegNet(BaseModel):
 
     def save_fig_3D(self,phase):
         saving_folder_path = os.path.join(self.record_path, '3D')
-        make_dir(saving_folder_path)
+        if not os.path.exists(saving_folder_path):
+            make_dir(saving_folder_path)
         for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
+            appendix = self.fname_list[i] #+ "_"+phase+ "_iter_" + str(self.iter_count)
             saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
             output = sitk.GetImageFromArray(self.moving[i, 0, ...])
-            output.SetSpacing(self.spacing)
+            #output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
             output = sitk.GetImageFromArray(self.target[i, 0, ...])
-            output.SetSpacing(self.spacing)
+            #output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_reproduce.nii.gz"
             output = sitk.GetImageFromArray(self.output[i, 0, ...])
-            output.SetSpacing(self.spacing)
+            #output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
 
     def save_fig_2D(self,phase):

@@ -141,14 +141,22 @@ def performAntsRegistration(mv_path, target_path, registration_type='syn', recor
         print('affine registration finished and takes: :', time.time() - start)
     #print("param_in_ants:{}".format(param_in_ants))
     if registration_type =='syn':
-        syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyNRA',grad_step=0.2,
-                 flow_sigma=5,  #intra 3
-                 total_sigma=0.1,
-                 aff_metric='mattes',
-                 aff_sampling=8,
-                 syn_metric='mattes',
-                 syn_sampling=64,
-                 reg_iterations=(80,50,20)) #(50,30,10)) #
+        syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyNCC', grad_step=0.2,
+                                    flow_sigma=3,  # intra 3
+                                    total_sigma=0.1,
+                                    aff_metric='mattes',
+                                    aff_sampling=8,
+                                    syn_metric='mattes',
+                                    syn_sampling=32,
+                                    reg_iterations=(80, 50, 20))
+        # syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyN',grad_step=0.2,
+        #          flow_sigma=3,  #intra 3
+        #          total_sigma=0.1,
+        #          aff_metric='mattes',
+        #          aff_sampling=8,
+        #          syn_metric='mattes',
+        #          syn_sampling=64,
+        #          reg_iterations=(500,300,100)) #(50,30,10)) #
         print(syn_res['fwdtransforms'])
         if 'GenericAffine.mat' in syn_res['fwdtransforms'][0]:
             tmp1 = syn_res['fwdtransforms'][0]

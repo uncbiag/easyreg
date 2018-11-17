@@ -114,14 +114,35 @@ def cal_demons_sym(record_path,fname,moving_img_path):
 
 
     inv_af_txt = os.path.join(record_path, inv_fname + '_af.txt')
-    inv_af_pth = os.path.join(record_path,'for_inv_af_output.nii.gz')
-    cmd = nifty_reg_resample(ref=moving_img_path, flo=forward_output, trans=inv_af_txt, res=inv_af_pth, inter=0)
+    for_inv_af_pth = os.path.join(record_path,'for_inv_af_output.nii.gz')
+    cmd = nifty_reg_resample(ref=moving_img_path, flo=forward_output, trans=inv_af_txt, res=for_inv_af_pth, inter=0)
     process = subprocess.Popen(cmd, shell=True)
     process.wait()
-
-    output = sitk_grid_sampling(target, inv_af_pth, inv_tx, is_label=False)
+    source = sitk.ReadImage(for_inv_af_pth)
+    output = sitk_grid_sampling(target, source, inv_tx, is_label=False)
     output = sitk.GetArrayFromImage(output)
     return output
+
+
+def cal_demons_sym_new(record_path,fname,moving_img_path):
+
+
+    inv_fname = __inverse_name(fname)
+    disp_pth = os.path.join(record_path, fname + '_disp.nii.gz')
+    inv_disp_pth = os.path.join(record_path, inv_fname + '_disp.nii.gz')
+    disp = sitk.ReadImage(disp_pth)
+    inv_disp = sitk.ReadImage(inv_disp_pth)
+    tx = sitk.DisplacementFieldTransform(disp)
+    inv_tx = sitk.DisplacementFieldTransform(inv_disp)
+    target =sitk.ReadImage(moving_img_path)
+
+    source = sitk.ReadImage(moving_img_path)
+    output = sitk_grid_sampling(target, source, tx, is_label=False)
+    output = sitk_grid_sampling(target, output, inv_tx, is_label=False)
+    output = sitk.GetArrayFromImage(output)
+    return output
+
+
 
 
 
@@ -175,7 +196,7 @@ def cal_sym(opt,dataloaders,task_name=''):
     if model_name == 'ants':
         cal_sym_func = cal_ants_sym
     if model_name == 'demons':
-        cal_sym_func = cal_demons_sym
+        cal_sym_func = cal_demons_sym_new
     if model_name =='nifty_reg':
         cal_sym_func = cal_nifty_sym
     if model_name =='reg_net' or model_name == 'mermaid_iter':
