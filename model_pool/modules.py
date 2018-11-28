@@ -69,7 +69,9 @@ class Affine_unet_im(nn.Module):
         self.down_path_4_t_32 = nn.Sequential(self.down_path_8_1,self.down_path_8_2,self.down_path_16_1,self.down_path_16_2,
                                               self.down_path_32)
 
+
         self.fc_1 = FcRel(4 * 3 * 6 * 6, 32, active_unit='relu')
+        #self.fc_1 = FcRel(4 * 3 * 3 * 4, 32, active_unit='relu')
         self.fc_2 = FcRel(32, 12, active_unit='None')
 
     def forward(self, m,t):

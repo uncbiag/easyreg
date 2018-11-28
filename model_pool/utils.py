@@ -11,7 +11,10 @@ from functions.bilinear import Bilinear
 
 
 def get_pair(data, pair= True, target=None):
-     return data['image'][:,0:1], data['image'][:,1:2],data['label'][:,0:1],data['label'][:,1:2]
+    if 'label' in data:
+        return data['image'][:,0:1], data['image'][:,1:2],data['label'][:,0:1],data['label'][:,1:2]
+    else:
+        return data['image'][:,0:1], data['image'][:,1:2],None, None
 
 
 def sigmoid_explode(ep, static =5, k=5):

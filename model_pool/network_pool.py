@@ -74,16 +74,13 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         self.img_sz = img_sz
         self.dim = len(img_sz)
 
-        self.step = opt['tsk_set']['reg']['affine_net']['affine_net_iter']
+        self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',7,'the number of the step used in multi-step affine')]
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
         self.zero_boundary = True
         self.bilinear =Bilinear(self.zero_boundary)
-        self.gen_identity_ap()
-
-
 
 
     def gen_affine_map(self,Ab):
@@ -123,9 +120,7 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         reg = constr_map.sum()
         return reg
 
-
-
-    def forward(self,input,moving,target):
+    def forward(self,moving=None,target=None):
         output = None
         moving_cp = moving
         affine_param_last = None
@@ -263,16 +258,16 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             return  loss / (affine_param[0].shape[0])
 
 
-    def forward(self,input,moving, target):
+    def forward(self,moving, target):
         self.count += 1
         if  not self.using_cycle:
-            return self.single_forward(input,moving,target)
+            return self.single_forward(moving,target)
         else:
-            return self.cycle_forward(input, moving, target)
+            return self.cycle_forward( moving, target)
 
 
 
-    def single_forward(self,input,moving,target):
+    def single_forward(self,moving,target):
 
         self.affine_param = None
         self.output = None
@@ -292,7 +287,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
         return output_st, affine_map_st, affine_param_st
 
-    def cycle_forward(self,input,moving, target):
+    def cycle_forward(self,moving, target):
         moving_cp = moving
         target_cp = target
         affine_param_st_last = None

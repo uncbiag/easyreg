@@ -164,12 +164,15 @@ class BaseModel():
     def update_loss(self, epoch, end_of_epoch):
         pass
 
-
-    def get_val_res(self, detail = False):
-        if not detail:
-            return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['batch_avg_res']['dice']
+    def get_val_res(self, detail=False):
+        if len(self.val_res_dic):
+            if not detail:
+                return np.mean(self.val_res_dic['batch_avg_res']['dice'][0, 1:]), self.val_res_dic['batch_avg_res'][
+                    'dice']
+            else:
+                return np.mean(self.val_res_dic['batch_avg_res']['dice'][0, 1:]), self.val_res_dic['multi_metric_res']
         else:
-            return np.mean(self.val_res_dic['batch_avg_res']['dice'][0,1:]), self.val_res_dic['multi_metric_res']
+            return -1, np.array([-1, -1])
 
 
     def get_test_res(self, detail=False):

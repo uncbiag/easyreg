@@ -31,6 +31,7 @@ class MermaidIter(BaseModel):
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
+        self.opt_mermaid= self.opt['tsk_set']['reg']['mermaid_iter']
 
 
 
@@ -59,7 +60,8 @@ class MermaidIter(BaseModel):
         extra_info['batch_id'] = self.fname_list[0]
         self.si.opt = None
         self.si.set_initial_map(None)
-
+        import os
+        print(os.getcwd())
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
                                 model_name='affine_map',
                                 map_low_res_factor=1.0,
@@ -69,9 +71,9 @@ class MermaidIter(BaseModel):
                                 use_multi_scale=True,
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
-                                similarity_measure_sigma=0.5,
-                                json_config_out_filename='cur_settings_affine_output_tmp.json',  #########################################
-                                params ='cur_settings_affine_tmp.json')
+                                similarity_measure_sigma=self.opt_mermaid['affine']['sigma'],
+                                json_config_out_filename='../model_pool/cur_settings_affine_output_tmp.json',  #########################################
+                                params ='../model_pool/cur_settings_affine_tmp.json')
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         self.disp = self.si.opt.optimizer.ssOpt.model.Ab
@@ -104,8 +106,8 @@ class MermaidIter(BaseModel):
                                 similarity_measure_type='lncc',
 
                                 similarity_measure_sigma=1,
-                                json_config_out_filename='cur_settings_svf_output_tmp.json',
-                                params='cur_settings_svf_tmp.json')
+                                json_config_out_filename='../model_pool/cur_settings_svf_output_tmp.json',
+                                params='../model_pool/cur_settings_svf_tmp.json')
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()*2-1

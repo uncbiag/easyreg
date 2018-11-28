@@ -282,12 +282,14 @@ def write_list_into_txt(file_path, list_to_write):
                 raise(ValueError,"not implemented yet")
 
 def read_txt_into_list(file_path):
+    import re
     lists= []
     with open(file_path,'r') as f:
         content = f.read().splitlines()
         if len(content)>0:
-            lists= [line.split('     ') for line in content]
-        lists= [item[0] if len(item)==1 else item for item in lists]
+            lists= [[x if x!='None'else None for x in re.compile('\s*[,|\s+]\s*').split(line)] for line in content]
+            lists = [list(filter(lambda x: x is not None, items)) for items in lists]
+        lists = [item[0] if len(item) == 1 else item for item in lists]
     return lists
 
 def get_file_name(file_path):

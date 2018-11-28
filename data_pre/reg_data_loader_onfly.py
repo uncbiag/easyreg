@@ -34,13 +34,16 @@ class RegistrationDataset(Dataset):
         self.transform = transform
         self.data_type = '*.nii.gz'
         self.turn_on_pair_regis = False
-        self.max_num_pair_to_load = -1 if phase!='test' else 150 #300 when test intra    150     ###################TODO ###################################3
+        ind = ['train', 'val', 'test', 'debug'].index(phase)
+        self.max_num_pair_to_load = reg_option['max_pair_for_loading'][ind]
         """ the max number of pairs to be loaded into the memory"""
+        self.has_label = False
         self.get_file_list()
         self.resize = True
         self.reg_option = reg_option
-        self.resize_factor=reg_option['input_resize_factor']
-        self.load_into_memory= True if phase=='train' else False
+        self.resize_factor = reg_option['input_resize_factor']
+        load_training_data_into_memory = reg_option['load_training_data_into_memory']
+        self.load_into_memory = load_training_data_into_memory if phase == 'train' else False
         self.pair_list = []
         if self.load_into_memory:
             self.init_img_pool()
@@ -50,8 +53,14 @@ class RegistrationDataset(Dataset):
         get the all files belonging to data_type from the data_path,
         :return: full file path list, file name list
         """
+        if not os.path.exists(self.data_path):
+            self.path_list=[]
+            self.name_list=[]
+            return
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
         self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+        if len(self.path_list[0])==4:
+            self.has_label=True
 
 
         if self.max_num_pair_to_load>0:
@@ -74,16 +83,20 @@ class RegistrationDataset(Dataset):
         for fn, img_label_path in img_label_path_dic.items():
             img_label_np_dic = {}
             img_sitk = self.__read_and_clean_itk_info(img_label_path['img'])
-            label_sitk = self.__read_and_clean_itk_info(img_label_path['label'])
+            if self.has_label:
+                label_sitk = self.__read_and_clean_itk_info(img_label_path['label'])
             if self.resize:
                 img_np = sitk.GetArrayFromImage(self.resize_img(img_sitk))
-                label_np = sitk.GetArrayFromImage(self.resize_img(label_sitk,is_label=True))
+                if self.has_label:
+                    label_np = sitk.GetArrayFromImage(self.resize_img(label_sitk,is_label=True))
             else:
                 img_np = sitk.GetArrayFromImage(img_sitk)
-                label_np = sitk.GetArrayFromImage(label_sitk)
+                if self.has_label:
+                    label_np = sitk.GetArrayFromImage(label_sitk)
 
             img_label_np_dic['img'] = blosc.pack_array(img_np.astype(np.float32))
-            img_label_np_dic['label'] = blosc.pack_array(label_np.astype(np.float32))
+            if self.has_label:
+                img_label_np_dic['label'] = blosc.pack_array(label_np.astype(np.float32))
             img_label_dic[fn] =img_label_np_dic
             count +=1
             pbar.update(count)
@@ -109,7 +122,10 @@ class RegistrationDataset(Dataset):
                 fp = fps[i]
                 fn = get_file_name(fp)
                 if fn not in img_label_path_dic:
-                    img_label_path_dic[fn] = {'img':fps[i], 'label':fps[i+2]}
+                    if self.has_label:
+                        img_label_path_dic[fn] = {'img':fps[i], 'label':fps[i+2]}
+                    else:
+                        img_label_path_dic[fn] = {'img':fps[i]}
             pair_name_list.append([get_file_name(fps[0]), get_file_name(fps[1])])
 
 
@@ -132,8 +148,11 @@ class RegistrationDataset(Dataset):
         for pair_name in pair_name_list:
             sn = pair_name[0]
             tn = pair_name[1]
-            self.pair_list.append([img_label_dic[sn]['img'],img_label_dic[tn]['img'],
+            if self.has_label:
+                self.pair_list.append([img_label_dic[sn]['img'],img_label_dic[tn]['img'],
                                    img_label_dic[sn]['label'],img_label_dic[tn]['label']])
+            else:
+                self.pair_list.append([img_label_dic[sn]['img'], img_label_dic[tn]['img']])
 
 
 
@@ -166,7 +185,10 @@ class RegistrationDataset(Dataset):
 
 
     def __read_and_clean_itk_info(self,path):
-        return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(path)))
+        if path is not None:
+            return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(path)))
+        else:
+            return None
 
     def __read_itk_into_np(self,path):
         return sitk.GetArrayFromImage(sitk.ReadImage(path))
@@ -212,7 +234,7 @@ class RegistrationDataset(Dataset):
             if self.resize:
                 sitk_pair_list[0] = self.resize_img(sitk_pair_list[0])
                 sitk_pair_list[1] = self.resize_img(sitk_pair_list[1])
-                if len(pair_path) == 4:
+                if self.has_label:
                     sitk_pair_list[2] = self.resize_img(sitk_pair_list[2], is_label=True)
                     sitk_pair_list[3] = self.resize_img(sitk_pair_list[3], is_label=True)
             pair_list = [sitk.GetArrayFromImage(sitk_pair) for sitk_pair in sitk_pair_list]
@@ -224,17 +246,17 @@ class RegistrationDataset(Dataset):
         sample = {'image': np.asarray([pair_list[0]*2.-1.,pair_list[1]*2.-1.])}
         sample['pair_path'] = pair_path
 
-        if len(pair_path)==4:
+        if self.has_label:
             try:
                 sample ['label']= np.asarray([pair_list[2], pair_list[3]]).astype(np.float32)
             except:
                 print(pair_list[2].shape,pair_list[3].shape)
                 print(filename)
-        else:
-            sample['label'] = None
+        # else:
+        #     sample['label'] = None
         if self.transform:
             sample['image'] = self.transform(sample['image'])
-            if sample['label'] is not None:
+            if self.has_label:
                  sample['label'] = self.transform(sample['label'])
         #sample['spacing'] = self.transform(sample['info']['spacing'])
         return sample,filename

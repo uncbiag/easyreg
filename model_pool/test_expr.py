@@ -34,8 +34,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     else:
         print("Warning, the model is not manual loaded, make sure your model itself has been inited")
 
-
-
+    model.set_cur_epoch(-1)
     for phase in phases:
         num_samples = len(dataloaders[phase])
         records_score_np = np.zeros(num_samples)
@@ -84,7 +83,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
                                                                                            time_elapsed // 60,
                                                                                            time_elapsed % 60))
         np.save(os.path.join(record_path,task_name+'records'),records_score_np)
-        records_detail_np = extract_interest_loss(loss_detail_list,sample_num=len(dataloaders[phase].dataset),label_num=label_num)
+        records_detail_np = extract_interest_loss(loss_detail_list,sample_num=len(dataloaders[phase].dataset))
         np.save(os.path.join(record_path,task_name+'records_detail'),records_detail_np)
         np.save(os.path.join(record_path,task_name+'records_jacobi'),records_jacobi_np)
         np.save(os.path.join(record_path,task_name+'records_time'),records_time_np)
@@ -92,15 +91,19 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     return model
 
 
-def extract_interest_loss(loss_detail_list,sample_num, label_num):
+def extract_interest_loss(loss_detail_list,sample_num):
     """" multi_metric_res:{iou: Bx #label , dice: Bx#label...} ,"""
-    assert len(loss_detail_list)>=0
-    records_detail_np = np.zeros([sample_num,label_num])
-    sample_count = 0
-    for multi_metric_res in loss_detail_list:
-        batch_len = multi_metric_res['dice'].shape[0]
-        records_detail_np[sample_count:sample_count+batch_len,:] = multi_metric_res['dice']
-        sample_count += batch_len
+    assert len(loss_detail_list)>0
+    if isinstance(loss_detail_list[0],dict):
+        label_num =  loss_detail_list[0]['dice'].shape[1]
+        records_detail_np = np.zeros([sample_num,label_num])
+        sample_count = 0
+        for multi_metric_res in loss_detail_list:
+            batch_len = multi_metric_res['dice'].shape[0]
+            records_detail_np[sample_count:sample_count+batch_len,:] = multi_metric_res['dice']
+            sample_count += batch_len
+    else:
+        records_detail_np=np.array([-1])
     return records_detail_np
 
 

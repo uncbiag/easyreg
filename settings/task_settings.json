@@ -1,64 +1,113 @@
 {
     "tsk_set": {
-        "batch_sz": 10,
+        "batch_sz": 1,
+        "check_best_model_period": 5,
         "continue_train": false,
+        "continue_train_lr": 5e-05,
         "criticUpdates": 1,
-        "epoch": 50,
-        "gpu_ids": 1,
-        "old_gpu_ids":0,
+        "epoch": 300,
+        "gpu_ids": 2,
+        "img_size": [
+            160,
+            384,
+            384
+        ],
+        "input_resize_factor": [
+            0.5,
+            0.5,
+            0.5
+        ],
         "loss": {
+            "activate_epoch": 1,
             "ce": {
                 "no_bg": false,
-                "weighted": true
+                "weighted": false
             },
+            "continuous_update": false,
+            "density_weight_on": false,
             "dice_loss": {
                 "no_bg": false,
-                "weighted": true
+                "weighted": false
             },
-            "type": "mse",
-            "update_epoch": -1,
-            "residue_weight_on": false,
-            "density_weight_on": false,
-            "residue_weight_momentum": 0.1,
-            "continuous_update": false,
-            "log_update": false,
-            "only_resid_update":false,
+            "factor_update": false,
             "focal_loss_weight_on": false,
-            "activate_epoch": 1
+            "imd_weighted_loss_on": false,
+            "log_update": false,
+            "only_bg_avg_log_update": false,
+            "only_bg_avg_update": false,
+            "only_resid_update": false,
+            "residue_weight_momentum": 0.3,
+            "residue_weight_on": false,
+            "type": "lncc",
+            "update_epoch": -1
         },
         "max_batch_num_per_epoch": [
-            25,
-            2,
-            1
+            200,
+            8,
+            4
         ],
+        "mode_train": true,
         "model": "reg_net",
-        "model_path": "",
+        "model_folder_path": "",
+        "model_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_",
+        "n_in_channel": 1,
+        "network_name": "mermaid",
+        "old_gpu_ids": 2,
         "optim": {
             "adam": {
                 "beta": 0.9
             },
-            "lr": 0.001,
+            "lr": 5e-05,
             "lr_scheduler": {
                 "custom": {
-                    "gamma": 0.8,
-                    "step_size": 250
+                    "gamma": 0.5,
+                    "step_size": 12000
                 },
                 "plateau": {
                     "factor": 0.2,
                     "min_lr": 1e-06,
-                    "patience": 20,
-                    "threshold": 0.01
+                    "patience": 5,
+                    "threshold": 0.001
                 },
                 "type": "custom"
             },
             "optim_type": "adam"
         },
-        "print_step": [10,1,1],
-        "print_val_detail": false,
-        "save_val_fig_epoch": 10,
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "affine_net_iter": 6,
+                "using_complex_net": true
+            },
+            "low_res_factor": 0.5,
+            "mermaid_net": {
+                "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
+                "num_step": 2,
+                "sym_factor": 100,
+                "using_affine_init": false,
+                "using_complex_net": true,
+                "using_index_coord": false,
+                "using_lddmm": false,
+                "using_multi_step": false,
+                "using_sym": false
+            }
+        },
+        "resize_factor": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "save_by_standard_label": true,
         "save_fig_on": true,
-        "task_name": "net_dev_2",
+        "save_val_fig_epoch": 2,
+        "task_name": "debugging",
         "train": true,
-        "check_best_model_period": 5
+        "val_period": 10,
+        "warmming_up_epoch": 2
     }
 }

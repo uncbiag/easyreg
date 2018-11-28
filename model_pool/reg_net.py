@@ -67,28 +67,22 @@ class RegNet(BaseModel):
 
 
     def set_input(self, data, is_train=True):
-        data[0]['image'] =data[0]['image'].cuda()
-        data[0]['label'] =data[0]['label'].cuda()
-        moving, target, l_moving,l_target = get_pair(data[0])
-        input = data[0]['image']
+        img_and_label, self.fname_list = data
+        img_and_label['image'] =img_and_label['image'].cuda()
+        if 'label' in img_and_label:
+            img_and_label['label'] =img_and_label['label'].cuda()
+        moving, target, l_moving,l_target = get_pair(img_and_label)
         self.moving = moving
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
-        self.input = input
-        self.fname_list = list(data[1])
 
 
     def forward(self,input=None):
-        # here input should be Tensor, not Variable
-        if input is None:
-            input =self.input
-        return self.network.forward(input, self.moving,self.target)
+        if hasattr(self.network, 'set_cur_epoch'):
+            self.network.set_cur_epoch(self.cur_epoch)
+        return self.network.forward(self.moving,self.target)
 
-    # def phi_regularization(self):
-    #     constr_map = self.network.affine_cons(self.extra, sched='l2')
-    #     reg = constr_map.sum()
-    #     return reg
 
 
     def cal_loss(self):
@@ -181,11 +175,13 @@ class RegNet(BaseModel):
     def get_evaluation(self):
 
         self.output, self.phi, self.extra= self.forward()
-        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
-        warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
-        self.l_target_np= self.l_target.detach().cpu().numpy()
+        self.warped_label_map=None
+        if self.l_moving is not None:
+            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
+            self.l_target_np= self.l_target.detach().cpu().numpy()
 
-        self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
         self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
         print("current batch jacobi is {}".format(self.jacobi_val))
 
