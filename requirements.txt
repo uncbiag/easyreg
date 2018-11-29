@@ -1,0 +1,16 @@
+# pip requirements file
+numpy
+scipy
+matplotlib
+cffi
+itk
+sphinx
+pynrrd
+progressbar2
+h5py
+scikit-image
+SimpleITK
+tensorboardX
+future
+pandas
+openpyxl

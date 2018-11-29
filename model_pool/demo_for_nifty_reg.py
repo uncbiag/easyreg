@@ -15,7 +15,7 @@ moving_label_path ='/playpen/zyshen/debugs/demons/l_moving.nii.gz'
 # target_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_image.nii.gz'
 # moving_label_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9047800_20050111_SAG_3D_DESS_LEFT_016610322306_label_all.nii.gz'
 
-#_,_, phi=performRegistration(moving_img_path,target_img_path,registration_type,record_path=None,ml_path=moving_label_path)
+_,_, phi=performRegistration(moving_img_path,target_img_path,registration_type,record_path=None,ml_path=moving_label_path)
 
 
 

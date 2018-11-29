@@ -1,6 +1,5 @@
 
 from .base_model import BaseModel
-from .network_pool import *
 from .losses import Loss
 from .metrics import get_multi_metric
 
@@ -68,7 +67,7 @@ class DemonsRegIter(BaseModel):
         self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz')
 
 
-    def resize_input_img_and_save_it_as_tmp(self, img_pth, is_label=False,fname=None):
+    def resize_input_img_and_save_it_as_tmp(self, img_pth, is_label=False,fname=None,keep_physical=False):
         """
         :param img: sitk input, factor is the outputsize/patched_sized
         :return:
@@ -96,9 +95,11 @@ class DemonsRegIter(BaseModel):
         fpth = os.path.join(self.record_path,fname)
         #############################  be attention the original of the image is no consistent which may cause the demos fail
         # so this should be checked
-        # img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-        # img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
-        # img_resampled.SetDirection(img_org.GetDirection())
+        if keep_physical:
+            img_org = sitk.ReadImage(img_pth)
+            img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
+            img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+            img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
 
@@ -112,7 +113,7 @@ class DemonsRegIter(BaseModel):
 
     def affine_optimization(self):
 
-        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
+        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -125,12 +126,13 @@ class DemonsRegIter(BaseModel):
 
 
     def demons_optimization(self):
-        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path)
+        output, loutput, phi,jacobian = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
 
         self.disp = None
         self.output = output
         self.warped_label_map = loutput
+        self.jacobian =jacobian
 
         self.phi = phi
         # self.phi = self.phi*2-1
@@ -141,7 +143,6 @@ class DemonsRegIter(BaseModel):
         if self.affine_on and not self.demon_on:
             return self.affine_optimization()
         elif self.demon_on:
-            #self.affine_optimization()
             return self.demons_optimization()
 
 
@@ -162,33 +163,25 @@ class DemonsRegIter(BaseModel):
         self.get_evaluation()
 
     def get_evaluation(self):
-        if self.single_mod:
-            self.output, self.phi, self.disp= self.forward()
-            #self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
-            warped_label_map_np= self.warped_label_map
-            self.l_target_np= self.l_target.detach().cpu().numpy()
+        self.output, self.phi, self.disp= self.forward()
+        warped_label_map_np= self.warped_label_map
+        self.l_target_np= self.l_target.detach().cpu().numpy()
+        self.jacobi_val= self.compute_jacobi_map(self.jacobian)
+        self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
 
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-        else:
-            step = 8
-            print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
-            for i in range(step):
-                self.output, self.phi, self.disp = self.forward()
-                self.input = torch.cat((self.output,self.target),1)
-                self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi)
-                self.l_moving = self.warped_label_map
 
-            warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np = self.l_target.detach().cpu().numpy()
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
+    def compute_jacobi_map(self,jacobian):
+        jacobi_abs = - np.sum(jacobian[jacobian < 0.])  #
+        jacobi_num = np.sum(jacobian < 0.)
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
+        # np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
+        jacobi_abs_mean = jacobi_abs  # / np.prod(map.shape)
+        return jacobi_abs_mean, jacobi_num
 
 
 
 
-
-
-    def save(self, label):
-        self.save_network(self.network, 'unet', label, self.gpu_ids)
 
 
 
@@ -209,16 +202,6 @@ class DemonsRegIter(BaseModel):
             output = sitk.GetImageFromArray(self.output[i, 0, ...])
             output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
-
-    def save_fig_2D(self,phase):
-        saving_folder_path = os.path.join(self.record_path, '2D')
-        make_dir(saving_folder_path)
-
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+"_iter_" + str(self.iter_count)
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_moving.tif", self.moving[i, 0, ...])
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_target.tif", self.target[i, 0, ...])
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
 
     def save_fig(self,phase,standard_record=False,saving_gt=True):
         from model_pool.visualize_registration_results import  show_current_images

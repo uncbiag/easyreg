@@ -1,7 +1,6 @@
 
 from model_pool.utils import *
 import torch.optim.lr_scheduler as lr_scheduler
-
 import mermaid.pyreg.finite_differences as fdt
 
 
@@ -136,21 +135,26 @@ class BaseModel():
 
 
 
-    def compute_jacobi_map(self,map,norm_zero = True):
+    def compute_jacobi_map(self,map):
         if type(map) == torch.Tensor:
             map = map.detach().cpu().numpy()
         input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        spacing = 1. / (np.array(input_img_sz) - 1)
+        spacing = 2. / (np.array(input_img_sz) - 1) # the disp coorindate is [-1,1]
         fd = fdt.FD_np(spacing)
         dfx= fd.dXc(map[:, 0, ...])
         dfy= fd.dYc(map[:, 1, ...])
         dfz= fd.dZc(map[:, 2, ...])
-        if norm_zero:
-            jacobi_abs = np.sum(dfx<0.) + np.sum(dfy<0.) + np.sum(dfz<0.)
-        else:
-            jacobi_abs = np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
-        jacobi_abs_mean = jacobi_abs/ map.shape[0] #/ np.prod(map.shape)
-        return jacobi_abs_mean
+        jacobi_det = dfx*dfy*dfz
+        #self.temp_save_Jacobi_image(jacobi_det,map)
+        jacobi_abs =- np.sum(jacobi_det[jacobi_det<0.])  #
+        jacobi_num = np.sum(jacobi_det < 0.)
+        print("debugging {},{},{}".format(np.sum(dfx < 0.),np.sum(dfy < 0.),np.sum(dfz < 0.)))
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
+        jacobi_abs_mean = jacobi_abs/ map.shape[0]
+        jacobi_num_mean = jacobi_num/ map.shape[0]
+        return jacobi_abs_mean, jacobi_num_mean
+
 
 
 

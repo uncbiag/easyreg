@@ -97,7 +97,7 @@ tsm.task_par['tsk_set']['old_gpu_ids']=2
 """ no longer used"""
 tsm.task_par['tsk_set']['gpu_ids'] = 2
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
+tsm.task_par['tsk_set']['model_path'] = ''#''/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_inter_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_100_'
 """the path of saved checkpoint, for methods not using network, leave it to be '' """
@@ -135,11 +135,11 @@ tsm.task_par['tsk_set']['reg'] = {}
 """ settings for registration task"""
 tsm.task_par['tsk_set']['reg']['low_res_factor'] = 0.5
 """ low resolution map factor for vSVF method, the operations would be computed on low-resolution map"""
-tsm.task_par['tsk_set']['network_name'] ='mermaid'  #'mermaid' 'svf' 'syn' affine bspline
+tsm.task_par['tsk_set']['network_name'] ='syn'  #'mermaid' 'svf' 'syn' affine bspline
 """ see guideline"""
 tsm.task_par['tsk_set']['epoch'] = 300
 """ number of training epoch"""
-tsm.task_par['tsk_set']['model'] = 'reg_net'  #mermaid_iter reg_net  ants  nifty_reg
+tsm.task_par['tsk_set']['model'] = 'ants'  #mermaid_iter reg_net  ants  nifty_reg
 """ support  'reg_net'  'mermaid_iter'  'ants'  'nifty_reg' 'demons' """
 tsm.task_par['tsk_set']['batch_sz'] = 1
 """ batch size"""

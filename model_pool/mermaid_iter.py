@@ -110,7 +110,9 @@ class MermaidIter(BaseModel):
                                 params='../model_pool/cur_settings_svf_tmp.json')
         self.disp = self.output
         self.output = self.si.get_warped_image()
-        self.phi = self.si.opt.optimizer.ssOpt.get_map()*2-1
+        self.phi = self.si.opt.optimizer.ssOpt.get_map()
+        for i in range(self.dim):         #######################TODO #######################
+            self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
 
@@ -155,29 +157,15 @@ class MermaidIter(BaseModel):
         self.get_evaluation()
 
     def get_evaluation(self):
-        if self.single_mod:
-            self.output, self.phi, self.disp= self.forward()
-            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
-            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np= self.l_target.detach().cpu().numpy()
+        self.output, self.phi, self.disp= self.forward()
+        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+        warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
+        self.l_target_np= self.l_target.detach().cpu().numpy()
 
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-            self.jacobi_val = self.compute_jacobi_map(self.phi)
-            print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
-        else:
-            step = 8
-            print("Attention!!, the multi-step mode is on, {} step would be performed".format(step))
-            for i in range(step):
-                self.output, self.phi, self.disp = self.forward()
-                self.input = torch.cat((self.output,self.target),1)
-                self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi)
-                self.l_moving = self.warped_label_map
+        self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+        self.jacobi_val = self.compute_jacobi_map(self.phi)
+        print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
 
-            warped_label_map_np  =self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np = self.l_target.detach().cpu().numpy()
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np, rm_bg=False)
-            jacobi_val = self.compute_jacobi_map(self.phi)
-            print(" the current jcobi value of the phi is {}".format(jacobi_val))
 
 
 
@@ -204,15 +192,7 @@ class MermaidIter(BaseModel):
             output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
 
-    def save_fig_2D(self,phase):
-        saving_folder_path = os.path.join(self.record_path, '2D')
-        make_dir(saving_folder_path)
 
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+"_iter_" + str(self.iter_count)
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_moving.tif", self.moving[i, 0, ...])
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_target.tif", self.target[i, 0, ...])
-            save_image_with_scale(saving_folder_path + '/' + appendix + "_reproduce.tif", self.output[i, 0, ...])
 
     def save_fig(self,phase,standard_record=False,saving_gt=True):
         from model_pool.visualize_registration_results import  show_current_images

@@ -5,9 +5,10 @@ import SimpleITK as sitk
 import subprocess
 
 from model_pool.nifty_reg_utils import nifty_reg_affine, nifty_reg_resample
-
+import torch
 record_path = '/playpen/zyshen/debugs/'
 from model_pool.utils import factor_tuple
+import mermaid.pyreg.finite_differences as fdt
 
 
 def smooth_and_resample(image, shrink_factor, smoothing_sigma):
@@ -95,7 +96,7 @@ def get_affined_moving_image(fixed_image_pth, moving_image_path,ml_path=None):
 
 def multiscale_demons(registration_algorithm,
                       fixed_image_pth, moving_image_pth, initial_transform=None,
-                      shrink_factors=None, smoothing_sigmas=None):
+                      shrink_factors=None, smoothing_sigmas=None, record_path=None):
     """
     Run the given registration algorithm in a multiscale fashion. The original scale should not be given as input as the
     original images are implicitly incorporated as the base of the pyramid.
@@ -146,7 +147,16 @@ def multiscale_demons(registration_algorithm,
     for f_image, m_image in reversed(list(zip(fixed_images[0:-1], moving_images[0:-1]))):
         initial_displacement_field = sitk.Resample(initial_displacement_field, f_image)
         initial_displacement_field = registration_algorithm.Execute(f_image, m_image, initial_displacement_field)
-    return sitk.DisplacementFieldTransform(initial_displacement_field)
+
+    #sitk.WriteImage(initial_displacement_field,os.path.join(record_path,'demons_disp.nii.gz'))
+    disp_np = sitk.GetArrayFromImage(initial_displacement_field)
+    disp_tmp = np.zeros([1, 3] + list(disp_np.shape[:3]))
+    disp_tmp[0, 0] = disp_np[..., 0]
+    disp_tmp[0, 1] = disp_np[..., 1]
+    disp_tmp[0, 2] = disp_np[..., 2]
+    jacobi_filter = sitk.DisplacementFieldJacobianDeterminantFilter()
+    jacobi_image = jacobi_filter.Execute(initial_displacement_field)
+    return sitk.DisplacementFieldTransform(initial_displacement_field),disp_tmp
 
 
 def __read_and_clean_itk_info(path):
@@ -179,9 +189,9 @@ def resize_input_img_and_save_it_as_tmp(img_pth, is_label=False,fname=None,debug
             resampler.SetInterpolator(sitk.sitkBSpline)
         img_resampled = resampler.Execute(img)
         fpth = os.path.join(debug_path,fname)
-        img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-        img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
-        img_resampled.SetDirection(img_org.GetDirection())
+        # img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
+        # img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+        # img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
 
@@ -195,25 +205,36 @@ def sitk_grid_sampling(fixed,moving, displacement,is_label=False):
     out = resampler.Execute(moving)
     return out
 
+def compute_jacobi_map(disp):
+    if type(disp) == torch.Tensor:
+        disp = disp.detach().cpu().numpy()
+    dim = 3
+    # spacing = 1. / (np.array(input_img_sz) - 1)
+    spacing = np.array([1., 1., 1.])
+    fd = fdt.FD_np(spacing)
+    dfx = fd.dXc(disp[:, 0, ...])
+    dfy = fd.dYc(disp[:, 1, ...])
+    dfz = fd.dZc(disp[:, 2, ...])
+    jacobi_abs = np.sum(-dfx + 1 < 0.) + np.sum(-dfy + 1 < 0.) + np.sum(-dfz + 1 < 0.)
+    # np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
+    jacobi_abs_mean = jacobi_abs / disp.shape[0]  # / np.prod(map.shape)
+    return jacobi_abs_mean
+
 
 debug_path = '/playpen/zyshen/debugs/demons/'
 
-moving_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9047800_20050111_SAG_3D_DESS_LEFT_016610322306_image.nii.gz'
-target_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_image.nii.gz'
-ml_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9047800_20050111_SAG_3D_DESS_LEFT_016610322306_label_all.nii.gz'
-tl_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_rescaled/9003406_20041118_SAG_3D_DESS_LEFT_016610296205_label_all.nii.gz'
-#ml_path = '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038/9991313_20050623_SAG_3D_DESS_RIGHT_10564014_prediction_step1_batch6_16_reflect.nii.gz'
-#tl_path = '/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz'
+moving_img_path = '/playpen/zyshen/debugs/demons/moving.nii.gz'
+target_img_path = '/playpen/zyshen/debugs/demons/target.nii.gz'
+moving_label_path = '/playpen/zyshen/debugs/demons/l_moving.nii.gz'
+target_label_path = '/playpen/zyshen/debugs/demons/l_target.nii.gz'
+
+
+
 
 af_warped_path = '/playpen/zyshen/debugs/af_warped_img.nii.gz'
 af_warped_lpath = '/playpen/zyshen/debugs/af_warped_label.nii.gz'
 demons_warped_path = '/playpen/zyshen/debugs/demons_warped_img.nii.gz'
 demons_warped_lpath = '/playpen/zyshen/debugs/demons_warped_label.nii.gz'
-
-moving_img_path = resize_input_img_and_save_it_as_tmp(moving_img_path,is_label=False,fname='moving.nii.gz',debug_path=debug_path)
-target_img_path = resize_input_img_and_save_it_as_tmp(target_img_path,is_label=False,fname='target.nii.gz',debug_path=debug_path)
-moving_label_path = resize_input_img_and_save_it_as_tmp(ml_path,is_label=True,fname='l_moving.nii.gz',debug_path=debug_path)
-target_label_path = resize_input_img_and_save_it_as_tmp(tl_path,is_label=True,fname='l_target.nii.gz',debug_path=debug_path)
 
 demons_filter =  sitk.FastSymmetricForcesDemonsRegistrationFilter()
 demons_filter.SetNumberOfIterations(20)
@@ -224,6 +245,26 @@ demons_filter.SetStandardDeviations(1.)
 
 
 affine_tf = None
+
+
+moving_img_path, moving_label_path = get_affined_moving_image(target_img_path, moving_img_path, ml_path=moving_label_path)
+
+tx, disp_np = multiscale_demons(registration_algorithm=demons_filter,
+                       fixed_image_pth = target_img_path,
+                       moving_image_pth = moving_img_path,
+                       shrink_factors =[4,2],
+                       smoothing_sigmas = [4,2],
+                       initial_transform=affine_tf)
+
+
+jacobi = compute_jacobi_map(disp_np)
+warped_img = sitk_grid_sampling(sitk.ReadImage(target_img_path),sitk.ReadImage(moving_img_path),tx,is_label=False)
+warped_label = sitk_grid_sampling(sitk.ReadImage(target_label_path),sitk.ReadImage(moving_label_path),tx,is_label=True)
+#phi = sitk.GetArrayFromImage(tx.GetDisplacementField())
+sitk.WriteImage(warped_img,demons_warped_path)
+sitk.WriteImage(warped_label,demons_warped_lpath)
+
+
 
 
 # # Run the registration.
@@ -264,18 +305,3 @@ affine_tf = None
 # registration_method.Execute(fixed, moving)
 #
 # print('best initial transformation is: ' + str(initial_transform.GetParameters()))
-
-
-moving_img_path, moving_label_path = get_affined_moving_image(target_img_path, moving_img_path, ml_path=moving_label_path)
-
-tx = multiscale_demons(registration_algorithm=demons_filter,
-                       fixed_image_pth = target_img_path,
-                       moving_image_pth = moving_img_path,
-                       shrink_factors =[4,2],
-                       smoothing_sigmas = [4,2],
-                       initial_transform=affine_tf)
-warped_img = sitk_grid_sampling(sitk.ReadImage(target_img_path),sitk.ReadImage(moving_img_path),tx,is_label=False)
-warped_label = sitk_grid_sampling(sitk.ReadImage(target_label_path),sitk.ReadImage(moving_label_path),tx,is_label=True)
-#phi = sitk.GetArrayFromImage(tx.GetDisplacementField())
-sitk.WriteImage(warped_img,demons_warped_path)
-sitk.WriteImage(warped_label,demons_warped_lpath)

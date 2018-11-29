@@ -101,6 +101,17 @@ def init_env(task_full_path,output_path, source_path_list, target_path_list, l_s
     return dm, tsm
 
 
+
+
+
+
+
+
+
+
+
+
+
 task_full_path = '/playpen/zyshen/data/debugging_demo/debugging'
 """ the path of the setting from a completed task"""
 source_path_list = ['/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz']
