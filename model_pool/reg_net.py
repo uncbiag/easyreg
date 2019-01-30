@@ -8,15 +8,18 @@ from .network_pool import *
 from .net_utils import print_network
 from .losses import Loss
 from .metrics import get_multi_metric
+import mermaid.pyreg.finite_differences as fdt
 from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
+from model_pool.voxel_morph import VoxelMorphCVPR2018
 from model_pool.nn_interpolation import get_nn_interpolation
 
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
               'affine_sym': AffineNetSym,
-              'mermaid':MermaidNet
+              'mermaid':MermaidNet,
+              'vm_cvpr':VoxelMorphCVPR2018
               }
 
 
@@ -85,13 +88,14 @@ class RegNet(BaseModel):
 
 
 
-    def cal_loss(self):
+    def cal_loss(self,using_decay_factor=False):
         # output should be BxCx....
         # target should be Bx1x
-        factor = 10# 1e-7
-        factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
+        factor = 10000# 1e-7
+        if using_decay_factor:
+            factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
         sim_loss  = self.loss_fn.get_loss(self.output,self.target)
-        reg_loss = self.network.scale_reg_loss() if self.extra is not None else 0.
+        reg_loss = self.network.scale_reg_loss(self.extra) if self.extra is not None else 0.
         if self.iter_count%10==0:
             print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
         return sim_loss+reg_loss*factor
@@ -142,8 +146,6 @@ class RegNet(BaseModel):
             self.optimizer.step()
             self.optimizer.zero_grad()
 
-    def update_loss(self,epoch, end_of_epoch):
-        pass
 
     def get_current_errors(self):
         return self.loss.item()
@@ -187,6 +189,28 @@ class RegNet(BaseModel):
 
     def get_extra_res(self):
         return self.jacobi_val
+
+    def compute_jacobi_map(self,map):
+        """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
+          the image direction matrix is identity."""
+        if type(map) == torch.Tensor:
+            map = map.detach().cpu().numpy()
+        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        spacing = 2. / (np.array(input_img_sz) - 1)  # the disp coorindate is [-1,1]
+        fd = fdt.FD_np(spacing)
+        dfx = fd.dXc(map[:, 0, ...])
+        dfy = fd.dYc(map[:, 1, ...])
+        dfz = fd.dZc(map[:, 2, ...])
+        jacobi_det = dfx * dfy * dfz
+        # self.temp_save_Jacobi_image(jacobi_det,map)
+        jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])  #
+        jacobi_num = np.sum(jacobi_det < 0.)
+        print("debugging {},{},{}".format(np.sum(dfx < 0.), np.sum(dfy < 0.), np.sum(dfz < 0.)))
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
+        jacobi_abs_mean = jacobi_abs / map.shape[0]
+        jacobi_num_mean = jacobi_num / map.shape[0]
+        return jacobi_abs_mean, jacobi_num_mean
 
 
 

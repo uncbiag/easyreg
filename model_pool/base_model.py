@@ -1,8 +1,7 @@
 
 from model_pool.utils import *
 import torch.optim.lr_scheduler as lr_scheduler
-import mermaid.pyreg.finite_differences as fdt
-
+import SimpleITK as sitk
 
 
 
@@ -32,6 +31,9 @@ class BaseModel():
         self.network =None
         self.val_res_dic = {}
         self.fname_list = None
+        self.moving = None
+        self.target = None
+        self.output = None
 
 
 
@@ -100,11 +102,6 @@ class BaseModel():
 
 
 
-    def save_2d_visualize(self,input,gt,output):
-        image_summary = make_image_summary(input, gt, output)
-
-
-
 
     # get image paths
     def get_image_paths(self):
@@ -123,37 +120,14 @@ class BaseModel():
     def cal_loss(self,output= None):
        pass
 
-    def cal_seq_loss(self,output_seq):
-        loss =0.0
-        for output in output_seq:
-            loss += self.cal_loss(output)
-        return loss
-
 
     def get_current_errors(self):
-            return self.loss.data[0]
+        return self.loss.data[0]
 
 
 
     def compute_jacobi_map(self,map):
-        if type(map) == torch.Tensor:
-            map = map.detach().cpu().numpy()
-        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        spacing = 2. / (np.array(input_img_sz) - 1) # the disp coorindate is [-1,1]
-        fd = fdt.FD_np(spacing)
-        dfx= fd.dXc(map[:, 0, ...])
-        dfy= fd.dYc(map[:, 1, ...])
-        dfz= fd.dZc(map[:, 2, ...])
-        jacobi_det = dfx*dfy*dfz
-        #self.temp_save_Jacobi_image(jacobi_det,map)
-        jacobi_abs =- np.sum(jacobi_det[jacobi_det<0.])  #
-        jacobi_num = np.sum(jacobi_det < 0.)
-        print("debugging {},{},{}".format(np.sum(dfx < 0.),np.sum(dfy < 0.),np.sum(dfz < 0.)))
-        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
-        print("the number of fold points for current batch is {}".format(jacobi_num))
-        jacobi_abs_mean = jacobi_abs/ map.shape[0]
-        jacobi_num_mean = jacobi_num/ map.shape[0]
-        return jacobi_abs_mean, jacobi_num_mean
+        pass
 
 
 
@@ -200,6 +174,24 @@ class BaseModel():
         self.input = None
         self.output = None
 
+
+    def save_fig_3D(self,phase):
+        saving_folder_path = os.path.join(self.record_path, '3D')
+        make_dir(saving_folder_path)
+        for i in range(self.moving.size(0)):
+            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
+            saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
+            output = sitk.GetImageFromArray(self.moving[i, 0, ...])
+            output.SetSpacing(self.spacing)
+            sitk.WriteImage(output, saving_file_path)
+            saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
+            output = sitk.GetImageFromArray(self.target[i, 0, ...])
+            output.SetSpacing(self.spacing)
+            sitk.WriteImage(output, saving_file_path)
+            saving_file_path = saving_folder_path + '/' + appendix + "_warped.nii.gz"
+            output = sitk.GetImageFromArray(self.output[i, 0, ...])
+            output.SetSpacing(self.spacing)
+            sitk.WriteImage(output, saving_file_path)
 
 
 

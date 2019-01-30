@@ -1,0 +1,78 @@
+{
+    "tsk_set": {
+        "__doc__": "settings for task",
+        "batch_sz": "batch size",
+        "check_best_model_period": "num of epoch to check the best model",
+        "continue_train": "continue to train",
+        "criticUpdates": "criticUpdates",
+        "epoch": "num of epoch",
+        "gpu_ids": "gpu id, currently not support data parallel",
+        "loss": {
+            "__doc__": "settings for adam",
+            "type": "loss name, {ce,mse,l1_loss,focal_loss, dice_loss}"
+        },
+        "max_batch_num_per_epoch": "num of the batches per epoch",
+        "model": "model name, currently only support unet",
+        "model_path": "if continue_train, given the model path",
+        "network_name": "method supported by the model, see the guideline",
+        "optim": {
+            "__doc__": "settings for adam",
+            "adam": {
+                "__doc__": "settings for adam",
+                "beta": "settings for adam"
+            },
+            "lr": "learning rate",
+            "lr_scheduler": {
+                "__doc__": "settings for lr_scheduler",
+                "custom": {
+                    "__doc__": "settings for custom scheduler",
+                    "gamma": "factor to decay learning rate",
+                    "step_size": "steps to decay learning rate"
+                },
+                "plateau": {
+                    "__doc__": "settings fort plateau scheduler",
+                    "factor": "settings fort plateau scheduler",
+                    "min_lr": "settings fort plateau scheduler",
+                    "patience": "settings fort plateau scheduler",
+                    "threshold": "settings fort plateau scheduler"
+                },
+                "type": "steps to decay learning rate"
+            },
+            "optim_type": "settings for adam"
+        },
+        "print_step": "num of steps to print",
+        "print_val_detail": "print details of validation results",
+        "reg": {
+            "__doc__": "settings for registration task",
+            "affine_net": {
+                "__doc__": "settings for multi-step affine network",
+                "affine_net_iter": "number of steps used",
+                "using_complex_net": "using complex version of affine network"
+            },
+            "low_res_factor": "low resolution map factor for non-parametric method",
+            "mermaid_iter": {
+                "__doc__": "settings for optimization-based mermaid iteration",
+                "affine": {
+                    "__doc__": "settings for affine in mermaid iteration",
+                    "sigma": " loss = regterm + 1/(sigma)^2*simterm, recommand np.sqrt(batch_sz/4) for longitudinal, recommand np.sqrt(batch_sz/2) for cross-subject"
+                }
+            },
+            "mermaid_net": {
+                "__doc__": "settings for mermaid net",
+                "affine_init_path": " if using_affine_init=True, the path of the affine model should be provided",
+                "num_step": "number of steps in multi-step mermaid based method",
+                "sym_factor": "the weight for the symmetric factor",
+                "using_affine_init": "using affine network ( need to be trained first) for initailization False: using id transform as initialization",
+                "using_complex_net": "using a complex unet if True",
+                "using_index_coord": "using index coordinate",
+                "using_lddmm": "True: using lddmm (copyright in mermaid) Flase: using vSVF (copyright in mermaid)",
+                "using_multi_step": "using multi-step training for mermaid_based method",
+                "using_sym": "using symmetric training, if true, the loss is combined with source2target, target2source and symmetric loss"
+            }
+        },
+        "save_val_fig_epoch": "epoch to save val fig",
+        "task_name": "task_name",
+        "train": "if training",
+        "which_epoch": "if continue_train, given the epoch"
+    }
+}

@@ -7,7 +7,7 @@
         }, 
         "registration_model": {
             "forward_model": {
-                "number_of_time_steps": 10, 
+                "number_of_time_steps": 10,
                 "smoother": {
                     "multi_gaussian_stds": [
                         0.05,
@@ -22,6 +22,15 @@
                         0.19999999999999998,
                         0.26666666666666666,
                         0.3333333333333333
+                    ],
+                    "type": "learned_multiGaussianCombination"
+                },
+                "smoother_for_forward": {
+                    "multi_gaussian_stds": [
+                        0.05
+                    ],
+                    "multi_gaussian_weights": [
+                        1.0
                     ],
                     "type": "multiGaussian"
                 }
@@ -58,11 +67,27 @@
                 50,
                 50
             ]
-        }, 
+        },
+        "sgd": {
+            "individual": {
+                "dampening": 0.0,
+                "lr": 1e-1,
+                "momentum": 0.9,
+                "nesterov": true,
+                "weight_decay": 0.0
+            },
+            "shared": {
+                "dampening": 0.0,
+                "lr": 5e-06,
+                "momentum": 0.9,
+                "nesterov": true,
+                "weight_decay": 0.0
+            }
+        },
         "name": "lbfgs_ls", 
         "scheduler": {
             "factor": 0.5, 
-            "patience": 10, 
+            "patience": 20,
             "verbose": true
         }, 
         "single_scale": {

@@ -1,0 +1,31 @@
+{
+    "datapro": {
+        "__doc__": "settings for the data process",
+        "dataset": {
+            "__doc__": "general settings for dataset",
+            "data_path": {
+                "__doc__": "data path of the  dataset, default settings are in datamanger"
+            },
+            "dataset_name": "name of the dataset: oasis2d, lpba, ibsr, cmuc",
+            "divided_ratio": "divided the dataset into train, val and test set by the divided_ratio",
+            "label_path": {
+                "__doc__": "data path of the  dataset, default settings are in datamanger"
+            },
+            "output_path": "the path to save the processed data",
+            "prepare_data": "prepare the data ",
+            "task_name": "task name for data process",
+            "using_normalize": "normalized the data "
+        },
+        "reg": {
+            "__doc__": "general settings for dataset",
+            "all_comb": "all possible pair combination ",
+            "axis": "which axis needed to be sliced",
+            "sched": "['inter'|'intra'], inter-personal or intra-personal",
+            "slicing": "the index to be sliced from the 3d image dataset, support lpba, ibsr, cmuc"
+        },
+        "switch": {
+            "switch_to_exist_task": "switch to existed task without modify other datapro settings",
+            "task_root_path": "path of existed processed data"
+        }
+    }
+}

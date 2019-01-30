@@ -18,24 +18,7 @@
                 "no_bg": false,
                 "weighted": false
             },
-            "dice_loss": {
-                "no_bg": false,
-                "weighted": false
-            },
-            "type": "ce",
-            "update_epoch": -1,
-            "imd_weighted_loss_on": false,
-            "residue_weight_on": false,
-            "density_weight_on": false,
-            "residue_weight_momentum": 0.3,
-            "continuous_update": false,
-            "log_update": false,
-            "only_resid_update":false,
-            "only_bg_avg_update":false,
-            "only_bg_avg_log_update":false,
-            "focal_loss_weight_on": false,
-            "factor_update": false,
-            "activate_epoch": 1
+            "type": "ce"
         },
         "max_batch_num_per_epoch": [
             200,

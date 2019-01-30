@@ -41,8 +41,8 @@ class AffineNet(nn.Module):
             affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
         return affine_map
 
-    def scale_reg_loss(self,sched='l2'):
-        constr_map =self.affine_cons(self.extra, sched=sched)
+    def scale_reg_loss(self,param=None,sched='l2'):
+        constr_map =self.affine_cons(param, sched=sched)
         reg = constr_map.sum()
         return reg
 
@@ -75,6 +75,7 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         self.dim = len(img_sz)
 
         self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',7,'the number of the step used in multi-step affine')]
+        print("Num of step in multi-step affine network is {}".format(self.step))
         self.using_complex_net = True
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
@@ -115,8 +116,8 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
             inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
         return inverse_param
 
-    def scale_reg_loss(self,sched='l2'):
-        constr_map =self.affine_cons(self.extra, sched=sched)
+    def scale_reg_loss(self,param=None,sched='l2'):
+        constr_map =self.affine_cons(param, sched=sched)
         reg = constr_map.sum()
         return reg
 
@@ -243,7 +244,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sim_loss = sim_st +sim_ts
         return sim_loss / moving.shape[0]/2.
 
-    def scale_reg_loss(self,sched='l2'):
+    def scale_reg_loss(self,param=None,sched='l2'):
         affine_param = self.affine_param
         if sched=='l2':
             loss = torch.sum((affine_param[0]-self.affine_identity)**2 + (affine_param[1]-self.affine_identity)**2 )\
@@ -335,7 +336,7 @@ class MomentumNet(nn.Module):
     def __init__(self, low_res_factor,opt):
         super(MomentumNet,self).__init__()
         self.low_res_factor = low_res_factor
-        using_complex_net = opt['using_complex_net']=True
+        using_complex_net = opt['using_complex_net']
 
         if using_complex_net:
             self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)
@@ -347,3 +348,23 @@ class MomentumNet(nn.Module):
     def forward(self,input):
         return self.mom_gen(input)
 
+
+
+class SimpleNet(nn.Module):
+    def __init__(self, img_sz=None, resize_factor=1.):
+        from model_pool.voxel_morph import VoxelMorphCVPR2018
+        super(SimpleNet,self).__init__()
+        self.img_sz = img_sz
+        self.denseGen = DisGen_Simple()
+        init_weights(self.denseGen,init_type='kaiming')
+        self.hessianField = HessianField()
+        self.jacobiField = JacobiField()
+        self.identity_map= gen_identity_map(self.img_sz,resize_factor)
+        self.bilinear = Bilinear(zero_boundary=False)
+    def forward(self, input, moving):
+        disField = self.denseGen(input)
+        #hessianField = self.hessianField(disField)
+        gridField = torch.add(self.identity_map,disField)
+        #gridField= torch.tanh(gridField)
+        output = self.bilinear(moving,gridField)
+        return output, gridField, disField

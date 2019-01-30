@@ -5,6 +5,7 @@ from .metrics import get_multi_metric
 from model_pool.utils import *
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
+import mermaid.pyreg.finite_differences as fdt
 
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
@@ -15,8 +16,8 @@ class MermaidIter(BaseModel):
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
+        self.input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        self.spacing= 1. / (np.array(self.input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
         network_name =opt['tsk_set']['network_name']
         self.single_mod = True
         if network_name =='affine':
@@ -54,14 +55,16 @@ class MermaidIter(BaseModel):
 
 
     def affine_optimization(self):
+        self.si = SI.RegisterImagePair()
+
         self.si.set_light_analysis_on(True)
         extra_info={}
         extra_info['pair_name'] = self.fname_list[0]
         extra_info['batch_id'] = self.fname_list[0]
+        af_sigma = self.opt_mermaid['affine']['sigma']
         self.si.opt = None
         self.si.set_initial_map(None)
-        import os
-        print(os.getcwd())
+
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
                                 model_name='affine_map',
                                 map_low_res_factor=1.0,
@@ -71,8 +74,8 @@ class MermaidIter(BaseModel):
                                 use_multi_scale=True,
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
-                                similarity_measure_sigma=self.opt_mermaid['affine']['sigma'],
-                                json_config_out_filename='../model_pool/cur_settings_affine_output_tmp.json',  #########################################
+                                similarity_measure_sigma=af_sigma,
+                                json_config_out_filename='cur_settings_affine_output_tmp.json',  #########################################
                                 params ='../model_pool/cur_settings_affine_tmp.json')
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
@@ -83,20 +86,24 @@ class MermaidIter(BaseModel):
 
 
     def svf_optimization(self):
+        affine_map = self.si.opt.optimizer.ssOpt.get_map()
+
+        self.si =  SI.RegisterImagePair()
         self.si.set_light_analysis_on(True)
         extra_info = {}
         extra_info['pair_name'] = self.fname_list[0]
         extra_info['batch_id'] = self.fname_list[0]
+        # self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
+        # LSource_warped = self.si.get_warped_label()
+        # LSource_warped.detach_()
 
 
-
-        affine_map = self.si.opt.optimizer.ssOpt.get_map()
         self.si.opt = None
         self.si.set_initial_map(affine_map.detach())
 
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
-                                model_name='svf_vector_momentum_map',
+                                model_name='cvf_vector_momentum_map',
                                 map_low_res_factor=0.5,
                                 nr_of_iterations=100,
                                 visualize_step=None,
@@ -104,10 +111,9 @@ class MermaidIter(BaseModel):
                                 use_multi_scale=True,
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
-
                                 similarity_measure_sigma=1,
-                                json_config_out_filename='../model_pool/cur_settings_svf_output_tmp.json',
-                                params='../model_pool/cur_settings_svf_tmp.json')
+                                json_config_out_filename='cur_settings_svf_output_tmp1.json',
+                                params='../model_pool/cur_settings_cvf_tmp_test.json')
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
@@ -167,30 +173,12 @@ class MermaidIter(BaseModel):
         print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
 
 
-
+    def get_extra_res(self):
+        return self.jacobi_val
 
     def get_the_jacobi_val(self):
         return self.jacobi_val
 
-
-
-    def save_fig_3D(self,phase):
-        saving_folder_path = os.path.join(self.record_path, '3D')
-        make_dir(saving_folder_path)
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
-            saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
-            output = sitk.GetImageFromArray(self.moving[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
-            output = sitk.GetImageFromArray(self.target[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_reproduce.nii.gz"
-            output = sitk.GetImageFromArray(self.output[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
 
 
 
@@ -216,6 +204,30 @@ class MermaidIter(BaseModel):
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
                             disp, extra_title, self.phi, visual_param=visual_param)
+
+
+    def compute_jacobi_map(self,map):
+        """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
+          the image direction matrix is identity."""
+        if type(map) == torch.Tensor:
+            map = map.detach().cpu().numpy()
+        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        spacing = 2. / (np.array(input_img_sz) - 1)  # the disp coorindate is [-1,1]
+        fd = fdt.FD_np(spacing)
+        dfx = fd.dXc(map[:, 0, ...])
+        dfy = fd.dYc(map[:, 1, ...])
+        dfz = fd.dZc(map[:, 2, ...])
+        jacobi_det = dfx * dfy * dfz
+        # self.temp_save_Jacobi_image(jacobi_det,map)
+        jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])  #
+        jacobi_num = np.sum(jacobi_det < 0.)
+        print("debugging {},{},{}".format(np.sum(dfx < 0.), np.sum(dfy < 0.), np.sum(dfz < 0.)))
+        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
+        print("the number of fold points for current batch is {}".format(jacobi_num))
+        jacobi_abs_mean = jacobi_abs / map.shape[0]
+        jacobi_num_mean = jacobi_num / map.shape[0]
+        return jacobi_abs_mean, jacobi_num_mean
+
 
 
     def set_val(self):

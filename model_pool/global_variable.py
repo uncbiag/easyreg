@@ -1,5 +1,5 @@
-use_mermaid_iter = True
-reg_factor_in_mermaid = 10
+use_mermaid_iter = False
+reg_factor_in_mermaid = 1
 sym_factor_in_mermaid = 500
 param_in_ants = 64
 param_in_demons =None# (2,1) #(8,4)

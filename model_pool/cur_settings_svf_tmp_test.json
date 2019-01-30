@@ -7,7 +7,7 @@
         }, 
         "registration_model": {
             "forward_model": {
-                "number_of_time_steps": 10, 
+                "number_of_time_steps": 10,
                 "smoother": {
                     "multi_gaussian_stds": [
                         0.05,
@@ -58,11 +58,11 @@
                 50,
                 50
             ]
-        }, 
-        "name": "lbfgs_ls", 
+        },
+        "name": "lbfgs_ls",
         "scheduler": {
-            "factor": 0.5, 
-            "patience": 10, 
+            "factor": 0.5,
+            "patience": 10,
             "verbose": true
         }, 
         "single_scale": {

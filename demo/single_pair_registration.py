@@ -55,7 +55,6 @@ def force_setting(dm, tsm,output_path):
     tsm.task_par['tsk_set']['train'] = False
     tsm.task_par['tsk_set']['save_by_standard_label'] = True
     tsm.task_par['tsk_set']['continue_train'] = False
-    tsm.task_par['tsk_set']['batch_sz'] = 1
     tsm.task_par['tsk_set']['reg']['mermaid_net']['using_sym'] = False
     data_json_path = os.path.join(task_full_path, 'cur_data_setting.json')
     tsk_json_path = os.path.join(task_full_path, 'cur_task_setting.json')
@@ -100,6 +99,20 @@ def init_env(task_full_path,output_path, source_path_list, target_path_list, l_s
     tsm.task_par['tsk_set']['task_name'] = cur_task_name
     return dm, tsm
 
+def loading_img_list_from_files(path):
+    from data_pre.reg_data_utils import read_txt_into_list
+    path_list = read_txt_into_list(path)
+    num_pair = len(path_list)
+    assert len(path_list[0])>=2
+    has_label = True if len(path_list[0])==4 else False
+    source_path_list = [path_list[i][0] for i in range(num_pair)]
+    target_path_list = [path_list[i][1] for i in range(num_pair)]
+    l_source_path_list = None
+    l_target_path_list = None
+    if has_label:
+        l_source_path_list = [path_list[i][2] for i in range(num_pair)]
+        l_target_path_list = [path_list[i][3] for i in range(num_pair)]
+    return source_path_list, target_path_list, l_source_path_list, l_target_path_list
 
 
 
@@ -110,43 +123,53 @@ def init_env(task_full_path,output_path, source_path_list, target_path_list, l_s
 
 
 
+read_img_list_from_txt=True
+img_list_txt_path = '/playpen/zyshen/debugs/get_val_and_debug_res/debug.txt'
+if not read_img_list_from_txt:
+    source_path_list = ['/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz']
+    target_path_list = ['/playpen/zyshen/debugs/9002116_20050715_SAG_3D_DESS_RIGHT_10423916_image.nii.gz']
+    l_source_path_list = ['/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz']
+    l_target_path_list = ['/playpen/zyshen/debugs/9002116_20050715_SAG_3D_DESS_RIGHT_10423916_prediction_step1_batch6_16_reflect.nii.gz']
+else:
+    source_path_list, target_path_list,l_source_path_list,l_target_path_list = loading_img_list_from_files(img_list_txt_path)
 
 
-task_full_path = '/playpen/zyshen/data/debugging_demo/debugging'
+task_full_path = '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'
 """ the path of the setting from a completed task"""
-source_path_list = ['/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz']
-target_path_list = ['/playpen/zyshen/debugs/9002116_20050715_SAG_3D_DESS_RIGHT_10423916_image.nii.gz']
-l_source_path_list = ['/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz']
-l_target_path_list = ['/playpen/zyshen/debugs/9002116_20050715_SAG_3D_DESS_RIGHT_10423916_prediction_step1_batch6_16_reflect.nii.gz']
-output_path = '/playpen/zyshen/debugs/single_pair'
 
-
-
-
-
-""" the following settings are optional, if you want do something different than the loaded setting"""
-
-###############################  for mermaid network registration ##########################
+output_path = '/playpen/zyshen/debugs/get_val_and_debug_res/debug_res'
 dm, tsm = init_env(task_full_path,output_path,source_path_list,target_path_list,l_source_path_list,l_target_path_list)
-tsm.task_par['tsk_set']['gpu_ids'] = 2
-tsm.task_par['tsk_set']['model_path'] = ''#''/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
-tsm.task_par['tsk_set']['network_name'] ='svf'
-tsm.task_par['tsk_set']['model'] = 'mermaid_iter'
-tsm.task_par['tsk_set']['reg']['mermaid_net']['using_multi_step']=True
-tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']=6
-tsm.task_par['tsk_set']['reg']['mermaid_net']['using_affine_init']=True
-affine_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
-tsm.task_par['tsk_set']['reg']['mermaid_net']['affine_init_path']=affine_path
-tsm.task_par['tsk_set']['reg']['affine_net']['affine_net_iter']=7
+optional_setting_on = False
+tsm.task_par['tsk_set']['gpu_ids'] = 0
 
 
-################################  for mermaid optimization registration ######################################3
-tsm.task_par['tsk_set']['reg']['mermaid_iter']={}
-""" settings for the mermaid optimization version, we only provide parameter that may different in longitudinal and cross subject task"""
-tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']={}
-""" settings for the mermaid-affine optimization version"""
-tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']['sigma'] = 1.0
-""" for optimization-based mermaid recommand np.sqrt(1./batch_sz) for longitudinal, recommand np.sqrt(0.5/batch_sz) for cross-subject """
+if optional_setting_on:
+    """ the following settings are optional, if you want do something different than the loaded setting"""
+    ############################### general settings ##########################
+
+    tsm.task_par['tsk_set']['network_name'] ='svf'
+    tsm.task_par['tsk_set']['model'] = 'mermaid_iter'
+    tsm.task_par['tsk_set']['batch_sz'] = 1  # multi sample registration is only for mermaid based methods, for other methods should always be 1
+
+
+    ###############################  for mermaid network registration ##########################
+    tsm.task_par['tsk_set']['model_path'] = ''#"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"#''/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
+    tsm.task_par['tsk_set']['reg']['mermaid_net']['using_multi_step']=True
+    tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']=3
+    tsm.task_par['tsk_set']['reg']['mermaid_net']['using_affine_init']=True
+    affine_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+    tsm.task_par['tsk_set']['reg']['mermaid_net']['affine_init_path']=affine_path
+    tsm.task_par['tsk_set']['reg']['affine_net']['affine_net_iter']=7
+
+
+    ################################  for mermaid optimization registration ######################################3
+    tsm.task_par['tsk_set']['reg']['mermaid_iter']={}
+    """ settings for the mermaid optimization version, we only provide parameter that may different in longitudinal and cross subject task"""
+    tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']={}
+    """ settings for the mermaid-affine optimization version"""
+    tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']['sigma'] = 1.0
+    """ for optimization-based mermaid recommand np.sqrt(1./batch_sz) for longitudinal, recommand np.sqrt(0.5/batch_sz) for cross-subject """
+    """ for optimization-based mermaid recommand np.sqrt(1.) for longitudinal, recommand np.sqrt(0.5) for cross-subject """
 
 
 force_setting(dm,tsm,output_path)

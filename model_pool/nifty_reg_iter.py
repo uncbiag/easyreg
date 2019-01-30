@@ -204,26 +204,6 @@ class NiftyRegIter(BaseModel):
 
 
 
-
-    def save_fig_3D(self,phase):
-        saving_folder_path = os.path.join(self.record_path, '3D')
-        make_dir(saving_folder_path)
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
-            saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
-            output = sitk.GetImageFromArray(self.moving[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
-            output = sitk.GetImageFromArray(self.target[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_reproduce.nii.gz"
-            output = sitk.GetImageFromArray(self.output[i, 0, ...])
-            output.SetSpacing(self.spacing)
-            sitk.WriteImage(output, saving_file_path)
-
-
     def save_fig(self,phase,standard_record=False,saving_gt=True):
         from model_pool.visualize_registration_results import  show_current_images
         visual_param={}

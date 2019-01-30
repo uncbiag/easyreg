@@ -277,6 +277,3 @@ def show_current_images_3d(iS,iT):
     feh.synchronize([ax[0][1], ax[1][1]])
     feh.synchronize([ax[0][2], ax[1][2]])
 
-
-
-
