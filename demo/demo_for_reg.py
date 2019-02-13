@@ -57,14 +57,14 @@ A notation: We provided the data_preprocessing code for oai dataset. For other d
 tsm = ModelTask('task_reg')
 dm = DataTask('task_reg')
 root_path ='/playpen/zyshen/data/'
-data_task_name ='reg_debug_3000_pair_oai_reg_inter'
-cur_task_name = 'vm_cvpr_withreg10000'
+data_task_name ='reg_debug_3000_pair_oai_reg_intra'
+cur_task_name ='vm_miccal_setting_zeroboundary_withbothlambda50sigma002withenlargedflowreg_withoutaffine' # vm_cvprwithregfix5000'
 
 dm.data_par['datapro']['task_type']='reg'
 """ task type,  only support 'reg' """
 dm.data_par['datapro']['dataset']['dataset_name']='oai'
 """ dataset name,  is not used if the data has already been manually prepared"""
-dm.data_par['datapro']['reg']['sched']= 'intra'
+dm.data_par['datapro']['reg']['sched']= 'intra'  # no usage now
 """ dataset type, 'intra' for longitudinal,'inter' for cross-subject,  is not used if the data has manually prepared"""
 dm.data_par['datapro']['dataset']['output_path']= root_path
 """ the root path, refers to the [root_path]  in  root_path/data_task_name/cur_task_name  """
@@ -78,7 +78,7 @@ dm.data_par['datapro']['reg']['input_resize_factor'] =[80./160.,192./384.,192./3
 """ resize the image by [factor_x,factor_y, factor_z]"""
 dm.data_par['datapro']['reg']['max_pair_for_loading'] = [-1,-1,-1,-1]
 """ limit the max number of the pairs for [train, val, test, debug]"""
-dm.data_par['datapro']['reg']['load_training_data_into_memory'] = False
+dm.data_par['datapro']['reg']['load_training_data_into_memory'] = True
 """ load all training pairs into memory"""
 
 
@@ -91,13 +91,14 @@ tsm.task_par['tsk_set']['save_by_standard_label'] = True
 """ save the label in original label index, for example if the original label is a way like [ 1,3,7,8], otherwise save in [0,1,2,3] """
 tsm.task_par['tsk_set']['continue_train'] =False
 """ train from the checkpoint"""
-tsm.task_par['tsk_set']['continue_train_lr'] = 5e-5
+tsm.task_par['tsk_set']['continue_train_lr'] = 1e-4  #  TODO to be put back to 5e-5
 """ set the learning rate when continue the train"""
 tsm.task_par['tsk_set']['old_gpu_ids']=2
 """ no longer used"""
 tsm.task_par['tsk_set']['gpu_ids'] = 3
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] = "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
+tsm.task_par['tsk_set']['model_path'] ='/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/vm_cvprwithregfixnccandtraindata10000_withaffine/checkpoints/epoch_60_'
+#"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debugging_smoother_clamp_withunet_noclamp/checkpoints/epoch_120_"
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"#''/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
@@ -134,7 +135,7 @@ demons refers to deformably register two images using a symmetric forces demons 
 
 
 
-tsm.task_par['tsk_set']['network_name'] ='vm_cvpr'  #'mermaid' 'svf' 'syn' affine bspline
+tsm.task_par['tsk_set']['network_name'] ='vm_miccai'  #'mermaid' 'svf' 'syn' affine bspline
 """ see guideline"""
 tsm.task_par['tsk_set']['epoch'] = 300
 """ number of training epoch"""
@@ -144,11 +145,11 @@ tsm.task_par['tsk_set']['batch_sz'] = 2
 """ batch size"""
 tsm.task_par['tsk_set']['val_period'] =10
 """ do validation every # epoch"""
-tsm.task_par['tsk_set']['loss']['type'] = 'ncc' #######################TODO  here  should be lncc
+tsm.task_par['tsk_set']['loss']['type'] = 'empty' #######################TODO  here  should be lncc
 """similarity measure, mse, ncc, lncc"""
 tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [200,8,4]
 """ number of pairs per training/val/debug epoch,  [200,8,5] refers to 200 pairs for each train epoch, 8 pairs for each validation epoch and 5 pairs for each debug epoch"""
-tsm.task_par['tsk_set']['optim']['lr'] = 1e-4 / tsm.task_par['tsk_set']['batch_sz']
+tsm.task_par['tsk_set']['optim']['lr'] = 5e-5 / tsm.task_par['tsk_set']['batch_sz']  ############TODO  1e-4
 """the learning rate"""
 tsm.task_par['tsk_set']['optim']['lr_scheduler']['type'] = 'custom'
 """ 'custom','plateau',  learning rate scheduler, 'plateau' is not fully tested"""

@@ -63,9 +63,10 @@ class NiftyRegIter(BaseModel):
         self.fname_list = list(data[1])
         self.pair_path = data[0]['pair_path']
         self.pair_path = [path[0] for path in self.pair_path]
-        self.resized_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[0],is_label=False,fname='moving.nii.gz')
-        self.resized_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[1],is_label= False, fname='target.nii.gz')
-        self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True, fname='l_moving.nii.gz')
+        self.resized_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[0],is_label=False,fname=self.fname_list[0]+'_moving.nii.gz')
+        self.resized_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[1],is_label= False,fname=self.fname_list[0]+'_target.nii.gz')
+        self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True,fname=self.fname_list[0]+'_l_moving.nii.gz')
+        self.resized_t_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True,fname=self.fname_list[0]+'_t_moving.nii.gz')
 
 
     def resize_input_img_and_save_it_as_tmp(self, img_pth, is_label=False,fname=None,keep_physical=False):

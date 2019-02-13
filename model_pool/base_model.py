@@ -34,6 +34,8 @@ class BaseModel():
         self.moving = None
         self.target = None
         self.output = None
+        self.warped_label_map = None
+        self.l_target = None
 
 
 
@@ -192,6 +194,45 @@ class BaseModel():
             output = sitk.GetImageFromArray(self.output[i, 0, ...])
             output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
+
+
+    def save_fig_3D_tmp(self,phase=None):
+        saving_folder_path = os.path.join(self.record_path, '3D')
+        make_dir(saving_folder_path)
+        moving_np = (self.moving).cpu().numpy()
+        target_np = (self.target).cpu().numpy()
+        output_np = (self.output).cpu().numpy()
+        if self.warped_label_map is not None:
+            warped_label_map_np = (self.warped_label_map).cpu().numpy()
+        if self.l_target is not None:
+            l_target_np = (self.l_target).cpu().numpy()
+
+        for i in range(self.moving.size(0)):
+            appendix = self.fname_list[i]
+            saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
+            output = sitk.GetImageFromArray(moving_np[i, 0, ...])
+            #output.SetSpacing(self.spacing)
+            sitk.WriteImage(output, saving_file_path)
+            saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
+            output = sitk.GetImageFromArray(target_np[i, 0, ...])
+            #output.SetSpacing(self.spacing)
+            sitk.WriteImage(output, saving_file_path)
+            saving_file_path = saving_folder_path + '/' + appendix + "_affined.nii.gz"
+            output = sitk.GetImageFromArray(output_np[i, 0, ...])
+            #output.SetSpacing(self.spacing)
+            sitk.WriteImage(output, saving_file_path)
+            if self.warped_label_map is not None:
+                saving_file_path = saving_folder_path + '/' + appendix + "_affined_label.nii.gz"
+                output = sitk.GetImageFromArray(warped_label_map_np[i, 0, ...])
+                # output.SetSpacing(self.spacing)
+                sitk.WriteImage(output, saving_file_path)
+            if self.l_target is not None:
+                saving_file_path = saving_folder_path + '/' + appendix + "_target_label.nii.gz"
+                output = sitk.GetImageFromArray(l_target_np[i, 0, ...])
+                # output.SetSpacing(self.spacing)
+                sitk.WriteImage(output, saving_file_path)
+
+
 
 
 

@@ -4,7 +4,7 @@ from __future__ import print_function
 
 
 from model_pool.net_utils import *
-from mermaid.pyreg.forward_models import RHSLibrary
+#from mermaid.pyreg.forward_models import RHSLibrary
 
 
 

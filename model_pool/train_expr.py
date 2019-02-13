@@ -85,7 +85,7 @@ def train_model(opt,model, dataloaders,writer):
                 elif phase =='val':
                     print('val loss:')
                     model.cal_val_errors()
-                    if  epoch>0 and epoch % save_fig_epoch ==0 and save_fig_on:
+                    if   epoch % save_fig_epoch ==0 and save_fig_on:
                         model.save_fig(phase,standard_record=False)
                     score, detailed_scores= model.get_val_res()
                     model.update_loss(epoch,end_of_epoch)

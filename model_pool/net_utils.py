@@ -87,7 +87,30 @@ def identity_map(sz):
     return torch.from_numpy(id.astype(np.float32)).cuda()
 
 
-def gen_identity_map(img_sz, resize_factor=1.):
+def not_normalized_identity_map(sz):
+    """
+    Returns an identity map.
+
+    :param sz: just the spatial dimensions, i.e., XxYxZ
+    :param spacing: list with spacing information [sx,sy,sz]
+    :param dtype: numpy data-type ('float32', 'float64', ...)
+    :return: returns the identity map of dimension dimxXxYxZ
+    """
+    dim = len(sz)
+    if dim == 1:
+        id = np.mgrid[0: sz[0]]
+    elif dim == 2:
+        id = np.mgrid[0: sz[0], 0: sz[1]]
+    elif dim == 3:
+        # id = np.mgrid[0:sz[0], 0:sz[1], 0:sz[2]]
+        id = np.mgrid[0: sz[0], 0:sz[1], 0: sz[2]]
+    else:
+        raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
+    # id= id*2-1
+    return torch.from_numpy(id.astype(np.float32)).cuda()
+
+
+def gen_identity_map(img_sz, resize_factor=1.,normalized=True):
     """
     given displacement field,  add displacement on grid field
     """
@@ -95,7 +118,10 @@ def gen_identity_map(img_sz, resize_factor=1.):
         img_sz = [int(img_sz[i] * resize_factor[i]) for i in range(dim)]
     else:
         img_sz = [int(img_sz[i] * resize_factor) for i in range(dim)]
-    grid = identity_map(img_sz)
+    if normalized:
+        grid = identity_map(img_sz)
+    else:
+        grid = not_normalized_identity_map(img_sz)
     return grid
 
 

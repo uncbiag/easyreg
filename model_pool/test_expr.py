@@ -25,6 +25,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     if model.network is not None:
         model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
+    save_3d_img_on = opt['tsk_set'][('save_3d_img_on', True, 'saving fig')]
 
     phases = ['test'] #['val','test']  ###################################3
     if len(model_path):
@@ -61,6 +62,9 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
             records_time_np[i] = batch_time
             if save_fig_on:
                 model.save_fig('debug_model_'+phase)
+            if save_3d_img_on:
+                #model.save_fig_3D_tmp()
+                model.save_deformation()
             loss,loss_detail = model.get_test_res(detail=True)
             running_test_loss += loss * batch_size
             extra_res  = model.get_extra_res()

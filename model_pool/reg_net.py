@@ -11,7 +11,7 @@ from .metrics import get_multi_metric
 import mermaid.pyreg.finite_differences as fdt
 from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
-from model_pool.voxel_morph import VoxelMorphCVPR2018
+from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
 from model_pool.nn_interpolation import get_nn_interpolation
 
 model_pool = {'affine_sim':AffineNet,
@@ -19,7 +19,8 @@ model_pool = {'affine_sim':AffineNet,
               'affine_cycle':AffineNetCycle,
               'affine_sym': AffineNetSym,
               'mermaid':MermaidNet,
-              'vm_cvpr':VoxelMorphCVPR2018
+              'vm_cvpr':VoxelMorphCVPR2018,
+              'vm_miccai':VoxelMorphMICCAI2019
               }
 
 
@@ -40,6 +41,7 @@ class RegNet(BaseModel):
         network_name =opt['tsk_set']['network_name']
         self.mermaid_on = True if 'mermaid' in network_name else False
         self.using_sym_loss = True if 'sym' in network_name else False
+        self.using_affine = True if 'affine' in network_name else False
 
         self.network = model_pool[network_name](input_img_sz, opt)#AffineNetCycle(input_img_sz)#
         #self.network.apply(weights_init)
@@ -91,10 +93,14 @@ class RegNet(BaseModel):
     def cal_loss(self,using_decay_factor=False):
         # output should be BxCx....
         # target should be Bx1x
-        factor = 10000# 1e-7
+        from model_pool.global_variable import reg_factor_in_regnet
+        factor = reg_factor_in_regnet# 1e-7
         if using_decay_factor:
             factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
-        sim_loss  = self.loss_fn.get_loss(self.output,self.target)
+        if self.loss_fn.criterion is not None:
+            sim_loss  = self.loss_fn.get_loss(self.output,self.target)
+        else:
+            sim_loss = self.network.get_sim_loss(self.output,self.target)
         reg_loss = self.network.scale_reg_loss(self.extra) if self.extra is not None else 0.
         if self.iter_count%10==0:
             print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
@@ -175,11 +181,12 @@ class RegNet(BaseModel):
         self.get_evaluation()
 
     def get_evaluation(self):
-
+        s1 = time()
         self.output, self.phi, self.extra= self.forward()
         self.warped_label_map=None
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            print("!!!!!!!!!!!!!!!!testing the time cost is {}".format(time() - s1))
             warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
@@ -193,6 +200,8 @@ class RegNet(BaseModel):
     def compute_jacobi_map(self,map):
         """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
           the image direction matrix is identity."""
+        from model_pool.global_variable import save_jacobi_map
+        import SimpleITK as sitk
         if type(map) == torch.Tensor:
             map = map.detach().cpu().numpy()
         input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
@@ -210,6 +219,14 @@ class RegNet(BaseModel):
         print("the number of fold points for current batch is {}".format(jacobi_num))
         jacobi_abs_mean = jacobi_abs / map.shape[0]
         jacobi_num_mean = jacobi_num / map.shape[0]
+        self.jacobi_map = None
+        if save_jacobi_map:
+            jacobi_abs_map = np.abs(jacobi_det)
+            for i in range(jacobi_abs_map.shape[0]):
+                jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
+                pth = os.path.join(self.record_path, self.fname_list[i] + 'jacobi_img.nii')
+                sitk.WriteImage(jacobi_img, pth)
+            self.jacobi_map =jacobi_abs_map
         return jacobi_abs_mean, jacobi_num_mean
 
 
@@ -235,8 +252,27 @@ class RegNet(BaseModel):
         if self.mermaid_on:
             disp = self.extra[:,0,...]
             extra_title='affine'
+        if self.jacobi_map is not None:
+            disp = self.jacobi_map
+            extra_title = 'jacobi det'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
                             disp, extra_title, self.phi, visual_param=visual_param)
+
+    def save_deformation(self):
+        if not self.using_affine:
+            import nibabel as nib
+            phi_np = self.phi.detach().cpu().numpy()
+            for i in range(phi_np.shape[0]):
+                phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+                nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
+        else:
+            affine_param = self.extra
+            if isinstance(affine_param,list):
+                affine_param = self.extra[0]
+            affine_param = affine_param.detach().cpu().numpy()
+            for i in range(affine_param.shape[0]):
+                np.save( os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy',affine_param[i])
+
 
     def set_train(self):
         self.network.train(True)

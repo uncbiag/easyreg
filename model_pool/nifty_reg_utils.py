@@ -172,12 +172,12 @@ def performRegistration(mv_path, target_path, registration_type='bspline', recor
     cmd = ""
     output_txt = None
     if True and affine_on :
-        affine_txt = os.path.join(record_path, 'affine_transform.txt')
+        affine_txt = os.path.join(record_path, fname+'_affine_transform.txt')
         cmd += '\n' + nifty_reg_affine(ref=target_path, flo=mv_path, aff=affine_txt, res=affine_path)
         output_path = affine_path
         output_txt = affine_txt
     if registration_type =='bspline':
-        bspline_txt = os.path.join(record_path,'bspline_transform.nii')
+        bspline_txt = os.path.join(record_path,fname+'_bspline_transform.nii')
         cmd += '\n' + nifty_reg_bspline(ref=target_path, flo=mv_path, cpp=bspline_txt, res=bspline_path, aff= output_txt )
         output_path = bspline_path
         output_txt = bspline_txt
@@ -188,7 +188,7 @@ def performRegistration(mv_path, target_path, registration_type='bspline', recor
    # cmd += '\n' + nifty_reg_transform(ref=target_path, disp1=output_txt, disp2=displacement_path)
 
     if ml_path is not None:
-        loutput_path = os.path.join(record_path, 'warped_label.nii.gz')
+        loutput_path = os.path.join(record_path, fname+'_warped_label.nii.gz')
         cmd += '\n' + nifty_reg_resample(ref=target_path,flo=ml_path,trans=output_txt, res=loutput_path, inter= 0)
 
     process = subprocess.Popen(cmd, shell=True)

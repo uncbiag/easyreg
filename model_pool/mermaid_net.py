@@ -144,7 +144,7 @@ class MermaidNet(nn.Module):
         """setup the mermaid"""
         params = pars.ParameterDict()
         if not self.using_lddmm:
-            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_test.json') #''../model_pool/cur_settings_svf.json')######TODO ###########
+            params.load_JSON( '../mermaid/demos/cur_settings_lbfgs.json') #''../model_pool/cur_settings_svf.json')######TODO ###########
         else:
             params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         model_name = params['model']['registration_model']['type']
