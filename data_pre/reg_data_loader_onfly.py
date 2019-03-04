@@ -55,9 +55,9 @@ class RegistrationDataset(Dataset):
 
         self.has_label = False
         self.get_file_list()
-        self.resize = True
         self.reg_option = reg_option
         self.resize_factor = reg_option['input_resize_factor']
+        self.resize = not all([factor==1 for factor in self.resize_factor])
         load_training_data_into_memory = reg_option['load_training_data_into_memory']
         self.load_into_memory = load_training_data_into_memory if phase == 'train' else False
         self.pair_list = []
@@ -220,11 +220,14 @@ class RegistrationDataset(Dataset):
         return split_dict
 
     def __inverse_name(self,name):
-        n_parts= name.split('_image_')
-        inverse_name = n_parts[1]+'_'+n_parts[0]+'_image'
-        return inverse_name
-
-
+        try:
+            n_parts= name.split('_image_')
+            inverse_name = n_parts[1]+'_'+n_parts[0]+'_image'
+            return inverse_name
+        except:
+            n_parts = name.split('_brain_')
+            inverse_name = n_parts[1] + '_' + n_parts[0] + '_brain'
+            return inverse_name
 
 
 

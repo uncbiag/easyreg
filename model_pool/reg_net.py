@@ -101,7 +101,7 @@ class RegNet(BaseModel):
             sim_loss  = self.loss_fn.get_loss(self.output,self.target)
         else:
             sim_loss = self.network.get_sim_loss(self.output,self.target)
-        reg_loss = self.network.scale_reg_loss(self.extra) if self.extra is not None else 0.
+        reg_loss = self.network.scale_reg_loss(self.disp_or_afparam) if self.disp_or_afparam is not None else 0.
         if self.iter_count%10==0:
             print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
         return sim_loss+reg_loss*factor
@@ -140,7 +140,7 @@ class RegNet(BaseModel):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        self.output, self.phi, self.extra = self.forward()
+        self.output, self.phi, self.disp_or_afparam = self.forward()
         if self.mermaid_on:
             self.loss = self.cal_mermaid_loss()
         elif self.using_sym_loss:
@@ -182,7 +182,7 @@ class RegNet(BaseModel):
 
     def get_evaluation(self):
         s1 = time()
-        self.output, self.phi, self.extra= self.forward()
+        self.output, self.phi, self.disp_or_afparam= self.forward()
         self.warped_label_map=None
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
@@ -244,19 +244,22 @@ class RegNet(BaseModel):
         visual_param['pair_path'] = self.fname_list
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
+        extraImage, extraName = self.network.get_extra_to_plot()
         extra_title = 'disp'
-        if self.extra is not None and len(self.extra.shape)>2 and not self.mermaid_on:
-            disp = ((self.extra[:,...]**2).sum(1))**0.5
+        if self.disp_or_afparam is not None and len(self.disp_or_afparam.shape)>2 and not self.mermaid_on:
+            disp = ((self.disp_or_afparam[:,...]**2).sum(1))**0.5
 
 
         if self.mermaid_on:
-            disp = self.extra[:,0,...]
+            disp = self.disp_or_afparam[:,0,...]
             extra_title='affine'
         if self.jacobi_map is not None:
             disp = self.jacobi_map
             extra_title = 'jacobi det'
-        show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
-                            disp, extra_title, self.phi, visual_param=visual_param)
+        show_current_images(self.iter_count, iS=self.moving,iT=self.target,iW=self.output,
+                            iSL=self.l_moving,iTL=self.l_target, iWL=self.warped_label_map,
+                            vizImages=disp, vizName=extra_title,phiWarped=self.phi,
+                            visual_param=visual_param,extraImages=extraImage, extraName= extraName)
 
     def save_deformation(self):
         if not self.using_affine:
@@ -266,9 +269,9 @@ class RegNet(BaseModel):
                 phi = nib.Nifti1Image(phi_np[i], np.eye(4))
                 nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
         else:
-            affine_param = self.extra
+            affine_param = self.disp_or_afparam
             if isinstance(affine_param,list):
-                affine_param = self.extra[0]
+                affine_param = self.disp_or_afparam[0]
             affine_param = affine_param.detach().cpu().numpy()
             for i in range(affine_param.shape[0]):
                 np.save( os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy',affine_param[i])

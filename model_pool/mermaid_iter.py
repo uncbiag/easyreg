@@ -17,7 +17,8 @@ class MermaidIter(BaseModel):
         BaseModel.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing= 1. / (np.array(self.input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
+        self.spacing= opt['tsk_set'][('spacing',1. / (np.array(self.input_img_sz) - 1),'spacing')] # np.array([0.00501306, 0.00261097, 0.00261097])*2
+        self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         network_name =opt['tsk_set']['network_name']
         self.single_mod = True
         if network_name =='affine':
@@ -80,8 +81,10 @@ class MermaidIter(BaseModel):
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         self.disp = self.si.opt.optimizer.ssOpt.model.Ab
-        self.phi = self.phi*2-1
-
+        # self.phi = self.phi*2-1
+        self.phi = self.phi.detach().clone()
+        for i in range(self.dim):         #######################TODO #######################
+            self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
 
@@ -103,8 +106,8 @@ class MermaidIter(BaseModel):
 
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
-                                model_name='cvf_vector_momentum_map',
                                 map_low_res_factor=0.5,
+                                model_name='lddmm_shooting_map',
                                 nr_of_iterations=100,
                                 visualize_step=None,
                                 optimizer_name='lbfgs_ls',
@@ -113,7 +116,7 @@ class MermaidIter(BaseModel):
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=1,
                                 json_config_out_filename='cur_settings_svf_output_tmp1.json',
-                                params='../model_pool/cur_settings_cvf_tmp_test.json')
+                                params='../mermaid_settings/cur_settings_svf_dipr.json')
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
@@ -228,6 +231,12 @@ class MermaidIter(BaseModel):
         jacobi_num_mean = jacobi_num / map.shape[0]
         return jacobi_abs_mean, jacobi_num_mean
 
+    def save_deformation(self):
+        import nibabel as nib
+        phi_np = self.phi.detach().cpu().numpy()
+        for i in range(phi_np.shape[0]):
+            phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+            nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
 
 
     def set_val(self):

@@ -414,6 +414,10 @@ def resume_train(model_path, model, optimizer, old_gpu=0, cur_gpu=0):
             if not isinstance(optimizer, tuple):
                 try:
                     optimizer.load_state_dict(checkpoint['optimizer'])
+                    for state in optimizer.state.values():
+                        for k, v in state.items():
+                            if isinstance(v, torch.Tensor):
+                                state[k] = v.cuda()
                     print("=> succeed load optimizer '{}'".format(model_path))
                 except:
                     print("Warning !!! Meet error during loading the optimize, not externaly initialized")

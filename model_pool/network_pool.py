@@ -54,6 +54,9 @@ class AffineNet(nn.Module):
         output = self.bilinear(moving,affine_map)
         return output, affine_map, affine_param
 
+    def get_extra_to_plot(self):
+        return None, None
+
 
 
 
@@ -137,6 +140,9 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
             moving = output
 
         return output, affine_map, affine_param
+
+    def get_extra_to_plot(self):
+        return None, None
 
 
 
@@ -329,6 +335,9 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
         return output_st, affine_map_st, affine_param_st
 
+    def get_extra_to_plot(self):
+        return None, None
+
 
 
 
@@ -368,3 +377,6 @@ class SimpleNet(nn.Module):
         #gridField= torch.tanh(gridField)
         output = self.bilinear(moving,gridField)
         return output, gridField, disField
+
+    def get_extra_to_plot(self):
+        return None, None

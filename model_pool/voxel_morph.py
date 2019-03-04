@@ -167,6 +167,9 @@ class VoxelMorphCVPR2018(nn.Module):
         warped_source = self.bilinear(source, deform_field)
         return warped_source, deform_field, disp_field
 
+    def get_extra_to_plot(self):
+        return None, None
+
     def scale_reg_loss(self,disp=None,sched='l2'):
         fd = fdt.FD_torch(self.spacing*2)
         dfx = fd.dXc(disp[:, 0, ...])
@@ -353,6 +356,10 @@ class VoxelMorphMICCAI2019(nn.Module):
         self.print_count +=1
 
         return warped_source, deform_field, disp_field
+
+
+    def get_extra_to_plot(self):
+        return None, None
     def __do_some_clean(self):
         self.disp = None
         self.res_flow_mean = None

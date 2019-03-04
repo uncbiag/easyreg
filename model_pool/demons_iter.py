@@ -22,6 +22,7 @@ class DemonsRegIter(BaseModel):
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
         self.resize_factor = opt['tsk_set']['input_resize_factor']
+        self.resize = not all([factor==1 for factor in self.resize_factor])
 
         network_name =opt['tsk_set']['network_name']
         self.network_name = network_name
@@ -73,25 +74,29 @@ class DemonsRegIter(BaseModel):
         :return:
         """
         img = self.__read_and_clean_itk_info(img_pth)
-        resampler= sitk.ResampleImageFilter()
-        dimension =3
+        dimension = 3
         factor = np.flipud(self.resize_factor)
-        img_sz = img.GetSize()
-        affine = sitk.AffineTransform(dimension)
-        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-        after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
-        after_size = [int(sz) for sz in after_size]
-        matrix[0, 0] =1./ factor[0]
-        matrix[1, 1] =1./ factor[1]
-        matrix[2, 2] =1./ factor[2]
-        affine.SetMatrix(matrix.ravel())
-        resampler.SetSize(after_size)
-        resampler.SetTransform(affine)
-        if is_label:
-            resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+
+        if self.resize:
+            resampler= sitk.ResampleImageFilter()
+            img_sz = img.GetSize()
+            affine = sitk.AffineTransform(dimension)
+            matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+            after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
+            after_size = [int(sz) for sz in after_size]
+            matrix[0, 0] =1./ factor[0]
+            matrix[1, 1] =1./ factor[1]
+            matrix[2, 2] =1./ factor[2]
+            affine.SetMatrix(matrix.ravel())
+            resampler.SetSize(after_size)
+            resampler.SetTransform(affine)
+            if is_label:
+                resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+            else:
+                resampler.SetInterpolator(sitk.sitkBSpline)
+            img_resampled = resampler.Execute(img)
         else:
-            resampler.SetInterpolator(sitk.sitkBSpline)
-        img_resampled = resampler.Execute(img)
+            img_resampled = img
         fpth = os.path.join(self.record_path,fname)
         #############################  be attention the original of the image is no consistent which may cause the demos fail
         # so this should be checked

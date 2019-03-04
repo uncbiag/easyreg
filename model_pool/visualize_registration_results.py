@@ -281,20 +281,27 @@ def _show_current_images_2d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
         _show_current_images_2d_no_map(iS, iT, iW, iter, vizImage, vizName, visual_param, i)
 
 
-def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, phiWarped, visual_param=None, i=0):
+def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, phiWarped, visual_param=None, i=0,extraImage=None, extraName= None):
     if iSL is not None and iTL is not None:
         phiw_a = 3
-        if vizImage is None:
+        if vizImage is None and extraImage is None:
             fig, ax = plt.subplots(7, 3)
             iSL_a = 4
             iTL_a = 5
             iWL_a = 6
-        else:
+        elif extraImage is None:
             fig, ax = plt.subplots(8, 3)
             vizi_a = 4
             iSL_a = 5
             iTL_a = 6
             iWL_a = 7
+        else:
+            fig, ax = plt.subplots(9, 3)
+            vizi_a = 4
+            ext_a = 5
+            iSL_a = 6
+            iTL_a = 7
+            iWL_a = 8
     elif (phiWarped is not None) and (vizImage is not None):
         fig, ax = plt.subplots(5,3)
         phiw_a = 3
@@ -334,6 +341,10 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
         ivvxc = viewers.ImageViewer3D_Sliced(ax[vizi_a][0], utils.lift_to_dimension(utils.t2np(vizImage),3), 0, vizName + ' X', True)
         ivvyc = viewers.ImageViewer3D_Sliced(ax[vizi_a][1], utils.lift_to_dimension(utils.t2np(vizImage),3), 1, vizName + ' Y', True)
         ivvzc = viewers.ImageViewer3D_Sliced(ax[vizi_a][2], utils.lift_to_dimension(utils.t2np(vizImage),3), 2, vizName + ' Z', True)
+    if extraImage is not None:
+        ivexc = viewers.ImageViewer3D_Sliced(ax[ext_a][0], utils.lift_to_dimension(utils.t2np(extraImage),3), 0, extraName + ' X', True)
+        iveyc = viewers.ImageViewer3D_Sliced(ax[ext_a][1], utils.lift_to_dimension(utils.t2np(extraImage),3), 1, extraName + ' Y', True)
+        ivezc = viewers.ImageViewer3D_Sliced(ax[ext_a][2], utils.lift_to_dimension(utils.t2np(extraImage),3), 2, extraName + ' Z', True)
 
     if iSL is not None and iTL is not None:
         ivslxc = viewers.ImageViewer3D_Sliced(ax[iSL_a][0], utils.lift_to_dimension(utils.t2np(iSL), 3), 0,
@@ -381,6 +392,13 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
                            ivvyc.set_synchronize)
         feh.add_axes_event('button_press_event', ax[vizi_a][2], ivvzc.on_mouse_press, ivvzc.get_synchronize,
                            ivvzc.set_synchronize)
+    if extraImage is not None:
+        feh.add_axes_event('button_press_event', ax[ext_a][0], ivexc.on_mouse_press, ivexc.get_synchronize,
+                           ivexc.set_synchronize)
+        feh.add_axes_event('button_press_event', ax[ext_a][1], iveyc.on_mouse_press, iveyc.get_synchronize,
+                           iveyc.set_synchronize)
+        feh.add_axes_event('button_press_event', ax[ext_a][2], ivezc.on_mouse_press, ivezc.get_synchronize,
+                           ivezc.set_synchronize)
     if iSL is not None and iTL is not None:
         feh.add_axes_event('button_press_event', ax[iSL_a][0], ivslxc.on_mouse_press, ivslxc.get_synchronize,
                            ivslxc.set_synchronize)
@@ -400,8 +418,17 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
                            ivwlyc.set_synchronize)
         feh.add_axes_event('button_press_event', ax[iWL_a][2], ivwlzc.on_mouse_press, ivwlzc.get_synchronize,
                            ivwlzc.set_synchronize)
+
+
     if iSL is not None and iTL is not None:
-        if vizImage is not None:
+        if vizImage is not None and extraImage is not None:
+            feh.synchronize(
+                [ax[0][0], ax[1][0], ax[2][0], ax[phiw_a][0], ax[vizi_a][0], ax[ext_a][0],ax[iSL_a][0], ax[iTL_a][0], ax[iWL_a][0]])
+            feh.synchronize(
+                [ax[0][1], ax[1][1], ax[2][1], ax[phiw_a][1], ax[vizi_a][1],ax[ext_a][1], ax[iSL_a][1], ax[iTL_a][1], ax[iWL_a][1]])
+            feh.synchronize(
+                [ax[0][2], ax[1][2], ax[2][2], ax[phiw_a][2], ax[vizi_a][2],ax[ext_a][2], ax[iSL_a][2], ax[iTL_a][2], ax[iWL_a][2]])
+        elif vizImage is not None:
             feh.synchronize([ax[0][0], ax[1][0], ax[2][0], ax[phiw_a][0], ax[vizi_a][0],ax[iSL_a][0], ax[iTL_a][0],ax[iWL_a][0]])
             feh.synchronize([ax[0][1], ax[1][1], ax[2][1], ax[phiw_a][1], ax[vizi_a][1],ax[iSL_a][1], ax[iTL_a][1],ax[iWL_a][1]])
             feh.synchronize([ax[0][2], ax[1][2], ax[2][2], ax[phiw_a][2], ax[vizi_a][2],ax[iSL_a][2], ax[iTL_a][2],ax[iWL_a][2]])
@@ -442,7 +469,7 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
         plt.clf()
 
 
-def show_current_images(iter, iS, iT, iW,iSL=None, iTL=None, iWL=None, vizImages=None, vizName=None, phiWarped=None, visual_param=None):
+def show_current_images(iter, iS, iT, iW,iSL=None, iTL=None, iWL=None, vizImages=None, vizName=None, phiWarped=None, visual_param=None,extraImages=None, extraName= None):
     """
     Visualizes the current images during registration
     
@@ -488,6 +515,12 @@ def show_current_images(iter, iS, iT, iW,iSL=None, iTL=None, iWL=None, vizImages
         else:
             vizImage = None
 
+        if extraImages is not None:
+            extraImage = extraImages[i,0,...]
+        else:
+            extraImage = None
+
+
         if phiWarped is not None:
             pwF = phiWarped[i,...]
         else:
@@ -503,7 +536,7 @@ def show_current_images(iter, iS, iT, iW,iSL=None, iTL=None, iWL=None, vizImages
         elif dim==2:
             _show_current_images_2d(iSF, iTF, iWF,iSLF,iTLF,iWLF, iter, vizImage, vizName, pwF, visual_param, i)
         elif dim==3:
-            _show_current_images_3d(iSF, iTF, iWF, iSLF, iTLF, iWLF, iter, vizImage, vizName, pwF, visual_param, i)
+            _show_current_images_3d(iSF, iTF, iWF, iSLF, iTLF, iWLF, iter, vizImage, vizName, pwF, visual_param, i,extraImage, extraName)
         else:
             raise ValueError( 'Debug output only supported in 1D and 3D at the moment')
 

@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 
 from data_pre.reg_data_utils import *
 
-from data_pre.oai_longitude_reg import *
+from data_pre.oasis_longitude_reg import *
 import copy
 
 sesses = ['train', 'val', 'test', 'debug']
@@ -375,6 +375,8 @@ class MixedDataSet(BaseRegDataSet):
 
 
 
+
+
 class PatientStructureDataSet(VolumetricDataSet):
     """
 
@@ -384,11 +386,13 @@ class PatientStructureDataSet(VolumetricDataSet):
     def __init__(self, dataset_type, file_type_list, sched):
         VolumetricDataSet.__init__(self, dataset_type, file_type_list,sched)
         self.patients = []
-        self.only_test_set=True
+        self.only_test_set=False
         """all available data would be regarded as test data, no training and validation set would be generated"""
-        self.__init_patients()
-        """we """
         self.data_root_path = None
+
+    def initialize_info(self):
+        self.__init_patients()
+
 
     def set_data_root_path(self,data_root_path):
         self.data_root_path = data_root_path
@@ -456,8 +460,8 @@ class PatientStructureDataSet(VolumetricDataSet):
                         for j in range(i+1, num_images):
                             intra_pair_list.append([intra_image_list[i],intra_image_list[j],
                                                     intra_label_list[i],intra_label_list[j]])
-                            intra_pair_list.append([intra_image_list[j], intra_image_list[i],
-                                                    intra_label_list[j], intra_label_list[i]])
+                            # intra_pair_list.append([intra_image_list[j], intra_image_list[i], used in old code
+                            #                         intra_label_list[j], intra_label_list[i]])
             # if pair_num_limit>=0 and len(intra_pair_list)> 5*pair_num_limit:
             #     break
         if len(patients)>0:
@@ -526,10 +530,10 @@ class PatientStructureDataSet(VolumetricDataSet):
     def gen_pair_dic(self):
         if self.only_test_set:
             self.divided_ratio = [0.,0.,1.] ##############################################
-            num_pair_limit = -1 if self.sched=='intra' else 300
+            num_pair_limit = 150 # -1 if self.sched=='intra' else 300 used in old code
 
         else:
-            num_pair_limit = 2000  #-1
+            num_pair_limit = 2000  #-1 used in old code
         sub_folder_dic, sub_patients_dic =self.__divide_into_train_val_test_set(self.output_path,self.patients,self.divided_ratio)
         gen_pair_list_func = self. __gen_intra_pair_list if self.sched=='intra' else self.__gen_inter_pair_list
         max_ratio = {'train':self.divided_ratio[0],'val':self.divided_ratio[1],'test':self.divided_ratio[2],'debug':self.divided_ratio[1]}
@@ -689,25 +693,35 @@ if __name__ == "__main__":
     # lpba.prepare_data()
 
 
-    ###########################       LPBA Slicing TESTING           ###################################
-    path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-    label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    full_comb = False
-    name = 'lpba'
-    output_path = '/playpen/zyshen/data/' + name + '_pre_slicing'
-    divided_ratio = (0.6, 0.2, 0.2)
+    # ###########################       LPBA Slicing TESTING           ###################################
+    # path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
+    # label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
+    # full_comb = False
+    # name = 'lpba'
+    # output_path = '/playpen/zyshen/data/' + name + '_pre_slicing'
+    # divided_ratio = (0.6, 0.2, 0.2)
+    #
+    # ###################################################
+    # #lpba testing
+    #
+    #
+    # lpba = VolLabCusDataSet(sched='', full_comb=full_comb)
+    # lpba.set_slicing(90,1)
+    # lpba.set_data_path(path)
+    # lpba.set_output_path(output_path)
+    # lpba.set_divided_ratio(divided_ratio)
+    # lpba.set_label_path(label_path)
+    # lpba.prepare_data()
+    oasis =  PatientStructureDataSet('reg',['nii.gz'],'inter')
+    data_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0220/data"
+    output_path = '/playpen/zyshen/data/' + "reg_debug_3000_pair_oasis3_reg_inter"
+    divided_ratio = [0.7,0.1,0.2]
+    oasis.set_data_root_path(data_root_path)
+    oasis.set_output_path(output_path)
+    oasis.set_divided_ratio(divided_ratio)
+    oasis.prepare_data()
 
-    ###################################################
-    #lpba testing
 
-
-    lpba = VolLabCusDataSet(sched='', full_comb=full_comb)
-    lpba.set_slicing(90,1)
-    lpba.set_data_path(path)
-    lpba.set_output_path(output_path)
-    lpba.set_divided_ratio(divided_ratio)
-    lpba.set_label_path(label_path)
-    lpba.prepare_data()
 
 
 

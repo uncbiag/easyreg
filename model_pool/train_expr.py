@@ -10,6 +10,7 @@ def train_model(opt,model, dataloaders,writer):
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
     resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
+    load_model_but_train_from_begin = opt['tsk_set'][('load_model_but_train_from_begin',False,'load_model_but_train_from_begin')]
     check_point_path = opt['tsk_set']['path']['check_point_path']
     max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
     best_score = 0
@@ -36,10 +37,15 @@ def train_model(opt,model, dataloaders,writer):
     if resume_training:
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        start_epoch, best_prec1, global_step=resume_train(model_path, model.network,None,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
-        if continue_train_lr>0:
-            model.adjust_learning_rate(continue_train_lr)
-            print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
+        start_epoch, best_prec1, global_step=resume_train(model_path, model.network,model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
+        if not load_model_but_train_from_begin:
+            if continue_train_lr>0:
+                model.adjust_learning_rate(continue_train_lr)
+                print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
+        else:
+            start_epoch=0
+            global_step = {x: 0 for x in phases}
+            print("the model has been initialized from extern, but will train from the scratch")
 
     model.network = model.network.cuda()
 
