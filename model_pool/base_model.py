@@ -103,7 +103,8 @@ class BaseModel():
         return re_optimizer,re_lr_scheduler,re_exp_lr_scheduler
 
 
-
+    def get_debug_info(self):
+        return None
 
     # get image paths
     def get_image_paths(self):

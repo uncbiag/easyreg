@@ -83,7 +83,12 @@ def train_model(opt,model, dataloaders,writer):
                 detailed_scores = 0.
 
                 if phase == 'train':
-                    model.optimize_parameters()
+                    try:
+                        model.optimize_parameters()
+                    except:
+                        info = model.get_debug_info()
+                        save_and_debug_model(model,info,check_point_path,epoch,global_step)
+                        exit(1)
                     loss = model.get_current_errors()
 
 
@@ -185,3 +190,21 @@ def train_model(opt,model, dataloaders,writer):
     writer.close()
     # return the model at the last epoch, not the best epoch
     return model
+
+
+def save_and_debug_model(model, info,check_point_path,epoch,global_step):
+    print("the program meet error, now output the debugging info")
+    print("{}".format(info))
+    if isinstance(model.optimizer, tuple):
+        # for multi-optimizer cases
+        optimizer_state = []
+        for term in model.optimizer:
+            optimizer_state.append(term.state_dict())
+        optimizer_state = tuple(optimizer_state)
+    else:
+        optimizer_state = model.optimizer.state_dict()
+    save_checkpoint({'epoch': epoch, 'state_dict': model.network.state_dict(), 'optimizer': optimizer_state,
+                     'best_score': 0.0, 'global_step': global_step}, False, check_point_path,
+                    'epoch_' + 'debug', '')
+
+    pass

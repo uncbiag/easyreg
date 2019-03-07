@@ -8,7 +8,7 @@
         "registration_model": {
             "forward_model": {
                 "number_of_time_steps": 10,
-                "solver": "rk4",
+                "solver": "dopri5",
                 "adjoin_on": true,
                 "rtol": 1e-5,
                 "atol": 1e-5,
@@ -40,11 +40,11 @@
                 "sigma": 1.0,
                 "type": "lncc",
                 "lncc":{
-                    "resol_bound":[-1],
-                    "kernel_size_ratio":[[0.25]],
-                    "kernel_weight_ratio":[[1.0]],
-                    "stride":[0.25],
-                    "dilation":[1]
+                    "resol_bound":[128,64],
+                    "kernel_size_ratio":[[0.0625,0.125, 0.25], [0.25,0.5], [0.5]],
+                    "kernel_weight_ratio":[[0.1, 0.3, 0.6],[0.3,0.7],[1.0]],
+                    "stride":[0.25,0.25,0.25],
+                    "dilation":[1,2,2]
                 }
             },
             "load_velocity_from_forward_model":true,

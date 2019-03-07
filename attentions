@@ -10,3 +10,7 @@ we use use softmax, disable compute weights from preweights, since the map is sm
 the omt loss is set as 0.01.
 if you want to change the setttings of the smoothers, make sure there are two smoother setttings to be changed, one in deep smoother
 one in forward method
+
+
+3.3 update
+maybe momentum is the better choice for the network input

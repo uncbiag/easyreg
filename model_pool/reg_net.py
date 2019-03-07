@@ -83,6 +83,7 @@ class RegNet(BaseModel):
         self.l_target = l_target
 
 
+
     def forward(self,input=None):
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
@@ -133,6 +134,10 @@ class RegNet(BaseModel):
 
     def backward_net(self):
         self.loss.backward()
+
+    def get_debug_info(self):
+        info = {'file_name':self.fname_list}
+        return info
 
 
 

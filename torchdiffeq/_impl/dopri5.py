@@ -111,7 +111,13 @@ class Dopri5Solver(AdaptiveStepsizeODESolver):
         ########################################################
         assert t0 + dt > t0, 'underflow in dt {}'.format(dt.item())
         for y0_ in y0:
-            assert _is_finite(torch.abs(y0_)), 'non-finite values in state `y`: {}'.format(y0_)
+            #assert _is_finite(torch.abs(y0_)), 'non-finite values in state `y`: {}'.format(y0_)
+            is_finite= _is_finite(torch.abs(y0_))
+            if not is_finite:
+                print(" non-finite elements exist, try to fix")
+                y0_[y0_ != y0_] = 0.
+                y0_[y0_ == float("Inf")] = 0.
+
         y1, f1, y1_error, k = _runge_kutta_step(self.func, y0, f0, t0, dt, tableau=_DORMAND_PRINCE_SHAMPINE_TABLEAU)
 
         ########################################################
@@ -132,8 +138,8 @@ class Dopri5Solver(AdaptiveStepsizeODESolver):
             interp_coeff = _interp_fit_dopri5(y0, y1, k, dt) if accept_step else interp_coeff
         else:
             if dt_next<0.02:
-                print("warning the step of dopri5 {} is too small, set to 0.02".format(dt_next))
-                dt_next = _convert_to_tensor(0.02, dtype=torch.float64, device=y0[0].device)
+                print("warning the step of dopri5 {} is too small, set to 0.01".format(dt_next))
+                dt_next = _convert_to_tensor(0.01, dtype=torch.float64, device=y0[0].device)
             # if dt_next>0.1:
             #     print("warning the step of dopri5 {} is too big, set to 0.1".format(dt_next))
             #     dt_next = _convert_to_tensor(0.1, dtype=torch.float64, device=y0[0].device)

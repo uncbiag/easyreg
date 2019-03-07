@@ -58,7 +58,10 @@ tsm = ModelTask('task_reg')
 dm = DataTask('task_reg')
 root_path ='/playpen/zyshen/data/'
 data_task_name ='croped_for_reg_debug_3000_pair_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
-cur_task_name ='reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt001rloss1_fixed' # vm_cvprwithregfix5000'
+cur_task_name ='reg_fixed_lddmm_onestepphi_regthis10_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
+
+#'reg_fixed_lddmm_onestepphi_reg3_sunet_clamp_omt_IT_net_001rloss1_withinit'
+#'reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
 is_oai = 'oai' in data_task_name
 is_oasis = not is_oai
 img_sz = [160/2,384/2,384/2]
@@ -95,7 +98,7 @@ dm.data_par['datapro']['dataset']['spacing'] =spacing#[96. / 193., 96. / 193, 11
 """ spacing of image """
 dm.data_par['datapro']['reg']['max_pair_for_loading'] = [-1,-1,-1,-1]
 """ limit the max number of the pairs for [train, val, test, debug]"""
-dm.data_par['datapro']['reg']['load_training_data_into_memory'] = True
+dm.data_par['datapro']['reg']['load_training_data_into_memory'] = False
 """ load all training pairs into memory"""
 
 
@@ -108,20 +111,21 @@ tsm.task_par['tsk_set']['save_by_standard_label'] = True
 """ save the label in original label index, for example if the original label is a way like [ 1,3,7,8], otherwise save in [0,1,2,3] """
 tsm.task_par['tsk_set']['continue_train'] =True
 """ train from the checkpoint"""
-tsm.task_par['tsk_set']['load_model_but_train_from_begin'] =True  ###############TODO  should be false
+tsm.task_par['tsk_set']['load_model_but_train_from_begin'] =False ###############TODO  should be false
 """ load the saved model as initialization, but still will train the whole model from the beginning"""
 tsm.task_par['tsk_set']['continue_train_lr'] = 5e-5  #  TODO to be put back to 5e-5
 """ set the learning rate when continue the train"""
 tsm.task_par['tsk_set']['old_gpu_ids']=0
 """ no longer used"""
-tsm.task_par['tsk_set']['gpu_ids'] = 0
+tsm.task_par['tsk_set']['gpu_ids'] = 2
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_fixed/checkpoints/epoch_10_'
+tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
+    #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt001rloss1_fixed/checkpoints/epoch_30_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_reg_lddmm_unet_oneadpt_5scale_noloss_10reg_softmax/checkpoints/epoch_90_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_reg_lddmm_unet_oneadpt_5scale_noloss_3reg_softmax_continue5iter_withclamp/checkpoints/epoch_100_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_sunet_clamp/checkpoints/epoch_5_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_reg_lddmm_unet_oneadpt_5scale_noloss_10reg_softmax/checkpoints/epoch_90_'
-    #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_on_lddmm_network_bz2/checkpoints/epoch_200_'
+    #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_on_lddmm_network_bz2/checkpoints/epoch_300_'
 #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/vm_cvprwithregfixnccandtraindata10000_withaffine/checkpoints/epoch_60_'
 #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debugging_smoother_clamp_withunet_noclamp/checkpoints/epoch_120_"
@@ -175,7 +179,7 @@ tsm.task_par['tsk_set']['loss']['type'] = 'lncc' #######################TODO  he
 """similarity measure, mse, ncc, lncc"""
 tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [200,8,4]
 """ number of pairs per training/val/debug epoch,  [200,8,5] refers to 200 pairs for each train epoch, 8 pairs for each validation epoch and 5 pairs for each debug epoch"""
-tsm.task_par['tsk_set']['optim']['lr'] = 2e-4/ tsm.task_par['tsk_set']['batch_sz']  ############TODO  1e-4
+tsm.task_par['tsk_set']['optim']['lr'] = 1e-4/ tsm.task_par['tsk_set']['batch_sz']  ############TODO  1e-4
 """the learning rate"""
 tsm.task_par['tsk_set']['optim']['lr_scheduler']['type'] = 'custom'
 """ 'custom','plateau',  learning rate scheduler, 'plateau' is not fully tested"""
@@ -200,7 +204,7 @@ fix_ind_com = [list(range((i+1)*5,(i+2)*5)) for i in range(0,20,2)]
 from functools import reduce
 fix_ind = reduce(lambda x,y: x+y,fix_ind)
 fix_ind_com = reduce(lambda x,y: x+y,fix_ind_com)
-tsm.task_par['tsk_set']['reg']['mermaid_net']['epoch_list_fixed_momentum_network'] =[-1] #fix_ind
+tsm.task_par['tsk_set']['reg']['mermaid_net']['epoch_list_fixed_momentum_network'] =[-1]
 tsm.task_par['tsk_set']['reg']['mermaid_net']['epoch_list_fixed_deep_smoother_network'] =[-1] #fix_ind_com
 tsm.task_par['tsk_set']['reg']['mermaid_net']['clamp_momentum'] =True  # TODO it should be False in most case
 
