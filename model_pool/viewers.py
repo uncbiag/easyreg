@@ -317,7 +317,7 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         # slicing a along a given dimension at index, index
         slc = [slice(None)] * len(self.data.shape)
         slc[self.sliceDim] = slice(index, index+1)
-        return (self.data[slc]).squeeze()
+        return (self.data[tuple(slc)]).squeeze()
 
     def previous_slice(self):
         """
@@ -423,7 +423,7 @@ class ImageViewer3D_Sliced_Contour(ImageViewer3D_Sliced):
         # slicing a along a given dimension at index, index
         slc = [slice(None)] * len(self.phi.shape)
         slc[self.sliceDim+1] = slice(index, index+1)
-        return (self.phi[slc]).squeeze()
+        return (self.phi[tuple(slc)]).squeeze()
 
     def show_contours(self):
         """

@@ -575,9 +575,9 @@ class OASISDataPrepare():
         return list(slices_name_np)
 
 
-#
-test = OASISDataPrepare()
-test.debug=False
-test.prepare_data()
+# #
+# test = OASISDataPrepare()
+# test.debug=False
+# test.prepare_data()
 # patients = Patients(full_init=True)
 # filtered_patients = patients.get_filtered_patients_list(specificity='RIGHT',num_of_patients=3, len_time_range=[2,7], use_random=False)

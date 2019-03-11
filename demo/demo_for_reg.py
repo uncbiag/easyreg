@@ -53,29 +53,46 @@ The output is organized by root_path/data_task_name/cur_task_name
 A notation: We provided the data_preprocessing code for oai dataset. For other dataset, please follow the guideline
 """
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Registeration demo (include train and test)')
+
+parser.add_argument('--gpu', required=False, type=int, default=0,
+                    help='give the id to run the gpu')
+parser.add_argument('--llf', required=False, type=bool, default=False,
+                    help='run on long leaf')
+args = parser.parse_args()
 
 tsm = ModelTask('task_reg')
 dm = DataTask('task_reg')
-root_path ='/playpen/zyshen/data/'
-data_task_name ='croped_for_reg_debug_3000_pair_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
-cur_task_name ='reg_fixed_lddmm_onestepphi_regthis10_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
+if not args.llf:
+    root_path = '/playpen/zyshen/data/'
+    data_task_name ='croped_for_reg_debug_3000_pair_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_train ='croped_for_reg_debug_3000_pair_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+else:
+    root_path = '/pine/scr/z/y/zyshen/expri/'
+    data_task_name = 'croped_for_reg_debug_3000_pair_oai_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_train = 'croped_for_reg_debug_3000_pair_oai_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
 
+cur_program_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+data_output_path = os.path.join(root_path,data_task_name_for_train)
+cur_task_name ='reg_adpt_lddmm_2step_using_previous_adpt_init_continue' # vm_cvprwithregfix5000'
 #'reg_fixed_lddmm_onestepphi_reg3_sunet_clamp_omt_IT_net_001rloss1_withinit'
 #'reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
 is_oai = 'oai' in data_task_name
 is_oasis = not is_oai
 img_sz = [160/2,384/2,384/2]
 input_resize_factor = [1.,1.,1.]
-spacing = [1. / (img_sz[i] * input_resize_factor[i]) for i in range(len(img_sz))]
+spacing = [1. / (img_sz[i] * input_resize_factor[i]-1) for i in range(len(img_sz))]
 
 # if is_oai:
 #     img_sz = [160,384,384]
 #     input_resize_factor = [80./160.,192./384.,192./384]
-#     spacing = [1. / (img_sz[i] * input_resize_factor[i]) for i in range(len(img_sz))]
+#     spacing = [1. / (img_sz[i] * input_resize_factor[i]-1) for i in range(len(img_sz))]
 # if is_oasis:
 #     img_sz = [224,224,224]
 #     input_resize_factor = [128./224,128./224,128./224]
-#     spacing = [1. / (img_sz[i] * input_resize_factor[i]) for i in range(len(img_sz))]
+#     spacing = [1. / (img_sz[i] * input_resize_factor[i]-1) for i in range(len(img_sz))]
 
 
 dm.data_par['datapro']['task_type']='reg'
@@ -98,7 +115,7 @@ dm.data_par['datapro']['dataset']['spacing'] =spacing#[96. / 193., 96. / 193, 11
 """ spacing of image """
 dm.data_par['datapro']['reg']['max_pair_for_loading'] = [-1,-1,-1,-1]
 """ limit the max number of the pairs for [train, val, test, debug]"""
-dm.data_par['datapro']['reg']['load_training_data_into_memory'] = False
+dm.data_par['datapro']['reg']['load_training_data_into_memory'] = True
 """ load all training pairs into memory"""
 
 
@@ -113,13 +130,23 @@ tsm.task_par['tsk_set']['continue_train'] =True
 """ train from the checkpoint"""
 tsm.task_par['tsk_set']['load_model_but_train_from_begin'] =False ###############TODO  should be false
 """ load the saved model as initialization, but still will train the whole model from the beginning"""
-tsm.task_par['tsk_set']['continue_train_lr'] = 5e-5  #  TODO to be put back to 5e-5
+tsm.task_par['tsk_set']['continue_train_lr'] = 2e-5  #  TODO to be put back to 5e-5
 """ set the learning rate when continue the train"""
 tsm.task_par['tsk_set']['old_gpu_ids']=0
 """ no longer used"""
-tsm.task_par['tsk_set']['gpu_ids'] = 2
+tsm.task_par['tsk_set']['gpu_ids'] = args.gpu
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
+tsm.task_par['tsk_set']['model_path'] =os.path.join(data_output_path,'reg_adpt_lddmm_2step_using_previous_adpt_init/checkpoints/epoch_60_')
+    #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
+
+    #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
+
+    #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
+
+    #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_baseline/checkpoints/epoch_70_'
+    #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_on_lddmm_network_bz2/checkpoints/epoch_300_'
+
+    #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
     #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt001rloss1_fixed/checkpoints/epoch_30_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_reg_lddmm_unet_oneadpt_5scale_noloss_10reg_softmax/checkpoints/epoch_90_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debug_reg_lddmm_unet_oneadpt_5scale_noloss_3reg_softmax_continue5iter_withclamp/checkpoints/epoch_100_'
@@ -129,7 +156,7 @@ tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/croped_for_reg_deb
 #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/vm_cvprwithregfixnccandtraindata10000_withaffine/checkpoints/epoch_60_'
 #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/debugging_smoother_clamp_withunet_noclamp/checkpoints/epoch_120_"
-    #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"#''/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
+    #''/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_inter_mermaid_net_reisd_2step_lncc_lgreg10_sym_recbi/checkpoints/epoch_100_'
 """the path of saved checkpoint, for methods not using network, leave it to be '' """
@@ -213,20 +240,20 @@ tsm.task_par['tsk_set']['reg']['mermaid_net']['clamp_momentum'] =True  # TODO it
 
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_sym']=True
 """ using symmetric training, if True, the loss is combined with source-target loss, target-source loss, and symmetric loss"""
-tsm.task_par['tsk_set']['reg']['mermaid_net']['sym_factor']=500
+tsm.task_par['tsk_set']['reg']['mermaid_net']['sym_factor']=1000
 """ the weight for symmetric factor"""
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_complex_net']=True
 """ True : using a deep residual unet, False: using a simple unet"""
-tsm.task_par['tsk_set']['reg']['mermaid_net']['using_multi_step']=False
+tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']=2
+tsm.task_par['tsk_set']['reg']['mermaid_net']['using_multi_step']=tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']>1
 """ using multi-step training for mermaid_based method"""
-tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']=1
 """ number of steps in multi-step mermaid_based method training"""
-tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']='/playpen/zyshen/reg_clean/mermaid_settings/cur_settings_adpt_lddmm.json'
+tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']=os.path.join(cur_program_path,'mermaid_settings/cur_settings_adpt_lddmm.json')
 """ True: using lddmm False: using vSVF"""
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_affine_init']=True  # this should be true
 tsm.task_par['tsk_set']['reg']['mermaid_net']['load_trained_affine_net']=True
 """ True: using affine_network for initialized, which should be trained first. False: using id transform as initialization"""
-affine_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+affine_path = os.path.join(data_output_path, 'train_affine_net_sym_lncc/checkpoints/epoch_1070_')
 tsm.task_par['tsk_set']['reg']['mermaid_net']['affine_init_path']=affine_path
 """ if using_affine_init = True, the provide the path of affine_model"""
 

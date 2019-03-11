@@ -286,16 +286,18 @@ class MermaidNet(nn.Module):
         for param in params:
             param.requires_grad = True
     def init_mermaid_param(self,s):
-        if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-            #self.mermaid_unit_st.smoother._enable_force_nn_gradients_to_zero_hooks()
-            self.__freeze_param(self.mermaid_unit_st.smoother.ws.parameters())
-            if self.using_sym_on:
-                #self.mermaid_unit_ts.smoother._enable_force_nn_gradients_to_zero_hooks()
-                self.__freeze_param(self.mermaid_unit_ts.smoother.ws.parameters())
-        else:
-            self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
-            if self.using_sym_on:
-                self.__active_param(self.mermaid_unit_ts.smoother.ws.parameters())
+        if self.use_adaptive_smoother:
+            if self.epoch in self.epoch_list_fixed_deep_smoother_network:
+                #self.mermaid_unit_st.smoother._enable_force_nn_gradients_to_zero_hooks()
+                self.__freeze_param(self.mermaid_unit_st.smoother.ws.parameters())
+                if self.using_sym_on:
+                    #self.mermaid_unit_ts.smoother._enable_force_nn_gradients_to_zero_hooks()
+                    self.__freeze_param(self.mermaid_unit_ts.smoother.ws.parameters())
+            else:
+                self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
+                if self.using_sym_on:
+                    self.__active_param(self.mermaid_unit_ts.smoother.ws.parameters())
+
         if self.mermaid_low_res_factor is not None:
             sampler = py_is.ResampleImage()
             low_s, _ = sampler.upsample_image_to_size(s, self.spacing, self.lowResSize[2::], 1, zero_boundary=True)

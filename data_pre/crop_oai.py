@@ -39,6 +39,7 @@ class RegistrationDataset(object):
         self.data_output_path = None
         self.real_img_path = None
         self.real_label_path = None
+        self.running_read_path = None
         self.phase = phase
         self.data_type = '*.nii.gz'
         self.turn_on_pair_regis = False
@@ -65,6 +66,9 @@ class RegistrationDataset(object):
     def set_real_data_path(self,img_path,label_path):
         self.real_img_path= img_path
         self.real_label_path = label_path
+
+    def set_running_read_path(self,running_read_path):
+        self.running_read_path = running_read_path
 
 
 
@@ -98,8 +102,8 @@ class RegistrationDataset(object):
                          in range(file_num)]
         else:
             file_list = [[source_path_list[i], target_path_list[i]] for i in range(file_num)]
-        img_output_path = os.path.join(self.data_output_path, 'img')
-        label_output_path = os.path.join(self.data_output_path, 'label')
+        img_output_path = os.path.join(self.running_read_path, 'img')
+        label_output_path = os.path.join(self.running_read_path, 'label')
         file_list = [[pths[i].replace(self.real_img_path, img_output_path) if i in [0, 1] else pths[i].replace(self.real_label_path[0],
                                                                                                label_output_path)
           for i, pth in enumerate(pths)] for pths in file_list]
@@ -255,9 +259,15 @@ class RegistrationDataset(object):
 
 data_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter'
 phase_list = ['train','val','debug']
-task_output_path = '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+""" path for saving the pair_path_list, pair_name_list"""
+task_output_path = '/playpen/zyshen/for_llf/croped_for_reg_debug_3000_pair_oai_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+""" path for where to read the image during running the tasks"""
+running_read_path = '/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+""" path for where to save the data"""
 data_output_path = '/playpen/zyshen/oai_data/croped_for_reg_debug_3000_pair_oai_reg_inter/data'
+""" img path need to be replaced with running_read_img_path"""
 real_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
+""" label path need to be replaced with runing_read_label_path """
 real_label_path = ['/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
                    '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
 resize_factor = [80./160.,192./384.,192./384]
@@ -266,6 +276,7 @@ for phase in phase_list:
     dataset.set_task_output_path(os.path.join(task_output_path,phase))
     dataset.set_data_output_path(os.path.join(data_output_path,phase))
     dataset.set_real_data_path(real_img_path,real_label_path)
+    dataset.set_running_read_path(os.path.join(running_read_path,phase))
     dataset.process()
 
 

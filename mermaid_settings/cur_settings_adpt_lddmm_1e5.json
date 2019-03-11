@@ -7,19 +7,44 @@
         }, 
         "registration_model": {
             "forward_model": {
-                "number_of_time_steps": 10,
-                "solver": "rk4",
+                "number_of_time_steps": 15,
+                "solver": "dopri5",
                 "adjoin_on": true,
                 "rtol": 1e-5,
                 "atol": 1e-5,
                 "smoother": {
                     "multi_gaussian_stds": [
-                        0.05
+                        0.05, 
+                        0.1, 
+                        0.15, 
+                        0.2, 
+                        0.25
+                    ], 
+                    "multi_gaussian_weights": [
+                        0.06666666666666667, 
+                        0.13333333333333333, 
+                        0.19999999999999998, 
+                        0.26666666666666666, 
+                        0.3333333333333333
+                    ], 
+                    "type": "learned_multiGaussianCombination"
+                },
+                "smoother_for_forward": {
+                    "multi_gaussian_stds": [
+                        0.05,
+                        0.1,
+                        0.15,
+                        0.2,
+                        0.25
                     ],
                     "multi_gaussian_weights": [
-                        1.0
-                    ], 
-                    "type": "multiGaussian"
+                        0.06666666666666667,
+                        0.13333333333333333,
+                        0.19999999999999998,
+                        0.26666666666666666,
+                        0.3333333333333333
+                    ],
+                    "type": "localAdaptive"
                 }
             }, 
             "loss": {
@@ -41,7 +66,7 @@
             },
             "load_velocity_from_forward_model":true,
             "spline_order": 1, 
-            "type": "lddmm_shooting_map"
+            "type": "lddmm_adapt_smoother_map"
         }
     }, 
     "optimizer": {
@@ -56,11 +81,11 @@
                 1.0,
                 0.5,
                 0.25
-            ],
+            ], 
             "scale_iterations": [
-                50,
-                50,
-                50
+                2,
+                4,
+                10
             ]
         }, 
         "name": "lbfgs_ls", 

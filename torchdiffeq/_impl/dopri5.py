@@ -140,9 +140,9 @@ class Dopri5Solver(AdaptiveStepsizeODESolver):
             if dt_next<0.02:
                 print("warning the step of dopri5 {} is too small, set to 0.01".format(dt_next))
                 dt_next = _convert_to_tensor(0.01, dtype=torch.float64, device=y0[0].device)
-            # if dt_next>0.1:
-            #     print("warning the step of dopri5 {} is too big, set to 0.1".format(dt_next))
-            #     dt_next = _convert_to_tensor(0.1, dtype=torch.float64, device=y0[0].device)
+            if dt_next>0.1:
+                print("warning the step of dopri5 {} is too big, set to 0.1".format(dt_next))
+                dt_next = _convert_to_tensor(0.1, dtype=torch.float64, device=y0[0].device)
             y_next = y1
             f_next = f1
             t_next = t0 + dt

@@ -9,15 +9,23 @@
             "forward_model": {
                 "number_of_time_steps": 10,
                 "solver": "rk4",
-                "adjoin_on": true,
+                "adjoin_on": false,
                 "rtol": 1e-5,
                 "atol": 1e-5,
                 "smoother": {
                     "multi_gaussian_stds": [
-                        0.05
-                    ],
+                        0.05, 
+                        0.1, 
+                        0.15, 
+                        0.2, 
+                        0.25
+                    ], 
                     "multi_gaussian_weights": [
-                        1.0
+                        0.06666666666666667, 
+                        0.13333333333333333, 
+                        0.19999999999999998, 
+                        0.26666666666666666, 
+                        0.3333333333333333
                     ], 
                     "type": "multiGaussian"
                 }
@@ -39,9 +47,9 @@
                     "dilation":[[2,2,2],[2,2],[1]]
                 }
             },
-            "load_velocity_from_forward_model":true,
+            "load_velocity_from_forward_model":false,
             "spline_order": 1, 
-            "type": "lddmm_shooting_map"
+            "type": "svf_vector_momentum_map"
         }
     }, 
     "optimizer": {

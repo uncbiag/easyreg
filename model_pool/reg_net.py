@@ -12,8 +12,11 @@ import mermaid.pyreg.finite_differences as fdt
 from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
-from model_pool.nn_interpolation import get_nn_interpolation
-
+try:
+    from model_pool.nn_interpolation import get_nn_interpolation
+except:
+    pass
+from mermaid.pyreg.utils import compute_warped_image_multiNC
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
@@ -35,9 +38,10 @@ class RegNet(BaseModel):
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
 
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        self.spacing = np.asarray(opt['tsk_set'][('spacing',1. / (np.array(input_img_sz) - 1),'spacing')])
+
         network_name =opt['tsk_set']['network_name']
         self.mermaid_on = True if 'mermaid' in network_name else False
         self.using_sym_loss = True if 'sym' in network_name else False
@@ -81,6 +85,7 @@ class RegNet(BaseModel):
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
+
 
 
 
@@ -171,7 +176,12 @@ class RegNet(BaseModel):
 
     def get_warped_label_map(self,label_map, phi, sched='nn'):
         if sched == 'nn':
-            warped_label_map = get_nn_interpolation(label_map, phi)
+            ###########TODO temporal comment for torch1 compatability
+            try:
+                print(" the cuda nn interpolation is used")
+                warped_label_map = get_nn_interpolation(label_map, phi)
+            except:
+                warped_label_map = compute_warped_image_multiNC(label_map,phi,self.spacing,spline_order=0,zero_boundary=True,use_01_input=False)
             # check if here should be add assert
             assert abs(torch.sum(
                 warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
@@ -219,7 +229,7 @@ class RegNet(BaseModel):
         # self.temp_save_Jacobi_image(jacobi_det,map)
         jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])  #
         jacobi_num = np.sum(jacobi_det < 0.)
-        print("debugging {},{},{}".format(np.sum(dfx < 0.), np.sum(dfy < 0.), np.sum(dfz < 0.)))
+        print("print folds for each channel {},{},{}".format(np.sum(dfx < 0.), np.sum(dfy < 0.), np.sum(dfz < 0.)))
         print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
         print("the number of fold points for current batch is {}".format(jacobi_num))
         jacobi_abs_mean = jacobi_abs / map.shape[0]
