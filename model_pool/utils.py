@@ -40,6 +40,12 @@ def factor_tuple(input,factor):
     input_np = np.array(list(input))
     input_np = input_np*factor
     return tuple(list(input_np))
+def resize_spacing(img_sz,img_sp,factor):
+    img_sz_np = np.array(list(img_sz))
+    img_sp_np = np.array(list(img_sp))
+    new_sz_np = img_sz_np*factor
+    new_sp = img_sp_np*(img_sz_np-1)/(new_sz_np-1)
+    return tuple(list(new_sp))
 
 def organize_data(moving, target, sched='depth_concat'):
     if sched == 'depth_concat':

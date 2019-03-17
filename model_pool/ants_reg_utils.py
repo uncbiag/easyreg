@@ -61,7 +61,7 @@ def performAntsRegistration(mv_path, target_path, registration_type='syn', recor
         print('affine registration finished and takes: :', time.time() - start)
     #print("param_in_ants:{}".format(param_in_ants))
     if registration_type =='syn':
-        syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyN', grad_step=0.2,
+        syn_res = ants.registration(fixed=target, moving=moving, type_of_transform='SyNCC', grad_step=0.2,
                                     flow_sigma=3,  # intra 3
                                     total_sigma=0.1,
                                     aff_metric='mattes',

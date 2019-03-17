@@ -11,8 +11,10 @@ def train_model(opt,model, dataloaders,writer):
     resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
     load_model_but_train_from_begin = opt['tsk_set'][('load_model_but_train_from_begin',False,'load_model_but_train_from_begin')]
+    load_model_but_train_from_epoch =opt['tsk_set'][('load_model_but_train_from_epoch',0,'load_model_but_train_from_epoch')]
     check_point_path = opt['tsk_set']['path']['check_point_path']
     max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
+    gpu_id = opt['tsk_set']['gpu_ids']
     best_score = 0
     epoch_val_score=0.
     is_best = False
@@ -32,22 +34,29 @@ def train_model(opt,model, dataloaders,writer):
     continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'continue to train')]
 
 
-
-
     if resume_training:
         cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         start_epoch, best_prec1, global_step=resume_train(model_path, model.network,model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
-        if not load_model_but_train_from_begin:
-            if continue_train_lr>0:
-                model.adjust_learning_rate(continue_train_lr)
-                print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
-        else:
-            start_epoch=0
-            global_step = {x: 0 for x in phases}
-            print("the model has been initialized from extern, but will train from the scratch")
-
-    model.network = model.network.cuda()
+        if continue_train_lr > 0:
+            model.adjust_learning_rate(continue_train_lr)
+            print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
+        if load_model_but_train_from_begin:
+            start_epoch=load_model_but_train_from_epoch
+            global_step = {x: load_model_but_train_from_epoch*max_batch_num_per_epoch[x] for x in phases}
+            print("the model has been initialized from extern, but will train from the epoch {}".format(start_epoch))
+    #
+    # gpu_count = torch.cuda.device_count()
+    #
+    # if gpu_count>0 and (len( gpu_id)>1 or gpu_id[0]==-1):
+    #     model.network = nn.DataParallel(model.network)
+    #     model.set_multi_gpu_on()
+    #     #model.network = model.network.module
+    #     model.network.cuda()
+    # else:
+    #     model.network = model.network.cuda()
+    if gpu_id>=0:
+        model.network = model.network.cuda()
 
     for epoch in range(start_epoch, num_epochs+1):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -83,6 +92,8 @@ def train_model(opt,model, dataloaders,writer):
                 detailed_scores = 0.
 
                 if phase == 'train':
+                    model.optimize_parameters()
+
                     try:
                         model.optimize_parameters()
                     except:

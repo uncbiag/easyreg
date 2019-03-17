@@ -6,7 +6,10 @@ from .metrics import get_multi_metric
 
 from model_pool.utils import *
 
-from model_pool.nn_interpolation import get_nn_interpolation
+try:
+    from model_pool.nn_interpolation import get_nn_interpolation
+except:
+    pass
 import SimpleITK as sitk
 from model_pool.nifty_reg_utils import *
 import mermaid.pyreg.utils as py_utils
@@ -44,7 +47,7 @@ class NiftyRegIter(BaseModel):
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
         self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
-        self.identity_map = torch.from_numpy(self.identity_map).cuda()
+        self.identity_map = torch.from_numpy(self.identity_map)
 
 
 
@@ -52,15 +55,14 @@ class NiftyRegIter(BaseModel):
 
 
     def set_input(self, data, is_train=True):
-        data[0]['image'] =(data[0]['image'].cuda()+1)/2
-        data[0]['label'] =data[0]['label'].cuda()
+        data[0]['image'] =(data[0]['image']+1)/2
+        data[0]['label'] =data[0]['label']
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
         self.moving = moving
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
-        self.input = input
         self.fname_list = list(data[1])
         self.pair_path = data[0]['pair_path']
         self.pair_path = [path[0] for path in self.pair_path]
@@ -79,9 +81,9 @@ class NiftyRegIter(BaseModel):
         img = self.__read_and_clean_itk_info(img_pth)
         dimension = 3
         factor = np.flipud(self.resize_factor)
+        img_sz = img.GetSize()
         if self.resize:
             resampler= sitk.ResampleImageFilter()
-            img_sz = img.GetSize()
             affine = sitk.AffineTransform(dimension)
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
             after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
@@ -101,8 +103,8 @@ class NiftyRegIter(BaseModel):
             img_resampled = img
         fpth = os.path.join(self.record_path,fname)
         if keep_physical:
-            img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-            img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+            img_resampled.SetSpacing(resize_spacing(img_sz, img_org.GetSpacing(), factor))
+            img_resampled.SetOrigin(img_org.GetOrigin())
             img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
@@ -166,15 +168,15 @@ class NiftyRegIter(BaseModel):
         return warped_img_map
 
 
-    def get_warped_label_map(self,label_map, phi, sched='nn'):
-        if sched == 'nn':
-            warped_label_map = get_nn_interpolation(label_map, phi)
-            # check if here should be add assert
-            assert abs(torch.sum(
-                warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
-        else:
-            raise ValueError(" the label warpping method is not implemented")
-        return warped_label_map
+    # def get_warped_label_map(self,label_map, phi, sched='nn'):
+    #     if sched == 'nn':
+    #         warped_label_map = get_nn_interpolation(label_map, phi)
+    #         # check if here should be add assert
+    #         assert abs(torch.sum(
+    #             warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
+    #     else:
+    #         raise ValueError(" the label warpping method is not implemented")
+    #     return warped_label_map
 
     def cal_val_errors(self):
         self.cal_test_errors()

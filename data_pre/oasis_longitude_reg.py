@@ -413,18 +413,11 @@ class OASISDataPrepare():
     """
     def __init__(self):
         using_unlabeled_data = True
-        if using_unlabeled_data:
-            self.raw_data_path_list = ["/playpen/xhs400/OASIS_3/processed_images"]
-            self.raw_label_path_list =[ "/playpen/xhs400/OASIS_3/processed_images"]
 
-            self.output_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0220/data"
-            self.output_data_path = "/playpen/zyshen/summer/oasis_registration/reg_0220/data/patient_slice"
-        else:
-
-            self.raw_data_path_list = ["/playpen/xhs400/OASIS_3/processed_images"]
-            self.raw_label_path_list = ["/playpen/xhs400/OASIS_3/processed_images"]
-            self.output_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0220/data"
-            self.output_data_path = "/playpen/zyshen/summer/oasis_registration/reg_0220/data/patient_slice"
+        self.raw_data_path_list = ["/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224"]
+        self.raw_label_path_list = ["/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224"]
+        self.output_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0313/data"
+        self.output_data_path = "/playpen/zyshen/summer/oasis_registration/reg_0313/data/patient_slice"
 
         self.raw_file_path_list = []
         self.raw_file_label_path_list= []

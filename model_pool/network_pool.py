@@ -47,7 +47,7 @@ class AffineNet(nn.Module):
         return reg
 
 
-    def forward(self,input,moving,target=None):
+    def forward(self,moving,target=None):
         affine_param = self.affine_gen(moving,target)
         affine_map = self.gen_affine_map(affine_param)
         #affine_map=affine_map.repeat(input.shape[0],1,1,1,1)

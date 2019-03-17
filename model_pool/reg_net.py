@@ -55,6 +55,7 @@ class RegNet(BaseModel):
         self.single_mod = opt['tsk_set']['reg'][('single_mod',True,'whether iter the whole model')]
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
+        self.multi_gpu_on = False
         print('---------- Networks initialized -------------')
         print_network(self.network)
         print('-----------------------------------------------')
@@ -119,10 +120,10 @@ class RegNet(BaseModel):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
         sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
         scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
-        factor_scale =1  # 1  ############################# TODo #####################
-        factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
-        factor_scale = float( max(1e-3,factor_scale))
-        factor_sym =1#10 ################################### ToDo ####################################
+        factor_scale =1e-3  # 1  ############################# TODo #####################
+        # factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
+        # factor_scale = float( max(1e-3,factor_scale))
+        factor_sym =10#10 ################################### ToDo ####################################
         sim_factor = 1
 
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
@@ -156,7 +157,7 @@ class RegNet(BaseModel):
         elif self.using_sym_loss:
             self.loss = self.cal_sym_loss()
         else:
-            self.loss=self.cal_loss()
+            self.loss=self.cal_loss(using_decay_factor=self.using_affine)
         self.backward_net()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()

@@ -21,15 +21,16 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     since = time()
     record_path = opt['tsk_set']['path']['record_path']
     label_num = opt['tsk_set']['extra_info']['num_label']
+    cur_gpu_id = opt['tsk_set']['gpu_ids']
+    gpu_id = cur_gpu_id
 
-    if model.network is not None:
+    if model.network is not None and gpu_id>=0:
         model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
     save_3d_img_on = opt['tsk_set'][('save_3d_img_on', True, 'saving fig')]
 
     phases = ['test'] #['val','test']  ###################################3
     if len(model_path):
-        cur_gpu_id = opt['tsk_set']['gpu_ids']
         old_gpu_id = opt['tsk_set']['old_gpu_ids']
         get_test_model(model_path, model.network,  model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)     ##############TODO  model.optimizer
     else:

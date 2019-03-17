@@ -31,7 +31,7 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False, verbose=True):
 
     if rm_bg:
         label_list = label_list[1:]
-    if eval_label_list is not None:
+    if eval_label_list is not None and eval_label_list[0]!=-100:
         for label in eval_label_list:
             assert label in label_list, "label {} is not in label_list".format(label)
         label_list = eval_label_list

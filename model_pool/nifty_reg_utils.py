@@ -5,7 +5,6 @@ from model_pool.global_variable import *
 import SimpleITK as sitk
 import nibabel as nib
 
-nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'
 
 
 def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, levels=None,aff= None):

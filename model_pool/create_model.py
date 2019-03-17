@@ -1,10 +1,20 @@
 import torch
+import os
 def create_model(opt):
     model = None
     model_name = opt['tsk_set']['model']
     gpu_id = opt['tsk_set']['gpu_ids']
     sz = opt
-    torch.cuda.set_device(gpu_id)
+    # gpu_count = torch.cuda.device_count()
+    # print("Let's use", min(torch.cuda.device_count(), len(gpu_id) if gpu_id[0]!=-1 else 100), "GPUs!")
+    # if gpu_count > 0 and (len(gpu_id) > 1 or gpu_id[0] == -1):
+    #     if len(gpu_id) > 1 and gpu_id[0] != -1:
+    #         os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)[1:-1]
+    # else:
+    #     torch.cuda.set_device(gpu_id[0])
+    if gpu_id>=0:
+        torch.cuda.set_device(gpu_id)
+
     print(model_name)
 
     ################ models for registration ########################

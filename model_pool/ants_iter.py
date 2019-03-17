@@ -39,7 +39,7 @@ class AntsRegIter(BaseModel):
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
         self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
-        self.identity_map = torch.from_numpy(self.identity_map).cuda()
+        self.identity_map = torch.from_numpy(self.identity_map)
 
 
 
@@ -47,8 +47,8 @@ class AntsRegIter(BaseModel):
 
 
     def set_input(self, data, is_train=True):
-        data[0]['image'] =(data[0]['image'].cuda()+1)/2
-        data[0]['label'] =data[0]['label'].cuda()
+        data[0]['image'] =(data[0]['image']+1)/2
+        data[0]['label'] =data[0]['label']
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
         self.moving = moving
@@ -76,10 +76,11 @@ class AntsRegIter(BaseModel):
         img = self.__read_and_clean_itk_info(img_pth)
         dimension = 3
         factor = np.flipud(self.resize_factor)
+        img_sz = img.GetSize()
+
         if self.resize:
             resampler= sitk.ResampleImageFilter()
 
-            img_sz = img.GetSize()
             affine = sitk.AffineTransform(dimension)
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
             after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
@@ -99,8 +100,8 @@ class AntsRegIter(BaseModel):
             img_resampled = img
         fpth = os.path.join(self.record_path,fname)
         if keep_physical:
-            img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-            img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+            img_resampled.SetSpacing(resize_spacing(img_sz, img_org.GetSpacing(), factor))
+            img_resampled.SetOrigin(img_org.GetOrigin())
             img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth

@@ -217,6 +217,7 @@ class MermaidNet(nn.Module):
             self.mermaid_unit_ts.smoother = self.mermaid_unit_st.smoother
             self.mermaid_unit_ts.smoother_for_forward = self.mermaid_unit_st.smoother_for_forward
             self.criterion_ts = criterion_ts
+        self.mermaid_unit_st.associate_parameters_with_module()
 
     def __cal_sym_loss(self,rec_phiWarped):
         trans1 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
@@ -337,9 +338,13 @@ class MermaidNet(nn.Module):
         gaussian_weights = self.mermaid_unit_st.smoother.get_gaussian_weights()
         gaussian_weights = gaussian_weights.detach()
         print(" the current global gaussian weight is {}".format(gaussian_weights))
-        view_sz = [1] + [len(gaussian_weights)] + [1] * dim
-        gaussian_weights = gaussian_weights.view(*view_sz)
-        smoother_map = adaptive_smoother_map*(gaussian_weights**2)
+
+        gaussian_stds = self.mermaid_unit_st.smoother.get_gaussian_stds()
+        gaussian_stds = gaussian_stds.detach()
+        print(" the current global gaussian stds is {}".format(gaussian_stds))
+        view_sz = [1] + [len(gaussian_stds)] + [1] * dim
+        gaussian_stds = gaussian_stds.view(*view_sz)
+        smoother_map = adaptive_smoother_map*(gaussian_stds**2)
         smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
         #_,smoother_map = torch.max(adaptive_smoother_map.detach(),dim=1,keepdim=True)
         self._display_stats(smoother_map.float(),'statistic for max_smoother map')
@@ -388,7 +393,7 @@ class MermaidNet(nn.Module):
         input = torch.cat((affine_img, target), 1)
         m = self.momentum_net(input)
         if self.clamp_momentum:
-            m.clamp_(max=self.clamp_thre,min=-self.clamp_thre)
+            m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
         moving = (moving + 1) / 2.
         target = (target + 1) / 2.
         self.low_moving = self.init_mermaid_param(moving)
@@ -435,8 +440,8 @@ class MermaidNet(nn.Module):
         m_st = self.momentum_net(input_st)
         m_ts = self.momentum_net(input_ts)
         if self.clamp_momentum:
-            m_st.clamp_(max=self.clamp_thre,min=-self.clamp_thre)
-            m_ts.clamp_(max=self.clamp_thre,min=-self.clamp_thre)
+            m_st=m_st.clamp(max=self.clamp_thre,min=-self.clamp_thre)
+            m_ts=m_ts.clamp(max=self.clamp_thre,min=-self.clamp_thre)
         moving = (moving + 1) / 2.
         target = (target + 1) / 2.
         self.low_moving = self.init_mermaid_param(moving)
@@ -488,7 +493,7 @@ class MermaidNet(nn.Module):
             input = torch.cat((warped_img, target), 1)
             m = self.momentum_net(input)
             if self.clamp_momentum:
-                m.clamp_(max=1.0, min=-1.0)
+                m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
             torch.set_grad_enabled(record_is_grad_enabled)
             rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving_n, target_n, m, init_map,self.low_moving, self.low_target)
             warped_img = rec_IWarped * 2 - 1  # [0,1] -> [-1,1]
@@ -551,8 +556,8 @@ class MermaidNet(nn.Module):
             m_st = self.momentum_net(input_st)
             m_ts = self.momentum_net(input_ts)
             if self.clamp_momentum:
-                m_st.clamp_(max=1.0, min=-1.0)
-                m_ts.clamp_(max=1.0, min=-1.0)
+               m_st = m_st.clamp(max=self.clamp_thre,min=-self.clamp_thre)
+               m_ts = m_ts.clamp(max=self.clamp_thre,min=-self.clamp_thre)
             torch.set_grad_enabled(record_is_grad_enabled)
             rec_IWarped_st, rec_phiWarped_st = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving_n, target_n, m_st, init_map_st,self.low_moving, self.low_target)
             rec_IWarped_ts, rec_phiWarped_ts = self.do_mermaid_reg(self.mermaid_unit_ts,self.criterion_ts,target_n, moving_n, m_ts, init_map_ts,self.low_target, self.low_moving)

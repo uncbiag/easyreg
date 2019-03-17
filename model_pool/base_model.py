@@ -6,7 +6,6 @@ import SimpleITK as sitk
 
 
 
-
 class BaseModel():
     def name(self):
         return 'BaseModel'
@@ -23,6 +22,7 @@ class BaseModel():
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.n_in_channel = opt['tsk_set']['n_in_channel']
         self.input_resize_factor = opt['tsk_set']['input_resize_factor']
+        self.evaluate_label_list = opt['tsk_set']['evaluate_label_list',[-100],'evaluate_label_list']
         self.optimizer= None
         self.lr_scheduler = None
         self.exp_lr_scheduler= None
@@ -36,6 +36,8 @@ class BaseModel():
         self.output = None
         self.warped_label_map = None
         self.l_target = None
+        self.multi_gpu_on =False
+
 
 
 
@@ -64,6 +66,10 @@ class BaseModel():
     def set_test(self):
         self.network.train(False)
         self.is_train = False
+
+
+    def set_multi_gpu_on(self):
+        self.multi_gpu_on = True
 
 
 
@@ -148,6 +154,7 @@ class BaseModel():
     def get_val_res(self, detail=False):
         if len(self.val_res_dic):
             if not detail:
+
                 return np.mean(self.val_res_dic['batch_avg_res']['dice'][0, 1:]), self.val_res_dic['batch_avg_res'][
                     'dice']
             else:
@@ -196,6 +203,8 @@ class BaseModel():
             output.SetSpacing(self.spacing)
             sitk.WriteImage(output, saving_file_path)
 
+    def save_deformation(self):
+        pass
 
     def save_fig_3D_tmp(self,phase=None):
         saving_folder_path = os.path.join(self.record_path, '3D')

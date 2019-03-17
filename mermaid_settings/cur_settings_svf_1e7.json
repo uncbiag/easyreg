@@ -47,7 +47,7 @@
                     "dilation":[[2,2,2],[2,2],[1]]
                 }
             },
-            "load_velocity_from_forward_model":false,
+            "load_velocity_from_forward_model":true,
             "spline_order": 1, 
             "type": "svf_vector_momentum_map"
         }

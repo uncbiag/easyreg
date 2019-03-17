@@ -46,6 +46,7 @@ class RegistrationDataset(object):
         self.max_num_pair_to_load = [-1,-1,-1,-1]
         """ the max number of pairs to be loaded into the memory"""
         self.has_label = False
+        self.shared_label_set = None
         self.get_file_list()
         self.resize = True
         self.resize_factor = resize_factor
@@ -69,6 +70,9 @@ class RegistrationDataset(object):
 
     def set_running_read_path(self,running_read_path):
         self.running_read_path = running_read_path
+
+    def set_shared_label(self,shared_label_set):
+        self.shared_label_set = shared_label_set
 
 
 
@@ -107,10 +111,11 @@ class RegistrationDataset(object):
         file_list = [[pths[i].replace(self.real_img_path, img_output_path) if i in [0, 1] else pths[i].replace(self.real_label_path[0],
                                                                                                label_output_path)
           for i, pth in enumerate(pths)] for pths in file_list]
-        file_list = [[pths[i].replace(self.real_img_path, img_output_path) if i in [0, 1] else pths[i].replace(
-            self.real_label_path[1],
-            label_output_path)
-                      for i, pth in enumerate(pths)] for pths in file_list]
+        if len(self.real_label_path)>1:
+            file_list = [[pths[i].replace(self.real_img_path, img_output_path) if i in [0, 1] else pths[i].replace(
+                self.real_label_path[1],
+                label_output_path)
+                          for i, pth in enumerate(pths)] for pths in file_list]
         output_path = self.task_output_path
         pair_txt_path = os.path.join(output_path, 'pair_path_list.txt')
         fn_txt_path = os.path.join(output_path, 'pair_name_list.txt')
@@ -183,6 +188,21 @@ class RegistrationDataset(object):
             pbar.update(count)
         pbar.finish()
 
+    def convert_label_map_into_standard_one(self, label):
+        label_np = sitk.GetArrayFromImage(label)
+        cur_label = list(np.unique(label_np))
+        extra_label = set(cur_label)- self.shared_label_set
+        print(" the extra label is {}. ".format(extra_label))
+        if len(extra_label)==0:
+            print("no extra label")
+        for elm in extra_label:
+            """here we assume the value 0 is the background"""
+            label_np[label_np==elm] = 0
+        label = sitk.GetImageFromArray(label_np)
+        return label
+            
+
+
     def resize_input_img_and_save_it(self, img_pth, is_label=False,fname='',keep_physical=True):
         """
         :param img: sitk input, factor is the outputsize/patched_sized
@@ -190,6 +210,8 @@ class RegistrationDataset(object):
         """
         img_org = sitk.ReadImage(img_pth)
         img = self.__read_and_clean_itk_info(img_pth)
+        if is_label and self.shared_label_set is not None:
+            img = self.convert_label_map_into_standard_one(img)
         resampler= sitk.ResampleImageFilter()
         dimension =3
         factor = np.flipud(self.resize_factor)
@@ -214,8 +236,8 @@ class RegistrationDataset(object):
         os.makedirs(output_path, exist_ok=True)
         fpth = os.path.join(output_path,fname+'.nii.gz')
         if keep_physical:
-            img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-            img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
+            img_resampled.SetSpacing(resize_spacing(img_sz,img_org.GetSpacing(),factor))
+            img_resampled.SetOrigin(img_org.GetOrigin())
             img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
@@ -257,26 +279,53 @@ class RegistrationDataset(object):
 
 
 
-data_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter'
-phase_list = ['train','val','debug']
+# data_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter'
+# phase_list = ['train','val','debug']
+# """ path for saving the pair_path_list, pair_name_list"""
+# task_output_path = '/playpen/zyshen/for_llf/croped_for_reg_debug_3000_pair_oai_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+# """ path for where to read the image during running the tasks"""
+# running_read_path = '/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+# """ path for where to save the data"""
+# data_output_path = '/playpen/zyshen/oai_data/croped_for_reg_debug_3000_pair_oai_reg_inter/data'
+# """ img path need to be replaced with running_read_img_path"""
+# real_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
+# """ label path need to be replaced with runing_read_label_path """
+# real_label_path = ['/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
+#                    '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
+# resize_factor = [80./160.,192./384.,192./384]
+#
+
+
+
+
+data_path = '/playpen/zyshen/data/reg_debug_3000_pair_reg_224_oasis3_reg_inter'
+phase_list = ['train','val','debug','test']
 """ path for saving the pair_path_list, pair_name_list"""
-task_output_path = '/playpen/zyshen/for_llf/croped_for_reg_debug_3000_pair_oai_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+task_output_path = '/playpen/zyshen/for_llf/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to read the image during running the tasks"""
-running_read_path = '/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+running_read_path = '/pine/scr/z/y/zyshen/data/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
+    #'/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to save the data"""
-data_output_path = '/playpen/zyshen/oai_data/croped_for_reg_debug_3000_pair_oai_reg_inter/data'
+data_output_path = '/playpen/zyshen/oasis_data/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
 """ img path need to be replaced with running_read_img_path"""
-real_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
+real_img_path = '/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224'
 """ label path need to be replaced with runing_read_label_path """
-real_label_path = ['/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
-                   '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
-resize_factor = [80./160.,192./384.,192./384]
+real_label_path = ['/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224']
+resize_factor = [112./224.,112./224.,112./224]
+"""Attention, here we manually add id 62 into list, for it is a big structure and is not absent in val, debug, test dataset"""
+shared_label_set =  {0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 31, 41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 77, 80, 85, 251, 252, 253, 254, 255}
+
+
+
+
 for phase in phase_list:
     dataset = RegistrationDataset(data_path=os.path.join(data_path,phase),phase=phase,resize_factor= resize_factor)
     dataset.set_task_output_path(os.path.join(task_output_path,phase))
     dataset.set_data_output_path(os.path.join(data_output_path,phase))
     dataset.set_real_data_path(real_img_path,real_label_path)
     dataset.set_running_read_path(os.path.join(running_read_path,phase))
+    if shared_label_set is not None:
+        dataset.set_shared_label(shared_label_set)
     dataset.process()
 
 

@@ -95,6 +95,9 @@ class Model(nn.Module):
         output = self.fc(input)
         print("\tIn Model: input size", input.size(),
               "output size", output.size())
+        print('the current device is{}'.format(torch.cuda.current_device()))
+        print('the input device is{}'.format(input.device))
+        print("the cuda() will return device {}",format(torch.randn(3,3).cuda().device))
 
         return output
 

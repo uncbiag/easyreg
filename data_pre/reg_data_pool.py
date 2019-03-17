@@ -712,14 +712,14 @@ if __name__ == "__main__":
     # lpba.set_divided_ratio(divided_ratio)
     # lpba.set_label_path(label_path)
     # lpba.prepare_data()
-    oasis =  PatientStructureDataSet('reg',['nii.gz'],'inter')
-    data_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0220/data"
-    output_path = '/playpen/zyshen/data/' + "reg_debug_3000_pair_oasis3_reg_inter"
-    divided_ratio = [0.7,0.1,0.2]
-    oasis.set_data_root_path(data_root_path)
-    oasis.set_output_path(output_path)
-    oasis.set_divided_ratio(divided_ratio)
-    oasis.prepare_data()
+    # oasis =  PatientStructureDataSet('reg',['nii.gz'],'inter')
+    # data_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0313/data"
+    # output_path = '/playpen/zyshen/data/' + "reg_debug_3000_pair_reg_224_oasis3_reg_inter"
+    # divided_ratio = [0.7,0.1,0.2]
+    # oasis.set_data_root_path(data_root_path)
+    # oasis.set_output_path(output_path)
+    # oasis.set_divided_ratio(divided_ratio)
+    # oasis.prepare_data()
 
 
 
