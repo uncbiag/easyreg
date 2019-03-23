@@ -19,3 +19,12 @@ maybe momentum is the better choice for the network input
 3.9
 need to double check the spacing amplified in resampling image
 
+3.17
+any version before cur_settings_adpt_lddmm_new use the 'standardize_divide_input_images', with value 0.5
+while current we use is 2
+
+3.21
+to do: remove the neumam boundary condition in forward method, so see if it can accelerate the algrithom : no
+to do: using spacing transform trick to see if can accerate the forward
+
+3.22 currently all the boundary settings are follow the old one, we will turn into new one one the acceraltion finished

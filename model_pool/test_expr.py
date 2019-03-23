@@ -22,6 +22,10 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     record_path = opt['tsk_set']['path']['record_path']
     label_num = opt['tsk_set']['extra_info']['num_label']
     cur_gpu_id = opt['tsk_set']['gpu_ids']
+    running_range=opt['tsk_set']['running_range']  # todo should be [-1]
+    running_part_data = running_range[0]>=0
+    if running_part_data:
+        print("running part of the test data from range {}".format(running_range))
     gpu_id = cur_gpu_id
 
     if model.network is not None and gpu_id>=0:
@@ -39,6 +43,8 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     model.set_cur_epoch(-1)
     for phase in phases:
         num_samples = len(dataloaders[phase])
+        if running_part_data:
+            num_samples = len(running_range)
         records_score_np = np.zeros(num_samples)
         records_jacobi_val_np = np.zeros(num_samples)
         records_jacobi_num_np = np.zeros(num_samples)
@@ -48,7 +54,13 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
         jacobi_num_res = 0.
         running_test_loss = 0
         time_total= 0
-        for i, data in enumerate(dataloaders[phase]):
+        for idx, data in enumerate(dataloaders[phase]):
+            i= idx
+            if running_part_data:
+                if i not in running_range:
+                    continue
+                i = i - running_range[0]
+
             batch_size =  len(data[0]['image'])
             is_train = False
             if model.network is not None:

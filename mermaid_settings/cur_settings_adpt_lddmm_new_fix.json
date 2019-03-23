@@ -40,7 +40,7 @@
                         "smooth_image_for_edge_detection": true,
                         "smooth_image_for_edge_detection_std": 0.01,
                         "standardize_display_standardization": true,
-                        "standardize_divide_input_images": 2.0,
+                        "standardize_divide_input_images": 0.5,
                         "standardize_divide_input_momentum": 1.0,
                         "standardize_input_images": true,
                         "standardize_input_momentum": true,

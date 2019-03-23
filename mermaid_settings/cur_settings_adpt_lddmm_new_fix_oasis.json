@@ -15,7 +15,7 @@
                 "smoother": {
                     "deep_smoother": {
                         "active_unit_to_use": "leaky_relu",
-                        "deep_network_local_weight_smoothing": 0.04,
+                        "deep_network_local_weight_smoothing": 0.03,
                         "diffusion_weight_penalty": 0.0,
                         "weight_range_init_weight_penalty":1.0,
                         "weight_range_factor":6,
@@ -40,7 +40,7 @@
                         "smooth_image_for_edge_detection": true,
                         "smooth_image_for_edge_detection_std": 0.01,
                         "standardize_display_standardization": true,
-                        "standardize_divide_input_images": 2.0,
+                        "standardize_divide_input_images": 0.5,
                         "standardize_divide_input_momentum": 1.0,
                         "standardize_input_images": true,
                         "standardize_input_momentum": true,
@@ -116,7 +116,7 @@
             "similarity_measure": {
                 "develop_mod_on": false,
                 "sigma": 1.0,
-                "type": "lncc",
+                "type": "ncc",
                 "lncc":{
                     "resol_bound":[128,64],
                     "kernel_size_ratio":[[0.0625,0.125, 0.25], [0.25,0.5], [0.5]],

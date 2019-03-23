@@ -57,7 +57,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Registeration demo (include train and test)')
 
-parser.add_argument('--gpu', required=False, type=int, default=0,
+parser.add_argument('--gpu', required=False, type=int, default=2,
                     help='give the id to run the gpu')
 parser.add_argument('--llf', required=False, type=bool, default=False,
                     help='run on long leaf')
@@ -67,22 +67,22 @@ tsm = ModelTask('task_reg')
 dm = DataTask('task_reg')
 if not args.llf:
     root_path = '/playpen/zyshen/data/'
-    data_task_name ='croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
-    data_task_name_for_train ='croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name ='fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_train ='fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
 else:
     root_path = '/pine/scr/z/y/zyshen/expri/'
-    data_task_name = 'croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
-    data_task_name_for_train = 'croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name = 'fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_train = 'fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
 
 cur_program_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 data_output_path = os.path.join(root_path,data_task_name_for_train)
-cur_task_name ='reg_adpt_lddmm_onestep' # vm_cvprwithregfix5000'
+cur_task_name ='todel' # vm_cvprwithregfix5000'
 #'reg_fixed_lddmm_onestepphi_reg3_sunet_clamp_omt_IT_net_001rloss1_withinit'
 #'reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
 is_oai = 'oai' in data_task_name
 is_oasis = not is_oai
 
-img_sz = [112,112,112]
+img_sz = [224,224,224]
 input_resize_factor = [1.,1.,1.]
 spacing = [1. / (img_sz[i] * input_resize_factor[i]-1) for i in range(len(img_sz))]
 
@@ -117,7 +117,7 @@ dm.data_par['datapro']['dataset']['spacing'] =spacing#[96. / 193., 96. / 193, 11
 """ spacing of image """
 dm.data_par['datapro']['reg']['max_pair_for_loading'] = [-1,-1,-1,-1]
 """ limit the max number of the pairs for [train, val, test, debug]"""
-dm.data_par['datapro']['reg']['load_training_data_into_memory'] = True
+dm.data_par['datapro']['reg']['load_training_data_into_memory'] = False
 """ load all training pairs into memory"""
 
 
@@ -125,21 +125,22 @@ dm.data_par['datapro']['reg']['load_training_data_into_memory'] = True
 tsm.task_par['tsk_set']['task_name'] = cur_task_name
 """ the cur_task_name, refers to the [cur_task_name]  in  root_path/data_task_name/cur_task_name  """
 tsm.task_par['tsk_set']['train'] = True
+tsm.task_par['tsk_set']['running_range'] =[-1]# list(range(250,300))
 """ train the model """
 tsm.task_par['tsk_set']['save_by_standard_label'] = True
 """ save the label in original label index, for example if the original label is a way like [ 1,3,7,8], otherwise save in [0,1,2,3] """
-tsm.task_par['tsk_set']['continue_train'] =True
+tsm.task_par['tsk_set']['continue_train'] =False
 """ train from the checkpoint"""
 tsm.task_par['tsk_set']['load_model_but_train_from_begin'] =True ###############TODO  should be false
 tsm.task_par['tsk_set']['load_model_but_train_from_epoch'] =0 ###############TODO  should be false
 """ load the saved model as initialization, but still will train the whole model from the beginning"""
-tsm.task_par['tsk_set']['continue_train_lr'] = 2e-5  #  TODO to be put back to 5e-5
+tsm.task_par['tsk_set']['continue_train_lr'] = 2e-5/2  #  TODO to be put back to 5e-5
 """ set the learning rate when continue the train"""
 tsm.task_par['tsk_set']['old_gpu_ids']=0
 """ no longer used"""
 tsm.task_par['tsk_set']['gpu_ids'] = args.gpu
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] =os.path.join(data_output_path,'train_affine_cycle_sym/checkpoints/epoch_130_')
+tsm.task_par['tsk_set']['model_path'] =''#os.path.join(data_output_path,'train_affine_cycle_sym/checkpoints/epoch_130_')
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
 
     #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
@@ -195,7 +196,7 @@ demons refers to deformably register two images using a symmetric forces demons 
 
 
 
-tsm.task_par['tsk_set']['network_name'] ='mermaid'  #'mermaid' 'svf' 'syn' affine bspline
+tsm.task_par['tsk_set']['network_name'] ='affine_sym'  #'mermaid' 'svf' 'syn' affine bspline
 """ see guideline"""
 tsm.task_par['tsk_set']['epoch'] = 300
 """ number of training epoch"""
@@ -205,7 +206,7 @@ tsm.task_par['tsk_set']['batch_sz'] = 2
 """ batch size"""
 tsm.task_par['tsk_set']['val_period'] =10
 """ do validation every # epoch"""
-tsm.task_par['tsk_set']['loss']['type'] = 'lncc' #######################TODO  here  should be lncc
+tsm.task_par['tsk_set']['loss']['type'] = 'ncc' #######################TODO  here  should be lncc
 """similarity measure, mse, ncc, lncc"""
 tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [200,8,4]
 """ number of pairs per training/val/debug epoch,  [200,8,5] refers to 200 pairs for each train epoch, 8 pairs for each validation epoch and 5 pairs for each debug epoch"""
@@ -222,7 +223,7 @@ tsm.task_par['tsk_set']['optim']['lr_scheduler']['custom']['gamma'] = 0.5
 
 tsm.task_par['tsk_set']['reg'] = {}
 """ settings for registration task"""
-tsm.task_par['tsk_set']['reg']['low_res_factor'] = 0.5
+tsm.task_par['tsk_set']['reg']['low_res_factor'] = 0.25
 """ low resolution map factor for vSVF method, the operations would be computed on low-resolution map"""
 tsm.task_par['tsk_set']['reg']['mermaid_net']={}
 """ settings for mermaid net"""

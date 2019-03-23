@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -p general
 #SBATCH -N 1
-#SBATCH --mem=20g
+#SBATCH --mem=30g
 #SBATCH -n 1
-#SBATCH -c 10
-#SBATCH --output=nifty_reg_affine.txt
-#SBATCH -t 2-
+#SBATCH -c 24
+#SBATCH --output=ants_baseline_200_300.txt
+#SBATCH -t 5-
 
 source activate torch
 cd /pine/scr/z/y/zyshen/reg_clean/demo/

@@ -155,7 +155,7 @@ def performDemonsRegistration(mv_path, target_path, registration_type='demons', 
     demons_filter.SetNumberOfIterations(500)
     # Regularization (update field - viscous, total field - elastic).
     demons_filter.SetSmoothDisplacementField(True)
-    demons_filter.SetStandardDeviations(0.8)  #1,4
+    demons_filter.SetStandardDeviations(1.5)  #1,4
 
     # Run the registration.
     print("!!!!!!!!!!demons param{}".format(param_in_demons) )

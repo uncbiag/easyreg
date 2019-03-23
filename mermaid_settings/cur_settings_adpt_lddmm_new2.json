@@ -63,11 +63,11 @@
                     "gaussian_weight_min": 0.0001,
                     "load_dnn_parameters_from_this_file": "",
                     "multi_gaussian_stds": [
-                        0.05,
-                        0.1,
-                        0.15,
-                        0.2,
-                        0.25
+                        0.04,
+                        0.07,
+                        0.10,
+                        0.13,
+                        0.16
                     ],
                     "multi_gaussian_weights": [
                         0.06666666666666667,
@@ -76,10 +76,10 @@
                         0.26666666666666666,
                         0.3333333333333333
                     ],
-                    "use_weighted_linear_softmax": false,
+                    "use_weighted_linear_softmax":false,
                     "omt_power": 2.0,
                     "omt_use_log_transformed_std": true,
-                    "omt_weight_penalty": 4.0,
+                    "omt_weight_penalty": 8.0,
                     "optimize_over_deep_network": true,
                     "optimize_over_smoother_stds": false,
                     "optimize_over_smoother_weights": false,
@@ -92,11 +92,11 @@
                 },
                 "smoother_for_forward": {
                     "multi_gaussian_stds": [
-                        0.05,
-                        0.1,
-                        0.15,
-                        0.2,
-                        0.25
+                        0.04,
+                        0.07,
+                        0.10,
+                        0.13,
+                        0.16
                     ],
                     "multi_gaussian_weights": [
                         0.06666666666666667,

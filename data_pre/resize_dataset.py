@@ -48,13 +48,13 @@ class RegistrationDataset(object):
         self.has_label = False
         self.shared_label_set = None
         self.get_file_list()
-        self.resize = True
         self.resize_factor = resize_factor
+        self.resize = not all([factor==1 for factor in self.resize_factor])
         self.pair_list = []
 
     def process(self):
         self.transfer_exist_dataset_txt_into_new_one()
-        #self.process_img_pool()
+        self.process_img_pool()
 
     def set_task_output_path(self,path):
         self.task_output_path = path
@@ -73,8 +73,6 @@ class RegistrationDataset(object):
 
     def set_shared_label(self,shared_label_set):
         self.shared_label_set = shared_label_set
-
-
 
     def get_file_list(self):
         """
@@ -192,7 +190,7 @@ class RegistrationDataset(object):
         label_np = sitk.GetArrayFromImage(label)
         cur_label = list(np.unique(label_np))
         extra_label = set(cur_label)- self.shared_label_set
-        print(" the extra label is {}. ".format(extra_label))
+        #print(" the extra label is {}. ".format(extra_label))
         if len(extra_label)==0:
             print("no extra label")
         for elm in extra_label:
@@ -212,25 +210,29 @@ class RegistrationDataset(object):
         img = self.__read_and_clean_itk_info(img_pth)
         if is_label and self.shared_label_set is not None:
             img = self.convert_label_map_into_standard_one(img)
-        resampler= sitk.ResampleImageFilter()
-        dimension =3
+        dimension = 3
         factor = np.flipud(self.resize_factor)
         img_sz = img.GetSize()
-        affine = sitk.AffineTransform(dimension)
-        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-        after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
-        after_size = [int(sz) for sz in after_size]
-        matrix[0, 0] =1./ factor[0]
-        matrix[1, 1] =1./ factor[1]
-        matrix[2, 2] =1./ factor[2]
-        affine.SetMatrix(matrix.ravel())
-        resampler.SetSize(after_size)
-        resampler.SetTransform(affine)
-        if is_label:
-            resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        if self.resize:
+            resampler= sitk.ResampleImageFilter()
+
+            affine = sitk.AffineTransform(dimension)
+            matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+            after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
+            after_size = [int(sz) for sz in after_size]
+            matrix[0, 0] =1./ factor[0]
+            matrix[1, 1] =1./ factor[1]
+            matrix[2, 2] =1./ factor[2]
+            affine.SetMatrix(matrix.ravel())
+            resampler.SetSize(after_size)
+            resampler.SetTransform(affine)
+            if is_label:
+                resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+            else:
+                resampler.SetInterpolator(sitk.sitkBSpline)
+            img_resampled = resampler.Execute(img)
         else:
-            resampler.SetInterpolator(sitk.sitkBSpline)
-        img_resampled = resampler.Execute(img)
+            img_resampled = img
         output_path = self.data_output_path
         output_path = os.path.join(output_path,'img') if not is_label else os.path.join(output_path,'label')
         os.makedirs(output_path, exist_ok=True)
@@ -301,20 +303,20 @@ class RegistrationDataset(object):
 data_path = '/playpen/zyshen/data/reg_debug_3000_pair_reg_224_oasis3_reg_inter'
 phase_list = ['train','val','debug','test']
 """ path for saving the pair_path_list, pair_name_list"""
-task_output_path = '/playpen/zyshen/for_llf/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+task_output_path = '/playpen/zyshen/data/croped_lfix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to read the image during running the tasks"""
-running_read_path = '/pine/scr/z/y/zyshen/data/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
+running_read_path = '/playpen/zyshen/oasis_data/croped_lfix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
     #'/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to save the data"""
-data_output_path = '/playpen/zyshen/oasis_data/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
+data_output_path = '/playpen/zyshen/oasis_data/todel/data'
 """ img path need to be replaced with running_read_img_path"""
 real_img_path = '/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224'
 """ label path need to be replaced with runing_read_label_path """
 real_label_path = ['/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224']
 resize_factor = [112./224.,112./224.,112./224]
 """Attention, here we manually add id 62 into list, for it is a big structure and is not absent in val, debug, test dataset"""
-shared_label_set =  {0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 31, 41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 77, 80, 85, 251, 252, 253, 254, 255}
-
+#shared_label_set =  {0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 31, 41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 77, 80, 85, 251, 252, 253, 254, 255}
+shared_label_set =  {0, 2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 28, 31, 41, 42, 43, 46, 47, 49, 50, 51, 52, 53, 54, 60, 63, 77}
 
 
 
@@ -324,6 +326,7 @@ for phase in phase_list:
     dataset.set_data_output_path(os.path.join(data_output_path,phase))
     dataset.set_real_data_path(real_img_path,real_label_path)
     dataset.set_running_read_path(os.path.join(running_read_path,phase))
+
     if shared_label_set is not None:
         dataset.set_shared_label(shared_label_set)
     dataset.process()

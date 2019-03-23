@@ -39,20 +39,29 @@ def remove_abnormal_data(file_path_list):
         boundary_list.append(boundary)
     return boundary_list
 
-def gather_label_info(file_path_list):
+def gather_label_info(file_path_list,filter_label_less_than=-1):
     label_list = []
     for fp in file_path_list:
         label_map = sitk.ReadImage(fp)
         label_map_np = sitk.GetArrayFromImage(label_map)
         cur_label_list = list(np.unique(label_map_np))
+        if filter_label_less_than>0:
+            label_id = np.array(list(range(np.max(label_map_np)+1)))
+            label_count = np.bincount(label_map_np.reshape(-1).astype(np.int32))
+            label_left = label_id[label_count>=filter_label_less_than]
+            cur_label_list = label_left.tolist()
+
         label_list.append(cur_label_list)
+
     return label_list
 
 
 
 
-f = gather_label_info
+filter_label_less_than = 200
 
+from functools import partial
+f = partial(gather_label_info,filter_label_less_than= filter_label_less_than)
 
 
 
@@ -61,7 +70,7 @@ f = gather_label_info
 # all_imgs = read_txt_into_list('/playpen/zyshen/data/reg_debug_3000_pair_oasis_reg_inter/train/pair_path_list.txt')
 # all_imgs = [img_pth[0] for img_pth in all_imgs] +[img_pth[1] for img_pth in all_imgs]
 all_imgs = glob.glob('/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224/*label.nii.gz')
-all_imgs = glob.glob('/playpen/zyshen/oasis_data/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data/test/label/*label.nii.gz')
+#all_imgs = glob.glob('/playpen/zyshen/oasis_data/croped_fix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data/test/label/*label.nii.gz')
 print(len(all_imgs))
 
 

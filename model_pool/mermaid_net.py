@@ -274,9 +274,9 @@ class MermaidNet(nn.Module):
         self.print_count += 1
         return loss_overall_energy, sim_energy, reg_energy
 
-    def set_mermaid_param(self,mermaid_unit,criterion, s, t, m):
-        mermaid_unit.set_dictionary_to_pass_to_integrator({'I0': s, 'I1': t})
-        criterion.set_dictionary_to_pass_to_smoother({'I0': s, 'I1': t})
+    def set_mermaid_param(self,mermaid_unit,criterion, s, t, m,s_full=None):
+        mermaid_unit.set_dictionary_to_pass_to_integrator({'I0': s, 'I1': t,'I0_full':s_full})
+        criterion.set_dictionary_to_pass_to_smoother({'I0': s, 'I1': t,'I0_full':s_full})
         mermaid_unit.m = m
         criterion.m = m
     def __freeze_param(self,params):
@@ -315,7 +315,7 @@ class MermaidNet(nn.Module):
         :return:  warped image, deformation field
         """
         if self.mermaid_low_res_factor is not None:
-            self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m)  ##########3 TODO  here the input shouold be low_s low_t if self.mermaid_low_res_factor is not None otherwise s,t
+            self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)  ##########3 TODO  here the input shouold be low_s low_t if self.mermaid_low_res_factor is not None otherwise s,t
             maps = mermaid_unit(self.lowRes_fn(phi), low_s, variables_from_optimizer={'epoch':self.epoch})
             # now up-sample to correct resolution
             desiredSz = self.img_sz[2:]
@@ -323,7 +323,7 @@ class MermaidNet(nn.Module):
             rec_phiWarped, _ = sampler.upsample_image_to_size(maps, self.lowResSpacing, desiredSz, 1,zero_boundary=False)
 
         else:
-            self.set_mermaid_param(mermaid_unit,criterion,s, t, m)
+            self.set_mermaid_param(mermaid_unit,criterion,s, t, m,s)
             maps = mermaid_unit(phi, s)
             rec_phiWarped = maps
         rec_IWarped = py_utils.compute_warped_image_multiNC(s, rec_phiWarped, self.spacing, 1,zero_boundary=True)
