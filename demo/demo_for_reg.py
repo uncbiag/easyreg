@@ -76,7 +76,7 @@ else:
 
 cur_program_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 data_output_path = os.path.join(root_path,data_task_name_for_train)
-cur_task_name ='todel'#reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep'#reg_adpt_lddmm_new_2step_ls01_1000sym_onestep_2bz' # vm_cvprwithregfix5000'
+cur_task_name ='todel'#'reg_adpt_lddamm_wkw_formul_4_1_omt_2step_1000sym'#reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep'#reg_adpt_lddmm_new_2step_ls01_1000sym_onestep_2bz' # vm_cvprwithregfix5000'
 #'reg_fixed_lddmm_onestepphi_reg3_sunet_clamp_omt_IT_net_001rloss1_withinit'
 #'reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
 is_oai = 'oai' in data_task_name
@@ -138,7 +138,7 @@ tsm.task_par['tsk_set']['old_gpu_ids']=0
 """ no longer used"""
 tsm.task_par['tsk_set']['gpu_ids'] = args.gpu
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] =os.path.join(data_output_path,'reg_adpt_lddmm_reg30_2step_using_previous_adpt_init_continue_bz2/checkpoints/epoch_110_')
+tsm.task_par['tsk_set']['model_path'] =os.path.join(data_output_path,'reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep/checkpoints/epoch_100_')
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
 
     #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
@@ -250,7 +250,7 @@ tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']=2
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_multi_step']=tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']>1
 """ using multi-step training for mermaid_based method"""
 """ number of steps in multi-step mermaid_based method training"""
-tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']=os.path.join(cur_program_path,'mermaid_settings/cur_settings_lddmm_rk4.json')
+tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']=os.path.join(cur_program_path,'mermaid_settings/cur_settings_adpt_lddmm_new_fix_wkw.json')
 """ True: using lddmm False: using vSVF"""
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_affine_init']=True  # this should be true
 tsm.task_par['tsk_set']['reg']['mermaid_net']['load_trained_affine_net']=True

@@ -2,40 +2,27 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6276e5ba-c766-4737-8ef1-b118f0ca9119" name="Default" comment="input of momentum net directly interpl from input img">
-      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new2.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix_oasis.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_rk4.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/registration_net.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/registration_net.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_for_synth.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix_wkw.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_fix.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_svf_fix.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model_pool/mermaid_net_mutli_channel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/depend_on_dct.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/torch-dct" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/attentions" beforeDir="false" afterPath="$PROJECT_DIR$/attentions" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_pre/analysis_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_pre/analysis_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_pre/resize_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_pre/resize_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/demo_for_oasis.py" beforeDir="false" afterPath="$PROJECT_DIR$/demo/demo_for_oasis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/demo_for_reg.py" beforeDir="false" afterPath="$PROJECT_DIR$/demo/demo_for_reg.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/llf/expr_oai.sh" beforeDir="false" afterPath="$PROJECT_DIR$/llf/expr_oai.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/llf/nifty.sh" beforeDir="false" afterPath="$PROJECT_DIR$/llf/nifty.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mermaid" beforeDir="false" afterPath="$PROJECT_DIR$/mermaid" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new.json" beforeDir="false" afterPath="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/demons_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/demons_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model_pool/global_variable.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/global_variable.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model_pool/mermaid_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/mermaid_net.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/test_expr.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/test_expr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_pool/reg_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/reg_net.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_pool/train_expr.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/train_expr.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/result_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/result_analysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/adams.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/adjoint.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/dopri5.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/fixed_adams.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/fixed_grid.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/interp.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/misc.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/odeint.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/rk_common.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/solvers.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/torchdiffeq/_impl/tsit5.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/save_3d_negative_jacobi.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/demo_on_dct.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/visual_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/visual_tools.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -46,12 +33,12 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/registration_net$smoother_factory.coverage" NAME="smoother_factory Coverage Results" MODIFIED="1550426347664" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/pyreg" />
-    <SUITE FILE_PATH="coverage/registration_net$testRegistration.coverage" NAME="testRegistration Coverage Results" MODIFIED="1552095753978" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/demos" />
+    <SUITE FILE_PATH="coverage/registration_net$testRegistration.coverage" NAME="testRegistration Coverage Results" MODIFIED="1553976778616" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/demos" />
     <SUITE FILE_PATH="coverage/registration_net$task_pool2.coverage" NAME="task_pool2 Coverage Results" MODIFIED="1520461213144" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
     <SUITE FILE_PATH="coverage/registration_net$task_pool.coverage" NAME="task_pool Coverage Results" MODIFIED="1518327358529" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
     <SUITE FILE_PATH="coverage/registration_net$seg_data_pool.coverage" NAME="seg_data_pool Coverage Results" MODIFIED="1515186700923" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
     <SUITE FILE_PATH="coverage/registration_net$single_pair_registration.coverage" NAME="single_pair_registration Coverage Results" MODIFIED="1552189371605" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/demo" />
-    <SUITE FILE_PATH="coverage/registration_net$Nosetests_in_test_registration_algorithms_py.coverage" NAME="Nosetests in test_registration_algorithms.py Coverage Results" MODIFIED="1553309594104" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/test" />
+    <SUITE FILE_PATH="coverage/registration_net$Nosetests_in_test_registration_algorithms_py.coverage" NAME="Nosetests in test_registration_algorithms.py Coverage Results" MODIFIED="1553481606344" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/test" />
     <SUITE FILE_PATH="coverage/registration_net$train_expr.coverage" NAME="train_expr Coverage Results" MODIFIED="1515440154010" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
     <SUITE FILE_PATH="coverage/registration_net$config_parser.coverage" NAME="config_parser Coverage Results" MODIFIED="1516214006873" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
     <SUITE FILE_PATH="coverage/registration_net$seg_data_utils.coverage" NAME="seg_data_utils Coverage Results" MODIFIED="1514864468642" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
@@ -61,18 +48,21 @@
     <SUITE FILE_PATH="coverage/registration_net$Nosetests_for_single_2dplot_test.coverage" NAME="Nosetests for single_2dplot.test Coverage Results" MODIFIED="1552581182980" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/registration_net$get_device_info.coverage" NAME="get_device_info Coverage Results" MODIFIED="1552341398455" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/registration_net$analysis_dataset.coverage" NAME="analysis_dataset Coverage Results" MODIFIED="1553057845253" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
-    <SUITE FILE_PATH="coverage/registration_net$demo_for_reg.coverage" NAME="demo_for_reg Coverage Results" MODIFIED="1553308611578" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/demo" />
+    <SUITE FILE_PATH="coverage/registration_net$demo_for_reg.coverage" NAME="demo_for_reg Coverage Results" MODIFIED="1553746745331" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/demo" />
     <SUITE FILE_PATH="coverage/registration_net$draw_jacobi.coverage" NAME="draw_jacobi Coverage Results" MODIFIED="1549466710371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/registration_net$box_plot.coverage" NAME="box_plot Coverage Results" MODIFIED="1551748511240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
+    <SUITE FILE_PATH="coverage/registration_net$demo_on_dct.coverage" NAME="demo_on_dct Coverage Results" MODIFIED="1553443650517" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/registration_net$multi_mod_txt_gen.coverage" NAME="multi_mod_txt_gen Coverage Results" MODIFIED="1520032040016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$Nosetests_in_test_lineardct_py.coverage" NAME="Nosetests in test_lineardct.py Coverage Results" MODIFIED="1553441396905" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/torch-dct/torch_dct/test" />
     <SUITE FILE_PATH="coverage/registration_net$testRegistrationGeneric.coverage" NAME="testRegistrationGeneric Coverage Results" MODIFIED="1546796313786" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/demos" />
     <SUITE FILE_PATH="coverage/registration_net$plot_decay_function.coverage" NAME="plot_decay_function Coverage Results" MODIFIED="1551125482260" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/registration_net$result_analysis.coverage" NAME="result_analysis Coverage Results" MODIFIED="1552845933255" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
-    <SUITE FILE_PATH="coverage/registration_net$crop_oai.coverage" NAME="crop_oai Coverage Results" MODIFIED="1553118214859" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
+    <SUITE FILE_PATH="coverage/registration_net$crop_oai.coverage" NAME="crop_oai Coverage Results" MODIFIED="1553489897988" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
     <SUITE FILE_PATH="coverage/registration_net$priority_sampler.coverage" NAME="priority_sampler Coverage Results" MODIFIED="1519491173233" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
     <SUITE FILE_PATH="coverage/registration_net$parallel_example.coverage" NAME="parallel_example Coverage Results" MODIFIED="1552354191587" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/registration_net$analysis_result.coverage" NAME="analysis_result Coverage Results" MODIFIED="1520462401552" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model_pool" />
     <SUITE FILE_PATH="coverage/registration_net$pipline__2_.coverage" NAME="pipline (2) Coverage Results" MODIFIED="1514864121107" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pipLine" />
+    <SUITE FILE_PATH="coverage/registration_net$create_synthetic_regularization_test_cases.coverage" NAME="create_synthetic_regularization_test_cases Coverage Results" MODIFIED="1553973781982" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/demos" />
     <SUITE FILE_PATH="coverage/registration_net$oasis_longitude_reg.coverage" NAME="oasis_longitude_reg Coverage Results" MODIFIED="1552498378863" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
     <SUITE FILE_PATH="coverage/registration_net$asym_conv.coverage" NAME="asym_conv Coverage Results" MODIFIED="1548653200958" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/mermaid/pyreg/libraries/modules" />
     <SUITE FILE_PATH="coverage/registration_net$crop_oasis.coverage" NAME="crop_oasis Coverage Results" MODIFIED="1550717282684" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data_pre" />
@@ -102,13 +92,72 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="registration_networks.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="registration_networks.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mermaid/pyreg/registration_networks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="442">
-              <caret line="1585" column="34" lean-forward="true" selection-start-line="1585" selection-start-column="34" selection-end-line="1585" selection-end-column="34" />
+            <state relative-caret-position="157">
+              <caret line="342" column="19" selection-start-line="342" selection-start-column="19" selection-end-line="342" selection-end-column="19" />
               <folding>
                 <element signature="e#1162#1199#0" expanded="true" />
+                <element signature="e#80186#82408#0" />
+                <element signature="e#89386#92489#0" />
+                <element signature="e#92549#95008#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="visualize_registration_results.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/visualize_registration_results.py">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="deep_smoother_example.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid_settings/deep_smoother_example.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1584">
+              <caret line="145" column="29" selection-start-line="145" selection-start-column="13" selection-end-line="145" selection-end-column="29" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="similarity_measure_factory.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/similarity_measure_factory.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-414">
+              <caret line="214" column="39" lean-forward="true" selection-start-line="214" selection-start-column="39" selection-end-line="214" selection-end-column="39" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="create_synthetic_regularization_test_cases.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid/demos/create_synthetic_regularization_test_cases.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="491">
+              <caret line="980" column="26" selection-start-line="980" selection-start-column="11" selection-end-line="980" selection-end-column="26" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="forward_models_multi_channel.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models_multi_channel.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="480">
+              <caret line="516" selection-start-line="516" selection-end-line="516" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="testRegistration.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid/demos/testRegistration.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="213">
+              <caret line="61" column="74" selection-start-line="61" selection-start-column="74" selection-end-line="61" selection-end-column="74" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -117,83 +166,26 @@
       <file leaf-file-name="global_variable.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/global_variable.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="162">
-              <caret line="9" column="26" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="26" />
+            <state relative-caret-position="180">
+              <caret line="10" column="25" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="external_variable.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/external_variable.py">
+      <file leaf-file-name="cur_settings_adpt_lddmm_for_synth.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_for_synth.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="54">
-              <caret line="3" column="16" lean-forward="true" selection-start-line="3" selection-start-column="16" selection-end-line="3" selection-end-column="16" />
+            <state relative-caret-position="288">
+              <caret line="73" column="28" lean-forward="true" selection-start-line="73" selection-start-column="28" selection-end-line="73" selection-end-column="28" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="demo_for_oasis.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/demo/demo_for_oasis.py">
+      <file leaf-file-name="config.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mermaid/demos/synthetic_example_out_kernel_weighting_type_sqrt_w_K_sqrt_w/config.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="235">
-              <caret line="208" column="43" selection-start-line="208" selection-start-column="43" selection-end-line="208" selection-end-column="43" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="mermaid_net.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="451">
-              <caret line="317" column="90" selection-start-line="317" selection-start-column="90" selection-end-line="317" selection-end-column="90" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_expr.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/model_pool/test_expr.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="24" column="53" selection-start-line="24" selection-start-column="53" selection-end-line="24" selection-end-column="53" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="forward_models.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="65" column="29" lean-forward="true" selection-start-line="65" selection-start-column="29" selection-end-line="65" selection-end-column="29" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_registration_algorithms.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mermaid/test/test_registration_algorithms.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5267">
-              <caret line="346" selection-start-line="346" selection-end-line="346" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="finite_differences.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/finite_differences.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
-              <caret line="69" column="8" selection-start-line="69" selection-start-column="8" selection-end-line="69" selection-end-column="8" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="forward_models_standard_space.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models_standard_space.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="530">
-              <caret line="391" column="44" selection-start-line="391" selection-start-column="44" selection-end-line="391" selection-end-column="44" />
-              <folding>
-                <element signature="e#988#1025#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="159">
+              <caret line="28" column="22" lean-forward="true" selection-start-line="28" selection-start-column="22" selection-end-line="28" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -209,45 +201,38 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
+      <find>omt_power</find>
+      <find>weight_input_range_loss</find>
+      <find>_is_optimizing_over_deep_network</find>
+      <find>localFo</find>
+      <find>localFou</find>
+      <find>rec_custom_optimizer_output_values</find>
+      <find>downsample_registration_parameters</find>
+      <find>['m']</find>
+      <find>smoother_for_forward</find>
+      <find>downsample_model_parameters</find>
+      <find>upsampledParameters</find>
+      <find>SimpleSingleScaleRegistration</find>
+      <find>class</find>
+      <find>range</find>
+      <find>associate_parameters_with_module</find>
+      <find>_nn_hooks</find>
+      <find>associat</find>
+      <find>pt</find>
       <find>weights</find>
-      <find>use_CFL_clamping</find>
-      <find>preweights</find>
-      <find>self.sz</find>
-      <find>_compute_weights_from_pre_weights</find>
-      <find>use_net</find>
-      <find>use_the_first_step_penalty</find>
-      <find>update_sm_weight</find>
-      <find>self.resize</find>
-      <find>turn_on_pair_regis</find>
-      <find>convert_label_map_into_standard_one</find>
-      <find>num_samples</find>
-      <find>i</find>
-      <find>img_sz</find>
-      <find>['datapro']['dataset']['img_size']</find>
-      <find>affine_map</find>
-      <find>sitkBSpline</find>
-      <find>resize_input_img_and_save_it</find>
-      <find>resize_input_img_and_save_it2</find>
-      <find>+1</find>
-      <find>[:,</find>
-      <find>,:, :, :]</find>
-      <find>self.spacing</find>
-      <find>,...</find>
-      <find>_create_filter</find>
-      <find>use_neumann_BC_for_map</find>
-      <find>True</find>
-      <find>LDDMMShootingVectorMomentumMapNet</find>
-      <find>dXc</find>
-      <find>dZc</find>
+      <find>I0Source</find>
+      <find>embedded_smoother</find>
+      <find>local_adapt_weights_pre</find>
+      <find>save_smoother_map</find>
+      <find>visual</find>
+      <find>plot_2d_img</find>
+      <find>weighted_linear_softnorm</find>
+      <find>SVFVectorAdaptiveSmootherMomentumMapNet</find>
+      <find>weights_neutral</find>
+      <find>sigma</find>
+      <find>compute_regularization_energy</find>
     </findStrings>
     <replaceStrings>
-      <replace>score</replace>
-      <replace>detailed_scores</replace>
-      <replace>self.extra</replace>
-      <replace>using_mermaid_multi_step</replace>
-      <replace>print_count</replace>
-      <replace>using_index_coord</replace>
-      <replace>using_lddmm</replace>
       <replace>v_neg_logical</replace>
       <replace>model_st</replace>
       <replace>mermaid_unit_st</replace>
@@ -271,70 +256,80 @@
       <replace>dXc_doubled</replace>
       <replace>dYc_doubled</replace>
       <replace>dZc_doubled</replace>
+      <replace>dZc</replace>
+      <replace>i:i+1]</replace>
+      <replace>0:1]</replace>
+      <replace>1:2]</replace>
+      <replace>fdc</replace>
+      <replace>multi_gaussian_stds</replace>
+      <replace>disable_penalty_computation</replace>
     </replaceStrings>
+    <dirStrings>
+      <dir>$PROJECT_DIR$/torch-dct</dir>
+    </dirStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="torch1.0" />
+        <entry key="$PROJECT_DIR$" value="multi-gpu" />
       </map>
     </option>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/tools/parallel_example.py" />
-        <option value="$PROJECT_DIR$/model_pool/utils.py" />
-        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_svf_noaj.json" />
-        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_bigger.json" />
-        <option value="$PROJECT_DIR$/data_pre/oasis_longitude_reg.py" />
-        <option value="$PROJECT_DIR$/data_pre/reg_data_pool.py" />
-        <option value="$PROJECT_DIR$/model_pool/create_model.py" />
-        <option value="$PROJECT_DIR$/model_pool/ants_iter.py" />
-        <option value="$PROJECT_DIR$/model_pool/demons_iter.py" />
-        <option value="$PROJECT_DIR$/data_pre/crop_oai.py" />
-        <option value="$PROJECT_DIR$/model_pool/nifty_reg_utils.py" />
-        <option value="$PROJECT_DIR$/model_pool/nifty_reg_iter.py" />
-        <option value="$PROJECT_DIR$/model_pool/network_pool.py" />
-        <option value="$PROJECT_DIR$/tools/single_2dplot.py" />
-        <option value="$PROJECT_DIR$/model_pool/metrics.py" />
-        <option value="$PROJECT_DIR$/model_pool/base_model.py" />
-        <option value="$PROJECT_DIR$/model_pool/reg_net.py" />
-        <option value="$PROJECT_DIR$/tools/save_3d_negative_jacobi.py" />
-        <option value="$PROJECT_DIR$/tools/visual_tools.py" />
-        <option value="$PROJECT_DIR$/model_pool/train_expr.py" />
-        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm.json" />
-        <option value="$PROJECT_DIR$/model_pool/ants_reg_utils.py" />
-        <option value="$PROJECT_DIR$/llf/todel.sh" />
-        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new2.json" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/deep_networks.py" />
-        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new.json" />
-        <option value="$PROJECT_DIR$/llf/expr_oai.sh" />
-        <option value="$PROJECT_DIR$/tools/result_analysis.py" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/deep_smoothers.py" />
-        <option value="$PROJECT_DIR$/data_pre/analysis_dataset.py" />
-        <option value="$PROJECT_DIR$/model_pool/demons_utils.py" />
-        <option value="$PROJECT_DIR$/model_pool/test_expr.py" />
-        <option value="$PROJECT_DIR$/llf/nifty.sh" />
-        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix.json" />
         <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix_oasis.json" />
         <option value="$PROJECT_DIR$/demo/demo_for_oasis.py" />
         <option value="$PROJECT_DIR$/model_pool/modules.py" />
-        <option value="$PROJECT_DIR$/data_pre/resize_dataset.py" />
         <option value="$PROJECT_DIR$/mermaid/pyreg/finite_differences.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/dopri5.py" />
+        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_dipr.json" />
         <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_rk4.json" />
-        <option value="$PROJECT_DIR$/demo/demo_for_reg.py" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/utils.py" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/forward_models.py" />
-        <option value="$PROJECT_DIR$/attentions" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/finite_differences_multi_channel.py" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/forward_models_standard_space.py" />
-        <option value="$PROJECT_DIR$/mermaid/pyreg/registration_networks.py" />
-        <option value="$PROJECT_DIR$/model_pool/mermaid_net.py" />
-        <option value="$PROJECT_DIR$/model_pool/global_variable.py" />
+        <option value="$PROJECT_DIR$/model_pool/create_model.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/fileio.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/libraries/modules/stn_nd.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/libraries/functions/stn_nd.py" />
+        <option value="$PROJECT_DIR$/tools/depend_on_dct.py" />
+        <option value="$PROJECT_DIR$/tools/demo_on_dct.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/custom_pytorch_extensions.py" />
         <option value="$PROJECT_DIR$/mermaid/pyreg/external_variable.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/finite_differences_multi_channel.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/forward_models.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/forward_models_standard_space.py" />
+        <option value="$PROJECT_DIR$/model_pool/train_expr.py" />
+        <option value="$PROJECT_DIR$/model_pool/reg_net.py" />
+        <option value="$PROJECT_DIR$/data_pre/resize_dataset.py" />
+        <option value="$PROJECT_DIR$/llf/expr_oai.sh" />
+        <option value="$PROJECT_DIR$/model_pool/mermaid_net_mutli_channel.py" />
+        <option value="$PROJECT_DIR$/tools/result_analysis.py" />
+        <option value="$PROJECT_DIR$/tools/utils.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/utils.py" />
+        <option value="$PROJECT_DIR$/demo/demo_for_reg.py" />
+        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_sep.json" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/deep_smoothers.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/smoother_factory_expri.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/deep_networks.py" />
+        <option value="$PROJECT_DIR$/model_pool/mermaid_net.py" />
+        <option value="$PROJECT_DIR$/mermaid_old/pyreg/example_generation.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/example_generation.py" />
+        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_svf_fix.json" />
+        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_fix.json" />
+        <option value="$PROJECT_DIR$/attentions" />
+        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix_wkw.json" />
+        <option value="$PROJECT_DIR$/mermaid/demos/create_synthetic_regularization_test_cases.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/similarity_measure_factory.py" />
+        <option value="$PROJECT_DIR$/mermaid/settings/compute_settings.json" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/deep_loss.py" />
+        <option value="$PROJECT_DIR$/tools/visual_tools.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/forward_models_multi_channel.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/model_factory.py" />
+        <option value="$PROJECT_DIR$/mermaid/pyreg/registration_networks.py" />
+        <option value="$PROJECT_DIR$/mermaid/demos/synthetic_example_out_kernel_weighting_type_sqrt_w_K_sqrt_w/config.json" />
+        <option value="$PROJECT_DIR$/model_pool/global_variable.py" />
+        <option value="$PROJECT_DIR$/mermaid/demos/testRegistration.py" />
+        <option value="$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_for_synth.json" />
       </list>
     </option>
   </component>
@@ -348,9 +343,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="-28" />
-    <option name="width" value="1920" />
-    <option name="height" value="1108" />
+    <option name="x" value="-355" />
+    <option name="y" value="247" />
+    <option name="width" value="1851" />
+    <option name="height" value="1040" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -364,6 +360,11 @@
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
               <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="data_pre" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
@@ -382,32 +383,77 @@
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Remote Python 3.6.6 (sftp://zyshen@biag-lambda2.cs.unc.edu:22/usr/local/anaconda3/envs/torch4/bin/python) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
+              <item name="demos" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Remote Python 3.6.6 (sftp://zyshen@biag-lambda2.cs.unc.edu:22/usr/local/anaconda3/envs/torch4/bin/python) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="-28482964" type="d76c9d6b:PyRemoteLibrariesNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
+              <item name="demos" type="462c0819:PsiDirectoryNode" />
+              <item name="synthetic_example_out_kernel_weighting_type_sqrt_w_K_sqrt_w" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Remote Python 3.6.6 (sftp://zyshen@biag-lambda2.cs.unc.edu:22/usr/local/anaconda3/envs/torch4/bin/python) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="-28482964" type="d76c9d6b:PyRemoteLibrariesNode" />
-              <item name="143261170" type="788ab980:PyRemoteLibrariesNode$PyRemoteRootNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
+              <item name="pyreg" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Remote Python 3.6.6 (sftp://zyshen@biag-lambda2.cs.unc.edu:22/usr/local/anaconda3/envs/torch4/bin/python) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="-28482964" type="d76c9d6b:PyRemoteLibrariesNode" />
-              <item name="143261170" type="788ab980:PyRemoteLibrariesNode$PyRemoteRootNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
+              <item name="pyreg" type="462c0819:PsiDirectoryNode" />
+              <item name="torchdiffeq" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid" type="462c0819:PsiDirectoryNode" />
+              <item name="settings" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="mermaid_settings" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="model_pool" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="settings" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="tools" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="torch-dct" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="torch-dct" type="462c0819:PsiDirectoryNode" />
+              <item name="torch_dct" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="registration_net" type="b2602c69:ProjectViewProjectNode" />
+              <item name="registration_net" type="462c0819:PsiDirectoryNode" />
+              <item name="torch-dct" type="462c0819:PsiDirectoryNode" />
+              <item name="torch_dct" type="462c0819:PsiDirectoryNode" />
               <item name="test" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -418,15 +464,15 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="SearchEverywhereHistoryKey" value="for&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;exter&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/external_variable.py&#10;global&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;forward&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;res&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/resize_dataset.py&#10;regis&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/registration_networks.py&#10;reg&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/reg_net.py&#10;merm&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net.py&#10;reg_&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/reg_net.py&#10;demon&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/demons_utils.py&#10;test&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/test_expr.py&#10;mermaid&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net.py&#10;deep&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/deep_smoothers.py&#10;glob&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;demo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/demo/demo_for_reg.py&#10;forwar&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;base&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/base_model.py&#10;ana&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/analysis_dataset.py&#10;data&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/resize_dataset.py&#10;metric&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/metrics.py&#10;ants&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/ants_iter.py&#10;demons&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/demons_utils.py&#10;oasis&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/demo/demo_for_oasis.py&#10;nifty&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/nifty_reg_utils.py&#10;glo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;tra&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/train_expr.py&#10;smoother&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/smoother_factory.py&#10;merma&#9;null&#9;null&#10;sin&#9;null&#9;null&#10;train&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/train_expr.py&#10;ni&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/nifty_reg_utils.py&#10;gl&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;de&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/demons_iter.py&#10;cr&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/crop_oai.py&#10;cre&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/create_model.py&#10;fo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;forw&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models_warped.py&#10;mermai&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net.py&#10;mer&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net.py&#10;dopr&#9;null&#9;null&#10;ex&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/external_variable.py&#10;reg_net&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/reg_net.py&#10;mermaid_&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net.py&#10;single&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/demo/single_pair_registration.py&#10;glon&#9;null&#9;null&#10;onfl&#9;null&#9;null&#10;simi&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/similarity_measure_factory.py&#10;grid&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/torchdiffeq/_impl/fixed_grid.py&#10;odein&#9;null&#9;null" />
+    <property name="SearchEverywhereHistoryKey" value="config&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/demos/synthetic_example_out_kernel_weighting_type_sqrt_w_K_sqrt_w/config.json&#10;model&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/model_factory.py&#10;deep&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/deep_loss.py&#10;dee&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/deep_loss.py&#10;forward&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models_multi_channel.py&#10;glo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;single&#9;null&#9;null&#10;test&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/demos/testRegistration.py&#10;forwar&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models_multi_channel.py&#10;create&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/demos/create_synthetic_regularization_test_cases.py&#10;mermaid&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net.py&#10;glob&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;regis&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/registration_networks.py&#10;demo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/demo/demo_for_reg.py&#10;forw&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;registration_n&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/registration_networks.py&#10;con&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/demos/synthetic_example_out_kernel_weighting_type_sqrt_w_K_sqrt_w/config.json&#10;deep_net&#9;null&#9;null&#10;reg&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/reg_net.py&#10;tra&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/train_expr.py&#10;merma&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net_mutli_channel.py&#10;merm&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net_mutli_channel.py&#10;tr&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/train_expr.py&#10;fo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;ex&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/external_variable.py&#10;smoo&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/smoother_factory.py&#10;registration&#9;null&#9;null&#10;for&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/forward_models.py&#10;fin&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/finite_differences.py&#10;exter&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/external_variable.py&#10;mermai&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/mermaid_net_mutli_channel.py&#10;sm&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/smoother_factory.py&#10;train&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/train_expr.py&#10;gl&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;uti&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/utils.py&#10;global&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/global_variable.py&#10;res&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/resize_dataset.py&#10;reg_&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/reg_net.py&#10;demon&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/demons_utils.py&#10;base&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/base_model.py&#10;ana&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/analysis_dataset.py&#10;data&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/data_pre/resize_dataset.py&#10;metric&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/metrics.py&#10;ants&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/ants_iter.py&#10;demons&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/demons_utils.py&#10;oasis&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/demo/demo_for_oasis.py&#10;nifty&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/nifty_reg_utils.py&#10;smoother&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/mermaid/pyreg/smoother_factory.py&#10;sin&#9;null&#9;null&#10;ni&#9;FILE&#9;file:///home/hbg/proj/reg_clean/registration_net/model_pool/nifty_reg_utils.py" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../registration_net" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -443,9 +489,9 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/mermaid_settings" />
       <recent name="$PROJECT_DIR$/mermaid/pyreg" />
+      <recent name="$PROJECT_DIR$/tools" />
+      <recent name="$PROJECT_DIR$/model_pool" />
       <recent name="$PROJECT_DIR$/demo" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/data_pre" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -460,8 +506,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.Nosetests in test_registration_algorithms.py">
-    <configuration name="analysis_dataset" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.testRegistration">
+    <configuration name="create_synthetic_regularization_test_cases" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="registration_net" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -469,12 +515,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data_pre" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/mermaid/demos" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data_pre/analysis_dataset.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mermaid/demos/create_synthetic_regularization_test_cases.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -499,25 +545,6 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="demo_for_oasis" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="registration_net" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/demo" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/demo/demo_for_oasis.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
     <configuration name="demo_for_reg" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="registration_net" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -532,6 +559,25 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/demo/demo_for_reg.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="testRegistration" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="registration_net" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/mermaid/demos" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mermaid/demos/testRegistration.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -570,17 +616,17 @@
     <list>
       <item itemvalue="Python.demo_for_reg" />
       <item itemvalue="Python.crop_oai" />
-      <item itemvalue="Python.demo_for_oasis" />
-      <item itemvalue="Python.analysis_dataset" />
       <item itemvalue="Python tests.Nosetests in test_registration_algorithms.py" />
+      <item itemvalue="Python.create_synthetic_regularization_test_cases" />
+      <item itemvalue="Python.testRegistration" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Nosetests in test_registration_algorithms.py" />
+        <item itemvalue="Python.testRegistration" />
+        <item itemvalue="Python.create_synthetic_regularization_test_cases" />
         <item itemvalue="Python.demo_for_reg" />
         <item itemvalue="Python.crop_oai" />
-        <item itemvalue="Python.demo_for_oasis" />
-        <item itemvalue="Python.analysis_dataset" />
+        <item itemvalue="Python tests.Nosetests in test_registration_algorithms.py" />
       </list>
     </recent_temporary>
   </component>
@@ -707,38 +753,45 @@
       <option name="project" value="LOCAL" />
       <updated>1552795928514</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="input of momentum net directly interpl from input img">
+      <created>1553310192833</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1553310192833</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.08 at 21h 31m 10s.xml">
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 16h 44m 02s.xml">
       <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
     </history-entry>
-    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.09 at 13h 07m 07s.xml">
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 20h 01m 00s.xml">
       <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
     </history-entry>
-    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.09 at 13h 13m 37s.xml">
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 29m 55s.xml">
       <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
     </history-entry>
-    <history-entry file="Nosetests_for_single_2dplot_test - 2019.03.14 at 12h 30m 40s.xml">
-      <configuration name="Nosetests for single_2dplot.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Nosetests_for_single_2dplot_test - 2019.03.14 at 12h 31m 39s.xml">
-      <configuration name="Nosetests for single_2dplot.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Nosetests_for_single_2dplot_test - 2019.03.14 at 12h 31m 59s.xml">
-      <configuration name="Nosetests for single_2dplot.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Nosetests_for_single_2dplot_test - 2019.03.14 at 12h 32m 26s.xml">
-      <configuration name="Nosetests for single_2dplot.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Nosetests_for_single_2dplot_test - 2019.03.14 at 12h 33m 05s.xml">
-      <configuration name="Nosetests for single_2dplot.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.22 at 22h 46m 57s.xml">
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 31m 07s.xml">
       <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
     </history-entry>
-    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.22 at 22h 56m 57s.xml">
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 34m 04s.xml">
+      <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 34m 34s.xml">
+      <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 36m 42s.xml">
+      <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 37m 13s.xml">
+      <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 37m 59s.xml">
+      <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_registration_algorithms_py - 2019.03.24 at 22h 43m 46s.xml">
       <configuration name="Nosetests in test_registration_algorithms.py" configurationId="tests" />
     </history-entry>
   </component>
@@ -753,25 +806,24 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="64" y="-11" width="1857" height="1092" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" anchor="bottom" id="TODO" order="8" sideWeight="0.49728554" visible="true" weight="0.15409483" />
-      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.25870648" side_tool="true" weight="0.24676724" />
+      <window_info anchor="bottom" id="TODO" order="8" sideWeight="0.49728554" weight="0.15409483" />
+      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.2642344" side_tool="true" weight="0.19288793" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="File Transfer" order="14" sideWeight="0.6721946" weight="0.2413793" />
+      <window_info anchor="bottom" id="File Transfer" order="14" sideWeight="0.66887784" weight="0.24710831" />
       <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" weight="0.32841614" />
       <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.7794362" weight="0.22952586" />
-      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.74129355" weight="0.32327586" />
+      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.73576564" visible="true" weight="0.25446898" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49198452" weight="0.22413793" />
-      <window_info anchor="right" id="Remote Host" order="6" sideWeight="0.5014245" side_tool="true" weight="0.37092316" />
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.25262576" />
+      <window_info anchor="right" id="Remote Host" order="5" sideWeight="0.50284094" side_tool="true" weight="0.26644555" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.21078168" />
       <window_info anchor="bottom" id="Docker" order="12" weight="0.19827586" />
       <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.498618" weight="0.3275862" />
-      <window_info anchor="right" id="SciView" order="5" sideWeight="0.4985755" weight="0.76561636" />
+      <window_info active="true" anchor="right" id="SciView" order="6" sideWeight="0.4971591" visible="true" weight="0.5083558" />
       <window_info id="Structure" order="1" sideWeight="0.2994924" side_tool="true" weight="0.25096738" />
       <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.62299615" weight="0.33943966" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.6191266" weight="0.3575184" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Data View" order="4" weight="0.32888147" />
@@ -779,33 +831,33 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" sideWeight="0.498618" weight="0.3265086" />
+      <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" sideWeight="0.49806523" weight="0.3265086" />
     </layout>
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.10889994" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.21078168" />
       <window_info anchor="bottom" id="Docker" order="12" weight="0.19827586" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="right" id="Remote Host" order="5" sideWeight="0.5014245" side_tool="true" weight="0.37092316" />
+      <window_info anchor="right" id="Remote Host" order="5" sideWeight="0.50284094" side_tool="true" weight="0.26644555" />
       <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
       <window_info anchor="right" id="Data View" order="4" weight="0.32888147" />
       <window_info id="Structure" order="1" sideWeight="0.2994924" side_tool="true" weight="0.25096738" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="8" sideWeight="0.49728554" weight="0.15409483" />
-      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.74129355" visible="true" weight="0.35668105" />
+      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.73576564" weight="0.36908516" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.498618" weight="0.3275862" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.62299615" weight="0.3400621" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.6191266" visible="true" weight="0.3575184" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49198452" weight="0.22413793" />
-      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.25870648" side_tool="true" weight="0.24676724" />
+      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.2642344" side_tool="true" weight="0.19288793" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" weight="0.32841614" />
-      <window_info anchor="right" id="SciView" order="6" sideWeight="0.4985755" weight="0.7721519" />
-      <window_info anchor="bottom" id="File Transfer" order="14" sideWeight="0.6721946" weight="0.2413793" />
+      <window_info anchor="right" id="SciView" order="6" sideWeight="0.4971591" visible="true" weight="0.22156334" />
+      <window_info anchor="bottom" id="File Transfer" order="14" sideWeight="0.66887784" weight="0.24710831" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
-      <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" sideWeight="0.498618" weight="0.3265086" />
+      <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" sideWeight="0.49806523" weight="0.3265086" />
       <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.7794362" weight="0.22952586" />
     </layout-to-restore>
   </component>
@@ -895,34 +947,19 @@
           <option name="timeStamp" value="1339" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py</url>
-          <line>1329</line>
-          <option name="timeStamp" value="1434" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mermaid/pyreg/custom_pytorch_extensions_new.py</url>
           <line>432</line>
           <option name="timeStamp" value="1448" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mermaid/pyreg/deep_networks.py</url>
-          <line>1247</line>
+          <line>1249</line>
           <option name="timeStamp" value="1490" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mermaid/pyreg/deep_networks.py</url>
-          <line>1234</line>
+          <line>1236</line>
           <option name="timeStamp" value="1491" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py</url>
-          <line>1181</line>
-          <option name="timeStamp" value="1584" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py</url>
-          <line>1150</line>
-          <option name="timeStamp" value="1585" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mermaid/pyreg/finite_differences.py</url>
@@ -946,8 +983,48 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mermaid/pyreg/registration_networks.py</url>
-          <line>2110</line>
-          <option name="timeStamp" value="1812" />
+          <line>1803</line>
+          <option name="timeStamp" value="1898" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/similarity_measure_factory.py</url>
+          <line>255</line>
+          <option name="timeStamp" value="1909" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/demos/create_synthetic_regularization_test_cases.py</url>
+          <line>423</line>
+          <option name="timeStamp" value="1971" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/forward_models.py</url>
+          <line>1006</line>
+          <option name="timeStamp" value="2108" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/similarity_measure_factory.py</url>
+          <line>496</line>
+          <option name="timeStamp" value="2127" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/forward_models_multi_channel.py</url>
+          <line>547</line>
+          <option name="timeStamp" value="2137" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/registration_networks.py</url>
+          <line>2201</line>
+          <option name="timeStamp" value="2139" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/forward_models_multi_channel.py</url>
+          <line>544</line>
+          <option name="timeStamp" value="2140" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mermaid/pyreg/registration_networks.py</url>
+          <line>2235</line>
+          <option name="timeStamp" value="2143" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -957,7 +1034,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="1837" />
+      <option name="time" value="2144" />
     </breakpoint-manager>
   </component>
   <component name="debuggerHistoryManager">
@@ -1038,359 +1115,366 @@ else:
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new.json">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1080">
-          <caret line="60" column="47" selection-start-line="60" selection-start-column="47" selection-end-line="60" selection-end-column="47" />
+        <state relative-caret-position="347">
+          <caret line="587" selection-start-line="587" selection-end-line="587" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data_pre/preprocess_oai_data.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/smoother_factory_expri.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="1125" column="17" selection-start-line="1125" selection-start-column="17" selection-end-line="1125" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="218">
+          <caret line="342" column="60" selection-start-line="342" selection-start-column="60" selection-end-line="342" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net_mutli_channel.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5418">
+          <caret line="314" column="85" selection-start-line="314" selection-start-column="85" selection-end-line="314" selection-end-column="85" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_iter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1530">
+          <caret line="94" column="37" selection-start-line="93" selection-start-column="8" selection-end-line="94" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_old/pyreg/multiscale_optimizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="236">
+          <caret line="1300" lean-forward="true" selection-start-line="1300" selection-end-line="1300" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_old/pyreg/example_generation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1191">
+          <caret line="27" column="8" selection-start-line="27" selection-start-column="8" selection-end-line="27" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/demo/single_pair_registration.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1404" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_undercheck.json">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/data_pre/reg_data_pool.py">
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_svf.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1350">
+        <state relative-caret-position="522">
+          <caret line="29" column="42" selection-start-line="29" selection-start-column="29" selection-end-line="29" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_svf_3smallscale.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="846">
+          <caret line="47" column="44" selection-start-line="47" selection-start-column="21" selection-end-line="47" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="918">
+          <caret line="51" column="39" selection-start-line="51" selection-start-column="21" selection-end-line="51" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_fix.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="115" column="39" selection-start-line="115" selection-start-column="39" selection-end-line="115" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_svf_fix.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2070">
+          <caret line="115" column="44" selection-start-line="115" selection-start-column="44" selection-end-line="115" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/attentions">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="684">
+          <caret line="38" column="32" selection-start-line="38" selection-start-column="32" selection-end-line="38" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/143261170/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="310" selection-start-line="310" selection-end-line="310" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="1275" selection-start-line="1275" selection-end-line="1275" />
+          <folding>
+            <element signature="e#60#97#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/ode_int.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="44" selection-start-line="44" selection-end-line="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/odeint.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="366">
+          <caret line="70" selection-start-line="70" selection-end-line="70" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/solvers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="384">
+          <caret line="90" selection-start-line="90" selection-end-line="90" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/fixed_grid.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="486">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/rk_common.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="74" selection-start-line="74" selection-end-line="74" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/finite_differences.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-783" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/adjoint.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="575">
+          <caret line="125" selection-start-line="125" selection-end-line="125" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/custom_optimizers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="151">
+          <caret line="124" selection-start-line="124" selection-end-line="124" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/data_wrapper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="25" selection-start-line="25" selection-end-line="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/multiscale_optimizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="403">
+          <caret line="1454" selection-start-line="1454" selection-end-line="1454" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/example_generation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="335">
+          <caret line="117" selection-start-line="117" selection-end-line="117" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/fileio.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="586" column="57" selection-start-line="586" selection-start-column="51" selection-end-line="586" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/deep_networks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="26316">
+          <caret line="1478" selection-start-line="1478" selection-end-line="1478" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/143261170/multiprocessing/pool.py">
+    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/-2012615850/torch/nn/functional.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="43" selection-start-line="43" selection-end-line="43" />
+        <state relative-caret-position="72">
+          <caret line="20" selection-start-line="20" selection-end-line="20" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data_pre/analysis_dataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="50" column="47" selection-start-line="50" selection-start-column="47" selection-end-line="50" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/ants_iter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1278">
-          <caret line="80" column="23" selection-start-line="80" selection-start-column="23" selection-end-line="80" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/ants_reg_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1404">
-          <caret line="87" selection-start-line="87" selection-end-line="87" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data_pre/reg_data_loader_onfly.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1422">
-          <caret line="91" selection-start-line="91" selection-end-line="91" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/demons_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2682">
-          <caret line="157" column="43" selection-start-line="157" selection-start-column="43" selection-end-line="157" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/llf/expr_oai.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="5" column="22" selection-start-line="5" selection-start-column="22" selection-end-line="5" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/llf/nifty.sh">
+    <entry file="file://$PROJECT_DIR$/mermaid/settings/compute_settings.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
-          <caret line="8" lean-forward="true" selection-start-line="8" selection-end-line="8" />
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new2.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="615">
-          <caret line="58" column="21" selection-start-line="58" selection-start-column="21" selection-end-line="58" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="11" selection-start-line="11" selection-end-line="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/net_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
-          <caret line="60" selection-start-line="60" selection-end-line="60" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/-2012615850/torch/nn/modules/linear.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="124">
-          <caret line="51" column="20" selection-start-line="51" selection-start-column="20" selection-end-line="51" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix_oasis.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="17" column="67" selection-start-line="17" selection-start-column="67" selection-end-line="17" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/image_sampling.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="133" column="8" selection-start-line="133" selection-start-column="8" selection-end-line="133" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/libraries/functions/stn_nd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="84" column="67" selection-start-line="84" selection-start-column="67" selection-end-line="84" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/libraries/functions/map_scale_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/base_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="18" column="13" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/libraries/modules/stn_nd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="828">
-          <caret line="52" column="41" selection-start-line="52" selection-start-column="21" selection-end-line="52" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/reg_net.py">
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_new_fix_wkw.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
-          <caret line="23" column="28" selection-start-line="23" selection-start-column="28" selection-end-line="23" selection-end-column="28" />
+          <caret line="10" column="33" selection-start-line="10" selection-start-column="27" selection-end-line="10" selection-end-column="33" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/network_pool.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/deep_loss.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6156">
-          <caret line="350" column="37" selection-start-line="350" selection-start-column="37" selection-end-line="350" selection-end-column="37" />
+        <state relative-caret-position="3438">
+          <caret line="202" column="33" selection-start-line="202" selection-start-column="26" selection-end-line="202" selection-end-column="33" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/-2012615850/SimpleITK/SimpleITK.py">
+    <entry file="file://$PROJECT_DIR$/tools/visual_tools.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="87390">
-          <caret line="4855" column="30" selection-start-line="4855" selection-start-column="30" selection-end-line="4855" selection-end-column="30" />
+        <state relative-caret-position="1098">
+          <caret line="69" column="15" selection-start-line="69" selection-start-column="4" selection-end-line="69" selection-end-column="15" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/utils.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/model_factory.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="42" column="4" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="4" />
+        <state relative-caret-position="293">
+          <caret line="55" column="65" lean-forward="true" selection-start-line="55" selection-start-column="65" selection-end-line="55" selection-end-column="65" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data_pre/resize_dataset.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/deep_smoothers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2628">
-          <caret line="149" column="34" selection-start-line="149" selection-start-column="34" selection-end-line="149" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/custom_optimizers.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/custom_pytorch_extensions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4356">
-          <caret line="256" column="106" selection-start-line="256" selection-start-column="106" selection-end-line="256" selection-end-column="106" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/smoother_factory.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1896">
-          <caret line="411" column="31" selection-start-line="411" selection-start-column="17" selection-end-line="411" selection-end-column="31" />
-          <folding>
-            <element signature="e#32274#43885#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_rk4.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-378" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-162" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_lddmm_rk4.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demo/demo_for_reg.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2628">
-          <caret line="252" column="140" selection-start-line="252" selection-start-column="140" selection-end-line="252" selection-end-column="140" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/rungekutta_integrators.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="217">
-          <caret line="148" column="6" selection-start-line="148" selection-start-column="6" selection-end-line="148" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="169">
-          <caret line="765" column="4" selection-start-line="765" selection-start-column="4" selection-end-line="765" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/ode_int.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="558">
-          <caret line="33" column="8" selection-start-line="33" selection-start-column="8" selection-end-line="33" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/modules.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1782">
-          <caret line="105" column="36" selection-start-line="105" selection-start-column="36" selection-end-line="105" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/-2012615850/torch/nn/modules/module.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8442">
-          <caret line="476" selection-start-line="476" selection-end-line="476" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/torchdiffeq/_impl/rk_common.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1296">
-          <caret line="73" selection-start-line="73" selection-end-line="73" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/attentions">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="522">
-          <caret line="29" column="119" selection-start-line="29" selection-start-column="119" selection-end-line="29" selection-end-column="119" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/finite_differences_multi_channel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
-          <caret line="159" column="42" lean-forward="true" selection-start-line="159" selection-start-column="42" selection-end-line="159" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models_standard_space.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="530">
-          <caret line="391" column="44" selection-start-line="391" selection-start-column="44" selection-end-line="391" selection-end-column="44" />
-          <folding>
-            <element signature="e#988#1025#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/test/test_registration_algorithms.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5267">
-          <caret line="346" selection-start-line="346" selection-end-line="346" />
+        <state relative-caret-position="18">
+          <caret line="597" column="4" selection-start-line="597" selection-start-column="4" selection-end-line="597" selection-end-column="4" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="65" column="29" lean-forward="true" selection-start-line="65" selection-start-column="29" selection-end-line="65" selection-end-column="29" />
+        <state relative-caret-position="-168">
+          <caret line="563" column="8" selection-start-line="563" selection-start-column="8" selection-end-line="563" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/finite_differences.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/model_evaluation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="69" column="8" selection-start-line="69" selection-start-column="8" selection-end-line="69" selection-end-column="8" />
+        <state relative-caret-position="381">
+          <caret line="326" selection-start-line="326" selection-end-line="326" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/registration_networks.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models_warped.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="1585" column="34" lean-forward="true" selection-start-line="1585" selection-start-column="34" selection-end-line="1585" selection-end-column="34" />
-          <folding>
-            <element signature="e#1162#1199#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="-144">
+          <caret line="8" column="8" selection-start-line="8" selection-start-column="8" selection-end-line="8" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/remote_sources/-28482964/-2012615850/torch/nn/modules/module.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="534" selection-start-line="534" selection-end-line="534" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/forward_models_multi_channel.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="516" selection-start-line="516" selection-end-line="516" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/demos/synthetic_example_out_kernel_weighting_type_sqrt_w_K_sqrt_w/config.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="159">
+          <caret line="28" column="22" lean-forward="true" selection-start-line="28" selection-start-column="22" selection-end-line="28" selection-end-column="22" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model_pool/global_variable.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="9" column="26" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="26" />
+        <state relative-caret-position="180">
+          <caret line="10" column="25" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/external_variable.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/demos/create_synthetic_regularization_test_cases.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="16" lean-forward="true" selection-start-line="3" selection-start-column="16" selection-end-line="3" selection-end-column="16" />
+        <state relative-caret-position="491">
+          <caret line="980" column="26" selection-start-line="980" selection-start-column="11" selection-end-line="980" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/demo/demo_for_oasis.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/similarity_measure_factory.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="235">
-          <caret line="208" column="43" selection-start-line="208" selection-start-column="43" selection-end-line="208" selection-end-column="43" />
+        <state relative-caret-position="-414">
+          <caret line="214" column="39" lean-forward="true" selection-start-line="214" selection-start-column="39" selection-end-line="214" selection-end-column="39" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/mermaid_net.py">
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/deep_smoother_example.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="451">
-          <caret line="317" column="90" selection-start-line="317" selection-start-column="90" selection-end-line="317" selection-end-column="90" />
+        <state relative-caret-position="1584">
+          <caret line="145" column="29" selection-start-line="145" selection-start-column="13" selection-end-line="145" selection-end-column="29" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/test_expr.py">
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/visualize_registration_results.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/demos/testRegistration.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="24" column="53" selection-start-line="24" selection-start-column="53" selection-end-line="24" selection-end-column="53" />
+        <state relative-caret-position="213">
+          <caret line="61" column="74" selection-start-line="61" selection-start-column="74" selection-end-line="61" selection-end-column="74" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid_settings/cur_settings_adpt_lddmm_for_synth.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="73" column="28" lean-forward="true" selection-start-line="73" selection-start-column="28" selection-end-line="73" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mermaid/pyreg/registration_networks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="157">
+          <caret line="342" column="19" selection-start-line="342" selection-start-column="19" selection-end-line="342" selection-end-column="19" />
+          <folding>
+            <element signature="e#1162#1199#0" expanded="true" />
+            <element signature="e#80186#82408#0" />
+            <element signature="e#89386#92489#0" />
+            <element signature="e#92549#95008#0" />
+          </folding>
         </state>
       </provider>
     </entry>

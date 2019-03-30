@@ -117,7 +117,7 @@ class MermaidNet(nn.Module):
 
 
 
-
+        batch_sz = batch_sz if not self.using_sym_on  else batch_sz*2
         self.img_sz = [batch_sz, 1] + img_sz
         self.dim = len(img_sz)
         self.standard_spacing = 1. / (np.array(img_sz) - 1)
@@ -134,11 +134,10 @@ class MermaidNet(nn.Module):
 
 
         self.mermaid_unit_st = None
-        self.mermaid_unit_ts = None
         self.init_mermaid_env(self.spacing)
         self.print_count = 0
         self.print_every_epoch_flag = True
-        self.overall_loss = -1.
+        self.n_batch = -1
 
     def init_affine_net(self,opt):
         self.affine_net = AffineNetCycle(self.img_sz[2:],opt)
@@ -197,9 +196,7 @@ class MermaidNet(nn.Module):
             # computes model and similarity at the same resolution
             mf = py_mf.ModelFactory(self.img_sz, spacing, self.img_sz, spacing)
         model_st, criterion_st = mf.create_registration_model(model_name, params['model'], compute_inverse_map=False)
-        if self.using_sym_on:
-            model_ts, criterion_ts = mf.create_registration_model(model_name, params['model'],
-                                                                  compute_inverse_map=False)
+
 
         if use_map:
             # create the identity map [0,1]^d, since we will use a map-based implementation
@@ -213,68 +210,51 @@ class MermaidNet(nn.Module):
 
         self.mermaid_unit_st = model_st.cuda()
         self.criterion_st = criterion_st
-        if self.using_sym_on:
-            self.mermaid_unit_ts = model_ts.cuda()
-            self.mermaid_unit_ts.smoother = self.mermaid_unit_st.smoother
-            self.mermaid_unit_ts.smoother_for_forward = self.mermaid_unit_st.smoother_for_forward
-            self.criterion_ts = criterion_ts
         self.mermaid_unit_st.associate_parameters_with_module()
-
-    def __cal_sym_loss(self,rec_phiWarped):
-        trans1 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
-        trans2 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
-        identity_map  = self.identityMap.expand_as(rec_phiWarped[0])
-        trans_st  = trans1(identity_map,rec_phiWarped[0])
-        trans_st_ts = trans2(trans_st,rec_phiWarped[1])
-        return torch.mean((identity_map- trans_st_ts)**2)
 
     def get_loss(self):
         return self.overall_loss
 
+    def __cal_sym_loss(self,rec_phiWarped):
+        trans1 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
+        trans2 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
+        st_map = rec_phiWarped[:self.n_batch]
+        ts_map = rec_phiWarped[self.n_batch:]
+        identity_map  = self.identityMap[0:self.n_batch]
+        trans_st  = trans1(identity_map,st_map)
+        trans_st_ts = trans2(trans_st,ts_map)
+        return torch.mean((identity_map- trans_st_ts)**2)
+
     def do_criterion_cal(self, ISource, ITarget,cur_epoch=-1):
         ISource = (ISource + 1.) / 2.
         ITarget = (ITarget + 1.) / 2.
+
+        loss_overall_energy, sim_energy, reg_energy = self.criterion_st(self.identityMap, self.rec_phiWarped, ISource,
+                                                                     ITarget, self.low_moving,
+                                                                     self.mermaid_unit_st.get_variables_to_transfer_to_loss_function(),
+                                                                     None)
         if not self.using_sym_on:
-            loss_overall_energy, sim_energy, reg_energy = self.criterion_st(self.identityMap, self.rec_phiWarped, ISource,
-                                                                         ITarget, self.low_moving,
-                                                                         self.mermaid_unit_st.get_variables_to_transfer_to_loss_function(),
-                                                                         None)
             if self.print_count % 10 == 0 and cur_epoch>=0:
-                print('the loss_over_all:{} sim_energy:{}, reg_energy:{}\n'.format(loss_overall_energy.item(),
+                print('the loss_over_all:{} sim_energy:{}, reg_energy:{}'.format(loss_overall_energy.item(),
                                                                                    sim_energy.item(),
                                                                                    reg_energy.item()))
-            if self.using_mermaid_multi_step and self.step_loss is not None:
-                self.step_loss += loss_overall_energy
-                loss_overall_energy = self.step_loss
-            if self.using_mermaid_multi_step and self.cur_step<self.step-1:
-                self.print_count -= 1
         else:
-            loss_overall_energy_st, sim_energy_st, reg_energy_st = self.criterion_st(self.identityMap, self.rec_phiWarped[0], ISource,
-                                                                         ITarget, self.low_moving,
-                                                                         self.mermaid_unit_st.get_variables_to_transfer_to_loss_function(),
-                                                                         None)
-            loss_overall_energy_ts, sim_energy_ts, reg_energy_ts = self.criterion_ts(self.identityMap,
-                                                                                  self.rec_phiWarped[1], ITarget,
-                                                                                  ISource, self.low_target,
-                                                                                  self.mermaid_unit_ts.get_variables_to_transfer_to_loss_function(),
-                                                                                  None)
-            loss_overall_energy = (loss_overall_energy_st + loss_overall_energy_ts)
-            sim_energy =  (sim_energy_st + sim_energy_ts)
-            reg_energy = (reg_energy_st + reg_energy_ts)
             sym_energy = self.__cal_sym_loss(self.rec_phiWarped)
-            sym_factor = self.sym_factor #min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
-            loss_overall_energy = loss_overall_energy + sym_factor*sym_energy
-            if self.print_count % 10 == 0 and cur_epoch>=0:
-                print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}\n'.format(loss_overall_energy.item(),
-                                                                                   sim_energy.item(),
-                                                                                    sym_factor,
-                                                                                     sym_energy.item(),
-                                                                                   reg_energy.item()))
-            if self.using_mermaid_multi_step and self.step_loss is not None:
-                self.step_loss += loss_overall_energy
-                loss_overall_energy = self.step_loss
-            if self.using_mermaid_multi_step and self.cur_step<self.step-1:
-                self.print_count -= 1
+            sym_factor = self.sym_factor  # min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
+            loss_overall_energy = loss_overall_energy + sym_factor * sym_energy
+            loss_overall_energy = loss_overall_energy + sym_factor * sym_energy
+            if self.print_count % 10 == 0 and cur_epoch >= 0:
+                print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}'.format(
+                    loss_overall_energy.item(),
+                    sim_energy.item(),
+                    sym_factor,
+                    sym_energy.item(),
+                    reg_energy.item()))
+        if self.using_mermaid_multi_step and self.step_loss is not None:
+            self.step_loss += loss_overall_energy
+            loss_overall_energy = self.step_loss
+        if self.using_mermaid_multi_step and self.cur_step<self.step-1:
+            self.print_count -= 1
         self.print_count += 1
         return loss_overall_energy, sim_energy, reg_energy
 
@@ -295,13 +275,8 @@ class MermaidNet(nn.Module):
             if self.epoch in self.epoch_list_fixed_deep_smoother_network:
                 #self.mermaid_unit_st.smoother._enable_force_nn_gradients_to_zero_hooks()
                 self.__freeze_param(self.mermaid_unit_st.smoother.ws.parameters())
-                if self.using_sym_on:
-                    #self.mermaid_unit_ts.smoother._enable_force_nn_gradients_to_zero_hooks()
-                    self.__freeze_param(self.mermaid_unit_ts.smoother.ws.parameters())
             else:
                 self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
-                if self.using_sym_on:
-                    self.__active_param(self.mermaid_unit_ts.smoother.ws.parameters())
 
         if self.mermaid_low_res_factor is not None:
             sampler = py_is.ResampleImage()
@@ -338,9 +313,6 @@ class MermaidNet(nn.Module):
     def __get_adaptive_smoother_map(self):
 
         adaptive_smoother_map = self.mermaid_unit_st.smoother.get_deep_smoother_weights()
-        smoother_type = self.mermaid_unit_st.smoother
-        if smoother_type=='w_K_w':
-            adaptive_smoother_map = adaptive_smoother_map**2
         adaptive_smoother_map = adaptive_smoother_map.detach()
         gaussian_weights = self.mermaid_unit_st.smoother.get_gaussian_weights()
         gaussian_weights = gaussian_weights.detach()
@@ -413,59 +385,22 @@ class MermaidNet(nn.Module):
             for i in range(self.dim):
                 rec_phiWarped_tmp[:, i] = rec_phiWarped[:, i] * self.standard_spacing[i] / self.spacing[i]
             rec_phiWarped = rec_phiWarped_tmp
-        self.overall_loss,_,_= self.do_criterion_cal(moving, target, cur_epoch=self.cur_epoch)
+        self.overall_loss,_,_= self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
         return self.__transfer_return_var(rec_IWarped, rec_phiWarped, affine_img)
 
 
 
-    def sym_forward(self, moving, target=None):
-        if self.using_affine_init:
-            with torch.no_grad():
-                affine_img_st, affine_map_st, affine_param = self.affine_net(moving, target)
-                affine_img_ts, affine_map_ts, _ = self.affine_net(target, moving)
-                affine_map_st = (affine_map_st + 1) / 2.
-                affine_map_ts = (affine_map_ts + 1) / 2.
-                if self.using_physical_coord:
-                    for i in range(self.dim):
-                        affine_map_st[:, i] = affine_map_st[:, i] * self.spacing[i] / self.standard_spacing[i]
-                        affine_map_ts[:, i] = affine_map_ts[:, i] * self.spacing[i] / self.standard_spacing[i]
-        else:
-            affine_map_st = self.identityMap.clone()
-            affine_map_ts = self.identityMap.clone()
-            affine_img_st = moving
-            affine_img_ts = target
 
-        record_is_grad_enabled = torch.is_grad_enabled()
-        if not self.optimize_momentum_network or self.epoch in self.epoch_list_fixed_momentum_network:
-            torch.set_grad_enabled(False)
-        if self.print_every_epoch_flag:
-            if self.epoch in self.epoch_list_fixed_momentum_network:
-                print("In this epoch, the momentum network is fixed")
-            if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-                print("In this epoch, the deep smoother deep network is fixed")
-            self.print_every_epoch_flag = False
-        input_st = torch.cat((affine_img_st, target), 1)
-        input_ts = torch.cat((affine_img_ts, moving), 1)
-        m_st = self.momentum_net(input_st)
-        m_ts = self.momentum_net(input_ts)
-        if self.clamp_momentum:
-            m_st=m_st.clamp(max=self.clamp_thre,min=-self.clamp_thre)
-            m_ts=m_ts.clamp(max=self.clamp_thre,min=-self.clamp_thre)
-        moving = (moving + 1) / 2.
-        target = (target + 1) / 2.
-        self.low_moving = self.init_mermaid_param(moving)
-        self.low_target = self.init_mermaid_param(target)
-        torch.set_grad_enabled(record_is_grad_enabled)
-        rec_IWarped_st, rec_phiWarped_st = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving, target, m_st, affine_map_st,self.low_moving, self.low_target)
-        rec_IWarped_ts, rec_phiWarped_ts = self.do_mermaid_reg(self.mermaid_unit_ts,self.criterion_ts,target, moving, m_ts, affine_map_ts,self.low_target, self.low_moving)
-        self.rec_phiWarped = (rec_phiWarped_st, rec_phiWarped_ts)
-        if self.using_physical_coord:
-            rec_phiWarped_tmp = rec_phiWarped_st.detach().clone()
-            for i in range(self.dim):
-                rec_phiWarped_tmp[:, i] = rec_phiWarped_st[:, i] * self.standard_spacing[i] / self.spacing[i]
-            rec_phiWarped_st = rec_phiWarped_tmp
-        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.cur_epoch)
-        return self.__transfer_return_var(rec_IWarped_st, rec_phiWarped_st, affine_img_st)
+
+    def sym_forward(self, moving, target=None):
+        self.n_batch = moving.shape[1]
+        moving_sym = torch.cat((moving, target), 0)
+        target_sym = torch.cat((target, moving), 0)
+        rec_IWarped_st, rec_phiWarped_st, affine_img_st = self.single_forward(moving_sym, target_sym)
+        return rec_IWarped_st[:self.n_batch],rec_phiWarped_st[:self.n_batch], affine_img_st[:self.n_batch]
+
+
+
 
     def cyc_forward(self, moving,target=None):
         self.step_loss = None
@@ -517,74 +452,17 @@ class MermaidNet(nn.Module):
             for i in range(self.dim):
                 rec_phiWarped_tmp[:, i] = rec_phiWarped[:, i] * self.standard_spacing[i] / self.spacing[i]
             rec_phiWarped = rec_phiWarped_tmp
-        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.cur_epoch)
+        self.overall_loss,_,_= self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
         return self.__transfer_return_var(rec_IWarped, rec_phiWarped, affine_img)
 
 
 
     def cyc_sym_forward(self,moving, target= None):
-        self.step_loss=None
-        if self.using_affine_init:
-            with torch.no_grad():
-                affine_img_st, affine_map_st, _ = self.affine_net(moving, target)
-                affine_img_ts, affine_map_ts, _ = self.affine_net(target, moving)
-                moving_n = (moving + 1) / 2.  # [-1,1] ->[0,1]
-                target_n = (target + 1) / 2.  # [-1,1] ->[0,1]
-                affine_map_st = (affine_map_st + 1) / 2.  # [-1,1] ->[0,1]
-                affine_map_ts = (affine_map_ts + 1) / 2.  # [-1,1] ->[0,1]
-                if self.using_physical_coord:
-                    for i in range(self.dim):
-                        affine_map_st[:, i] = affine_map_st[:, i] * self.spacing[i] / self.standard_spacing[i]
-                        affine_map_ts[:, i] = affine_map_ts[:, i] * self.spacing[i] / self.standard_spacing[i]
-        else:
-            affine_map_st = self.identityMap.clone()
-            affine_map_ts = self.identityMap.clone()
-            affine_img_st = moving
-            affine_img_ts = target
-
-        warped_img_st = affine_img_st
-        init_map_st = affine_map_st
-        warped_img_ts = affine_img_ts
-        init_map_ts = affine_map_ts
-        rec_phiWarped_st = None
-        rec_IWarped_st = None
-        self.low_moving = self.init_mermaid_param(moving_n)
-        self.low_target = self.init_mermaid_param(target_n)
-        for i in range(self.step):
-            self.cur_step = i
-            record_is_grad_enabled = torch.is_grad_enabled()
-            if not self.optimize_momentum_network or self.epoch in self.epoch_list_fixed_momentum_network:
-                torch.set_grad_enabled(False)
-            if self.print_every_epoch_flag:
-                if self.epoch in self.epoch_list_fixed_momentum_network:
-                    print("In this epoch, the momentum network is fixed")
-                if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-                    print("In this epoch, the deep smoother deep network is fixed")
-                self.print_every_epoch_flag = False
-            input_st = torch.cat((warped_img_st, target), 1)
-            input_ts = torch.cat((warped_img_ts, moving), 1)
-            m_st = self.momentum_net(input_st)
-            m_ts = self.momentum_net(input_ts)
-            if self.clamp_momentum:
-               m_st = m_st.clamp(max=self.clamp_thre,min=-self.clamp_thre)
-               m_ts = m_ts.clamp(max=self.clamp_thre,min=-self.clamp_thre)
-            torch.set_grad_enabled(record_is_grad_enabled)
-            rec_IWarped_st, rec_phiWarped_st = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving_n, target_n, m_st, init_map_st,self.low_moving, self.low_target)
-            rec_IWarped_ts, rec_phiWarped_ts = self.do_mermaid_reg(self.mermaid_unit_ts,self.criterion_ts,target_n, moving_n, m_ts, init_map_ts,self.low_target, self.low_moving)
-            warped_img_st = rec_IWarped_st * 2 - 1  # [0,1] -> [-1,1]
-            init_map_st = rec_phiWarped_st  # [0,1]
-            warped_img_ts = rec_IWarped_ts * 2 - 1
-            init_map_ts = rec_phiWarped_ts
-            self.rec_phiWarped = (rec_phiWarped_st,rec_phiWarped_ts)
-            if self.using_mermaid_multi_step and i<self.step-1:
-                self.step_loss,_,_ = self.do_criterion_cal(moving,target,self.epoch)
-        if self.using_physical_coord:
-            rec_phiWarped_tmp = rec_phiWarped_st.detach().clone()
-            for i in range(self.dim):
-                rec_phiWarped_tmp[:, i] = rec_phiWarped_st[:, i] * self.standard_spacing[i] / self.spacing[i]
-            rec_phiWarped_st = rec_phiWarped_tmp
-        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
-        return self.__transfer_return_var(rec_IWarped_st, rec_phiWarped_st, affine_img_st)
+        self.n_batch = moving.shape[1]
+        moving_sym = torch.cat((moving, target), 0)
+        target_sym = torch.cat((target, moving), 0)
+        rec_IWarped_st, rec_phiWarped_st, affine_img_st = self.cyc_forward(moving_sym, target_sym)
+        return rec_IWarped_st[:self.n_batch], rec_phiWarped_st[:self.n_batch], affine_img_st[:self.n_batch]
 
     def get_affine_map(self,moving, target):
         with torch.no_grad():

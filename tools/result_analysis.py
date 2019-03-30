@@ -58,7 +58,7 @@ def plot_trendency(data_list,name_list):
     #plt.xlabel('vSVF self-iter')
     plt.ylabel('Dice Score')
     plt.show()
-    plt.draw()
+    plt.draw() 
     fig1.savefig('/playpen/zyshen/plots/trendency_intra.png',dpi=300)
     #plt.clf()
 

@@ -45,9 +45,11 @@ def save_jacobi_map(map,img_sz,fname,output_path,save_neg_jacobi=True):
 
 
 
-def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path,dim=3):
-
+def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path,weighting_type=None):
+    dim = len(adaptive_smoother_map.shape)-2
     adaptive_smoother_map = adaptive_smoother_map.detach()
+    if weighting_type=='w_K_w':
+        adaptive_smoother_map = adaptive_smoother_map**2
     gaussian_stds = gaussian_stds.detach()
     view_sz = [1] + [len(gaussian_stds)] + [1] * dim
     gaussian_stds = gaussian_stds.view(*view_sz)
@@ -55,14 +57,24 @@ def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path,dim=3):
     smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
     print(t)
     fname = str(t)+"sm_map"
-    plot_2d_img(smoother_map[0,0,:,10,:],fname,path)
+    if dim ==2:
+        plot_2d_img(smoother_map[0,0],fname,path)
+    elif dim==3:
+        y_half = smoother_map.shape[3]//2
+        plot_2d_img(smoother_map[0,0,:,y_half,:],fname,path)
 
 
 
 
 
-def plot_2d_img(img,name,path,show=False):
-
+def plot_2d_img(img,name,path=None):
+    """
+    :param img:  X x Y x Z
+    :param name: title
+    :param path: saving path
+    :param show:
+    :return:
+    """
     sp=111
 
     font = {'size': 10}
@@ -72,16 +84,71 @@ def plot_2d_img(img,name,path,show=False):
 
     plt.subplot(sp).set_axis_off()
     plt.imshow(utils.t2np(img))
-    plt.colorbar().ax.tick_params(labelsize=3)
+    plt.colorbar().ax.tick_params(labelsize=10)
     plt.title(name, font)
-    if show:
+    if not path:
         plt.show()
     else:
-        os.makedirs(path, exist_ok=True)
-        plt.savefig(os.path.join(path,name)+'.png', dpi=300)
+        plt.savefig(path, dpi=300)
         plt.clf()
 
 
+
+
+def visualize_jacobi(phi,spacing, img=None, file_path=None, visual=True):
+    """
+    :param phi:  Bxdimx X xYxZ
+    :param spacing: [sx,sy,sz]
+    :param img: Bx1xXxYxZ
+    :param file_path: saving path
+    :return:
+    """
+    phi_sz = phi.shape
+    n_batch = phi_sz[0]
+    dim =phi_sz[1]
+    phi_np = utils.t2np(phi)
+    if img is not None:
+        assert phi.shape[0] == img.shape[0]
+        img_np = utils.t2np(img)
+    fd = fdt.FD_np(spacing)
+    dfx = fd.dXc(phi_np[:, 0, ...])
+    dfy = fd.dYc(phi_np[:, 1, ...])
+    dfz =1.
+    if dim==3:
+        dfz = fd.dZc(phi_np[:, 2, ...])
+    jacobi_det = dfx * dfy * dfz
+    jacobi_neg = np.ma.masked_where(jacobi_det>= 0, jacobi_det)
+    #jacobi_neg = (jacobi_det<0).astype(np.float32)
+    jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])  #
+    jacobi_num = np.sum(jacobi_det < 0.)
+    if dim==3:
+        print("print folds for each channel {},{},{}".format(np.sum(dfx < 0.), np.sum(dfy < 0.), np.sum(dfz < 0.)))
+    print("the jacobi_value of fold points for current map is {}".format(jacobi_abs))
+    print("the number of fold points for current map is {}".format(jacobi_num))
+
+    if visual:
+        for i in range(n_batch):
+            if dim == 2:
+                sp = 111
+                font = {'size': 10}
+                plt.setp(plt.gcf(), 'facecolor', 'white')
+                plt.style.use('bmh')
+                plt.subplot(sp).set_axis_off()
+                plt.imshow(utils.t2np(img_np[i,0]))
+                plt.imshow(jacobi_neg[i], cmap='gray', alpha=1.)
+                plt.colorbar().ax.tick_params(labelsize=10)
+                plt.title('img_jaocbi', font)
+                if not file_path:
+                    plt.show()
+                else:
+                    plt.savefig(file_path, dpi=300)
+                    plt.clf()
+            if dim ==3:
+                if file_path:
+                    jacobi_abs_map = np.abs(jacobi_det)
+                    jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
+                    pth = os.path.join(file_path)
+                    sitk.WriteImage(jacobi_img, pth)
 
 
 

@@ -10,7 +10,7 @@ from .losses import Loss
 from .metrics import get_multi_metric
 import mermaid.pyreg.finite_differences as fdt
 from model_pool.utils import *
-from model_pool.mermaid_net import MermaidNet
+from model_pool.mermaid_net_mutli_channel import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
 try:
     from model_pool.nn_interpolation import get_nn_interpolation
@@ -90,10 +90,6 @@ class RegNet(BaseModel):
 
 
 
-    def forward(self,input=None):
-        if hasattr(self.network, 'set_cur_epoch'):
-            self.network.set_cur_epoch(self.cur_epoch)
-        return self.network.forward(self.moving,self.target)
 
 
 
@@ -114,7 +110,7 @@ class RegNet(BaseModel):
         return sim_loss+reg_loss*factor
 
     def cal_mermaid_loss(self):
-        loss_overall_energy, sim_energy, reg_energy = self.network.do_criterion_cal( self.moving,self.target, cur_epoch=self.cur_epoch)
+        loss_overall_energy = self.network.get_loss()
         return loss_overall_energy
     def cal_sym_loss(self):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
@@ -138,34 +134,41 @@ class RegNet(BaseModel):
 
 
 
-    def backward_net(self):
-        self.loss.backward()
+    def backward_net(self, loss):
+        loss.backward()
 
     def get_debug_info(self):
         info = {'file_name':self.fname_list}
         return info
 
+    def forward(self, input=None):
+        if hasattr(self.network, 'set_cur_epoch'):
+            self.network.set_cur_epoch(self.cur_epoch)
+        output, phi, disp_or_afparam= self.network.forward(self.moving, self.target)
+        if self.mermaid_on:
+            loss = self.cal_mermaid_loss()
+        elif self.using_sym_loss:
+            loss = self.cal_sym_loss()
+        else:
+            loss=self.cal_loss(using_decay_factor=self.using_affine)
+        return output, phi, disp_or_afparam, loss
 
-
-    def optimize_parameters(self):
+    def optimize_parameters(self,input=None):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
-        self.output, self.phi, self.disp_or_afparam = self.forward()
-        if self.mermaid_on:
-            self.loss = self.cal_mermaid_loss()
-        elif self.using_sym_loss:
-            self.loss = self.cal_sym_loss()
-        else:
-            self.loss=self.cal_loss(using_decay_factor=self.using_affine)
-        self.backward_net()
+
+        self.output, self.phi, self.disp_or_afparam,loss = self.forward()
+
+        self.backward_net(loss)
+        self.loss = loss.item()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()
             self.optimizer.zero_grad()
 
 
     def get_current_errors(self):
-        return self.loss.item()
+        return self.loss
 
 
     def get_warped_img_map(self,img, phi):
@@ -198,7 +201,7 @@ class RegNet(BaseModel):
 
     def get_evaluation(self):
         s1 = time()
-        self.output, self.phi, self.disp_or_afparam= self.forward()
+        self.output, self.phi, self.disp_or_afparam,_= self.forward()
         self.warped_label_map=None
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)

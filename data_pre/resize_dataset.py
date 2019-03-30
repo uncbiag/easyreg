@@ -54,7 +54,7 @@ class RegistrationDataset(object):
 
     def process(self):
         self.transfer_exist_dataset_txt_into_new_one()
-        self.process_img_pool()
+        #self.process_img_pool()
 
     def set_task_output_path(self,path):
         self.task_output_path = path

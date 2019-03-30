@@ -92,14 +92,17 @@ def train_model(opt,model, dataloaders,writer):
                 detailed_scores = 0.
 
                 if phase == 'train':
+                    # from mermaid.pyreg.utils import time_warped_function
+                    # optimize_parameters = time_warped_function(model.optimize_parameters)
+                    # optimize_parameters()
                     model.optimize_parameters()
 
-                    try:
-                        model.optimize_parameters()
-                    except:
-                        info = model.get_debug_info()
-                        save_and_debug_model(model,info,check_point_path,epoch,global_step)
-                        exit(1)
+                    # try:
+                    #     model.optimize_parameters()
+                    # except:
+                    #     info = model.get_debug_info()
+                    #     save_and_debug_model(model,info,check_point_path,epoch,global_step)
+                    #     exit(1)
                     loss = model.get_current_errors()
 
 

@@ -3,7 +3,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --time=5-0
 #SBATCH --mem=48G
-#SBATCH --output=reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep.txt
+#SBATCH --output=reg_adpt_lddamm_wkw_formul_4_1_omt_2step_1000sym.txt
 #SBATCH --partition=volta-gpu
 #SBATCH --gres=gpu:1
 #SBATCH --qos=gpu_access
