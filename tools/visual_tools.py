@@ -8,6 +8,22 @@ import numpy as np
 import mermaid.pyreg.finite_differences as fdt
 import mermaid.pyreg.utils as py_utils
 import os
+from scipy import misc
+
+def read_png_into_numpy(file_path,name=None,visual=False):
+    image = misc.imread(file_path,flatten=True)
+    image = (image-image.min())/(image.max()-image.min())
+    if visual:
+        plot_2d_img(image,name if name is not None else'image')
+    return image
+
+def read_png_into_standard_form(file_path,name=None,visual=False):
+    image = read_png_into_numpy(file_path,name,visual)
+    sz  =[1,1]+list(image.shape)
+    image = image.reshape(*sz)
+    spacing = 1. / (np.array(sz[2:]) - 1)
+    return image,spacing
+
 
 def save_jacobi_map(map,img_sz,fname,output_path,save_neg_jacobi=True):
     img_sz = np.array(img_sz)
@@ -45,7 +61,7 @@ def save_jacobi_map(map,img_sz,fname,output_path,save_neg_jacobi=True):
 
 
 
-def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path,weighting_type=None):
+def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path=None,weighting_type=None):
     dim = len(adaptive_smoother_map.shape)-2
     adaptive_smoother_map = adaptive_smoother_map.detach()
     if weighting_type=='w_K_w':
@@ -64,7 +80,29 @@ def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path,weighting_type=
         plot_2d_img(smoother_map[0,0,:,y_half,:],fname,path)
 
 
+def save_momentum(momentum,t,path=None):
+    dim = len(momentum.shape)-2
+    momentum = momentum.detach()
+    momentum = torch.sum(momentum**2,1,keepdim=True)
+    print(t)
+    fname = str(t)+"momentum"
+    if dim ==2:
+        plot_2d_img(momentum[0,0],fname,path)
+    elif dim==3:
+        y_half = momentum.shape[3]//2
+        plot_2d_img(momentum[0,0,:,y_half,:],fname,path)
 
+def save_velocity(velocity,t,path=None):
+    dim = len(velocity.shape)-2
+    velocity = velocity.detach()
+    velocity = torch.sum(velocity**2,1,keepdim=True)
+    print(t)
+    fname = str(t)+"velocity"
+    if dim ==2:
+        plot_2d_img(velocity[0,0],fname,path)
+    elif dim==3:
+        y_half = velocity.shape[3]//2
+        plot_2d_img(velocity[0,0,:,y_half,:],fname,path)
 
 
 def plot_2d_img(img,name,path=None):
@@ -76,6 +114,7 @@ def plot_2d_img(img,name,path=None):
     :return:
     """
     sp=111
+    img = torch.squeeze(img)
 
     font = {'size': 10}
 
@@ -83,7 +122,7 @@ def plot_2d_img(img,name,path=None):
     plt.style.use('bmh')
 
     plt.subplot(sp).set_axis_off()
-    plt.imshow(utils.t2np(img))
+    plt.imshow(utils.t2np(img)) #vmin=0.15, vmax=0.21
     plt.colorbar().ax.tick_params(labelsize=10)
     plt.title(name, font)
     if not path:

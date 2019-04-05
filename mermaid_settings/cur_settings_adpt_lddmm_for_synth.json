@@ -15,7 +15,7 @@
                 "smoother": {
                     "deep_smoother": {
                         "active_unit_to_use": "leaky_relu",
-                        "deep_network_local_weight_smoothing": 0.04,
+                        "deep_network_local_weight_smoothing": 0.05,
                         "diffusion_weight_penalty": 0.0,
                         "weight_range_init_weight_penalty":0.0,
                         "weight_range_factor":6,
@@ -63,21 +63,21 @@
                     "gaussian_weight_min": 0.0001,
                     "load_dnn_parameters_from_this_file": "",
                     "multi_gaussian_stds": [
-                        0.01,
-                        0.05,
-                        0.1,
-                        0.2
+                        0.03,
+                        0.07,
+                        0.12,
+                        0.20
                     ],
                     "multi_gaussian_weights": [
-                        0.0,
-                        0.0,
+                        0.1,
                         0.2,
-                        0.8
+                        0.3,
+                        0.4
                     ],
                     "use_weighted_linear_softmax": false,
                     "omt_power": 1.0,
                     "omt_use_log_transformed_std": true,
-                    "omt_weight_penalty": 0.25,
+                    "omt_weight_penalty": 1,
                     "optimize_over_deep_network": true,
                     "optimize_over_smoother_stds": false,
                     "optimize_over_smoother_weights": false,
@@ -128,21 +128,21 @@
                 0.25
             ], 
             "scale_iterations": [
-                30,
-                30,
-                30
+                80,
+                80,
+                80
             ]
         }, 
         "name": "lbfgs_ls",
         "scheduler": {
-            "factor": 0.5, 
-            "patience": 10, 
+            "factor": 0.5,
+            "patience": 10,
             "verbose": true
-        }, 
+        },
         "single_scale": {
             "nr_of_iterations": 200,
-            "rel_ftol": 1e-09
-        }, 
+            "rel_ftol": 1e-15
+        },
         "use_step_size_scheduler": true
     }
 }

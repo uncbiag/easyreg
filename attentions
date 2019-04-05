@@ -37,3 +37,4 @@ for the map based weight advect method, there is no parameter added in odeint ad
 
 3.27  we put the deep loss into separate file and disable ||w||2 for network parameters in smoother factory
 3.29  range initial penalty to 6
+3.30  clamp is remove in forward model !!!
