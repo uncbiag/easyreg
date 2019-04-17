@@ -1,6 +1,6 @@
 is_oai = True
 is_oasis = not is_oai
-use_mermaid_iter = True
+use_mermaid_iter = False
 use_odeint = True
 update_sm_by_advect = True
 update_sm_with_interpolation = True
