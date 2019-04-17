@@ -352,7 +352,7 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         self.index = (index) % self.data.shape[self.sliceDim]
         self.ax.imshow(self._get_slice_at_dimension(self.index))
         #self.ax.images[0].set_array(self.get_slice_at_dimension(self.index))
-        self.display_title()
+        #self.display_title()
 
     def get_synchronize(self):
         """
@@ -476,7 +476,7 @@ def test_viewer():
     fig,ax = plt.subplots(1,3)
 
     plt.setp(plt.gcf(), 'facecolor', 'white')
-    plt.style.use('bmh')
+    plt.style.use('grayscale')
 
     ivx = ImageViewer3D_Sliced( ax[0], data, 0, 'X slice')
     ivy = ImageViewer3D_Sliced( ax[1], data, 1, 'Y slice')
@@ -491,3 +491,5 @@ def test_viewer():
     feh.synchronize([ax[0], ax[1], ax[2]])
 
     plt.show()
+
+
