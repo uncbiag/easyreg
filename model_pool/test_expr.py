@@ -2,6 +2,7 @@ from time import time
 from model_pool.net_utils import get_test_model
 import os
 import numpy as np
+from model_pool.global_variable import output_orginal_img_sz
 
 
 
@@ -22,7 +23,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     record_path = opt['tsk_set']['path']['record_path']
     label_num = opt['tsk_set']['extra_info']['num_label']
     cur_gpu_id = opt['tsk_set']['gpu_ids']
-    running_range=opt['tsk_set']['running_range']  # todo should be [-1]
+    running_range=[-1]#opt['tsk_set']['running_range']  # todo should be [-1]
     running_part_data = running_range[0]>=0
     if running_part_data:
         print("running part of the test data from range {}".format(running_range))
@@ -78,6 +79,11 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
             if save_3d_img_on:
                 #model.save_fig_3D_tmp()
                 model.save_deformation()
+
+            if output_orginal_img_sz:
+                model.save_image_into_original_sz_with_given_reference()
+
+
             loss,loss_detail = model.get_test_res(detail=True)
             running_test_loss += loss * batch_size
             extra_res  = model.get_extra_res()

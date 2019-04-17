@@ -4,7 +4,7 @@ from __future__ import print_function
 
 
 from model_pool.network_pool import *
-from model_pool.utils import sigmoid_explode, get_inverse_affine_param, get_warped_img_map_param, update_affine_param
+from model_pool.utils import sigmoid_explode, get_inverse_affine_param, get_warped_img_map_param, update_affine_param,get_res_size_from_size,get_res_spacing_from_spacing,_compute_low_res_image,get_resampled_image
 import mermaid.pyreg.module_parameters as pars
 import mermaid.pyreg.model_factory as py_mf
 import mermaid.pyreg.utils as py_utils
@@ -14,45 +14,6 @@ from mermaid.pyreg.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
 from model_pool.global_variable import *
 
 
-def _get_low_res_size_from_size(sz, factor):
-    """
-    Returns the corresponding low-res size from a (high-res) sz
-    :param sz: size (high-res)
-    :param factor: low-res factor (needs to be <1)
-    :return: low res size
-    """
-    if (factor is None) :
-        print('WARNING: Could not compute low_res_size as factor was ' + str( factor ))
-        return sz
-    else:
-        lowResSize = np.array(sz)
-        if not isinstance(factor, list):
-            lowResSize[2::] = (np.ceil((np.array(sz[2:]) * factor))).astype('int16')
-        else:
-            lowResSize[2::] = (np.ceil((np.array(sz[2:]) * np.array(factor)))).astype('int16')
-
-        if lowResSize[-1]%2!=0:
-            lowResSize[-1]-=1
-            print('\n\nWARNING: forcing last dimension to be even: fix properly in the Fourier transform later!\n\n')
-
-        return lowResSize
-
-
-def _get_low_res_spacing_from_spacing(spacing, sz, lowResSize):
-    """
-    Computes spacing for the low-res parameterization from image spacing
-    :param spacing: image spacing
-    :param sz: size of image
-    :param lowResSize: size of low re parameterization
-    :return: returns spacing of low res parameterization
-    """
-    #todo: check that this is the correct way of doing it
-    return spacing * (np.array(sz[2::])-1) / (np.array(lowResSize[2::])-1)
-
-def _compute_low_res_image(I,spacing,low_res_size):
-    sampler = py_is.ResampleImage()
-    low_res_image, _ = sampler.downsample_image_to_size(I, spacing, low_res_size[2::],1)
-    return low_res_image
 
 
 
@@ -138,6 +99,7 @@ class MermaidNet(nn.Module):
         self.print_count = 0
         self.print_every_epoch_flag = True
         self.n_batch = -1
+        self.inverse_map = None
 
     def init_affine_net(self,opt):
         self.affine_net = AffineNetCycle(self.img_sz[2:],opt)
@@ -177,13 +139,18 @@ class MermaidNet(nn.Module):
         ##
         if self.mermaid_low_res_factor == 1.0 or self.mermaid_low_res_factor == [1., 1., 1.]:
             self.mermaid_low_res_factor = None
+
+        self.lowResSize = self.img_sz
+        self.lowResSpacing = spacing
         ##
         if self.mermaid_low_res_factor is not None:
-            lowResSize = _get_low_res_size_from_size(self.img_sz, self.mermaid_low_res_factor)
-            lowResSpacing = _get_low_res_spacing_from_spacing(spacing, self.img_sz, lowResSize)
+            lowResSize = get_res_size_from_size(self.img_sz, self.mermaid_low_res_factor)
+            lowResSpacing = get_res_spacing_from_spacing(spacing, self.img_sz, lowResSize)
             self.lowResSize = lowResSize
             self.lowResSpacing = lowResSpacing
-            self.lowRes_fn = partial(_compute_low_res_image, spacing=spacing, low_res_size=lowResSize)
+            #self.lowRes_fn = partial(_compute_low_res_image, spacing=spacing, low_res_size=lowResSize,zero_boundary=False)
+            self.lowRes_fn = partial(get_resampled_image, spacing=spacing, desiredSize=lowResSize,zero_boundary=False)
+
 
 
         if self.mermaid_low_res_factor is not None:
@@ -195,7 +162,7 @@ class MermaidNet(nn.Module):
         else:
             # computes model and similarity at the same resolution
             mf = py_mf.ModelFactory(self.img_sz, spacing, self.img_sz, spacing)
-        model_st, criterion_st = mf.create_registration_model(model_name, params['model'], compute_inverse_map=False)
+        model_st, criterion_st = mf.create_registration_model(model_name, params['model'], compute_inverse_map=compute_inverse_map)
 
 
         if use_map:
@@ -270,6 +237,16 @@ class MermaidNet(nn.Module):
     def __active_param(self,params):
         for param in params:
             param.requires_grad = True
+
+    def get_inverse_map(self,use_01=False):
+        if use_01:
+            return self.inverse_map
+        else:
+            return self.inverse_map*2-1
+
+
+
+
     def init_mermaid_param(self,s):
         if self.use_adaptive_smoother:
             if self.epoch in self.epoch_list_fixed_deep_smoother_network:
@@ -285,7 +262,7 @@ class MermaidNet(nn.Module):
         else:
             return None
 
-    def do_mermaid_reg(self,mermaid_unit,criterion, s, t, m, phi,low_s=None,low_t=None):
+    def do_mermaid_reg(self,mermaid_unit,criterion, s, t, m, phi,low_s=None,low_t=None,inv_map=None):
         """
         :param s: source image
         :param t: target image
@@ -295,15 +272,24 @@ class MermaidNet(nn.Module):
         """
         if self.mermaid_low_res_factor is not None:
             self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)  ##########3 TODO  here the input shouold be low_s low_t if self.mermaid_low_res_factor is not None otherwise s,t
-            maps = mermaid_unit(self.lowRes_fn(phi), low_s, variables_from_optimizer={'epoch':self.epoch})
-            # now up-sample to correct resolution
+            if not compute_inverse_map:
+                maps = mermaid_unit(self.lowRes_fn(phi), low_s, variables_from_optimizer={'epoch':self.epoch})
+            else:
+                maps, inverse_maps = mermaid_unit(self.lowRes_fn(phi), low_s,phi_inv=self.lowRes_fn(inv_map), variables_from_optimizer={'epoch':self.epoch})
+
             desiredSz = self.img_sz[2:]
             sampler = py_is.ResampleImage()
             rec_phiWarped, _ = sampler.upsample_image_to_size(maps, self.lowResSpacing, desiredSz, 1,zero_boundary=False)
+            if compute_inverse_map:
+                self.inverse_map, _ = sampler.upsample_image_to_size(inverse_maps, self.lowResSpacing, desiredSz, 1,
+                                                                  zero_boundary=False)
 
         else:
             self.set_mermaid_param(mermaid_unit,criterion,s, t, m,s)
-            maps = mermaid_unit(phi, s)
+            if not compute_inverse_map:
+                maps = mermaid_unit(phi, s)
+            else:
+                maps, self.inverse_map = mermaid_unit(phi, s,phi_inv = inv_map, variables_from_optimizer = {'epoch': self.epoch})
             rec_phiWarped = maps
         rec_IWarped = py_utils.compute_warped_image_multiNC(s, rec_phiWarped, self.spacing, 1,zero_boundary=True)
         self.rec_phiWarped = rec_phiWarped
@@ -352,13 +338,26 @@ class MermaidNet(nn.Module):
     def single_forward(self, moving, target=None):
         if self.using_affine_init:
             with torch.no_grad():
-                affine_img, affine_map, _ = self.affine_net(moving, target)
+                affine_img, affine_map, affine_param = self.affine_net(moving, target)
                 affine_map = (affine_map + 1) / 2.
+                inverse_map = None
+                if compute_inverse_map:
+                    affine_inverse = get_inverse_affine_param(affine_param)
+                    affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
+                    inverse_map = (affine_map_inverse + 1) / 2.
+
                 if self.using_physical_coord:
                     for i in range(self.dim):
                         affine_map[:, i] = affine_map[:, i] * self.spacing[i] / self.standard_spacing[i]
+                    if compute_inverse_map:
+                        for i in range(self.dim):
+                            inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
+                self.inverse_map = inverse_map
         else:
             affine_map = self.identityMap.clone()
+            if compute_inverse_map:
+                self.inverse_map = self.identityMap.clone()
+
             affine_img = moving
         record_is_grad_enabled = torch.is_grad_enabled()
         if not self.optimize_momentum_network or self.epoch in self.epoch_list_fixed_momentum_network:
@@ -378,7 +377,7 @@ class MermaidNet(nn.Module):
         self.low_moving = self.init_mermaid_param(moving)
         self.low_target = self.init_mermaid_param(target)
         torch.set_grad_enabled(record_is_grad_enabled)
-        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving, target, m, affine_map,self.low_moving, self.low_target)
+        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving, target, m, affine_map,self.low_moving, self.low_target,self.inverse_map)
         self.rec_phiWarped = rec_phiWarped
         if self.using_physical_coord:
             rec_phiWarped_tmp = rec_phiWarped.detach().clone()
@@ -406,21 +405,32 @@ class MermaidNet(nn.Module):
         self.step_loss = None
         if self.using_affine_init:
             with torch.no_grad():
-                affine_img, affine_map, _ = self.affine_net(moving, target)
-                moving_n = (moving + 1) / 2.  # [-1,1] ->[0,1]
-                target_n = (target + 1) / 2.  # [-1,1] ->[0,1]
+                affine_img, affine_map, affine_param = self.affine_net(moving, target)
                 affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
+                inverse_map = None
+                if compute_inverse_map:
+                    affine_inverse = get_inverse_affine_param(affine_param)
+                    affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
+                    inverse_map = (affine_map_inverse + 1) / 2.
+
                 if self.using_physical_coord:
                     for i in range(self.dim):
                         affine_map[:, i] = affine_map[:, i] * self.spacing[i] / self.standard_spacing[i]
+                    if compute_inverse_map:
+                        for i in range(self.dim):
+                            inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
+                self.inverse_map = inverse_map
         else:
             affine_map = self.identityMap.clone()
+            if compute_inverse_map:
+                self.inverse_map = self.identityMap.clone()
             affine_img = moving
-
         warped_img = affine_img
         init_map = affine_map
         rec_IWarped = None
         rec_phiWarped = None
+        moving_n = (moving + 1) / 2.  # [-1,1] ->[0,1]
+        target_n = (target + 1) / 2.  # [-1,1] ->[0,1]
         self.low_moving = self.init_mermaid_param(moving_n)
         self.low_target = self.init_mermaid_param(target_n)
 
@@ -440,7 +450,7 @@ class MermaidNet(nn.Module):
             if self.clamp_momentum:
                 m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
             torch.set_grad_enabled(record_is_grad_enabled)
-            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving_n, target_n, m, init_map,self.low_moving, self.low_target)
+            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving_n, target_n, m, init_map,self.low_moving, self.low_target, self.inverse_map)
             warped_img = rec_IWarped * 2 - 1  # [0,1] -> [-1,1]
             init_map = rec_phiWarped  # [0,1]
             self.rec_phiWarped = rec_phiWarped

@@ -1,48 +1,139 @@
 import SimpleITK as sitk
-import os
-import numpy as np
 from data_pre.reg_data_utils import write_list_into_txt, get_file_name
+from model_pool.utils import *
+import mermaid.pyreg.image_sampling as py_is
+import mermaid.pyreg.utils as py_utils
+from mermaid.pyreg.data_wrapper import MyTensor
 
 def factor_tuple(input,factor):
     input_np = np.array(list(input))
     input_np = input_np*factor
     return tuple(list(input_np))
 
-def __read_and_clean_itk_info(path):
-    return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(path)))
+def __read_and_clean_itk_info(input):
+    if isinstance(input,str):
+        return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(input)))
+    else:
+        return sitk.GetImageFromArray(sitk.GetArrayFromImage(input))
 
-def resize_input_img_and_save_it_as_tmp(img_pth, is_label=False,fname=None,debug_path=None):
+
+
+
+def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(0.5,0.5,0.5), is_label=False,keep_physical=True,fname=None,saving_path=None):
         """
         :param img: sitk input, factor is the outputsize/patched_sized
         :return:
         """
-        img_org = sitk.ReadImage(img_pth)
-        img = __read_and_clean_itk_info(img_pth)
-        resampler= sitk.ResampleImageFilter()
-        dimension =3
-        factor = np.flipud([0.5,0.5,0.5])
-        img_sz = img.GetSize()
-        affine = sitk.AffineTransform(dimension)
-        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-        after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
-        after_size = [int(sz) for sz in after_size]
-        matrix[0, 0] =1./ factor[0]
-        matrix[1, 1] =1./ factor[1]
-        matrix[2, 2] =1./ factor[2]
-        affine.SetMatrix(matrix.ravel())
-        resampler.SetSize(after_size)
-        resampler.SetTransform(affine)
-        if is_label:
-            resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        if isinstance(img_input, str):
+            img_org = sitk.ReadImage(img_input)
+            img = __read_and_clean_itk_info(img_input)
         else:
-            resampler.SetInterpolator(sitk.sitkBSpline)
-        img_resampled = resampler.Execute(img)
-        fpth = os.path.join(debug_path,fname)
-        img_resampled.SetSpacing(factor_tuple(img_org.GetSpacing(),1./factor))
-        img_resampled.SetOrigin(factor_tuple(img_org.GetOrigin(),factor))
-        img_resampled.SetDirection(img_org.GetDirection())
+            img_org = img_input
+            img =__read_and_clean_itk_info(img_input)
+        # resampler= sitk.ResampleImageFilter()
+        # resampler.SetSize(img.GetSize())
+        # bspline = sitk.BSplineTransformInitializer(img, (5, 5, 5), 2)
+        # resampler.SetTransform(bspline)
+        # img = resampler.Execute(img)
+        dimension =3
+        factor = np.flipud(resize_factor)
+        img_sz = img.GetSize()
+        resize = not all([factor == 1 for factor in resize_factor])
+        if resize:
+            resampler = sitk.ResampleImageFilter()
+            affine = sitk.AffineTransform(dimension)
+            matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+            after_size = [int(img_sz[i] * factor[i]) for i in range(dimension)]
+            after_size = [int(sz) for sz in after_size]
+            matrix[0, 0] = 1. / factor[0]
+            matrix[1, 1] = 1. / factor[1]
+            matrix[2, 2] = 1. / factor[2]
+            affine.SetMatrix(matrix.ravel())
+            resampler.SetSize(after_size)
+            resampler.SetTransform(affine)
+            if is_label:
+                resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+            else:
+                resampler.SetInterpolator(sitk.sitkBSpline)
+            img_resampled = resampler.Execute(img)
+        else:
+            img_resampled = img
+        if fname is not None:
+            os.makedirs(saving_path, exist_ok=True)
+            fpth = os.path.join(saving_path, fname)
+        else:
+            os.makedirs(os.path.split(saving_path)[0], exist_ok=True)
+            fpth = saving_path
+        if keep_physical:
+            img_resampled.SetSpacing(resize_spacing(img_sz, img_org.GetSpacing(), factor))
+            img_resampled.SetOrigin(img_org.GetOrigin())
+            img_resampled.SetDirection(img_org.GetDirection())
         sitk.WriteImage(img_resampled, fpth)
         return fpth
+
+
+def resample_warped_phi_and_image(source,phi,spacing, new_sz,using_file_list=True):
+    if using_file_list:
+        num_s = len(source)
+        s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source]
+        sz = [num_s,1]+list(s[0].shape)
+        source = np.stack(s,axis=0)
+        source = source.reshape(*sz)
+        source = MyTensor(source)
+
+
+    new_phi,new_spacing = resample_image( phi, spacing, new_sz, 1, zero_boundary=True)
+    warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
+    return new_phi, warped, new_spacing
+
+
+def save_transfrom(transform,path=None, fname=None,using_affine=False):
+
+    if not using_affine:
+        if type(transform) == torch.Tensor:
+            transform = transform.detach().cpu().numpy()
+        import nibabel as nib
+        for i in range(transform.shape[0]):
+            phi = nib.Nifti1Image(transform[i], np.eye(4))
+            fn = '{}_batch_'.format(i)+fname if not type(fname)==list else fname[i]
+            nib.save(phi, os.path.join(path, fn+'_phi.nii.gz'))
+    else:
+        affine_param = transform
+        if isinstance(affine_param, list):
+            affine_param =affine_param[0]
+        affine_param = affine_param.detach().cpu().numpy()
+        for i in range(affine_param.shape[0]):
+            fn =  '{}_batch_'.format(i)+fname if not type(fname)==list else fname[i]
+            np.save(os.path.join(path, fn + '_affine.npy'), affine_param[i])
+
+
+def save_image_with_given_reference(img=None,reference_list=None,path=None,fname=None):
+
+    num_img = len(fname)
+    os.makedirs(path,exist_ok=True)
+    for i in range(num_img):
+        img_ref = sitk.ReadImage(reference_list[i])
+        if img is not None:
+            if type(img) == torch.Tensor:
+                img = img.detach().cpu().numpy()
+            spacing_ref = img_ref.GetSpacing()
+            direc_ref = img_ref.GetDirection()
+            orig_ref = img_ref.GetDirection()
+            img_itk = sitk.GetImageFromArray(img[i,0])
+            img_itk.SetSpacing(spacing_ref)
+            img_itk.SetDirection(direc_ref)
+            img_itk.SetOrigin(orig_ref)
+        else:
+            img_itk=img_ref
+        fn =  '{}_batch_'.format(i)+fname if not type(fname)==list else fname[i]
+        fpath = os.path.join(path,fn+'.nii.gz')
+        sitk.WriteImage(img_itk,fpath)
+
+
+
+
+
+
 
 
 def init_env(output_path, source_path_list, target_path_list, l_source_path_list=None, l_target_path_list=None):
@@ -91,10 +182,13 @@ def loading_img_list_from_files(path):
 
 
 
-debug_path = '/playpen/zyshen/data_pre/down_sampled_training_for_intra/'
-
-img_list_txt_path = '/playpen/zyshen/debugs/get_val_and_debug_res/debug.txt'
-output_path = '/playpen/zyshen/debugs/zhengyang'
-source_path_list, target_path_list, l_source_path_list, l_target_path_list = loading_img_list_from_files(
-    img_list_txt_path)
-init_env(output_path,source_path_list,target_path_list,l_source_path_list,l_target_path_list)
+# debug_path = '/playpen/zyshen/data_pre/down_sampled_training_for_intra/'
+#
+# img_list_txt_path = '/playpen/zyshen/debugs/get_val_and_debug_res/debug.txt'
+# output_path = '/playpen/zyshen/debugs/zhengyang'
+# source_path_list, target_path_list, l_source_path_list, l_target_path_list = loading_img_list_from_files(
+#     img_list_txt_path)
+# init_env(output_path,source_path_list,target_path_list,l_source_path_list,l_target_path_list)
+path = '/playpen/zyshen/debugs/dct/OAS30006_MR_d0166_brain_origin.nii.gz'
+saving_path='/playpen/zyshen/debugs/dct'
+resize_input_img_and_save_it_as_tmp(path,is_label=False,saving_path=saving_path,fname='bspline_test.nii.gz')

@@ -8,7 +8,7 @@
         "registration_model": {
             "forward_model": {
                 "number_of_time_steps": 10,
-                "solver": "dopri5",
+                "solver": "rk4",
                 "adjoin_on": true,
                 "rtol": 1e-5,
                 "atol": 1e-5,
@@ -27,6 +27,9 @@
                         0.26666666666666666, 
                         0.3333333333333333
                     ], 
+                    "type": "multiGaussian"
+                },
+                "smoother_for_forward": {
                     "type": "multiGaussian"
                 }
             }, 

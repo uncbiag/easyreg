@@ -5,9 +5,11 @@ import torch.nn as nn
 import os
 import torchvision.utils as utils
 from skimage import color
-
+import mermaid.pyreg.image_sampling as py_is
+from mermaid.pyreg.data_wrapper import AdaptVal
 from model_pool.net_utils import gen_identity_map
 from functions.bilinear import Bilinear
+import mermaid.pyreg.utils as py_utils
 
 
 def get_pair(data, pair= True, target=None):
@@ -283,3 +285,74 @@ def show_current_images_3d(iS,iT):
     feh.synchronize([ax[0][1], ax[1][1]])
     feh.synchronize([ax[0][2], ax[1][2]])
 
+
+
+def get_res_size_from_size(sz, factor):
+    """
+    Returns the corresponding low-res size from a (high-res) sz
+    :param sz: size (high-res)
+    :param factor: low-res factor (needs to be <1)
+    :return: low res size
+    """
+    if (factor is None) :
+        print('WARNING: Could not compute low_res_size as factor was ' + str( factor ))
+        return sz
+    else:
+        lowResSize = np.array(sz)
+        if not isinstance(factor, list):
+            lowResSize[2::] = (np.ceil((np.array(sz[2:]) * factor))).astype('int16')
+        else:
+            lowResSize[2::] = (np.ceil((np.array(sz[2:]) * np.array(factor)))).astype('int16')
+
+        if lowResSize[-1]%2!=0:
+            lowResSize[-1]-=1
+            print('\n\nWARNING: forcing last dimension to be even: fix properly in the Fourier transform later!\n\n')
+
+        return lowResSize
+
+
+def get_res_spacing_from_spacing(spacing, sz, lowResSize):
+    """
+    Computes spacing for the low-res parameterization from image spacing
+    :param spacing: image spacing
+    :param sz: size of image
+    :param lowResSize: size of low re parameterization
+    :return: returns spacing of low res parameterization
+    """
+    #todo: check that this is the correct way of doing it
+    return spacing * (np.array(sz[2::])-1) / (np.array(lowResSize[2::])-1)
+
+def _compute_low_res_image(I,spacing,low_res_size,zero_boundary=False):
+    sampler = py_is.ResampleImage()
+    low_res_image, _ = sampler.downsample_image_to_size(I, spacing, low_res_size[2::],1,zero_boundary=zero_boundary)
+    return low_res_image
+
+
+def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
+    """
+    Resample an image to a given desired size
+
+    :param I: Input image (expected to be of BxCxXxYxZ format)
+    :param spacing: array describing the spatial spacing
+    :param desiredSize: array for the desired size (excluding B and C, i.e, 1 entry for 1D, 2 for 2D, and 3 for 3D)
+    :return: returns a tuple: the downsampled image, the new spacing after downsampling
+    """
+    desiredSize = desiredSize[2:]
+    sz = np.array(list(I.size()))
+    # check that the batch size and the number of channels is the same
+    nrOfI = sz[0]
+    nrOfC = sz[1]
+
+    desiredSizeNC = np.array([nrOfI,nrOfC]+list(desiredSize))
+
+    newspacing = spacing*((sz[2::].astype('float')-1.)/(desiredSizeNC[2::].astype('float')-1.)) ###########################################
+    idDes = AdaptVal(torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)))
+    # now use this map for resampling
+    ID = py_utils.compute_warped_image_multiNC(I, idDes, newspacing, spline_order,zero_boundary)
+
+    return ID, newspacing
+
+
+def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
+    resampled,new_spacing = resample_image(I, spacing, desiredSize, spline_order=spline_order, zero_boundary=zero_boundary)
+    return resampled

@@ -25,6 +25,19 @@ def read_png_into_standard_form(file_path,name=None,visual=False):
     return image,spacing
 
 
+def save_3D_img_from_numpy(input,file_path,spacing=None,orgin=None,direction=None):
+    output = sitk.GetImageFromArray(input)
+    if spacing is not None:
+        output.SetSpacing(spacing)
+    if orgin is not None:
+        output.SetOrigin(orgin)
+    if direction is not None:
+        output.SetDirection(direction)
+    sitk.WriteImage(output, file_path)
+
+
+
+
 def save_jacobi_map(map,img_sz,fname,output_path,save_neg_jacobi=True):
     img_sz = np.array(img_sz)
     map_sz = np.array(map.shape[2:])

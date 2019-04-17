@@ -413,7 +413,7 @@ class MermaidNet(nn.Module):
             for i in range(self.dim):
                 rec_phiWarped_tmp[:, i] = rec_phiWarped[:, i] * self.standard_spacing[i] / self.spacing[i]
             rec_phiWarped = rec_phiWarped_tmp
-        self.overall_loss,_,_= self.do_criterion_cal(moving, target, cur_epoch=self.cur_epoch)
+        self.overall_loss,_,_= self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
         return self.__transfer_return_var(rec_IWarped, rec_phiWarped, affine_img)
 
 
@@ -464,7 +464,7 @@ class MermaidNet(nn.Module):
             for i in range(self.dim):
                 rec_phiWarped_tmp[:, i] = rec_phiWarped_st[:, i] * self.standard_spacing[i] / self.spacing[i]
             rec_phiWarped_st = rec_phiWarped_tmp
-        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.cur_epoch)
+        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
         return self.__transfer_return_var(rec_IWarped_st, rec_phiWarped_st, affine_img_st)
 
     def cyc_forward(self, moving,target=None):
@@ -517,7 +517,7 @@ class MermaidNet(nn.Module):
             for i in range(self.dim):
                 rec_phiWarped_tmp[:, i] = rec_phiWarped[:, i] * self.standard_spacing[i] / self.spacing[i]
             rec_phiWarped = rec_phiWarped_tmp
-        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.cur_epoch)
+        self.overall_loss,_,_ = self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
         return self.__transfer_return_var(rec_IWarped, rec_phiWarped, affine_img)
 
 

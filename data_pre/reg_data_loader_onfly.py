@@ -39,17 +39,17 @@ class RegistrationDataset(Dataset):
         """ the max number of pairs to be loaded into the memory"""
 
         ##########################ToDO  delete this section #################################3
-        use_extra_inter_intra_judge =True
-        self.is_intra_reg = True
-        if use_extra_inter_intra_judge:
-            self.is_intra_reg = True if 'intra' in data_path else False
-
-        if self.is_intra_reg:
-            self.max_num_pair_to_load = -1 if phase != 'test' else 300  # 300 when test intra    150     ###################TODO ###################################3
-            self.turn_on_pair_regis = True if phase != 'test' else False  # True when test inter   ##########TODO ########################
-        else:
-            self.max_num_pair_to_load = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
-            self.turn_on_pair_regis = True  # if ph
+        # use_extra_inter_intra_judge =True
+        # self.is_intra_reg = True
+        # if use_extra_inter_intra_judge:
+        #     self.is_intra_reg = True if 'intra' in data_path else False
+        #
+        # if self.is_intra_reg:
+        #     self.max_num_pair_to_load = -1 if phase != 'test' else 300  # 300 when test intra    150     ###################TODO ###################################3
+        #     self.turn_on_pair_regis = True if phase != 'test' else False  # True when test inter   ##########TODO ########################
+        # else:
+        #     self.max_num_pair_to_load = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
+        #     self.turn_on_pair_regis = True  # if ph
 
         ######################################################################################3
 

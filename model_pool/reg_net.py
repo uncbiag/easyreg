@@ -17,6 +17,7 @@ try:
 except:
     pass
 from mermaid.pyreg.utils import compute_warped_image_multiNC
+import  tools.image_rescale as  ires
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
@@ -30,7 +31,6 @@ model_pool = {'affine_sim':AffineNet,
 
 
 class RegNet(BaseModel):
-
 
     def name(self):
         return 'reg-unet'
@@ -78,7 +78,9 @@ class RegNet(BaseModel):
 
     def set_input(self, data, is_train=True):
         img_and_label, self.fname_list = data
+        self.pair_path = data[0]['pair_path']
         img_and_label['image'] =img_and_label['image'].cuda()
+
         if 'label' in img_and_label:
             img_and_label['label'] =img_and_label['label'].cuda()
         moving, target, l_moving,l_target = get_pair(img_and_label)
@@ -93,7 +95,7 @@ class RegNet(BaseModel):
 
 
 
-    def cal_loss(self,using_decay_factor=False):
+    def cal_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
         # output should be BxCx....
         # target should be Bx1x
         from model_pool.global_variable import reg_factor_in_regnet
@@ -101,10 +103,10 @@ class RegNet(BaseModel):
         if using_decay_factor:
             factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
         if self.loss_fn.criterion is not None:
-            sim_loss  = self.loss_fn.get_loss(self.output,self.target)
+            sim_loss  = self.loss_fn.get_loss(output,self.target)
         else:
-            sim_loss = self.network.get_sim_loss(self.output,self.target)
-        reg_loss = self.network.scale_reg_loss(self.disp_or_afparam) if self.disp_or_afparam is not None else 0.
+            sim_loss = self.network.get_sim_loss(output,self.target)
+        reg_loss = self.network.scale_reg_loss(disp_or_afparam) if disp_or_afparam is not None else 0.
         if self.iter_count%10==0:
             print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
         return sim_loss+reg_loss*factor
@@ -150,7 +152,7 @@ class RegNet(BaseModel):
         elif self.using_sym_loss:
             loss = self.cal_sym_loss()
         else:
-            loss=self.cal_loss(using_decay_factor=self.using_affine)
+            loss=self.cal_loss(output,disp_or_afparam,using_decay_factor=self.using_affine)
         return output, phi, disp_or_afparam, loss
 
     def optimize_parameters(self,input=None):
@@ -216,7 +218,7 @@ class RegNet(BaseModel):
     def get_extra_res(self):
         return self.jacobi_val
 
-    def compute_jacobi_map(self,map):
+    def compute_jacobi_map(self,map,crop_boundary=True):
         """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
           the image direction matrix is identity."""
         from model_pool.global_variable import save_jacobi_map
@@ -230,6 +232,9 @@ class RegNet(BaseModel):
         dfy = fd.dYc(map[:, 1, ...])
         dfz = fd.dZc(map[:, 2, ...])
         jacobi_det = dfx * dfy * dfz
+        if crop_boundary:
+            crop_range = 5
+            jacobi_det = jacobi_det[:,crop_range:-crop_range,crop_range:-crop_range,crop_range:-crop_range]
         # self.temp_save_Jacobi_image(jacobi_det,map)
         jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])  #
         jacobi_num = np.sum(jacobi_det < 0.)
@@ -241,13 +246,46 @@ class RegNet(BaseModel):
         self.jacobi_map = None
         if save_jacobi_map:
             jacobi_abs_map = np.abs(jacobi_det)
+            jacobi_neg_map = np.zeros_like(jacobi_det)
+            jacobi_neg_map[jacobi_det<0] =1
             for i in range(jacobi_abs_map.shape[0]):
                 jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
-                pth = os.path.join(self.record_path, self.fname_list[i] + 'jacobi_img.nii')
+                jacobi_neg_img = sitk.GetImageFromArray(jacobi_neg_map[i])
+                pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_img.nii')
+                n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii')
                 sitk.WriteImage(jacobi_img, pth)
+                sitk.WriteImage(jacobi_neg_img, n_pth)
             self.jacobi_map =jacobi_abs_map
         return jacobi_abs_mean, jacobi_num_mean
 
+
+    def save_image_into_original_sz_with_given_reference(self):
+        from model_pool.global_variable import original_img_sz
+        num_batch = self.moving.shape[0]
+        img_sz_new = [num_batch,1]+original_img_sz
+        spacing = self.spacing
+        inverse_phi = self.network.get_inverse_map(use_01=True)
+        moving_list = self.pair_path[0]
+        target_list =self.pair_path[1]
+        phi = (self.phi+1)/2.
+        new_phi, warped, new_spacing =ires.resample_warped_phi_and_image(moving_list, phi,spacing,img_sz_new)
+        new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
+        saving_original_sz_path = os.path.join(self.record_path,'original_sz')
+        os.makedirs(saving_original_sz_path,exist_ok=True)
+        fname_list = list(self.fname_list)
+        ires.save_transfrom(new_phi,saving_original_sz_path,fname_list)
+        fname_list = [fname + '_inv' for fname in self.fname_list]
+        ires.save_transfrom(new_inv_phi, saving_original_sz_path, fname_list)
+        reference_list = self.pair_path[0]
+        fname_list = [fname+'_warped' for fname in self.fname_list]
+        ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
+        fname_list = [fname + '_inv_warped' for fname in self.fname_list]
+        ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
+        fname_list = [fname+'_moving' for fname in self.fname_list]
+        ires.save_image_with_given_reference(None,reference_list,saving_original_sz_path,fname_list)
+        reference_list = self.pair_path[1]
+        fname_list = [fname + '_target' for fname in self.fname_list]
+        ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
 
 
 

@@ -712,6 +712,9 @@ if __name__ == "__main__":
     # lpba.set_divided_ratio(divided_ratio)
     # lpba.set_label_path(label_path)
     # lpba.prepare_data()
+
+
+
     # oasis =  PatientStructureDataSet('reg',['nii.gz'],'inter')
     # data_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0313/data"
     # output_path = '/playpen/zyshen/data/' + "reg_debug_3000_pair_reg_224_oasis3_reg_inter"

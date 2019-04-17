@@ -7,13 +7,18 @@ update_sm_with_interpolation = True
 use_preweights_advect = True
 use_fixed_wkw_equation = True
 bysingle_int = False  # update by single phase interoplation
+
+compute_inverse_map = True
+output_orginal_img_sz= True
+original_img_sz = [160,384,384]
+
 reg_factor_in_regnet = 1
 reg_factor_in_mermaid = 10
 lambda_factor_in_vmr= 50.
 lambda_mean_factor_in_vmr =50
 sigma_factor_in_vmr = 0.02
 use_affine_in_vmr = False
-save_jacobi_map = False
+save_jacobi_map = True
 param_in_ants = 64
 param_in_demons =None# (2,1) #(8,4)
 #nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'

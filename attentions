@@ -38,3 +38,8 @@ for the map based weight advect method, there is no parameter added in odeint ad
 3.27  we put the deep loss into separate file and disable ||w||2 for network parameters in smoother factory
 3.29  range initial penalty to 6
 3.30  clamp is remove in forward model !!!
+4.6  clamp is added in forward model,  the softmax is remove in registration network use abs instead
+    use_mermaid_iter now is false
+    save jacobi image is turn on
+4.12  when given the code to nc, remember to comment the things in the dataloader
+todo use the softmax in real tasks?
