@@ -352,7 +352,7 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         self.index = (index) % self.data.shape[self.sliceDim]
         self.ax.imshow(self._get_slice_at_dimension(self.index))
         #self.ax.images[0].set_array(self.get_slice_at_dimension(self.index))
-        #self.display_title()
+        self.display_title()
 
     def get_synchronize(self):
         """
