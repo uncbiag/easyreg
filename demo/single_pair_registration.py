@@ -153,7 +153,7 @@ if optional_setting_on:
 
     tsm.task_par['tsk_set']['network_name'] ='mermaid'
     tsm.task_par['tsk_set']['model'] = 'reg_net'
-    tsm.task_par['tsk_set']['batch_sz'] = 2  # multi sample registration is only for mermaid based methods, for other methods should always be 1
+    tsm.task_par['tsk_set']['batch_sz'] = 4  # multi sample registration is only for mermaid based methods, for other methods should always be 1
     tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_reg10_old_2step/checkpoints/epoch_130_'
         #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_'
         #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_baseline_continue_rk4_old/checkpoints/epoch_100_'

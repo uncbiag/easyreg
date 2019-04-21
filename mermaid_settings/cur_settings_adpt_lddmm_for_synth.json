@@ -130,7 +130,7 @@
             "scale_iterations": [
                 40,
                 40,
-                30
+                40
             ]
         }, 
         "name": "lbfgs_ls",

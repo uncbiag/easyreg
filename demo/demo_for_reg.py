@@ -61,7 +61,7 @@ parser.add_argument('--gpu', required=False, type=int, default=2,
                     help='give the id to run the gpu')
 parser.add_argument('--llf', required=False, type=bool, default=False,
                     help='run on long leaf')
-args = parser.parse_args()
+args = parser.parse_args() 
 
 tsm = ModelTask('task_reg')
 dm = DataTask('task_reg')
@@ -196,7 +196,7 @@ demons refers to deformably register two images using a symmetric forces demons 
 
 tsm.task_par['tsk_set']['network_name'] ='mermaid'  #'mermaid' 'svf' 'syn' affine bspline
 """ see guideline"""
-tsm.task_par['tsk_set']['epoch'] = 300
+tsm.task_par['tsk_set']['epoch'] = 50
 """ number of training epoch"""
 tsm.task_par['tsk_set']['model'] = 'reg_net'  #mermaid_iter reg_net  ants  nifty_reg
 """ support  'reg_net'  'mermaid_iter'  'ants'  'nifty_reg' 'demons' """
@@ -206,7 +206,7 @@ tsm.task_par['tsk_set']['val_period'] =10
 """ do validation every # epoch"""
 tsm.task_par['tsk_set']['loss']['type'] = 'lncc' #######################TODO  here  should be lncc
 """similarity measure, mse, ncc, lncc"""
-tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [200,8,4]
+tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [20,0,0] #[200,8,4]
 """ number of pairs per training/val/debug epoch,  [200,8,5] refers to 200 pairs for each train epoch, 8 pairs for each validation epoch and 5 pairs for each debug epoch"""
 tsm.task_par['tsk_set']['optim']['lr'] = 1e-4/ tsm.task_par['tsk_set']['batch_sz']  ############TODO  1e-4
 """the learning rate"""

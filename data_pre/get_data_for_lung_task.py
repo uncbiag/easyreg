@@ -69,7 +69,7 @@ def load_settings(setting_file):
 
 
 def do_registration(I0,I1,params,spacing,weight=None,multi_scale=True):
-    sz = np.array(I0.shape[2:])
+    sz = np.array(I0.shape)
     if not multi_scale:
         so = MO.SimpleSingleScaleRegistration(I0, I1, spacing, sz, params)
     else:
@@ -77,8 +77,8 @@ def do_registration(I0,I1,params,spacing,weight=None,multi_scale=True):
     so.get_optimizer().set_visualization(True)
     so.get_optimizer().set_visualize_step(10)
     so.set_light_analysis_on(True)
-    # so.optimizer.set_model(params['model']['registration_model']['type'])
-    # so.optimizer.set_initial_weight_map(weight.cuda(),freeze_weight=True)
+    so.optimizer.set_model(params['model']['registration_model']['type'])
+    so.optimizer.set_initial_weight_map(weight.cuda(),freeze_weight=True)
     so.register()
 
 file_raw_path =dict(source='/playpen/zpd/lung_registration_example/UNCRegistration/12593R/12593R_EXP_STD_NJC_COPD.nrrd',

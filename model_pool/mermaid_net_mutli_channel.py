@@ -149,7 +149,6 @@ class MermaidNet(nn.Module):
             self.lowResSize = lowResSize
             self.lowResSpacing = lowResSpacing
             #self.lowRes_fn = partial(_compute_low_res_image, spacing=spacing, low_res_size=lowResSize,zero_boundary=False)
-            self.lowRes_fn = partial(get_resampled_image, spacing=spacing, desiredSize=lowResSize,zero_boundary=False)
 
 
 
@@ -174,7 +173,7 @@ class MermaidNet(nn.Module):
                 lowres_id = py_utils.identity_map_multiN(lowResSize, lowResSpacing)
                 self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
                 print(torch.min(self.lowResIdentityMap))
-
+        self.lowRes_fn = partial(get_resampled_image, spacing=spacing, desiredSize=lowResSize, zero_boundary=False,identity_map=self.lowResIdentityMap)
         self.mermaid_unit_st = model_st.cuda()
         self.criterion_st = criterion_st
         self.mermaid_unit_st.associate_parameters_with_module()
@@ -256,8 +255,7 @@ class MermaidNet(nn.Module):
                 self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
 
         if self.mermaid_low_res_factor is not None:
-            sampler = py_is.ResampleImage()
-            low_s, _ = sampler.upsample_image_to_size(s, self.spacing, self.lowResSize[2::], 1, zero_boundary=True)
+            low_s= get_resampled_image(s, self.spacing, self.lowResSize, 1, zero_boundary=True, identity_map=self.lowResIdentityMap)
             return low_s
         else:
             return None
@@ -277,12 +275,11 @@ class MermaidNet(nn.Module):
             else:
                 maps, inverse_maps = mermaid_unit(self.lowRes_fn(phi), low_s,phi_inv=self.lowRes_fn(inv_map), variables_from_optimizer={'epoch':self.epoch})
 
-            desiredSz = self.img_sz[2:]
-            sampler = py_is.ResampleImage()
-            rec_phiWarped, _ = sampler.upsample_image_to_size(maps, self.lowResSpacing, desiredSz, 1,zero_boundary=False)
+            desiredSz = self.img_sz
+            rec_phiWarped = get_resampled_image(maps, self.lowResSpacing, desiredSz, 1,zero_boundary=False,identity_map=self.identityMap)
             if compute_inverse_map:
-                self.inverse_map, _ = sampler.upsample_image_to_size(inverse_maps, self.lowResSpacing, desiredSz, 1,
-                                                                  zero_boundary=False)
+                self.inverse_map = get_resampled_image(inverse_maps, self.lowResSpacing, desiredSz, 1,
+                                                                  zero_boundary=False,identity_map=self.identityMap)
 
         else:
             self.set_mermaid_param(mermaid_unit,criterion,s, t, m,s)

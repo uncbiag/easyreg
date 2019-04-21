@@ -206,6 +206,10 @@ def visualize_jacobi(phi,spacing, img=None, file_path=None, visual=True):
 
 
 
+
+
+
+
 def test():
     import torch
     img = torch.randn(80,80)

@@ -218,7 +218,7 @@ class RegNet(BaseModel):
     def get_extra_res(self):
         return self.jacobi_val
 
-    def compute_jacobi_map(self,map,crop_boundary=True):
+    def compute_jacobi_map(self,map,crop_boundary=False):
         """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
           the image direction matrix is identity."""
         from model_pool.global_variable import save_jacobi_map

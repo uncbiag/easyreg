@@ -328,7 +328,7 @@ def _compute_low_res_image(I,spacing,low_res_size,zero_boundary=False):
     return low_res_image
 
 
-def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
+def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False,identity_map=None):
     """
     Resample an image to a given desired size
 
@@ -346,13 +346,16 @@ def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
     desiredSizeNC = np.array([nrOfI,nrOfC]+list(desiredSize))
 
     newspacing = spacing*((sz[2::].astype('float')-1.)/(desiredSizeNC[2::].astype('float')-1.)) ###########################################
-    idDes = AdaptVal(torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)))
+    if identity_map is not None:
+        idDes= identity_map
+    else:
+        idDes = AdaptVal(torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)))
     # now use this map for resampling
     ID = py_utils.compute_warped_image_multiNC(I, idDes, newspacing, spline_order,zero_boundary)
 
     return ID, newspacing
 
 
-def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
-    resampled,new_spacing = resample_image(I, spacing, desiredSize, spline_order=spline_order, zero_boundary=zero_boundary)
+def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False,identity_map=None):
+    resampled,new_spacing = resample_image(I, spacing, desiredSize, spline_order=spline_order, zero_boundary=zero_boundary,identity_map=identity_map)
     return resampled
