@@ -76,7 +76,7 @@ else:
 
 cur_program_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 data_output_path = os.path.join(root_path,data_task_name_for_train)
-cur_task_name ='todel'#'reg_adpt_lddamm_wkw_formul_4_1_omt_2step_1000sym'#reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep'#reg_adpt_lddmm_new_2step_ls01_1000sym_onestep_2bz' # vm_cvprwithregfix5000'
+cur_task_name ='reg_adpt_lddamm_wkw_formul_025_1_omt_2step_200sym_allinterp_prew_bd_mask20'#'reg_adpt_lddamm_wkw_formul_4_1_omt_2step_1000sym'#reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep'#reg_adpt_lddmm_new_2step_ls01_1000sym_onestep_2bz' # vm_cvprwithregfix5000'
 #'reg_fixed_lddmm_onestepphi_reg3_sunet_clamp_omt_IT_net_001rloss1_withinit'
 #'reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue' # vm_cvprwithregfix5000'
 is_oai = 'oai' in data_task_name
@@ -115,7 +115,7 @@ dm.data_par['datapro']['dataset']['spacing'] =spacing#[96. / 193., 96. / 193, 11
 """ spacing of image """
 dm.data_par['datapro']['reg']['max_pair_for_loading'] = [-1,-1,-1,-1]
 """ limit the max number of the pairs for [train, val, test, debug]"""
-dm.data_par['datapro']['reg']['load_training_data_into_memory'] = False
+dm.data_par['datapro']['reg']['load_training_data_into_memory'] = True
 """ load all training pairs into memory"""
 
 
@@ -132,13 +132,14 @@ tsm.task_par['tsk_set']['load_model_but_train_from_begin'] =True ###############
 tsm.task_par['tsk_set']['load_model_but_train_from_epoch'] =50 ###############TODO  should be false
 
 """ load the saved model as initialization, but still will train the whole model from the beginning"""
-tsm.task_par['tsk_set']['continue_train_lr'] = 2e-5/2   #  TODO to be put back to 5e-5
+tsm.task_par['tsk_set']['continue_train_lr'] = 1e-5/2   #  TODO to be put back to 5e-5
 """ set the learning rate when continue the train"""
 tsm.task_par['tsk_set']['old_gpu_ids']=0
 """ no longer used"""
 tsm.task_par['tsk_set']['gpu_ids'] = args.gpu
 """ the gpu id of the current task"""
-tsm.task_par['tsk_set']['model_path'] =os.path.join(data_output_path,'reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep/checkpoints/epoch_100_')
+tsm.task_par['tsk_set']['model_path'] = os.path.join(data_output_path,'reg_adpt_lddamm_wkw_formul_025_1_omt_2step_500sym_allinterp_prew_new/checkpoints/epoch_150_')
+    #os.path.join(data_output_path,'reg_adpt_lddmm_05fix_omt4_2degree_ls_004_2step_1000sym_onestep/checkpoints/epoch_100_')
     #"/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_"
 
     #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_fixed_lddmm_onestepphi_reg3_unet_clamp_sym500_omt_001rloss1_fixed_continue/checkpoints/epoch_40_'
@@ -196,7 +197,7 @@ demons refers to deformably register two images using a symmetric forces demons 
 
 tsm.task_par['tsk_set']['network_name'] ='mermaid'  #'mermaid' 'svf' 'syn' affine bspline
 """ see guideline"""
-tsm.task_par['tsk_set']['epoch'] = 50
+tsm.task_par['tsk_set']['epoch'] = 250
 """ number of training epoch"""
 tsm.task_par['tsk_set']['model'] = 'reg_net'  #mermaid_iter reg_net  ants  nifty_reg
 """ support  'reg_net'  'mermaid_iter'  'ants'  'nifty_reg' 'demons' """
@@ -206,7 +207,7 @@ tsm.task_par['tsk_set']['val_period'] =10
 """ do validation every # epoch"""
 tsm.task_par['tsk_set']['loss']['type'] = 'lncc' #######################TODO  here  should be lncc
 """similarity measure, mse, ncc, lncc"""
-tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [20,0,0] #[200,8,4]
+tsm.task_par['tsk_set']['max_batch_num_per_epoch'] = [200,8,4] #[200,8,4]
 """ number of pairs per training/val/debug epoch,  [200,8,5] refers to 200 pairs for each train epoch, 8 pairs for each validation epoch and 5 pairs for each debug epoch"""
 tsm.task_par['tsk_set']['optim']['lr'] = 1e-4/ tsm.task_par['tsk_set']['batch_sz']  ############TODO  1e-4
 """the learning rate"""
@@ -242,7 +243,7 @@ tsm.task_par['tsk_set']['reg']['mermaid_net']['clamp_momentum'] =True  # TODO it
 
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_sym']=True
 """ using symmetric training, if True, the loss is combined with source-target loss, target-source loss, and symmetric loss"""
-tsm.task_par['tsk_set']['reg']['mermaid_net']['sym_factor']=1000
+tsm.task_par['tsk_set']['reg']['mermaid_net']['sym_factor']=200
 """ the weight for symmetric factor"""
 tsm.task_par['tsk_set']['reg']['mermaid_net']['using_complex_net']=True
 """ True : using a deep residual unet, False: using a simple unet"""
@@ -272,7 +273,8 @@ tsm.task_par['tsk_set']['reg']['mermaid_iter']={}
 tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']={}
 """ settings for the mermaid-affine optimization version"""
 tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']['sigma']=0.7  # recommand np.sqrt(batch_sz/4) for longitudinal, recommand np.sqrt(batch_sz/2) for cross-subject
-
+tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_affine_json'] ='../model_pool/cur_settings_affine_tmp.json'
+tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_nonp_json'] ='../model_pool/cur_settings_svf_dipr.json'
 
 task_full_path = os.path.join(os.path.join(root_path,data_task_name), cur_task_name)
 os.makedirs(task_full_path,exist_ok=True)

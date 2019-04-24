@@ -189,6 +189,6 @@ def loading_img_list_from_files(path):
 # source_path_list, target_path_list, l_source_path_list, l_target_path_list = loading_img_list_from_files(
 #     img_list_txt_path)
 # init_env(output_path,source_path_list,target_path_list,l_source_path_list,l_target_path_list)
-path = '/playpen/zyshen/debugs/dct/OAS30006_MR_d0166_brain_origin.nii.gz'
-saving_path='/playpen/zyshen/debugs/dct'
-resize_input_img_and_save_it_as_tmp(path,is_label=False,saving_path=saving_path,fname='bspline_test.nii.gz')
+# path = '/playpen/zyshen/debugs/dct/OAS30006_MR_d0166_brain_origin.nii.gz'
+# saving_path='/playpen/zyshen/debugs/dct'
+# resize_input_img_and_save_it_as_tmp(path,is_label=False,saving_path=saving_path,fname='bspline_test.nii.gz')

@@ -251,8 +251,8 @@ class RegNet(BaseModel):
             for i in range(jacobi_abs_map.shape[0]):
                 jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
                 jacobi_neg_img = sitk.GetImageFromArray(jacobi_neg_map[i])
-                pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_img.nii')
-                n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii')
+                pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_img.nii.gz')
+                n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii.gz')
                 sitk.WriteImage(jacobi_img, pth)
                 sitk.WriteImage(jacobi_neg_img, n_pth)
             self.jacobi_map =jacobi_abs_map
@@ -289,7 +289,22 @@ class RegNet(BaseModel):
 
 
 
+    def save_extra_fig(self,img,title):
+        import SimpleITK as sitk
+        num_img = img.shape[0]
+        assert(num_img == len(self.fname_list))
+        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+
+        img=get_resampled_image(img,None,desiredSize=[num_img,1]+input_img_sz,spline_order=1)
+        img_np = img.cpu().numpy()
+        for i in range(num_img):
+            img_to_save = img_np[i,0]
+            fpath = os.path.join(self.record_path,self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ title+'.nii.gz')
+            img_to_save = sitk.GetImageFromArray(img_to_save)
+            sitk.WriteImage(img_to_save, fpath)
+
     def save_fig(self,phase,standard_record=False,saving_gt=True):
+        from model_pool.global_variable import save_extra_fig
         from model_pool.visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False
@@ -305,6 +320,11 @@ class RegNet(BaseModel):
         extra_title = 'disp'
         if self.disp_or_afparam is not None and len(self.disp_or_afparam.shape)>2 and not self.mermaid_on:
             disp = ((self.disp_or_afparam[:,...]**2).sum(1))**0.5
+
+        if save_extra_fig and extraImage is not None:
+            self.save_extra_fig(extraImage,extraName)
+
+
 
 
         if self.mermaid_on:

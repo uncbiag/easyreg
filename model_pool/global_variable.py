@@ -1,6 +1,6 @@
 is_oai = True
 is_oasis = not is_oai
-use_mermaid_iter = True
+use_mermaid_iter = False
 use_odeint = True
 update_sm_by_advect = True
 update_sm_with_interpolation = True
@@ -19,6 +19,7 @@ lambda_mean_factor_in_vmr =50
 sigma_factor_in_vmr = 0.02
 use_affine_in_vmr = False
 save_jacobi_map = True
+save_extra_fig =True
 param_in_ants = 64
 param_in_demons =None# (2,1) #(8,4)
 #nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'

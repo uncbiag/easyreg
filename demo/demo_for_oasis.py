@@ -274,7 +274,8 @@ tsm.task_par['tsk_set']['reg']['mermaid_iter']={}
 tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']={}
 """ settings for the mermaid-affine optimization version"""
 tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']['sigma']=0.7  # recommand np.sqrt(batch_sz/4) for longitudinal, recommand np.sqrt(batch_sz/2) for cross-subject
-
+tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_affine_json'] ='../model_pool/cur_settings_affine_tmp.json'
+tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_nonp_json'] ='../model_pool/cur_settings_svf_dipr.json'
 
 task_full_path = os.path.join(os.path.join(root_path,data_task_name), cur_task_name)
 os.makedirs(task_full_path,exist_ok=True)

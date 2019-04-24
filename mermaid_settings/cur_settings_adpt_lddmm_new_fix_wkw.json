@@ -79,7 +79,7 @@
                     "use_weighted_linear_softmax": false,
                     "omt_power": 1.0,
                     "omt_use_log_transformed_std": true,
-                    "omt_weight_penalty": 2.0,
+                    "omt_weight_penalty": 0.25,
                     "optimize_over_deep_network": true,
                     "optimize_over_smoother_stds": false,
                     "optimize_over_smoother_weights": false,

@@ -26,6 +26,10 @@ import progressbar as pb
 from functools import partial
 from data_pre.reg_data_utils import read_txt_into_list
 os.environ["CUDA_VISIBLE_DEVICES"] = ''
+
+mermaid_setting_path = '../mermaid/demos/sample_generation/cur_settings_adpt_lddmm_for_synth.json'
+
+
 def get_pair_list(folder_path):
     pair_path = os.path.join(folder_path,'pair_path_list.txt')
     fname_path = os.path.join(folder_path,'pair_name_list.txt')
@@ -38,10 +42,12 @@ def get_init_weight_list(folder_path):
     init_weight_path = read_txt_into_list(weight_path)
     return init_weight_path
 
-def get_mermaid_setting(path):
+def get_mermaid_setting(path,output_path):
     params = pars.ParameterDict()
     params.load_JSON(path)
-    return params
+    os.makedirs(output_path,exist_ok=True)
+    output_path = os.path.join(output_path,'mermaid_setting.json')
+    params.write_JSON(output_path,save_int=False)
 
 def setting_intermid_saving(expr_folder,pair_name,expr_name=''):
     extra_info = {}
@@ -106,10 +112,13 @@ def nonp_optimization(si, moving,target,spacing,fname,l_moving=None,l_target=Non
                             rel_ftol=0,
                             similarity_measure_type='lncc',
                             similarity_measure_sigma=1,
-                            params='../mermaid/demos/sample_generation/cur_settings_adpt_lddmm_for_synth.json')
+                            params=mermaid_setting_path)
     output = si.get_warped_image()
     phi = si.opt.optimizer.ssOpt.get_map()
-    return output.detach_(), phi.detach_()
+    model_param = si.get_model_parameters()
+    m, weight_map = model_param['m'], model_param['local_weights']
+
+    return output.detach_(), phi.detach_(),m.detach(), weight_map.detach()
 
 
 def get_input(img_pair,weight_pair):
@@ -133,15 +142,13 @@ def do_single_pair_registration(pair,pair_name, weight_pair, do_affine=True,expr
     si = None
     if do_affine:
         af_img, af_map, af_param, si =affine_optimization(moving,target,spacing,pair_name)
-    w_img, w_map = nonp_optimization(si, moving, target, spacing, pair_name,init_weight=moving_init_weight,expr_folder=expr_folder)
-    return_val = (w_img, w_map)
-    return return_val
+    return_val = nonp_optimization(si, moving, target, spacing, pair_name,init_weight=moving_init_weight,expr_folder=expr_folder)
+    analysis_on_res(return_val, pair_name, expr_folder)
 
 def do_pair_registration(pair_list, pair_name_list, weight_pair_list,do_affine=True,expr_folder=None):
     num_pair = len(pair_list)
     for i in range(num_pair):
-        res = do_single_pair_registration(pair_list[i],pair_name_list[i],weight_pair_list[i],do_affine=do_affine,expr_folder=expr_folder)
-        analysis_on_res(res)
+        do_single_pair_registration(pair_list[i],pair_name_list[i],weight_pair_list[i],do_affine=do_affine,expr_folder=expr_folder)
 
 
 
@@ -151,8 +158,17 @@ def visualize_res(res, saving_path=None):
 
 
 
-def analysis_on_res(res):
-    pass
+def analysis_on_res(res,pair_name, expr_folder):
+    ana_path = os.path.join(expr_folder,'analysis')
+    ana_path = os.path.join(ana_path,pair_name)
+    os.makedirs(ana_path,exist_ok=True)
+    output, phi, m, weight_map = res
+    torch.save(phi.cpu(),os.path.join(ana_path,'phi.pt'))
+    torch.save(m.cpu(),os.path.join(ana_path,'m.pt'))
+    torch.save(weight_map.cpu(),os.path.join(ana_path,'weight_map.pt'))
+
+
+
 
 
 
@@ -163,8 +179,7 @@ def sub_process(index,pair_list, pair_name_list, weight_pair_list,do_affine,expr
     pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=num_pair).start()
     count = 0
     for i in index:
-        res = do_single_pair_registration(pair_list[i],pair_name_list[i],weight_pair_list[i],do_affine=do_affine,expr_folder=expr_folder)
-        analysis_on_res(res)
+        do_single_pair_registration(pair_list[i],pair_name_list[i],weight_pair_list[i],do_affine=do_affine,expr_folder=expr_folder)
         count += 1
         pbar.update(count)
     pbar.finish()
@@ -174,11 +189,13 @@ def sub_process(index,pair_list, pair_name_list, weight_pair_list,do_affine,expr
 
 def demo():
     data_folder = '/playpen/zyshen/data/syn_data/test'
-    expr_folder = '/playpen/zyshen/data/syn_data/expr1/res'
+    expr_folder = '/playpen/zyshen/data/syn_data/expr6/res'
     do_affine = False
     os.makedirs(expr_folder,exist_ok=True)
     pair_path_list, pair_name_list = get_pair_list(data_folder)
     init_weight_path_list = get_init_weight_list(data_folder)
+    get_mermaid_setting(mermaid_setting_path,expr_folder)
+
 
     num_of_workers = 8 #for unknown reason, multi-thread not work
     num_files = len(pair_name_list)
