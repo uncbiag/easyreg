@@ -100,9 +100,9 @@ setting_file = '/playpen/zyshen/reg_clean/mermaid_settings/cur_settings_adpt_ldd
 
 
 
-
+desired_sz = [256,256,256]
 resize_factor = [1./4,1./4,1./4]
-#resize_and_save_img_pair(file_raw_path,file_path,resize_factor=resize_factor)
+resize_and_save_img_pair(file_raw_path,file_path,resize_factor=resize_factor)
 source, lsource, target, ltarget, info = get_pair(file_path)
 source = np.clip(source,0,None)
 target = np.clip(target,0,None)

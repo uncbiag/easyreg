@@ -30,12 +30,5 @@ ivx = ImageViewer3D_Sliced_Contour( ax[0], img,grid, 0, '',showColorbar=True)
 ivy = ImageViewer3D_Sliced_Contour( ax[1], img,grid, 1, '',showColorbar=True)
 ivz = ImageViewer3D_Sliced_Contour( ax[2], img,grid, 2, '',showColorbar=True)
 
-feh = FigureEventHandler(fig)
-
-feh.add_axes_event('button_press_event', ax[0], ivx.on_mouse_press)
-feh.add_axes_event('button_press_event', ax[1], ivy.on_mouse_press)
-feh.add_axes_event('button_press_event', ax[2], ivz.on_mouse_press)
-
-feh.synchronize([ax[0], ax[1], ax[2]])
 plt.clim(vmin=-1., vmax=1.)
 plt.show()

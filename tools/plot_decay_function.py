@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 
 from model_pool.utils import sigmoid_decay, sigmoid_explode
 
-x = list(range(50))
-y = [ sigmoid_decay(iterm,static=10, k=5)*10 for iterm in x]
+x = list(range(200))
+y = [ sigmoid_decay(iterm,static=5, k=10)*10 for iterm in x]
 color='brown'
 plt.plot(x,y,color=color,linewidth=3.0)
 plt.xlabel('epoch',fontsize=15)

@@ -50,10 +50,17 @@ def gather_label_info(file_path_list,filter_label_less_than=-1):
             label_count = np.bincount(label_map_np.reshape(-1).astype(np.int32))
             label_left = label_id[label_count>=filter_label_less_than]
             cur_label_list = label_left.tolist()
-
         label_list.append(cur_label_list)
-
     return label_list
+
+
+def get_img_sz(file_path_list):
+    sz_list = []
+    for fp in file_path_list:
+        img = sitk.ReadImage(fp)
+        img_sz = sitk.GetArrayFromImage(img).shape
+        sz_list.append(list(img_sz))
+    return sz_list
 
 
 

@@ -371,6 +371,12 @@ def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=Fals
     if spacing is None:
         img_sz = I.shape[2:]
         spacing = 1./(np.array(img_sz)-1)
+    if identity_map is not None:
+        if I.shape[0] != identity_map.shape[0]:
+            n_batch = I.shape[0]
+            desiredSize =desiredSize.copy()
+            desiredSize[0] = n_batch
+            identity_map =  identity_map[:n_batch]
     resampled,new_spacing = resample_image(I, spacing, desiredSize, spline_order=spline_order, zero_boundary=zero_boundary,identity_map=identity_map)
     return resampled
 

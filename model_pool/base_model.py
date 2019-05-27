@@ -185,22 +185,32 @@ class BaseModel():
         self.output = None
 
 
-    def save_fig_3D(self,phase):
+    def save_fig_3D(self,phase=None):
+        if type(self.moving)==torch.Tensor:
+            moving = self.moving.detach().cpu().numpy()
+            target = self.target.detach().cpu().numpy()
+            warped = self.output.detach().cpu().numpy()
+        else:
+            moving = self.moving
+            target = self.target
+            warped = self.output
+
+
         saving_folder_path = os.path.join(self.record_path, '3D')
         make_dir(saving_folder_path)
-        for i in range(self.moving.size(0)):
+        for i in range(moving.shape[0]):
             appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
             saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
-            output = sitk.GetImageFromArray(self.moving[i, 0, ...])
-            output.SetSpacing(self.spacing)
+            output = sitk.GetImageFromArray(moving[i, 0, ...])
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
-            output = sitk.GetImageFromArray(self.target[i, 0, ...])
-            output.SetSpacing(self.spacing)
+            output = sitk.GetImageFromArray(target[i, 0, ...])
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_warped.nii.gz"
-            output = sitk.GetImageFromArray(self.output[i, 0, ...])
-            output.SetSpacing(self.spacing)
+            output = sitk.GetImageFromArray(warped[i, 0, ...])
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
 
     def save_deformation(self):

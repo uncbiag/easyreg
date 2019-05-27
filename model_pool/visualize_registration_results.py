@@ -3,6 +3,7 @@ from __future__ import absolute_import
 # from builtins import str
 # from builtins import range
 import matplotlib as matplt
+from model_pool.global_variable import is_lung
 
 from data_pre.reg_data_utils import make_dir
 #from .config_parser import MATPLOTLIB_AGG
@@ -296,7 +297,10 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
             iTL_a = 6
             iWL_a = 7
         else:
-            fig, ax = plt.subplots(9, 3)
+            if is_lung:
+                fig, ax = plt.subplots(9, 3,figsize=(6,15))
+            else:
+                fig, ax = plt.subplots(9, 3)
             vizi_a = 4
             ext_a = 5
             iSL_a = 6
@@ -360,11 +364,11 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
         ivtlzc = viewers.ImageViewer3D_Sliced(ax[iTL_a][2], utils.lift_to_dimension(utils.t2np(iTL), 3), 2,
                                               'LTarget Z', True, True)
         ivwlxc = viewers.ImageViewer3D_Sliced(ax[iWL_a][0], utils.lift_to_dimension(utils.t2np(iWL), 3), 0,
-                                              'LWarpped X', True, True)
+                                              'LWarped X', True, True)
         ivwlyc = viewers.ImageViewer3D_Sliced(ax[iWL_a][1], utils.lift_to_dimension(utils.t2np(iWL), 3), 1,
-                                              'LWarpped Y', True, True)
+                                              'LWarped Y', True, True)
         ivwlzc = viewers.ImageViewer3D_Sliced(ax[iWL_a][2], utils.lift_to_dimension(utils.t2np(iWL), 3), 2,
-                                              'LWarpped Z', True, True)
+                                              'LWarped Z', True, True)
 
     feh = viewers.FigureEventHandler(fig)
 
@@ -468,6 +472,109 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
         plt.show()
         plt.clf()
 
+def _show_current_images_3d_cp(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, phiWarped, visual_param=None, i=0,extraImage=None, extraName= None):
+    if iSL is not None and iTL is not None:
+        phiw_a = 3
+        if vizImage is None and extraImage is None:
+            fig, ax = plt.subplots(7, 3)
+            iSL_a = 4
+            iTL_a = 5
+            iWL_a = 6
+        elif extraImage is None:
+            fig, ax = plt.subplots(8, 3)
+            vizi_a = 4
+            iSL_a = 5
+            iTL_a = 6
+            iWL_a = 7
+        else:
+            if is_lung:
+                fig, ax = plt.subplots(9, 3,figsize=(6,15))
+            else:
+                fig, ax = plt.subplots(3,9, figsize=(14,5))
+            vizi_a = 4
+            ext_a = 5
+            iSL_a = 6
+            iTL_a = 7
+            iWL_a = 8
+    elif (phiWarped is not None) and (vizImage is not None):
+        fig, ax = plt.subplots(5,3)
+        phiw_a = 3
+        vizi_a = 4
+    elif (phiWarped is not None):
+        fig, ax = plt.subplots(4,3)
+        phiw_a = 3
+    elif (vizImage is not None):
+        fig, ax = plt.subplots(4,3)
+        vizi_a = 3
+    else:
+        fig, ax = plt.subplots(3,3)
+
+    plt.suptitle('Iteration = ' + str(iter))
+    plt.setp(plt.gcf(), 'facecolor', 'white')
+    plt.style.use('bmh')
+    #plt.subplots_adjust(top=0.99, bottom=0.01, hspace=0.15, wspace=0.04)
+
+    ivsx = viewers.ImageViewer3D_Sliced(ax[0][0], utils.t2np(iS), 0, 'source X', True)
+    ivsy = viewers.ImageViewer3D_Sliced(ax[1][0], utils.t2np(iS), 1, 'source Y', True)
+    ivsz = viewers.ImageViewer3D_Sliced(ax[2][0], utils.t2np(iS), 2, 'source Z', True)
+
+    ivtx = viewers.ImageViewer3D_Sliced(ax[0][1], utils.t2np(iT), 0, 'target X', True)
+    ivty = viewers.ImageViewer3D_Sliced(ax[1][1], utils.t2np(iT), 1, 'target Y', True)
+    ivtz = viewers.ImageViewer3D_Sliced(ax[2][1], utils.t2np(iT), 2, 'target Z', True)
+
+    ivwx = viewers.ImageViewer3D_Sliced(ax[0][2], utils.t2np(iW), 0, 'warped X', True)
+    ivwy = viewers.ImageViewer3D_Sliced(ax[1][2], utils.t2np(iW), 1, 'warped Y', True)
+    ivwz = viewers.ImageViewer3D_Sliced(ax[2][2], utils.t2np(iW), 2, 'warped Z', True)
+
+    if phiWarped is not None:
+        ivwxc = viewers.ImageViewer3D_Sliced_Contour(ax[0][phiw_a], utils.t2np(iW), utils.t2np(phiWarped), 0, 'warped X', True)
+        ivwyc = viewers.ImageViewer3D_Sliced_Contour(ax[1][phiw_a], utils.t2np(iW), utils.t2np(phiWarped), 1, 'warped Y', True)
+        ivwzc = viewers.ImageViewer3D_Sliced_Contour(ax[2][phiw_a], utils.t2np(iW), utils.t2np(phiWarped), 2, 'warped Z', True)
+
+    if vizImage is not None:
+        ivvxc = viewers.ImageViewer3D_Sliced(ax[0][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage),3), 0, vizName + ' X', True)
+        ivvyc = viewers.ImageViewer3D_Sliced(ax[1][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage),3), 1, vizName + ' Y', True)
+        ivvzc = viewers.ImageViewer3D_Sliced(ax[2][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage),3), 2, vizName + ' Z', True)
+    if extraImage is not None:
+        ivexc = viewers.ImageViewer3D_Sliced(ax[0][ext_a], utils.lift_to_dimension(utils.t2np(extraImage),3), 0, extraName + ' X', True)
+        iveyc = viewers.ImageViewer3D_Sliced(ax[1][ext_a], utils.lift_to_dimension(utils.t2np(extraImage),3), 1, extraName + ' Y', True)
+        ivezc = viewers.ImageViewer3D_Sliced(ax[2][ext_a], utils.lift_to_dimension(utils.t2np(extraImage),3), 2, extraName + ' Z', True)
+
+    if iSL is not None and iTL is not None:
+        ivslxc = viewers.ImageViewer3D_Sliced(ax[0][iSL_a], utils.lift_to_dimension(utils.t2np(iSL), 3), 0,
+                                              'Lsource X', True, True)
+        ivslyc = viewers.ImageViewer3D_Sliced(ax[1][iSL_a], utils.lift_to_dimension(utils.t2np(iSL), 3), 1,
+                                              'Lsource Y', True, True)
+        ivslzc = viewers.ImageViewer3D_Sliced(ax[2][iSL_a], utils.lift_to_dimension(utils.t2np(iSL), 3), 2,
+                                              'Lsource Z', True, True)
+        ivtlxc = viewers.ImageViewer3D_Sliced(ax[0][iTL_a], utils.lift_to_dimension(utils.t2np(iTL), 3), 0,
+                                              'LTarget X', True, True)
+        ivtlyc = viewers.ImageViewer3D_Sliced(ax[1][iTL_a], utils.lift_to_dimension(utils.t2np(iTL), 3), 1,
+                                              'LTarget Y', True, True)
+        ivtlzc = viewers.ImageViewer3D_Sliced(ax[2][iTL_a], utils.lift_to_dimension(utils.t2np(iTL), 3), 2,
+                                              'LTarget Z', True, True)
+        ivwlxc = viewers.ImageViewer3D_Sliced(ax[0][iWL_a], utils.lift_to_dimension(utils.t2np(iWL), 3), 0,
+                                              'LWarped X', True, True)
+        ivwlyc = viewers.ImageViewer3D_Sliced(ax[1][iWL_a], utils.lift_to_dimension(utils.t2np(iWL), 3), 1,
+                                              'LWarped Y', True, True)
+        ivwlzc = viewers.ImageViewer3D_Sliced(ax[2][iWL_a], utils.lift_to_dimension(utils.t2np(iWL), 3), 2,
+                                              'LWarped Z', True, True)
+
+
+    if visual_param is not None:
+        if i==0 and visual_param['visualize']:
+            plt.show()
+        if visual_param['save_fig']:
+            file_name = visual_param['pair_path'][i]
+            join_p = lambda pth1,pth2: os.path.join(pth1, pth2)
+            make_dir(join_p(visual_param['save_fig_path_byname'], file_name))
+            make_dir(join_p(visual_param['save_fig_path_byiter'], visual_param['iter']))
+            plt.savefig(join_p(join_p(visual_param['save_fig_path_byname'], file_name),visual_param['iter']+extension), dpi=dpi)
+            plt.savefig(join_p(join_p(visual_param['save_fig_path_byiter'], visual_param['iter']), file_name+extension), dpi=dpi)
+            plt.close('all')
+    else:
+        plt.show()
+        plt.clf()
 
 def show_current_images(iter, iS, iT, iW,iSL=None, iTL=None, iWL=None, vizImages=None, vizName=None, phiWarped=None, visual_param=None,extraImages=None, extraName= None):
     """

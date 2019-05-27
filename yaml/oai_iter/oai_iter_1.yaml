@@ -1,0 +1,79 @@
+apiVersion: batch/v1
+# Resource Type: Job, Deployment, Service, etc. Here we use Job
+# https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
+kind: Job
+metadata:
+  # The name of the job
+  name: opt1
+spec:
+  # https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/#pod-backoff-failure-policy
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: OnFailure # OnFailure or NeverW
+      # Pull from Private Registry
+      # https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+
+      # to pull from a private repo, e.g. Docker Hub
+      # https://stackoverflow.com/a/36974280
+
+      # to pull from nvidia
+      # kubectl create secret docker-registry SECRET_NAME \
+      #     --docker-server=nvcr.io
+      #     --docker-username="\$oauthtoken"
+      #     --docker-password=PASSWORD
+      #     --docker-email=EMAIL
+      imagePullSecrets:
+      - name: docker-hub
+
+      # Set the security context for a Pod
+      # https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+      securityContext:
+        runAsUser: 278036
+        fsGroup: 3427
+
+        # 999,3427,3383,6000,6178
+
+      # Volume could be: emptyPath, hostPath, etc
+      # hostPath mounts host directories into pod
+      # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+      volumes:
+      - name: proj # VOLUME_NAME
+        hostPath:
+          # directory location on host
+          path: /proj/mn/users # HOST_PATH
+          # following field is optional
+          # type: Directory
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      containers:
+      - name:  gromacs
+        # e.g. nvcr.io/nvidia/tensorflow:18.07-py3
+        image: hbgtjxzbbx/reg_clean
+        imagePullPolicy: IfNotPresent
+        resources:
+          # https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+          # You can specify GPU limits without specifying requests
+          # because Kubernetes will use the limit as the request value by default.
+          requests:
+            cpu: 4
+            memory: 20Gi
+          limits:
+            cpu: 4
+            memory: 128Gi
+            nvidia.com/gpu: 1
+
+        volumeMounts:
+        # name must match the volume name defined in volumes
+        - name: proj
+          # mount path within the container
+          mountPath: /proj
+        - name: dshm
+          mountPath: /dev/shm
+
+
+        # https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
+        command: ["/bin/bash"]
+        args: ["-c", "cd /proj/zyshen/reg_clean/demo && python single_pair_registration.py  --gpu=0 --root_path='/proj/zyshen/expri/' --task_name='rdmm_iter_wkw_formul_025_1_omt_2step_200sym_minstd_006_allinterp_maskv_epdffix'
+         --mermaid_net_json_pth='mermaid_settings/cur_settings_adpt_lddmm_new_fix_wkw_5.json'"]

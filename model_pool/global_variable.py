@@ -1,19 +1,28 @@
 is_oai = True
 is_oasis = not is_oai
-use_mermaid_iter = False
+use_mermaid_iter = False   #todo attention this should be changed
 use_odeint = True
 update_sm_by_advect = True
 update_sm_with_interpolation = True
 use_preweights_advect = True
 use_fixed_wkw_equation = True
+# todo attention the data loader should be recovered if using oai
+# todo attention the soft/abs should be checked in registration_network
+use_velocity_mask = False   # todo attention this should be true
+clamp_local_weight = True
+local_pre_weight_max =1.5  #todo attention this should be 1.5
+use_omt_const = False
+
 bysingle_int = False  # update by single phase interoplation
 
+
+is_lung = False  ###  # todo this should be False
 compute_inverse_map = False
 output_orginal_img_sz= False
 original_img_sz = [160,384,384]
 
 reg_factor_in_regnet = 1
-reg_factor_in_mermaid = 10
+reg_factor_in_mermaid = 10  # todo attention this should be 10 in learning task
 lambda_factor_in_vmr= 50.
 lambda_mean_factor_in_vmr =50
 sigma_factor_in_vmr = 0.02

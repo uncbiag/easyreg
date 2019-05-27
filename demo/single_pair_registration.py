@@ -1,11 +1,12 @@
 import matplotlib as matplt
 matplt.use('Agg')
-
+import SimpleITK as sitk
 import sys,os
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
+print(sys.path)
 from model_pool.global_variable import *
 import data_pre.module_parameters as pars
 from abc import ABCMeta, abstractmethod
@@ -124,8 +125,47 @@ def loading_img_list_from_files(path):
 
 
 
+
+#############3
+import argparse
+
+parser = argparse.ArgumentParser(description='Registeration demo (include train and test)')
+
+parser.add_argument('--gpu', required=False, type=int, default=0,
+                    help='give the id to run the gpu')
+parser.add_argument('--llf', required=False, type=bool, default=False,
+                    help='run on long leaf')
+parser.add_argument('--task_name', required=False, default='non_name',
+                    help='run on long leaf')
+parser.add_argument('--mermaid_net_json_pth', required=False,default='mermaid_settings/cur_settings_adpt_lddmm_for_oai_opt.json',
+                    help='run on long leaf')
+parser.add_argument('--root_path', required=False,default='/pine/scr/z/y/zyshen/expri/',
+                    help='run on long leaf')
+args = parser.parse_args()
+
+tsm = ModelTask('task_reg')
+dm = DataTask('task_reg')
+if not args.llf:
+    root_path = '/playpen/zyshen/data/'
+    data_task_name ='reg_debug_labeled_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_test ='reg_debug_labeled_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_train ='croped_for_reg_debug_3000_pair_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+else:
+    root_path = args.root_path
+    data_task_name = 'reg_debug_labeled_oai_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_test ='reg_debug_labeled_oai_reg_inter' #'reg_debug_3000_pair_oasis3_reg_inter'#
+    data_task_name_for_train = 'croped_for_reg_debug_3000_pair_oai_reg_inter'  # 'reg_debug_3000_pair_oasis3_reg_inter'#
+
+cur_program_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+data_output_path = os.path.join(root_path,data_task_name_for_test)
+train_path = os.path.join(root_path,data_task_name_for_train)
+
+
+###################
+
+
 read_img_list_from_txt=True
-img_list_txt_path = '/playpen/zyshen/debugs/get_val_and_debug_res/test.txt'#'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt'
+img_list_txt_path = os.path.join(root_path,'reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt') #'/playpen/zyshen/debugs/get_val_and_debug_res/test.txt'
 if not read_img_list_from_txt:
     source_path_list = ['/playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz']
     target_path_list = ['/playpen/zyshen/debugs/9002116_20050715_SAG_3D_DESS_RIGHT_10423916_image.nii.gz']
@@ -135,26 +175,46 @@ else:
     source_path_list, target_path_list,l_source_path_list,l_target_path_list = loading_img_list_from_files(img_list_txt_path)
 
 
-task_full_path = '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'
+
+
+#todo   not change here
+refer_task = 'refer_reg_adpt_lddamm_wkw_formul_025_1_omt_2step_200sym_allinterp_prew_bd_mask20'
+task_full_path = os.path.join(data_output_path,refer_task)
+    #'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'
 
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg'
     #'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'
 """ the path of the setting from a completed task"""
 
-output_path = '/playpen/zyshen/debugs/todel_4023'
+
+task_name = args.task_name
+mermaid_net_json_pth = args.mermaid_net_json_pth
+output_path = os.path.join(data_output_path,task_name)#rdmm_iter_omt2_accumiter_absw_maskmpow3_b2_fixed#rdmm_iter_omt025_accumiter_absw_zero_vel_bound_b2
 dm, tsm = init_env(task_full_path,output_path,source_path_list,target_path_list,l_source_path_list,l_target_path_list)
 optional_setting_on = True
-tsm.task_par['tsk_set']['gpu_ids'] = 3
+tsm.task_par['tsk_set']['gpu_ids'] = args.gpu
+
+
+if is_oai:
+    img_sz = [160,384,384]
+    input_resize_factor = [80./160.,192./384.,192./384]
+    spacing = [1. / (img_sz[i] * input_resize_factor[i]-1) for i in range(len(img_sz))]
+dm.data_par['datapro']['dataset']['img_size'] =img_sz#[160,384,384] #[193, 193, 229]
+dm.data_par['datapro']['reg']['input_resize_factor'] =input_resize_factor#[96. / 193., 96. / 193, 112. / 229.]
+dm.data_par['datapro']['dataset']['spacing'] =spacing#[96. / 193., 96. / 193, 112. / 229.]
+tsm.task_par['tsk_set']['input_resize_factor'] =  dm.data_par['datapro']['reg']['input_resize_factor']
+tsm.task_par['tsk_set']['img_size'] =  dm.data_par['datapro']['dataset']['img_size']
+tsm.task_par['tsk_set']['spacing'] =  dm.data_par['datapro']['dataset']['spacing']
 
 
 if optional_setting_on:
     """ the following settings are optional, if you want do something different than the loaded setting"""
     ############################### general settings ##########################
 
-    tsm.task_par['tsk_set']['network_name'] ='mermaid'
-    tsm.task_par['tsk_set']['model'] = 'reg_net'
+    tsm.task_par['tsk_set']['network_name'] ='svf'
+    tsm.task_par['tsk_set']['model'] = 'mermaid_iter'
     tsm.task_par['tsk_set']['batch_sz'] = 2  # multi sample registration is only for mermaid based methods, for other methods should always be 1
-    tsm.task_par['tsk_set']['model_path'] = '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_adpt_lddamm_wkw_formul_025_1_omt_2step_500sym_allinterp_prew_new/checkpoints/epoch_145_'
+    tsm.task_par['tsk_set']['model_path'] =''# '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_adpt_lddamm_wkw_formul_025_1_omt_2step_500sym_allinterp_prew_new/checkpoints/epoch_145_'
         #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_reg10_old_2step/checkpoints/epoch_130_'
         #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_'
         #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_baseline_continue_rk4_old/checkpoints/epoch_100_'
@@ -170,9 +230,9 @@ if optional_setting_on:
     tsm.task_par['tsk_set']['reg']['mermaid_net']['using_multi_step']=True
     tsm.task_par['tsk_set']['reg']['mermaid_net']['num_step']=2
     tsm.task_par['tsk_set']['reg']['mermaid_net']['using_affine_init']=True
-    tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = '/playpen/zyshen/reg_clean/mermaid_settings/cur_settings_adpt_lddmm_new_fix_wkw.json'
+    tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = os.path.join(cur_program_path, mermaid_net_json_pth)
 
-    affine_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
+    affine_path = os.path.join(train_path,'train_affine_net_sym_lncc/checkpoints/epoch_1070_')
     tsm.task_par['tsk_set']['reg']['mermaid_net']['affine_init_path']=affine_path
     tsm.task_par['tsk_set']['reg']['affine_net']['affine_net_iter']=7
 
@@ -185,8 +245,9 @@ if optional_setting_on:
     tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']['sigma'] =np.sqrt(0.5)
     """ for optimization-based mermaid recommand np.sqrt(1./batch_sz) for longitudinal, recommand np.sqrt(0.5/batch_sz) for cross-subject """
     """ for optimization-based mermaid recommand np.sqrt(1.) for longitudinal, recommand np.sqrt(0.5) for cross-subject """
-    tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_affine_json'] ='../model_pool/cur_settings_affine_tmp.json'
-    tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_nonp_json'] ='../model_pool/cur_settings_svf_dipr.json'
+    tsm.task_par['tsk_set']['reg']['mermaid_iter']['nonp_model_name']= 'lddmm_adapt_smoother_map'#'lddmm_shooting_map' #'lddmm_adapt_smoother_map'
+    tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_affine_json']= os.path.join(cur_program_path,'model_pool/cur_settings_affine_tmp.json')
+    tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_nonp_json'] =os.path.join(cur_program_path,mermaid_net_json_pth)
 
 force_setting(dm,tsm,output_path)
 

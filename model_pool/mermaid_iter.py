@@ -1,5 +1,5 @@
 
-from .base_model import BaseModel
+from .base_mermaid import MermaidBase
 from .losses import Loss
 from .metrics import get_multi_metric
 from model_pool.utils import *
@@ -13,12 +13,12 @@ from mermaid.pyreg.utils import compute_warped_image_multiNC
 
 import mermaid.pyreg.simple_interface as SI
 import mermaid.pyreg.fileio as FIO
-class MermaidIter(BaseModel):
+class MermaidIter(MermaidBase):
     def name(self):
         return 'reg-unet'
 
     def initialize(self,opt):
-        BaseModel.initialize(self,opt)
+        MermaidBase.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         self.input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         self.spacing= opt['tsk_set'][('spacing',1. / (np.array(self.input_img_sz) - 1),'spacing')] # np.array([0.00501306, 0.00261097, 0.00261097])*2
@@ -40,10 +40,13 @@ class MermaidIter(BaseModel):
         self.opt_mermaid= self.opt['tsk_set']['reg']['mermaid_iter']
         self.use_init_weight = self.opt_mermaid[('use_init_weight',False,'whether to use init weight for RDMM registration')]
         self.init_weight = None
+        self.nonp_model_name = self.opt_mermaid[('nonp_model_name','lddmm_adapt_smoother_map','the model name of the non-parametric registration')]
         self.setting_for_mermaid_affine = self.opt_mermaid[('mermaid_affine_json','','the json path for the setting for mermaid affine')]
         self.setting_for_mermaid_nonp = self.opt_mermaid[('mermaid_nonp_json','','the json path for the setting for mermaid non-parametric')]
         self.weights_for_fg = self.opt_mermaid[('weights_for_fg',[0,0,0,0,1.],'regularizer weight for the foregound area, this should be got from the mermaid_json file')]
         self.weights_for_bg = self.opt_mermaid[('weights_for_bg',[0,0,0,0,1.],'regularizer weight for the background area')]
+        self.saved_mermaid_setting_path = None
+        self.saved_affine_setting_path = None
 
 
 
@@ -75,6 +78,9 @@ class MermaidIter(BaseModel):
         af_sigma = self.opt_mermaid['affine']['sigma']
         self.si.opt = None
         self.si.set_initial_map(None)
+        if self.saved_affine_setting_path is None:
+            self.saved_affine_setting_path = self.save_setting(self.setting_for_mermaid_affine,self.record_path,'affine_setting.json')
+
 
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
                                 model_name='affine_map',
@@ -86,8 +92,8 @@ class MermaidIter(BaseModel):
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=af_sigma,
-                                json_config_out_filename='cur_settings_affine_output_tmp.json',  #########################################
-                                params =self.setting_for_mermaid_affine) #'../model_pool/cur_settings_affine_tmp.json'
+                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_affine_output_tmp.json'),  #########################################
+                                params =self.saved_affine_setting_path) #'../model_pool/cur_settings_affine_tmp.json'
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         self.disp = self.si.opt.optimizer.ssOpt.model.Ab
@@ -113,11 +119,13 @@ class MermaidIter(BaseModel):
 
         self.si.opt = None
         self.si.set_initial_map(affine_map.detach())
+        if self.saved_mermaid_setting_path is None:
+            self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path)
 
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
                                 map_low_res_factor=0.5,
-                                model_name='lddmm_shooting_map',
+                                model_name=self.nonp_model_name,
                                 nr_of_iterations=100,
                                 visualize_step=None,
                                 optimizer_name='lbfgs_ls',
@@ -125,8 +133,8 @@ class MermaidIter(BaseModel):
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=1,
-                                json_config_out_filename='cur_settings_svf_output_tmp1.json',
-                                params=self.setting_for_mermaid_nonp) #'../mermaid_settings/cur_settings_svf_dipr.json'
+                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
+                                params=self.saved_mermaid_setting_path) #'../mermaid_settings/cur_settings_svf_dipr.json'
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
@@ -134,8 +142,30 @@ class MermaidIter(BaseModel):
             self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
+    def modify_setting(self,params, stds, weights):
+        if stds is not None:
+            params['model']['registration_model']['forward_model']['smoother']['multi_gaussian_stds'] = stds
+        if weights is not None:
+            params['model']['registration_model']['forward_model']['smoother']['multi_gaussian_weights'] = weights
+        return params
 
+    def save_setting(self,path, output_path,fname='mermaid_setting.json', modify=False, stds=None, weights=None):
+        params = pars.ParameterDict()
+        params.load_JSON(path)
+        if modify:
+            params = self.modify_setting(params, stds, weights)
+        os.makedirs(output_path, exist_ok=True)
+        output_path = os.path.join(output_path, fname)
+        params.write_JSON(output_path, save_int=False)
+        return output_path
 
+    # def save_setting(self,path, output_path,fname='mermaid_setting.json'):
+    #     params = pars.ParameterDict()
+    #     params.load_JSON(path)
+    #     os.makedirs(output_path, exist_ok=True)
+    #     output_path = os.path.join(output_path, fname)
+    #     params.write_JSON(output_path, save_int=False)
+    #     return output_path
 
 
     def init_weight_optimization(self):
@@ -155,12 +185,18 @@ class MermaidIter(BaseModel):
         self.si.set_initial_map(affine_map.detach())
         if self.use_init_weight:
             init_weight = get_init_weight_from_label_map(self.l_moving, self.spacing,self.weights_for_bg,self.weights_for_fg)
+            init_weight = compute_warped_image_multiNC(init_weight,affine_map,self.spacing,spline_order=1,zero_boundary=False)
             self.si.set_weight_map(init_weight.detach(), freeze_weight=True)
+
+        self.nonp_model_name= 'lddmm_adapt_smoother_map'
+        if self.saved_mermaid_setting_path is None:
+            self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path,modify=True,weights=self.weights_for_fg)
+
 
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
                                 map_low_res_factor=0.5,
-                                model_name='lddmm_adapt_smoother_map',
+                                model_name=self.nonp_model_name,
                                 nr_of_iterations=100,
                                 visualize_step=None,
                                 optimizer_name='lbfgs_ls',
@@ -168,14 +204,15 @@ class MermaidIter(BaseModel):
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=1,
-                                json_config_out_filename='cur_settings_svf_output_tmp1.json',
-                                params=self.setting_for_mermaid_nonp)
+                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
+                                params=self.saved_mermaid_setting_path)
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         for i in range(self.dim):         #######################TODO #######################
             self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+
 
 
 
@@ -200,28 +237,8 @@ class MermaidIter(BaseModel):
         return self.fname_list
 
 
-    def get_warped_img_map(self,img, phi):
-        bilinear = Bilinear()
-        warped_img_map = bilinear(img, phi)
-
-        return warped_img_map
 
 
-
-    def get_warped_label_map(self,label_map, phi, sched='nn'):
-        if sched == 'nn':
-            ###########TODO temporal comment for torch1 compatability
-            try:
-                print(" the cuda nn interpolation is used")
-                warped_label_map = get_nn_interpolation(label_map, phi)
-            except:
-                warped_label_map = compute_warped_image_multiNC(label_map,phi,self.spacing,spline_order=0,zero_boundary=True,use_01_input=False)
-            # check if here should be add assert
-            assert abs(torch.sum(
-                warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
-        else:
-            raise ValueError(" the label warpping method is not implemented")
-        return warped_label_map
 
     def cal_val_errors(self):
         self.cal_test_errors()
@@ -249,7 +266,54 @@ class MermaidIter(BaseModel):
 
 
 
+
+
+    def __get_adaptive_smoother_map(self):
+        model =  self.si.opt.optimizer.ssOpt.model
+        smoother =  self.si.opt.optimizer.ssOpt.model.smoother
+        adaptive_smoother_map = model.local_weights.detach()
+        gaussian_weights = smoother.get_gaussian_weights().detach()
+        print(" the current global gaussian weight is {}".format(gaussian_weights))
+
+        gaussian_stds = smoother.get_gaussian_stds().detach()
+        print(" the current global gaussian stds is {}".format(gaussian_stds))
+        view_sz = [1] + [len(gaussian_stds)] + [1] * len(self.spacing)
+        gaussian_stds = gaussian_stds.view(*view_sz)
+        weighting_type = smoother.weighting_type
+        if weighting_type == 'w_K_w':
+            adaptive_smoother_map = adaptive_smoother_map**2 # todo   this is only necessary when we use w_K_W
+
+        smoother_map = adaptive_smoother_map*(gaussian_stds**2)
+        smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
+        #_,smoother_map = torch.max(adaptive_smoother_map.detach(),dim=1,keepdim=True)
+        self._display_stats(smoother_map.float(),'statistic for max_smoother map')
+        return smoother_map
+
+    def _display_stats(self, Ia, iname):
+
+        Ia_min = Ia.min().detach().cpu().numpy()
+        Ia_max = Ia.max().detach().cpu().numpy()
+        Ia_mean = Ia.mean().detach().cpu().numpy()
+        Ia_std = Ia.std().detach().cpu().numpy()
+
+        print('{}:after: [{:.2f},{:.2f},{:.2f}]({:.2f})'.format(iname, Ia_min,Ia_mean,Ia_max,Ia_std))
+
+
+
+
+    def get_extra_to_plot(self):
+        if self.nonp_model_name=='lddmm_adapt_smoother_map':
+            return self.__get_adaptive_smoother_map(), 'inital_weight'
+        else:
+            return None, None
+
+
+
+
+
+
     def save_fig(self,phase,standard_record=False,saving_gt=True):
+        from model_pool.global_variable import save_extra_fig
         from model_pool.visualize_registration_results import  show_current_images
         visual_param={}
         visual_param['visualize'] = False
@@ -262,56 +326,30 @@ class MermaidIter(BaseModel):
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
+        extraImage, extraName = self.get_extra_to_plot()
+
+        if save_extra_fig and extraImage is not None:
+            self.save_extra_fig(extraImage,extraName)
+
+
         if self.disp is not None and len(self.disp.shape)>2 and not self.svf_on:
             disp = ((self.disp[:,...]**2).sum(1))**0.5
-
 
         if self.svf_on:
             disp = self.disp[:,0,...]
             extra_title='affine'
-        show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
-                            disp, extra_title, self.phi, visual_param=visual_param)
+
+        if self.jacobi_map is not None:
+            disp = self.jacobi_map
+            extra_title = 'jacobi det'
+        show_current_images(self.iter_count, iS=self.moving,iT=self.target,iW=self.output,
+                            iSL=self.l_moving,iTL=self.l_target, iWL=self.warped_label_map,
+                            vizImages=disp, vizName=extra_title,phiWarped=self.phi,
+                            visual_param=visual_param,extraImages=extraImage, extraName= extraName)
 
 
-    def compute_jacobi_map(self,map,crop_boundary=False):
-        """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
-          the image direction matrix is identity."""
-        from model_pool.global_variable import save_jacobi_map
-        import SimpleITK as sitk
-        if type(map) == torch.Tensor:
-            map = map.detach().cpu().numpy()
-        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        spacing = 2. / (np.array(input_img_sz) - 1)  # the disp coorindate is [-1,1]
-        fd = fdt.FD_np(spacing)
-        dfx = fd.dXc(map[:, 0, ...])
-        dfy = fd.dYc(map[:, 1, ...])
-        dfz = fd.dZc(map[:, 2, ...])
-        jacobi_det = dfx * dfy * dfz
-        if crop_boundary:
-            crop_range = 5
-            jacobi_det = jacobi_det[:,crop_range:-crop_range,crop_range:-crop_range,crop_range:-crop_range]
-        # self.temp_save_Jacobi_image(jacobi_det,map)
-        jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])  #
-        jacobi_num = np.sum(jacobi_det < 0.)
-        print("print folds for each channel {},{},{}".format(np.sum(dfx < 0.), np.sum(dfy < 0.), np.sum(dfz < 0.)))
-        print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
-        print("the number of fold points for current batch is {}".format(jacobi_num))
-        jacobi_abs_mean = jacobi_abs / map.shape[0]
-        jacobi_num_mean = jacobi_num / map.shape[0]
-        self.jacobi_map = None
-        if save_jacobi_map:
-            jacobi_abs_map = np.abs(jacobi_det)
-            jacobi_neg_map = np.zeros_like(jacobi_det)
-            jacobi_neg_map[jacobi_det<0] =1
-            for i in range(jacobi_abs_map.shape[0]):
-                jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
-                jacobi_neg_img = sitk.GetImageFromArray(jacobi_neg_map[i])
-                pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_img.nii')
-                n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii')
-                sitk.WriteImage(jacobi_img, pth)
-                sitk.WriteImage(jacobi_neg_img, n_pth)
-            self.jacobi_map =jacobi_abs_map
-        return jacobi_abs_mean, jacobi_num_mean
+
+
 
     def save_deformation(self):
         import nibabel as nib

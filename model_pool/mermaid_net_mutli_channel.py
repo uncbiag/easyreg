@@ -254,8 +254,16 @@ class MermaidNet(nn.Module):
             else:
                 self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
 
+
         if self.mermaid_low_res_factor is not None:
-            low_s= get_resampled_image(s, self.spacing, self.lowResSize, 1, zero_boundary=True, identity_map=self.lowResIdentityMap)
+            if s.shape[0]==self.lowResIdentityMap.shape[0]:
+                low_s= get_resampled_image(s, self.spacing, self.lowResSize, 1, zero_boundary=True, identity_map=self.lowResIdentityMap)
+            else:
+                n_batch = s.shape[0]
+                lowResSize = self.lowResSize.copy()
+                lowResSize[0] = n_batch
+                low_s = get_resampled_image(s, self.spacing, lowResSize, 1, zero_boundary=True,
+                                            identity_map=self.lowResIdentityMap[0:n_batch])
             return low_s
         else:
             return None
@@ -296,7 +304,10 @@ class MermaidNet(nn.Module):
     def __get_adaptive_smoother_map(self):
 
         adaptive_smoother_map = self.mermaid_unit_st.smoother.get_deep_smoother_weights()
-        adaptive_smoother_map = adaptive_smoother_map.detach()
+        if not self.using_sym_on:
+            adaptive_smoother_map = adaptive_smoother_map.detach()
+        else:
+            adaptive_smoother_map = adaptive_smoother_map[:self.n_batch].detach()
         gaussian_weights = self.mermaid_unit_st.smoother.get_gaussian_weights()
         gaussian_weights = gaussian_weights.detach()
         print(" the current global gaussian weight is {}".format(gaussian_weights))
@@ -306,6 +317,8 @@ class MermaidNet(nn.Module):
         print(" the current global gaussian stds is {}".format(gaussian_stds))
         view_sz = [1] + [len(gaussian_stds)] + [1] * dim
         gaussian_stds = gaussian_stds.view(*view_sz)
+        adaptive_smoother_map = adaptive_smoother_map**2 # todo   this is only necessary when we use w_K_W
+
         smoother_map = adaptive_smoother_map*(gaussian_stds**2)
         smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
         #_,smoother_map = torch.max(adaptive_smoother_map.detach(),dim=1,keepdim=True)
@@ -322,14 +335,19 @@ class MermaidNet(nn.Module):
         print('{}:after: [{:.2f},{:.2f},{:.2f}]({:.2f})'.format(iname, Ia_min,Ia_mean,Ia_max,Ia_std))
 
 
-    def __transfer_return_var(self,rec_IWarped,rec_phiWarped,affine_img):
-        return (rec_IWarped * 2. - 1.).detach(), (rec_phiWarped * 2. - 1.).detach(), affine_img.detach()
+
 
     def get_extra_to_plot(self):
         if self.use_adaptive_smoother:
-            return self.__get_adaptive_smoother_map(), 'smoother_weight'
+            return self.__get_adaptive_smoother_map(), 'Inital_weight'
         else:
             return None, None
+
+
+    def __transfer_return_var(self,rec_IWarped,rec_phiWarped,affine_img):
+        return (rec_IWarped * 2. - 1.).detach(), (rec_phiWarped * 2. - 1.).detach(), affine_img.detach()
+
+
 
 
     def single_forward(self, moving, target=None):

@@ -15,7 +15,7 @@
                 "smoother": {
                     "deep_smoother": {
                         "active_unit_to_use": "leaky_relu",
-                        "deep_network_local_weight_smoothing": 0.04,
+                        "deep_network_local_weight_smoothing": 0.06,
                         "diffusion_weight_penalty": 0.0,
                         "weight_range_init_weight_penalty":1.0,
                         "weight_range_factor":6,
@@ -79,7 +79,7 @@
                     "use_weighted_linear_softmax": false,
                     "omt_power": 1.0,
                     "omt_use_log_transformed_std": true,
-                    "omt_weight_penalty": 0.25,
+                    "omt_weight_penalty": 0.5,
                     "optimize_over_deep_network": true,
                     "optimize_over_smoother_stds": false,
                     "optimize_over_smoother_weights": false,
@@ -93,12 +93,12 @@
                 "smoother_for_forward": {
                     "type": "localAdaptive"
                 }
-            }, 
+            },
             "loss": {
-                "display_max_displacement": false, 
-                "limit_displacement": false, 
+                "display_max_displacement": false,
+                "limit_displacement": false,
                 "max_displacement": 0.05
-            }, 
+            },
             "similarity_measure": {
                 "develop_mod_on": false,
                 "sigma": 1.0,
@@ -112,39 +112,39 @@
                 }
             },
             "load_velocity_from_forward_model":true,
-            "spline_order": 1, 
+            "spline_order": 1,
             "type": "lddmm_adapt_smoother_map"
         }
-    }, 
+    },
     "optimizer": {
         "lbfgs": {
-            "history_size": 5, 
-            "line_search_fn": "backtracking", 
-            "max_eval": 5, 
+            "history_size": 5,
+            "line_search_fn": "backtracking",
+            "max_eval": 5,
             "max_iter": 1
-        }, 
+        },
         "multi_scale": {
             "scale_factors": [
                 1.0,
                 0.5,
                 0.25
-            ], 
+            ],
             "scale_iterations": [
-                30,
-                30,
-                30
+                60,
+                60,
+                60
             ]
-        }, 
-        "name": "lbfgs_ls", 
+        },
+        "name": "lbfgs_ls",
         "scheduler": {
-            "factor": 0.5, 
-            "patience": 10, 
+            "factor": 0.5,
+            "patience": 10,
             "verbose": true
-        }, 
+        },
         "single_scale": {
-            "nr_of_iterations": 100, 
+            "nr_of_iterations": 100,
             "rel_ftol": 1e-09
-        }, 
+        },
         "use_step_size_scheduler": true
     }
 }
