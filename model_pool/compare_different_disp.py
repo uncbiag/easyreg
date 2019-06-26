@@ -8,10 +8,10 @@ sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
-import mermaid.pyreg.example_generation as eg
-import mermaid.pyreg.module_parameters as pars
-import mermaid.pyreg.multiscale_optimizer as MO
-import mermaid.pyreg.smoother_factory as SF
+import mermaid.example_generation as eg
+import mermaid.module_parameters as pars
+import mermaid.multiscale_optimizer as MO
+import mermaid.smoother_factory as SF
 from model_pool.nifty_reg_utils import performRegistration
 import ants
 from model_pool.ants_reg_utils import performAntsRegistration

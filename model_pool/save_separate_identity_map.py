@@ -5,7 +5,7 @@ sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
-from mermaid.pyreg.utils import identity_map_multiN
+from mermaid.utils import identity_map_multiN
 img_size = [80,192,192]
 spacing = 1. / (np.array(img_size) - 1)
 identity_map = identity_map_multiN([1,1]+img_size, spacing)

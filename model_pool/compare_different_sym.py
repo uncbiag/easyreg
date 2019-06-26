@@ -14,7 +14,7 @@ import ants
 from model_pool.nifty_reg_utils import nifty_reg_resample
 import subprocess
 import nibabel as nib
-from mermaid.pyreg.utils import identity_map_multiN
+from mermaid.utils import identity_map_multiN
 
 # record_path ='/playpen/zyshen/debugs/compare_sym'
 # moving_img_path = os.path.join('/playpen/zyshen/debugs/compare_sym', 'source.nii.gz')

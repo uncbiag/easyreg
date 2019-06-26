@@ -5,7 +5,7 @@ from __future__ import print_function
 
 from model_pool.net_utils import *
 from model_pool.global_variable import is_oai,is_oasis
-#from mermaid.pyreg.forward_models import RHSLibrary
+#from mermaid.forward_models import RHSLibrary
 
 
 

@@ -5,10 +5,10 @@ from .metrics import get_multi_metric
 from model_pool.utils import *
 from model_pool.nn_interpolation import get_nn_interpolation
 import SimpleITK as sitk
-import mermaid.pyreg.finite_differences as fdt
+import mermaid.finite_differences as fdt
 
-import mermaid.pyreg.simple_interface as SI
-import mermaid.pyreg.fileio as FIO
+import mermaid.simple_interface as SI
+import mermaid.fileio as FIO
 class MermaidIter(BaseModel):
     def name(self):
         return 'reg-unet'

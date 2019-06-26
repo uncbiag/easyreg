@@ -3,7 +3,7 @@ import subprocess
 import os
 import numpy as np
 from model_pool.nifty_reg_utils import *
-#from mermaid.pyreg.utils import identity_map_multiN
+#from mermaid.utils import identity_map_multiN
 #
 mv_path = ''
 target_path = ''
@@ -29,7 +29,7 @@ identity_map[0] = np.mgrid[0:sz[0],0:sz[1],0:sz[2]]
 idd = phi - disp
 
 print("done")
-import mermaid.pyreg.finite_differences as  fdt
+import mermaid.finite_differences as  fdt
 fd = fdt.FD_np(np.array([1.,1.,1.]))
 dfx= fd.dXf(phi[:, 0, ...])
 dfy= fd.dYf(phi[:, 1, ...])
@@ -40,7 +40,7 @@ print(jacobi_abs)
 
 
 print("done")
-import mermaid.pyreg.finite_differences as  fdt
+import mermaid.finite_differences as  fdt
 fd = fdt.FD_np(np.array([1.,1.,1.]))
 dfx= fd.dXf(disp[:, 0, ...])
 dfy= fd.dYf(disp[:, 1, ...])

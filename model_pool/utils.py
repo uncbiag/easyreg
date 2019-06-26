@@ -5,11 +5,11 @@ import torch.nn as nn
 import os
 import torchvision.utils as utils
 from skimage import color
-import mermaid.pyreg.image_sampling as py_is
-from mermaid.pyreg.data_wrapper import AdaptVal
+import mermaid.image_sampling as py_is
+from mermaid.data_wrapper import AdaptVal
 from model_pool.net_utils import gen_identity_map
 from functions.bilinear import Bilinear
-import mermaid.pyreg.utils as py_utils
+import mermaid.utils as py_utils
 
 
 def get_pair(data, pair= True, target=None):
