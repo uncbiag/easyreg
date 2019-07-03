@@ -177,11 +177,10 @@ def do_registration(refering_task_path=None,pair_txt_path=None,registration_pair
         """ for optimization-based mermaid recommand np.sqrt(1./batch_sz) for longitudinal, recommand np.sqrt(0.5/batch_sz) for cross-subject """
         """ for optimization-based mermaid recommand np.sqrt(1.) for longitudinal, recommand np.sqrt(0.5) for cross-subject """
 
-
-    force_setting(dm,tsm,output_path)
-
-
-    run_one_task()
+    force_setting(dm, tsm, output_path)
+    dm_json_path = os.path.join(task_full_path, 'cur_data_setting.json')
+    tsm_json_path = os.path.join(task_full_path, 'cur_task_setting.json')
+    run_one_task(tsm_json_path, dm_json_path)
 
 if __name__ == '__main__':
     import argparse

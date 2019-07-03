@@ -12,10 +12,10 @@ from model_pool.test_expr import test_model
 
 
 class Pipline():
-    def initialize(self):
+    def initialize(self,task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json'):
         initializer = Initializer()
-        initializer.initialize_data_manager()
-        self.tsk_opt = initializer.init_task_option()
+        initializer.initialize_data_manager(data_setting_pth)
+        self.tsk_opt = initializer.init_task_option(task_setting_pth)
         self.writer = initializer.initialize_log_env()
         self.tsk_opt = initializer.get_task_option()
         self.data_loaders = initializer.get_data_loader()
@@ -32,9 +32,9 @@ class Pipline():
 
 
 
-def run_one_task():
+def run_one_task(task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json'):
     pipline = Pipline()
-    pipline.initialize()
+    pipline.initialize(task_setting_pth,data_setting_pth)
     pipline.run_task()
 
 
