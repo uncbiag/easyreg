@@ -61,8 +61,7 @@ def force_setting(dm, tsm,output_path):
     tsk_json_path = os.path.join(task_full_path, 'cur_task_setting.json')
     tsm.save(tsk_json_path)
     dm.save(data_json_path)
-    tsm.save()
-    dm.save()
+
 
 
 def init_env(task_full_path,output_path, source_path_list, target_path_list, l_source_path_list=None, l_target_path_list=None):
@@ -178,6 +177,7 @@ def do_registration(refering_task_path=None,pair_txt_path=None,registration_pair
         """ for optimization-based mermaid recommand np.sqrt(1.) for longitudinal, recommand np.sqrt(0.5) for cross-subject """
 
     force_setting(dm, tsm, output_path)
+    task_full_path = os.path.join(os.path.join(output_path, 'reg'), 'res')
     dm_json_path = os.path.join(task_full_path, 'cur_data_setting.json')
     tsm_json_path = os.path.join(task_full_path, 'cur_task_setting.json')
     run_one_task(tsm_json_path, dm_json_path)
@@ -233,5 +233,6 @@ if __name__ == '__main__':
     -o '/playpen/zyshen/data/reg_test_for_atlas/debug' -g 2
     
     -rt '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'     -s  /playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz  -t /playpen/zyshen/debugs/atlas.nii.gz  -ls /playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz  -lt /playpen/zhenlinx/Code/OAI_analysis/atlas/atlas_60_LEFT_baseline_NMI/atlas_mask_step_10.nii.gz     -ms '/playpen/zyshen/reg_clean/mermaid_settings/cur_settings_svf.json'     -o '/playpen/zyshen/data/reg_test_for_atlas/debug' -g 2
+    -rt '/playpen/zyshen/OAI_analysis/settings/avsm'     -s  /playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_image.nii.gz  -t /playpen/zyshen/debugs/atlas.nii.gz  -ls /playpen/zyshen/debugs/9002116_20060804_SAG_3D_DESS_RIGHT_11269909_prediction_step1_batch6_16_reflect.nii.gz  -lt /playpen/zhenlinx/Code/OAI_analysis/atlas/atlas_60_LEFT_baseline_NMI/atlas_mask_step_10.nii.gz     -ms '/playpen/zyshen/reg_clean/mermaid_settings/cur_settings_svf.json'     -o '/playpen/zyshen/data/reg_test_for_atlas/debug' -g 2
 
     """
