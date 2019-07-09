@@ -2,12 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6276e5ba-c766-4737-8ef1-b118f0ca9119" name="Default" comment="input of momentum net directly interpl from input img">
-      <change afterPath="$PROJECT_DIR$/model_pool/compare_different_disp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model_pool/compare_different_sym.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model_pool/draw_grid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model_pool/save_separate_identity_map.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/registration_net.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/registration_net.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_pool/viewers.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_pool/viewers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mermaid" beforeDir="false" afterPath="$PROJECT_DIR$/mermaid" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -90,7 +88,7 @@
         <entry file="file://$PROJECT_DIR$/data_pre/get_data_for_lung_task.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="180">
-              <caret line="19" column="19" lean-forward="true" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
+              <caret line="19" column="19" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -101,7 +99,7 @@
       <file leaf-file-name="demo_for_demons.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/demo_for_demons.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1080">
+            <state>
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -112,8 +110,8 @@
       <file leaf-file-name="viewers.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/model_pool/viewers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="354" column="8" lean-forward="true" selection-start-line="354" selection-start-column="8" selection-end-line="354" selection-end-column="8" />
+            <state relative-caret-position="594">
+              <caret line="367" column="11" lean-forward="true" selection-start-line="367" selection-start-column="11" selection-end-line="367" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -121,7 +119,7 @@
       <file leaf-file-name="compare_different_sym.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model_pool/compare_different_sym.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3460">
+            <state>
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -311,10 +309,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="3905" />
-    <option name="y" value="1076" />
-    <option name="width" value="1855" />
-    <option name="height" value="1084" />
+    <option name="x" value="64" />
+    <option name="y" value="-11" />
+    <option name="width" value="1857" />
+    <option name="height" value="1092" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -322,7 +320,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -379,6 +376,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -390,7 +388,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../registration_net_old/mermaid" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -723,76 +721,61 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="3905" y="1076" width="1855" height="1084" extended-state="6" />
+    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="8" sideWeight="0.49728554" weight="0.15409483" />
       <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.2642344" side_tool="true" weight="0.19288793" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.73576564" weight="0.25446898" />
-      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" visible="true" weight="0.3275862" />
+      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" weight="0.32841614" />
       <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.7794362" weight="0.22952586" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49198452" weight="0.22413793" />
       <window_info anchor="right" id="Remote Host" order="5" sideWeight="0.50284094" side_tool="true" weight="0.26644555" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.21337755" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.104477614" />
       <window_info anchor="bottom" id="Docker" order="12" weight="0.19827586" />
       <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
-      <window_info anchor="right" id="SciView" order="6" sideWeight="0.4971591" visible="true" weight="0.13764511" />
+      <window_info anchor="right" id="SciView" order="6" sideWeight="0.4971591" visible="true" weight="0.06633499" />
       <window_info id="Structure" order="1" sideWeight="0.2994924" side_tool="true" weight="0.25096738" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.6191266" weight="0.3575184" />
       <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.10351301" />
-      <window_info anchor="bottom" id="Docker" order="12" weight="0.19827586" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="right" id="Remote Host" order="5" sideWeight="0.50284094" side_tool="true" weight="0.26644555" />
-      <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
       <window_info anchor="right" id="Data View" order="4" weight="0.32888147" />
-      <window_info anchor="right" id="SciView" order="6" sideWeight="0.4971591" visible="true" weight="0.066773936" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="TODO" order="8" sideWeight="0.49728554" weight="0.15409483" />
-      <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.73576564" weight="0.25446898" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.498618" weight="0.3275862" />
-      <window_info id="Structure" order="1" sideWeight="0.2994924" side_tool="true" weight="0.25096738" />
-      <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
-      <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49198452" weight="0.22413793" />
-      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.2642344" side_tool="true" weight="0.19288793" />
-      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" weight="0.32841614" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.6191266" weight="0.3575184" />
       <window_info anchor="bottom" id="File Transfer" order="14" sideWeight="0.66887784" weight="0.24710831" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" sideWeight="0.49806523" weight="0.3265086" />
-      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.7794362" weight="0.22952586" />
     </layout>
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.21078168" />
       <window_info anchor="bottom" id="Docker" order="12" weight="0.19827586" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Remote Host" order="5" sideWeight="0.50284094" side_tool="true" weight="0.26644555" />
-      <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
       <window_info anchor="right" id="Data View" order="4" weight="0.32888147" />
       <window_info id="Structure" order="1" sideWeight="0.2994924" side_tool="true" weight="0.25096738" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="8" sideWeight="0.49728554" weight="0.15409483" />
+      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" weight="0.32841614" />
       <window_info anchor="bottom" x="111" y="808" width="1809" height="228" id="Run" order="2" sideWeight="0.73576564" weight="0.36908516" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.7794362" weight="0.22952586" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.498618" weight="0.3275862" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.69974554" visible="true" weight="0.21078168" />
       <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.6191266" visible="true" weight="0.3575184" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49198452" weight="0.22413793" />
       <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.2642344" side_tool="true" weight="0.19288793" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.49751243" weight="0.32841614" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="right" id="SciView" order="6" sideWeight="0.4971591" visible="true" weight="0.22156334" />
       <window_info anchor="bottom" id="File Transfer" order="14" sideWeight="0.66887784" weight="0.24710831" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="right" id="Database" order="3" weight="0.32946378" />
       <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" sideWeight="0.49806523" weight="0.3265086" />
-      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.7794362" weight="0.22952586" />
+      <window_info id="Favorites" order="2" sideWeight="0.50259835" side_tool="true" weight="0.08091724" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1194,22 +1177,14 @@ else:
     <entry file="file://$PROJECT_DIR$/data_pre/get_data_for_lung_task.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
-          <caret line="19" column="19" lean-forward="true" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
+          <caret line="19" column="19" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_pool/standard_image.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1296">
-          <folding>
-            <element signature="e#24#33#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/model_pool/standard_image.py" />
     <entry file="file://$PROJECT_DIR$/model_pool/save_separate_identity_map.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -1221,25 +1196,17 @@ else:
     </entry>
     <entry file="file://$PROJECT_DIR$/model_pool/compare_different_sym.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3460">
+        <state>
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/box_plot_v2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test/box_plot_v2.py" />
     <entry file="file://$PROJECT_DIR$/model_pool/demo_for_demons.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1080">
+        <state>
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -1248,8 +1215,8 @@ else:
     </entry>
     <entry file="file://$PROJECT_DIR$/model_pool/viewers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="354" column="8" lean-forward="true" selection-start-line="354" selection-start-column="8" selection-end-line="354" selection-end-column="8" />
+        <state relative-caret-position="594">
+          <caret line="367" column="11" lean-forward="true" selection-start-line="367" selection-start-column="11" selection-end-line="367" selection-end-column="11" />
         </state>
       </provider>
     </entry>
