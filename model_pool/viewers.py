@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from future.utils import with_metaclass
-
+from model_pool.global_variable import is_lung
 def _create_some_test_data():
     a = np.sin(np.linspace(0, np.pi, 20))
     b = np.sin(np.linspace(0, np.pi*5, 20))
@@ -368,7 +368,23 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         """
         font = {'size': 5}
         plt.sca(self.ax)
-        plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1),font,y=0.85 )
+        if is_lung:
+            plt.title(self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim] - 1), font,
+                      y=1.0)
+        else:
+            plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1),font,y=0.85 )
+
+    def display_title_cp(self):
+        """
+        Display figure title
+        """
+        font = {'size': 6}
+        plt.sca(self.ax)
+        if is_lung:
+            plt.title(self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim] - 1), font,
+                      y=1.0)
+        else:
+            plt.title( self.textStr + ' = ' + str(self.index) + '/' + str(self.data.shape[self.sliceDim]-1),font,y=1)
 
     def show(self):
         """

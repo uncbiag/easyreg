@@ -281,42 +281,67 @@ class RegistrationDataset(object):
 
 
 
-# data_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter'
-# phase_list = ['train','val','debug']
+# data_path = '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter'
+# phase_list = ['test']
 # """ path for saving the pair_path_list, pair_name_list"""
-# task_output_path = '/playpen/zyshen/for_llf/croped_for_reg_debug_3000_pair_oai_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+# task_output_path = '/playpen/zyshen/for_llf/reg_debug_labeled_oai_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 # """ path for where to read the image during running the tasks"""
-# running_read_path = '/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+# running_read_path = '/pine/scr/z/y/zyshen/reg_debug_labeled_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 # """ path for where to save the data"""
-# data_output_path = '/playpen/zyshen/oai_data/croped_for_reg_debug_3000_pair_oai_reg_inter/data'
+# data_output_path = '/playpen/zyshen/oai_data/reg_debug_labeled_oai_reg_inter/data'
 # """ img path need to be replaced with running_read_img_path"""
-# real_img_path = '/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
+# real_img_path = '/playpen/zyshen/oai_data/Nifti_rescaled' #'/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
 # """ label path need to be replaced with runing_read_label_path """
-# real_label_path = ['/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
-#                    '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
-# resize_factor = [80./160.,192./384.,192./384]
+# real_label_path = ['/playpen/zyshen/oai_data/Nifti_rescaled']
+#     #['/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
+#     #               '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
+# resize_factor = [1,1,1]#[80./160.,192./384.,192./384]
+# shared_label_set=None
+
+
+
+#
+# data_path = '/playpen/zyshen/data/reg_debug_3000_pair_reg_224_oasis3_reg_inter'
+# phase_list = ['train','val','debug','test']
+# """ path for saving the pair_path_list, pair_name_list"""
+# task_output_path = '/playpen/zyshen/data/croped_lfix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+# """ path for where to read the image during running the tasks"""
+# running_read_path = '/playpen/zyshen/oasis_data/croped_lfix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
+#     #'/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+# """ path for where to save the data"""
+# data_output_path = '/playpen/zyshen/oasis_data/todel/data'
+# """ img path need to be replaced with running_read_img_path"""
+# real_img_path = '/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224'
+# """ label path need to be replaced with runing_read_label_path """
+# real_label_path = ['/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224']
+# resize_factor = [112./224.,112./224.,112./224]
+# """Attention, here we manually add id 62 into list, for it is a big structure and is not absent in val, debug, test dataset"""
+# #shared_label_set =  {0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 31, 41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 77, 80, 85, 251, 252, 253, 254, 255}
+# shared_label_set =  {0, 2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 28, 31, 41, 42, 43, 46, 47, 49, 50, 51, 52, 53, 54, 60, 63, 77}
+#
 #
 
 
 
 
-data_path = '/playpen/zyshen/data/reg_debug_3000_pair_reg_224_oasis3_reg_inter'
-phase_list = ['train','val','debug','test']
+data_path = '/playpen/zyshen/data/syn_data'
+phase_list = ['test']
 """ path for saving the pair_path_list, pair_name_list"""
-task_output_path = '/playpen/zyshen/data/croped_lfix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+task_output_path = '/playpen/zyshen/for_llf/syn_2d'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to read the image during running the tasks"""
-running_read_path = '/playpen/zyshen/oasis_data/croped_lfix_for_reg_debug_3000_pair_reg_224_oasis3_reg_inter/data'
-    #'/pine/scr/z/y/zyshen/croped_for_reg_debug_3000_pair_oai_reg_inter/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
+running_read_path = '/pine/scr/z/y/zyshen/data/syn_data/syn_2d/data'#'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to save the data"""
-data_output_path = '/playpen/zyshen/oasis_data/todel/data'
+data_output_path = '/playpen/zyshen/syn_data/2d_syn/data'
 """ img path need to be replaced with running_read_img_path"""
-real_img_path = '/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224'
+real_img_path = '/playpen/zyshen/debugs/syn_expr_0422_2' #'/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
 """ label path need to be replaced with runing_read_label_path """
-real_label_path = ['/playpen/xhs400/OASIS_3/processed_images_centered_224_224_224']
-resize_factor = [112./224.,112./224.,112./224]
-"""Attention, here we manually add id 62 into list, for it is a big structure and is not absent in val, debug, test dataset"""
-#shared_label_set =  {0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 31, 41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 77, 80, 85, 251, 252, 253, 254, 255}
-shared_label_set =  {0, 2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 28, 31, 41, 42, 43, 46, 47, 49, 50, 51, 52, 53, 54, 60, 63, 77}
+real_label_path = ['/playpen/zyshen/debugs/syn_expr_0422_2']
+    #['/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
+    #               '/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
+resize_factor = [1,1,1]#[80./160.,192./384.,192./384]
+shared_label_set=None
+
+
 
 
 

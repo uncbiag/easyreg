@@ -33,6 +33,7 @@ def save_3D_img_from_numpy(input,file_path,spacing=None,orgin=None,direction=Non
         output.SetOrigin(orgin)
     if direction is not None:
         output.SetDirection(direction)
+    os.makedirs(os.path.split(file_path)[0], exist_ok=True)
     sitk.WriteImage(output, file_path)
 
 
@@ -135,7 +136,7 @@ def plot_2d_img(img,name,path=None):
     plt.style.use('bmh')
 
     plt.subplot(sp).set_axis_off()
-    plt.imshow(utils.t2np(img)) #vmin=0.15, vmax=0.21
+    plt.imshow(utils.t2np(img))#,vmin=0.0590, vmax=0.0604) #vmin=0.0590, vmax=0.0604
     plt.colorbar().ax.tick_params(labelsize=10)
     plt.title(name, font)
     if not path:
@@ -201,6 +202,10 @@ def visualize_jacobi(phi,spacing, img=None, file_path=None, visual=True):
                     jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
                     pth = os.path.join(file_path)
                     sitk.WriteImage(jacobi_img, pth)
+
+
+
+
 
 
 

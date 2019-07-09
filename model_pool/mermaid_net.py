@@ -372,7 +372,7 @@ class MermaidNet(nn.Module):
 
     def get_extra_to_plot(self):
         if self.use_adaptive_smoother:
-            return self.__get_adaptive_smoother_map(), 'smoother_weight'
+            return self.__get_adaptive_smoother_map(), 'inital_weight'
         else:
             return None, None
 

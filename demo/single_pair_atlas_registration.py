@@ -176,7 +176,8 @@ def do_registration(refering_task_path=None,pair_txt_path=None,registration_pair
         tsm.task_par['tsk_set']['reg']['mermaid_iter']['affine']['sigma'] =np.sqrt(0.5)
         """ for optimization-based mermaid recommand np.sqrt(1./batch_sz) for longitudinal, recommand np.sqrt(0.5/batch_sz) for cross-subject """
         """ for optimization-based mermaid recommand np.sqrt(1.) for longitudinal, recommand np.sqrt(0.5) for cross-subject """
-
+        tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_affine_json'] = '../model_pool/cur_settings_affine_tmp.json'
+        tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_nonp_json'] = '../model_pool/cur_settings_svf_dipr.json'
 
     force_setting(dm,tsm,output_path)
 

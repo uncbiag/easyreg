@@ -30,7 +30,7 @@ def get_visual_param(save_path, pair_name):
     visual_param['save_fig_path_byiter'] = os.path.join(save_path, 'byiter')
     visual_param['save_fig_num'] = 1
     visual_param['pair_path'] = [pair_name]
-    visual_param['iter'] = '0'
+    visual_param['iter'] = '0' 
     return visual_param
 
 

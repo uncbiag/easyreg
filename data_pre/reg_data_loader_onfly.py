@@ -3,13 +3,8 @@ import os
 
 import blosc
 import torch
-from skimage import io, transform
-import numpy as np
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
 from data_pre.reg_data_utils import *
-from time import time
 from multiprocessing import *
 num_of_workers = 12
 blosc.set_nthreads(1)
@@ -37,19 +32,21 @@ class RegistrationDataset(Dataset):
         ind = ['train', 'val', 'test', 'debug'].index(phase)
         self.max_num_pair_to_load = reg_option['max_pair_for_loading'][ind]
         """ the max number of pairs to be loaded into the memory"""
+        self.load_init_weight=reg_option[('load_init_weight',False,'load init weight for adaptive weighting model')]
 
-        ##########################ToDO  delete this section #################################3
-        # use_extra_inter_intra_judge =True
-        # self.is_intra_reg = True
-        # if use_extra_inter_intra_judge:
-        #     self.is_intra_reg = True if 'intra' in data_path else False
-        #
-        # if self.is_intra_reg:
-        #     self.max_num_pair_to_load = -1 if phase != 'test' else 300  # 300 when test intra    150     ###################TODO ###################################3
-        #     self.turn_on_pair_regis = True if phase != 'test' else False  # True when test inter   ##########TODO ########################
-        # else:
-        #     self.max_num_pair_to_load = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
-        #     self.turn_on_pair_regis = True  # if ph
+
+        # ##########################ToDO  delete this section #################################3
+        use_extra_inter_intra_judge =True
+        self.is_intra_reg = True
+        if use_extra_inter_intra_judge:
+            self.is_intra_reg = True if 'intra' in data_path else False
+
+        if self.is_intra_reg:
+            self.max_num_pair_to_load = -1 if phase != 'test' else 300  # 300 when test intra    150     ###################TODO ###################################3
+            self.turn_on_pair_regis = True if phase != 'test' else False  # True when test inter   ##########TODO ########################
+        else:
+            self.max_num_pair_to_load = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
+            self.turn_on_pair_regis = True  # if ph
 
         ######################################################################################3
 
@@ -72,9 +69,12 @@ class RegistrationDataset(Dataset):
         if not os.path.exists(self.data_path):
             self.path_list=[]
             self.name_list=[]
+            self.init_weight_list=[]
             return
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
         self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+        if self.load_init_weight:
+            self.init_weight_list = read_txt_into_list(os.path.join(self.data_path,'pair_weight_path_list.txt'))
         if len(self.path_list[0])==4:
             self.has_label=True
 
@@ -83,12 +83,17 @@ class RegistrationDataset(Dataset):
             read_num = min(self.max_num_pair_to_load, len(self.path_list))
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
+            if self.load_init_weight:
+                self.init_weight_list = self.init_weight_list[:read_num]
 
         if self.turn_on_pair_regis and (self.phase=='train' or self.phase == 'test'): #self.phase =='test' and self.turn_on_pair_regis:
             path_list_inverse = [[path[1],path[0], path[3], path[2]] for path in self.path_list]
             name_list_inverse = [self.__inverse_name(name) for name in self.name_list]
             self.path_list += path_list_inverse
             self.name_list += name_list_inverse
+            if self.load_init_weight:
+                init_weight_inverse =[[path[1],path[0]] for path in self.init_weight_list]
+                self.init_weight_list += init_weight_inverse
 
         if len(self.name_list)==0:
             self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
@@ -231,9 +236,6 @@ class RegistrationDataset(Dataset):
 
 
 
-
-
-
     def __len__(self):
         return len(self.name_list) #############################3
 
@@ -264,6 +266,8 @@ class RegistrationDataset(Dataset):
 
         sample = {'image': np.asarray([pair_list[0]*2.-1.,pair_list[1]*2.-1.])}
         sample['pair_path'] = pair_path
+        if self.load_init_weight:
+            sample['init_weight']=self.init_weight_list[idx]
 
         if self.has_label:
             try:

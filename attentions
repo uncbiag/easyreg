@@ -43,3 +43,11 @@ for the map based weight advect method, there is no parameter added in odeint ad
     save jacobi image is turn on
 4.12  when given the code to nc, remember to comment the things in the dataloader
 todo use the softmax in real tasks?
+
+4.19 use interoplation boundary in forward_models_multi_channels
+epoch size, epoch num,numofworkds need to be reset
+4.20 when use demo_for_2d_adap_reg code, remember to set compute setting with cpu and mermaid_iter=True
+
+4.21 set self.fdt in forward_multi_channel to be interpolation boundary
+4.29
+we use momentum mask for adapt weight task, and disable the omt mask

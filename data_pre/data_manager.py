@@ -189,7 +189,7 @@ class DataManager(object):
         self.cur_dataset = reg_loader_of.RegistrationDataset
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
-        num_workers_reg ={'train':8,'val':4,'test':4,'debug':4}
+        num_workers_reg ={'train':8,'val':4,'test':4,'debug':4}#{'train':0,'val':0,'test':0,'debug':0}#{'train':8,'val':4,'test':4,'debug':4}
         shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
         dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
                                                   shuffle=shuffle_list[x], num_workers=num_workers_reg[x]) for x in self.phases}

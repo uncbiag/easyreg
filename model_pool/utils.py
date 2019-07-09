@@ -6,11 +6,12 @@ import os
 import torchvision.utils as utils
 from skimage import color
 import mermaid.pyreg.image_sampling as py_is
-from mermaid.pyreg.data_wrapper import AdaptVal
+from mermaid.pyreg.data_wrapper import AdaptVal,MyTensor
 from model_pool.net_utils import gen_identity_map
 from functions.bilinear import Bilinear
 import mermaid.pyreg.utils as py_utils
-
+import mermaid.pyreg.module_parameters as pars
+import mermaid.pyreg.smoother_factory as sf
 
 def get_pair(data, pair= True, target=None):
     if 'label' in data:
@@ -328,7 +329,7 @@ def _compute_low_res_image(I,spacing,low_res_size,zero_boundary=False):
     return low_res_image
 
 
-def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
+def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False,identity_map=None):
     """
     Resample an image to a given desired size
 
@@ -346,13 +347,73 @@ def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
     desiredSizeNC = np.array([nrOfI,nrOfC]+list(desiredSize))
 
     newspacing = spacing*((sz[2::].astype('float')-1.)/(desiredSizeNC[2::].astype('float')-1.)) ###########################################
-    idDes = AdaptVal(torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)))
+    if identity_map is not None:
+        idDes= identity_map
+    else:
+        idDes = AdaptVal(torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)))
     # now use this map for resampling
     ID = py_utils.compute_warped_image_multiNC(I, idDes, newspacing, spline_order,zero_boundary)
 
     return ID, newspacing
 
 
-def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False):
-    resampled,new_spacing = resample_image(I, spacing, desiredSize, spline_order=spline_order, zero_boundary=zero_boundary)
+def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False,identity_map=None):
+    """
+
+    :param I:  B C X Y Z
+    :param spacing: spx spy spz
+    :param desiredSize: B C X Y Z
+    :param spline_order:
+    :param zero_boundary:
+    :param identity_map:
+    :return:
+    """
+    if spacing is None:
+        img_sz = I.shape[2:]
+        spacing = 1./(np.array(img_sz)-1)
+    if identity_map is not None:
+        if I.shape[0] != identity_map.shape[0]:
+            n_batch = I.shape[0]
+            desiredSize =desiredSize.copy()
+            desiredSize[0] = n_batch
+            identity_map =  identity_map[:n_batch]
+    resampled,new_spacing = resample_image(I, spacing, desiredSize, spline_order=spline_order, zero_boundary=zero_boundary,identity_map=identity_map)
     return resampled
+
+
+
+def load_inital_weight_from_pt(path):
+    init_weight = torch.load(path)
+    return init_weight
+
+
+
+def get_init_weight_from_label_map(lsource, spacing,default_multi_gaussian_weights,multi_gaussian_weights,weight_type='w_K_w'):
+    if type(lsource)==torch.Tensor:
+        lsource = lsource.detach().cpu().numpy()
+    sz = lsource.shape[2:]
+    nr_of_mg_weights = len(default_multi_gaussian_weights)
+    sh_weights = [lsource.shape[0]] + [nr_of_mg_weights] + list(sz)
+    weights = np.zeros(sh_weights, dtype='float32')
+    for g in range(nr_of_mg_weights):
+        weights[:, g, ...] = default_multi_gaussian_weights[g]
+    indexes = np.where(lsource>0)
+    for g in range(nr_of_mg_weights):
+        weights[indexes[0], g, indexes[2], indexes[3],indexes[4]] = np.sqrt(multi_gaussian_weights[g]) if weight_type=='w_K_w' else multi_gaussian_weights[g]
+    weights = MyTensor(weights)
+    local_smoother  = get_single_gaussian_smoother(0.02,sz,spacing)
+    sm_weight = local_smoother.smooth(weights)
+    return sm_weight
+
+
+def get_single_gaussian_smoother(gaussian_std,sz,spacing):
+    s_m_params = pars.ParameterDict()
+    s_m_params['smoother']['type'] = 'gaussian'
+    s_m_params['smoother']['gaussian_std'] = gaussian_std
+    s_m = sf.SmootherFactory(sz, spacing).create_smoother(s_m_params)
+    return s_m
+
+
+
+def get_gaussion_weight_from_tsk_opt(opt):
+    return opt['']
