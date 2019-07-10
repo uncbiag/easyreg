@@ -5,12 +5,11 @@ from __future__ import print_function
 
 from model_pool.network_pool import *
 from model_pool.utils import sigmoid_explode, get_inverse_affine_param, get_warped_img_map_param, update_affine_param,get_res_size_from_size,get_res_spacing_from_spacing,_compute_low_res_image,get_resampled_image
-import mermaid.pyreg.module_parameters as pars
-import mermaid.pyreg.model_factory as py_mf
-import mermaid.pyreg.utils as py_utils
+import mermaid.module_parameters as pars
+import mermaid.model_factory as py_mf
+import mermaid.utils as py_utils
 from functools import partial
-import mermaid.pyreg.image_sampling as py_is
-from mermaid.pyreg.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
+from mermaid.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
 from model_pool.global_variable import *
 
 

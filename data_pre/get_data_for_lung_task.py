@@ -1,10 +1,10 @@
 import numpy as np
 import os
-from mermaid.pyreg.data_wrapper import MyTensor, AdaptVal
-import mermaid.pyreg.smoother_factory  as sf
-import mermaid.pyreg.module_parameters as pars
-import mermaid.pyreg.fileio as fileio
-import mermaid.pyreg.multiscale_optimizer as MO
+from mermaid.data_wrapper import MyTensor, AdaptVal
+import mermaid.smoother_factory  as sf
+import mermaid.module_parameters as pars
+import mermaid.fileio as fileio
+import mermaid.multiscale_optimizer as MO
 
 from tools.image_rescale import resize_input_img_and_save_it_as_tmp
 from tools.visual_tools import save_3D_img_from_numpy

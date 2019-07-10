@@ -8,7 +8,7 @@ from model_pool.nifty_reg_utils import nifty_reg_affine, nifty_reg_resample
 import torch
 record_path = '/playpen/zyshen/debugs/'
 from model_pool.utils import factor_tuple
-import mermaid.pyreg.finite_differences as fdt
+import mermaid.finite_differences as fdt
 
 
 def smooth_and_resample(image, shrink_factor, smoothing_sigma):

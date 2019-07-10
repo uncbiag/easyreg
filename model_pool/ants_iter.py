@@ -6,10 +6,10 @@ from .metrics import get_multi_metric
 from model_pool.utils import *
 
 from model_pool.ants_reg_utils import *
-import mermaid.pyreg.utils as py_utils
+import mermaid.utils as py_utils
 
-import mermaid.pyreg.simple_interface as SI
-import mermaid.pyreg.fileio as FIO
+import mermaid.simple_interface as SI
+import mermaid.fileio as FIO
 class AntsRegIter(BaseModel):
     def name(self):
         return 'ants_reg iter'

@@ -5,8 +5,8 @@ from model_pool import utils
 import SimpleITK as sitk
 import torch
 import numpy as np
-import mermaid.pyreg.finite_differences as fdt
-import mermaid.pyreg.utils as py_utils
+import mermaid.finite_differences as fdt
+import mermaid.utils as py_utils
 import os
 from scipy import misc
 

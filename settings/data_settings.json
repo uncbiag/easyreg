@@ -14,9 +14,9 @@
                 384
             ],
             "label_path": {},
-            "output_path": "/playpen/zyshen/data/",
+            "output_path": "/net/biag-raid1/playpen/oai_analysis_results/9000099/MR_SAG_3D_DESS/LEFT_KNEE/ENROLLMENT/avsm/detailed",
             "prepare_data": false,
-            "task_name": "debugging_demo",
+            "task_name": "reg",
             "using_normalize": true
         },
         "reg": {
@@ -29,10 +29,10 @@
             ],
             "load_training_data_into_memory": false,
             "max_pair_for_loading": [
-                100,
-                10,
-                30,
-                10
+                1,
+                1,
+                -1,
+                1
             ],
             "sched": "intra",
             "slicing": -1

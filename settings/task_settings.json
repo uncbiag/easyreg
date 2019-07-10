@@ -1,12 +1,12 @@
 {
     "tsk_set": {
-        "batch_sz": 1,
+        "batch_sz": 2,
         "check_best_model_period": 5,
         "continue_train": false,
         "continue_train_lr": 5e-05,
         "criticUpdates": 1,
         "epoch": 300,
-        "gpu_ids": 2,
+        "gpu_ids": 0,
         "img_size": [
             160,
             384,
@@ -18,28 +18,11 @@
             0.5
         ],
         "loss": {
-            "activate_epoch": 1,
             "ce": {
                 "no_bg": false,
                 "weighted": false
             },
-            "continuous_update": false,
-            "density_weight_on": false,
-            "dice_loss": {
-                "no_bg": false,
-                "weighted": false
-            },
-            "factor_update": false,
-            "focal_loss_weight_on": false,
-            "imd_weighted_loss_on": false,
-            "log_update": false,
-            "only_bg_avg_log_update": false,
-            "only_bg_avg_update": false,
-            "only_resid_update": false,
-            "residue_weight_momentum": 0.3,
-            "residue_weight_on": false,
-            "type": "lncc",
-            "update_epoch": -1
+            "type": "lncc"
         },
         "max_batch_num_per_epoch": [
             200,
@@ -49,9 +32,9 @@
         "mode_train": true,
         "model": "reg_net",
         "model_folder_path": "",
-        "model_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
+        "model_path": "/playpen/oai/registration_net/mermaid/pretrained/pre_trained_model",
         "n_in_channel": 1,
-        "network_name": "affine_cycle",
+        "network_name": "mermaid",
         "old_gpu_ids": 2,
         "optim": {
             "adam": {
@@ -81,7 +64,7 @@
         "print_val_detail": true,
         "reg": {
             "affine_net": {
-                "affine_net_iter": 1,
+                "affine_net_iter": 7,
                 "using_complex_net": true
             },
             "low_res_factor": 0.5,
@@ -91,8 +74,10 @@
                 }
             },
             "mermaid_net": {
-                "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
-                "num_step": 2,
+                "affine_init_path": "",
+                "load_trained_affine_net": false,
+                "mermaid_net_json_pth": "/playpen/oai/OAI_analysis/settings/avsm/mermaid_setting.json",
+                "num_step": 3,
                 "sym_factor": 100,
                 "using_affine_init": true,
                 "using_complex_net": true,
@@ -110,7 +95,7 @@
         "save_by_standard_label": true,
         "save_fig_on": true,
         "save_val_fig_epoch": 2,
-        "task_name": "affine_step1",
+        "task_name": "res",
         "train": false,
         "val_period": 10,
         "warmming_up_epoch": 2

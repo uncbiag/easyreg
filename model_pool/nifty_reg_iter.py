@@ -12,12 +12,12 @@ except:
     pass
 import SimpleITK as sitk
 from model_pool.nifty_reg_utils import *
-import mermaid.pyreg.utils as py_utils
+import mermaid.utils as py_utils
 
-import mermaid.pyreg.simple_interface as SI
-import mermaid.pyreg.fileio as FIO
+import mermaid.simple_interface as SI
+import mermaid.fileio as FIO
 class NiftyRegIter(BaseModel):
-    import mermaid.pyreg.utils as py_utils
+    import mermaid.utils as py_utils
     def name(self):
         return 'nifty_reg iter'
 

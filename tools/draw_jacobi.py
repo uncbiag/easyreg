@@ -1,5 +1,5 @@
 import numpy as np
-from mermaid.pyreg.viewers import *
+from mermaid.viewers import *
 import SimpleITK as sitk
 sz  = np.array([80,192,192])
 disp_pth = '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/visualize_affine/records/3D/9003406_20060322_SAG_3D_DESS_LEFT_016610899303_image_9357383_20040927_SAG_3D_DESS_LEFT_016610250606_imagemap.nii.gz'

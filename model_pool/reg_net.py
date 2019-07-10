@@ -9,7 +9,7 @@ from .network_pool import *
 from .net_utils import print_network
 from .losses import Loss
 from .metrics import get_multi_metric
-import mermaid.pyreg.finite_differences as fdt
+import mermaid.finite_differences as fdt
 from model_pool.utils import *
 from model_pool.mermaid_net_mutli_channel import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
@@ -17,7 +17,7 @@ try:
     from model_pool.nn_interpolation import get_nn_interpolation
 except:
     pass
-from mermaid.pyreg.utils import compute_warped_image_multiNC
+from mermaid.utils import compute_warped_image_multiNC
 import  tools.image_rescale as  ires
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,

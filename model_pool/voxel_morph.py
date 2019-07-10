@@ -12,13 +12,13 @@ sys.path.insert(0,os.path.abspath('..'))
 from model_pool.network_pool import *
 
 from model_pool.net_utils import gen_identity_map
-import mermaid.pyreg.finite_differences as fdt
+import mermaid.finite_differences as fdt
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functions.bilinear import *
-from mermaid.pyreg.libraries.modules import stn_nd
-from mermaid.pyreg.libraries.functions import map_scale_utils
+from mermaid.libraries.modules import stn_nd
+from mermaid.libraries.functions import map_scale_utils
 from model_pool.global_variable import *
 
 class convBlock(nn.Module):
