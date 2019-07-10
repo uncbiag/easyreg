@@ -52,7 +52,15 @@
             },
             "load_velocity_from_forward_model":true,
             "spline_order": 1, 
-            "type": "svf_vector_momentum_map"
+            "type": "svf_vector_momentum_map",
+            "env":{
+                "get_momentum_from_external_network":true,
+                "use_odeint":true,
+                "reg_factor":10.0
+                },
+            "shooting_vector_momentum":{
+                "use_velocity_mask_on_boundary":false
+            }
         }
     }, 
     "optimizer": {

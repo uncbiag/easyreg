@@ -5,7 +5,6 @@ use_odeint = True
 update_sm_by_advect = True
 update_sm_with_interpolation = True
 use_preweights_advect = True
-use_fixed_wkw_equation = True
 # todo attention the data loader should be recovered if using oai
 # todo attention the soft/abs should be checked in registration_network
 use_velocity_mask = False   # todo attention this should be true

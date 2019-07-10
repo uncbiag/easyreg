@@ -1,7 +1,6 @@
 import SimpleITK as sitk
 from data_pre.reg_data_utils import write_list_into_txt, get_file_name
 from model_pool.utils import *
-import mermaid.image_sampling as py_is
 import mermaid.utils as py_utils
 from mermaid.data_wrapper import MyTensor
 

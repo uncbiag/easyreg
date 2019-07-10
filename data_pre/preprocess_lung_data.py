@@ -11,10 +11,10 @@ import os
 from scipy.ndimage.interpolation import shift
 from tools.image_rescale import resize_input_img_and_save_it_as_tmp
 from tools.visual_tools import save_3D_img_from_numpy
-from mermaid.pyreg.data_wrapper import MyTensor, AdaptVal
-import mermaid.pyreg.smoother_factory  as sf
-import mermaid.pyreg.module_parameters as pars
-import mermaid.pyreg.fileio as fileio
+from mermaid.data_wrapper import MyTensor, AdaptVal
+import mermaid.smoother_factory  as sf
+import mermaid.module_parameters as pars
+import mermaid.fileio as fileio
 from functools import partial
 from data_pre.reg_data_utils import write_list_into_txt, get_file_name
 

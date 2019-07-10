@@ -21,15 +21,15 @@ sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
 torch.cuda.set_device(1)
-import mermaid.pyreg.module_parameters as pars
-import mermaid.pyreg.simple_interface as SI
-from mermaid.pyreg.model_evaluation import evaluate_model, evaluate_model_low_level_interface
-from mermaid.pyreg.data_wrapper import AdaptVal,MyTensor
-from mermaid.pyreg.metrics import get_multi_metric
-import mermaid.pyreg.utils as utils
+import mermaid.module_parameters as pars
+import mermaid.simple_interface as SI
+from mermaid.model_evaluation import evaluate_model, evaluate_model_low_level_interface
+from mermaid.data_wrapper import AdaptVal,MyTensor
+from mermaid.metrics import get_multi_metric
+import mermaid.utils as utils
 import tools.visual_tools as vt
 from skimage.draw._random_shapes import _generate_random_colors
-import mermaid.pyreg.finite_differences as fdt
+import mermaid.finite_differences as fdt
 import numpy as np
 from multiprocessing import *
 import progressbar as pb

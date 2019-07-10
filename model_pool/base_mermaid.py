@@ -5,8 +5,8 @@ try:
     from model_pool.nn_interpolation import get_nn_interpolation
 except:
     pass
-import mermaid.pyreg.finite_differences as fdt
-from mermaid.pyreg.utils import compute_warped_image_multiNC
+import mermaid.finite_differences as fdt
+from mermaid.utils import compute_warped_image_multiNC
 
 
 

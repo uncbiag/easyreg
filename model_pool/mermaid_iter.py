@@ -8,11 +8,11 @@ try:
 except:
     pass
 import SimpleITK as sitk
-import mermaid.pyreg.finite_differences as fdt
-from mermaid.pyreg.utils import compute_warped_image_multiNC
+import mermaid.finite_differences as fdt
+from mermaid.utils import compute_warped_image_multiNC
 
-import mermaid.pyreg.simple_interface as SI
-import mermaid.pyreg.fileio as FIO
+import mermaid.simple_interface as SI
+import mermaid.fileio as FIO
 class MermaidIter(MermaidBase):
     def name(self):
         return 'reg-unet'

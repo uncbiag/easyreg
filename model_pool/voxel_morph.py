@@ -18,7 +18,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functions.bilinear import *
 from mermaid.libraries.modules import stn_nd
-from mermaid.libraries.functions import map_scale_utils
 from model_pool.global_variable import *
 
 class convBlock(nn.Module):
