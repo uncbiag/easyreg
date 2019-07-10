@@ -137,7 +137,8 @@ def do_registration(refering_task_path=None,pair_txt_path=None,registration_pair
     tsm.task_par['tsk_set']['reg']['mermaid_net'][
         'mermaid_net_json_pth'] = mermaid_setting_file
     tsm.task_par['tsk_set']['batch_sz'] = 2
-
+    tsm.task_par['tsk_set']['save_3d_img_on'] = False
+    tsm.task_par['tsk_set']['save_fig_on'] = False
     if optional_setting_on:
         """ the following settings are optional, if you want do something different than the loaded setting"""
         ############################### general settings ##########################

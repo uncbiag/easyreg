@@ -215,20 +215,20 @@ class RegNet(MermaidBase):
         new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
         saving_original_sz_path = os.path.join(self.record_path,'original_sz')
         os.makedirs(saving_original_sz_path,exist_ok=True)
-        fname_list = list(self.fname_list)
-        ires.save_transfrom(new_phi,saving_original_sz_path,fname_list)
+        # fname_list = list(self.fname_list)
+        # ires.save_transfrom(new_phi,saving_original_sz_path,fname_list)
         fname_list = [fname + '_inv' for fname in self.fname_list]
         ires.save_transfrom(new_inv_phi, saving_original_sz_path, fname_list)
-        reference_list = self.pair_path[0]
-        fname_list = [fname+'_warped' for fname in self.fname_list]
-        ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
-        fname_list = [fname + '_inv_warped' for fname in self.fname_list]
-        ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
-        fname_list = [fname+'_moving' for fname in self.fname_list]
-        ires.save_image_with_given_reference(None,reference_list,saving_original_sz_path,fname_list)
-        reference_list = self.pair_path[1]
-        fname_list = [fname + '_target' for fname in self.fname_list]
-        ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
+        # reference_list = self.pair_path[0]
+        # fname_list = [fname+'_warped' for fname in self.fname_list]
+        # ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
+        # fname_list = [fname + '_inv_warped' for fname in self.fname_list]
+        # ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
+        # fname_list = [fname+'_moving' for fname in self.fname_list]
+        # ires.save_image_with_given_reference(None,reference_list,saving_original_sz_path,fname_list)
+        # reference_list = self.pair_path[1]
+        # fname_list = [fname + '_target' for fname in self.fname_list]
+        # ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
 
 
 
