@@ -83,8 +83,8 @@ class AntsRegIter(BaseModel):
 
             affine = sitk.AffineTransform(dimension)
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-            after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
-            after_size = [int(sz) for sz in after_size]
+            after_size = [round(img_sz[i]*factor[i]) for i in range(dimension)]
+            after_size = [round(sz) for sz in after_size]
             matrix[0, 0] =1./ factor[0]
             matrix[1, 1] =1./ factor[1]
             matrix[2, 2] =1./ factor[2]

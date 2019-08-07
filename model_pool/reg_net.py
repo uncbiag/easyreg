@@ -40,7 +40,7 @@ class RegNet(MermaidBase):
         self.print_val_detail = opt['tsk_set']['print_val_detail']
 
         input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing = np.asarray(opt['tsk_set'][('spacing',1. / (np.array(input_img_sz) - 1),'spacing')])
+        self.spacing = np.asarray(opt['dataset'][('spacing',1. / (np.array(input_img_sz) - 1),'spacing')])
 
         network_name =opt['tsk_set']['network_name']
         self.mermaid_on = True if 'mermaid' in network_name else False

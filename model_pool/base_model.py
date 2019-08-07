@@ -16,12 +16,12 @@ class BaseModel():
         self.isTrain = opt['tsk_set']['train']
         self.save_dir = opt['tsk_set']['path']['check_point_path']
         self.record_path = opt['tsk_set']['path']['record_path']
-        self.img_sz = opt['tsk_set']['img_size']
+        self.img_sz = opt['dataset']['img_size']
         self.spacing = None
         self.continue_train = opt['tsk_set']['continue_train']
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.n_in_channel = opt['tsk_set']['n_in_channel']
-        self.input_resize_factor = opt['tsk_set']['input_resize_factor']
+        self.input_resize_factor = opt['dataset']['input_resize_factor']
         self.evaluate_label_list = opt['tsk_set']['evaluate_label_list',[-100],'evaluate_label_list']
         self.optimizer= None
         self.lr_scheduler = None

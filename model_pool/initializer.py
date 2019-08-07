@@ -22,24 +22,36 @@ class Initializer():
             pass
 
     def init_task_option(self, setting_path='../settings/task_settings.json'):
+        par_dataset = pars.ParameterDict()
+        if self.task_root_path:
+            par_dataset.load_JSON(os.path.join(self.task_root_path, 'data_settings.json'))
         self.task_opt = pars.ParameterDict()
         self.task_opt.load_JSON(setting_path)
-        self.task_opt['tsk_set']['extra_info'] = self.get_info_dic()
+        #self.task_opt['tsk_set']['extra_info'] = self.get_info_dic()
         self.task_name = self.task_opt['tsk_set']['task_name']
-        par_dataset = pars.ParameterDict()
-        par_dataset.load_JSON(os.path.join(self.task_root_path,'data_settings.json'))
-        self.task_opt['dataset'] = self.task_opt[('dataset',{},'settings for dataset')]
+        if self.task_root_path is None:
+            self.task_root_path = self.task_opt['tsk_set']['data_folder']
+            par_dataset= self.task_opt['dataset']
+            self.data_manager.set_reg_option(par_dataset)
+            self.data_manager.manual_set_task_root_path(self.task_root_path)
+        else:
+            self.task_opt['dataset'] = par_dataset
         return self.task_opt
 
     def get_task_option(self):
         return self.task_opt
 
-    
-    def initialize_data_manager(self, setting_path='../settings/data_settings.json'):
+    def initialize_data_manager(self, setting_path='../settings/data_settings.json', task_path=None):
+        if setting_path is not None:
+            self.__initialize_data_manager(setting_path)
+        else:
+            self.task_root_path=None
+            self.data_manager = DataManager(task_name=None, dataset_name=None)
+
+    def __initialize_data_manager(self, setting_path='../settings/data_settings.json'):
         par_dataset = pars.ParameterDict()
         par_dataset.load_JSON(setting_path)
         task_type = par_dataset['datapro']['task_type']
-
         # switch to exist task
         switch_to_exist_task = par_dataset['datapro']['switch']['switch_to_exist_task']
         task_root_path = par_dataset['datapro']['switch']['task_root_path']
@@ -57,20 +69,13 @@ class Initializer():
     
     
         # settings for reg
-        sched = par_dataset['datapro']['reg']['sched'] if task_type=='reg' else par_dataset['datapro']['seg']['sched']
-        reg_full_comb = par_dataset['datapro']['reg']['all_comb']
-        reg_slicing = par_dataset['datapro']['reg']['slicing']
-        reg_axis = par_dataset['datapro']['reg']['axis']
+        sched = par_dataset['datapro']['reg']['sched']
         reg_option = par_dataset['datapro']['reg']
-
-
-    
         self.data_manager = DataManager(task_name=data_pro_task_name, dataset_name=dataset_name)
         self.data_manager.set_task_type(task_type)
         if switch_to_exist_task:
             self.data_manager.manual_set_task_root_path(task_root_path)
         else:
-    
             self.data_manager.set_sched(sched)
             self.data_manager.set_data_path(data_path)
             self.data_manager.set_output_path(output_path)
@@ -78,8 +83,6 @@ class Initializer():
             self.data_manager.set_divided_ratio(divided_ratio)
             # reg
             self.data_manager.set_reg_option(reg_option)
-            self.data_manager.set_full_comb(reg_full_comb)
-            self.data_manager.set_slicing(reg_slicing, reg_axis)
 
             self.data_manager.generate_saving_path(auto=False)
             self.data_manager.generate_task_path()
@@ -89,7 +92,6 @@ class Initializer():
                 par_dataset.load_JSON(setting_path)
 
             par_dataset.write_ext_JSON(os.path.join(self.data_manager.get_task_root_path(), 'data_settings.json'))
-
             task_root_path = self.data_manager.get_task_root_path()
 
         self.task_root_path = task_root_path

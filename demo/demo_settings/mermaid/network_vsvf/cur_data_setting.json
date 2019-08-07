@@ -1,0 +1,47 @@
+{
+    "datapro": {
+        "dataset": {
+            "data_path": {},
+            "dataset_name": "oai",
+            "divided_ratio": [
+                0.7,
+                0.1,
+                0.2
+            ],
+            "img_size": [
+                160,
+                384,
+                384
+            ],
+            "label_path": {},
+            "output_path": "/playpen/zyshen/debug_altas",
+            "prepare_data": false,
+            "task_name": "debug_altas",
+            "using_normalize": true
+        },
+        "reg": {
+            "all_comb": false,
+            "axis": -1,
+            "input_resize_factor": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "load_training_data_into_memory": false,
+            "max_pair_for_loading": [
+                100,
+                10,
+                30,
+                10
+            ],
+            "sched": "intra",
+            "slicing": -1
+        },
+        "seg": {},
+        "switch": {
+            "switch_to_exist_task": false,
+            "task_root_path": "/playpen/zyshen/data/oasis_inter_slicing90"
+        },
+        "task_type": "reg"
+    }
+}

@@ -20,9 +20,6 @@ class MermaidIter(MermaidBase):
     def initialize(self,opt):
         MermaidBase.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        self.input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing= opt['tsk_set'][('spacing',1. / (np.array(self.input_img_sz) - 1),'spacing')] # np.array([0.00501306, 0.00261097, 0.00261097])*2
-        self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         network_name =opt['tsk_set']['network_name']
         self.single_mod = True
         if network_name =='affine':
@@ -58,6 +55,10 @@ class MermaidIter(MermaidBase):
         data[0]['label'] =data[0]['label'].cuda()
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
+        self.img_sz  = list(moving.shape)[2:]
+        self.input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        self.spacing = self.opt['dataset'][('spacing', 1. / (np.array(self.input_img_sz) - 1),'spacing')]
+        self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         self.moving = moving
         self.target = target
         self.l_moving = l_moving

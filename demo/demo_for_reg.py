@@ -109,7 +109,7 @@ dm.data_par['datapro']['task_type']='reg'
 """ task type,  only support 'reg' """
 dm.data_par['datapro']['dataset']['dataset_name']='oai'
 """ dataset name,  is not used if the data has already been manually prepared"""
-dm.data_par['datapro']['reg']['sched']= 'inter'  # no usage now
+dm.data_par['datapro']['reg']['sched']= 'inter'  # to remove
 """ dataset type, 'intra' for longitudinal,'inter' for cross-subject,  is not used if the data has manually prepared"""
 dm.data_par['datapro']['dataset']['output_path']= root_path
 """ the root path, refers to the [root_path]  in  root_path/data_task_name/cur_task_name  """

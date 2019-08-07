@@ -1,0 +1,112 @@
+{
+    "tsk_set": {
+        "batch_sz": 2,
+        "check_best_model_period": 5,
+        "continue_train": false,
+        "continue_train_lr": 5e-05,
+        "criticUpdates": 1,
+        "epoch": 300,
+        "gpu_ids": 3,
+        "loss": {
+            "ce": {
+                "no_bg": false,
+                "weighted": false
+            },
+            "type": "lncc"
+        },
+        "max_batch_num_per_epoch": [
+            200,
+            8,
+            4
+        ],
+        "mode_train": false,
+        "model": "mermaid_iter",
+        "model_folder_path": "",
+        "model_path": "",
+        "n_in_channel": 1,
+        "network_name": "svf",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 5e-05,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 12000
+                },
+                "plateau": {
+                    "factor": 0.2,
+                    "min_lr": 1e-06,
+                    "patience": 5,
+                    "threshold": 0.001
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_path": "./demo_output/mermaid/opt_vsvf/reg",
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "affine_net_iter": 7,
+                "using_complex_net": true
+            },
+            "low_res_factor": 0.5,
+            "mermaid_iter": {
+                "affine": {
+                    "sigma": 0.7
+                }
+            },
+            "mermaid_net": {
+                "affine_init_path": "",
+                "load_trained_affine_net": false,
+                "num_step": 3,
+                "sym_factor": 100,
+                "using_affine_init": true,
+                "using_complex_net": true,
+                "using_index_coord": false,
+                "using_lddmm": false,
+                "using_multi_step": true,
+                "using_sym": false
+            }
+        },
+        "save_by_standard_label": true,
+        "save_fig_on": true,
+        "save_val_fig_epoch": 2,
+        "spacing": {},
+        "task_name": "res",
+        "train": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    },
+    "dataset": {
+        "load_training_data_into_memory": false,
+        "img_size": [
+            178,
+            178,
+            138
+        ],
+        "img_after_resize": [
+            176,
+            176,
+            128
+        ],
+        "input_resize_factor": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "max_pair_for_loading": [
+            1,
+            1,
+            -1,
+            1
+        ]
+    }
+}

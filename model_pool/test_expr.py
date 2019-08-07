@@ -21,7 +21,6 @@ def test_model(opt,model, dataloaders):
 def __test_model(opt,model,dataloaders, model_path,task_name=''):
     since = time()
     record_path = opt['tsk_set']['path']['record_path']
-    label_num = opt['tsk_set']['extra_info']['num_label']
     cur_gpu_id = opt['tsk_set']['gpu_ids']
     running_range=[-1]#opt['tsk_set']['running_range']  # todo should be [-1]
     running_part_data = running_range[0]>=0
