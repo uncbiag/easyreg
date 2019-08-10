@@ -1,6 +1,6 @@
 {
     "tsk_set": {
-        "batch_sz": 2,
+        "batch_sz": 1,
         "check_best_model_period": 5,
         "continue_train": false,
         "continue_train_lr": 5e-05,
@@ -58,7 +58,11 @@
                 "using_complex_net": true
             },
             "low_res_factor": 0.5,
+            "compute_inverse_map": true,
             "mermaid_iter": {
+                "use_init_weight": false,
+                "mermaid_affine_json": "./demo_settings/mermaid/opt_vsvf/mermaid_affine_settings.json",
+                "mermaid_nonp_json": "./demo_settings/mermaid/opt_vsvf/mermaid_nonp_settings.json",
                 "affine": {
                     "sigma": 0.7
                 }
@@ -79,6 +83,8 @@
         "save_by_standard_label": true,
         "save_fig_on": true,
         "save_val_fig_epoch": 2,
+        "save_3d_img_on": false,
+        "output_orginal_img_sz": true,
         "spacing": {},
         "task_name": "res",
         "train": false,
@@ -87,21 +93,7 @@
     },
     "dataset": {
         "load_training_data_into_memory": false,
-        "img_size": [
-            178,
-            178,
-            138
-        ],
-        "img_after_resize": [
-            176,
-            176,
-            128
-        ],
-        "input_resize_factor": [
-            1.0,
-            1.0,
-            1.0
-        ],
+        "img_after_resize": [-1,-1,-1],
         "max_pair_for_loading": [
             1,
             1,

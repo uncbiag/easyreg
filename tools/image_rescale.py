@@ -96,7 +96,6 @@ def resample_warped_phi_and_image(source,phi,spacing, new_sz,using_file_list=Tru
 
 
 def save_transfrom(transform,path=None, fname=None,using_affine=False):
-
     if not using_affine:
         if type(transform) == torch.Tensor:
             transform = transform.detach().cpu().numpy()

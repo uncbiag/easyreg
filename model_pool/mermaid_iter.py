@@ -7,12 +7,9 @@ try:
     from model_pool.nn_interpolation import get_nn_interpolation
 except:
     pass
-import SimpleITK as sitk
-import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
 
 import mermaid.simple_interface as SI
-import mermaid.fileio as FIO
 class MermaidIter(MermaidBase):
     def name(self):
         return 'reg-unet'
@@ -21,29 +18,32 @@ class MermaidIter(MermaidBase):
         MermaidBase.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
         network_name =opt['tsk_set']['network_name']
-        self.single_mod = True
         if network_name =='affine':
             self.affine_on = True
-            self.svf_on = False
+            self.nonp_on = False
         elif network_name =='svf':
             self.affine_on = True
-            self.svf_on = True
+            self.nonp_on = True
         self.si = SI.RegisterImagePair()
-        self.im_io = FIO.ImageIO()
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
+        self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         self.opt_mermaid= self.opt['tsk_set']['reg']['mermaid_iter']
         self.use_init_weight = self.opt_mermaid[('use_init_weight',False,'whether to use init weight for RDMM registration')]
         self.init_weight = None
-        self.nonp_model_name = self.opt_mermaid[('nonp_model_name','lddmm_adapt_smoother_map','the model name of the non-parametric registration')]
         self.setting_for_mermaid_affine = self.opt_mermaid[('mermaid_affine_json','','the json path for the setting for mermaid affine')]
         self.setting_for_mermaid_nonp = self.opt_mermaid[('mermaid_nonp_json','','the json path for the setting for mermaid non-parametric')]
+        nonp_settings = pars.ParameterDict()
+        nonp_settings.load_JSON(self.setting_for_mermaid_nonp)
+        self.nonp_model_name  = nonp_settings['model']['registration_model']['type']
         self.weights_for_fg = self.opt_mermaid[('weights_for_fg',[0,0,0,0,1.],'regularizer weight for the foregound area, this should be got from the mermaid_json file')]
         self.weights_for_bg = self.opt_mermaid[('weights_for_bg',[0,0,0,0,1.],'regularizer weight for the background area')]
         self.saved_mermaid_setting_path = None
         self.saved_affine_setting_path = None
+        self.inversed_map = None
+
 
 
 
@@ -55,9 +55,10 @@ class MermaidIter(MermaidBase):
         data[0]['label'] =data[0]['label'].cuda()
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
-        self.img_sz  = list(moving.shape)[2:]
-        self.input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing = self.opt['dataset'][('spacing', 1. / (np.array(self.input_img_sz) - 1),'spacing')]
+        self.input_img_sz  = list(moving.shape)[2:]
+        self.original_im_sz = data[0]['original_sz']
+        self.original_spacing = data[0]['original_spacing']
+        self.spacing = data[0]['spacing'] if self.use_physical_coord else 1. / (np.array(self.input_img_sz) - 1)
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         self.moving = moving
         self.target = target
@@ -65,17 +66,15 @@ class MermaidIter(MermaidBase):
         self.l_target = l_target
         self.input = input
         self.fname_list = list(data[1])
-        #print(moving.shape,target.shape)
+        self.pair_path = data[0]['pair_path']
+
 
 
 
     def affine_optimization(self):
         self.si = SI.RegisterImagePair()
-
-        self.si.set_light_analysis_on(True)
-        extra_info={}
-        extra_info['pair_name'] = self.fname_list[0]
-        extra_info['batch_id'] = self.fname_list[0]
+        extra_info = pars.ParameterDict()
+        extra_info['pair_name'] = self.fname_list
         af_sigma = self.opt_mermaid['affine']['sigma']
         self.si.opt = None
         self.si.set_initial_map(None)
@@ -84,7 +83,6 @@ class MermaidIter(MermaidBase):
 
 
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
-                                model_name='affine_map',
                                 map_low_res_factor=1.0,
                                 nr_of_iterations=100,
                                 visualize_step=None,
@@ -93,15 +91,20 @@ class MermaidIter(MermaidBase):
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=af_sigma,
-                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_affine_output_tmp.json'),  #########################################
+                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_affine_output.json'),  #########################################
                                 params =self.saved_affine_setting_path) #'../model_pool/cur_settings_affine_tmp.json'
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
-        self.disp = self.si.opt.optimizer.ssOpt.model.Ab
-        # self.phi = self.phi*2-1
         self.phi = self.phi.detach().clone()
-        for i in range(self.dim):         #######################TODO #######################
-            self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
+        for i in range(self.dim):
+            self.phi[:, i, ...] = self.phi[:, i, ...] / ((self.input_img_sz[i] - 1) * self.spacing[i])
+
+        Ab = self.si.opt.optimizer.ssOpt.model.Ab
+        if self.compute_inverse_map:
+            inv_Ab = py_utils.get_inverse_affine_param(Ab.detach())
+            identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
+            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, MyTensor(identity_map))  ##########################3
+        self.disp = Ab
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
 
 
@@ -109,24 +112,16 @@ class MermaidIter(MermaidBase):
         affine_map = self.si.opt.optimizer.ssOpt.get_map()
 
         self.si =  SI.RegisterImagePair()
-        self.si.set_light_analysis_on(True)
-        extra_info = {}
-        extra_info['pair_name'] = self.fname_list[0]
-        extra_info['batch_id'] = self.fname_list[0]
-        # self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
-        # LSource_warped = self.si.get_warped_label()
-        # LSource_warped.detach_()
-
-
+        extra_info = pars.ParameterDict()
+        extra_info['pair_name'] = self.fname_list
         self.si.opt = None
-        self.si.set_initial_map(affine_map.detach())
+        self.si.set_initial_map(affine_map.detach(), self.inversed_map.detach())
         if self.saved_mermaid_setting_path is None:
             self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path)
 
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
                                 map_low_res_factor=0.5,
-                                model_name=self.nonp_model_name,
                                 nr_of_iterations=100,
                                 visualize_step=None,
                                 optimizer_name='lbfgs_ls',
@@ -134,14 +129,70 @@ class MermaidIter(MermaidBase):
                                 rel_ftol=0,
                                 similarity_measure_type='lncc',
                                 similarity_measure_sigma=1,
+                                compute_inverse_map=self.compute_inverse_map,
                                 json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
                                 params=self.saved_mermaid_setting_path) #'../mermaid_settings/cur_settings_svf_dipr.json'
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
-        for i in range(self.dim):         #######################TODO #######################
-            self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
+        for i in range(self.dim):
+            self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
+
+        if self.compute_inverse_map:
+            self.inversed_map = self.si.get_inverse_map().detach()
         return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+
+
+
+
+
+    def init_weight_optimization(self):
+        affine_map = self.si.opt.optimizer.ssOpt.get_map()
+
+        self.si =  SI.RegisterImagePair()
+        extra_info = pars.ParameterDict()
+        extra_info['pair_name'] = self.fname_list[0]
+        extra_info['batch_id'] = self.fname_list[0]
+
+        self.si.opt = None
+        self.si.set_initial_map(affine_map.detach())
+        if self.use_init_weight:
+            init_weight = get_init_weight_from_label_map(self.l_moving, self.spacing,self.weights_for_bg,self.weights_for_fg)
+            init_weight = compute_warped_image_multiNC(init_weight,affine_map,self.spacing,spline_order=1,zero_boundary=False)
+            self.si.set_weight_map(init_weight.detach(), freeze_weight=True)
+
+        if self.saved_mermaid_setting_path is None:
+            self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path,modify=True,weights=self.weights_for_fg)
+
+
+        self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
+                                LTarget=self.l_target,
+                                map_low_res_factor=0.5,
+                                nr_of_iterations=100,
+                                visualize_step=None,
+                                optimizer_name='lbfgs_ls',
+                                use_multi_scale=True,
+                                rel_ftol=0,
+                                similarity_measure_type='lncc',
+                                similarity_measure_sigma=1,
+                                compute_inverse_map=self.compute_inverse_map,
+                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
+                                params=self.saved_mermaid_setting_path)
+        self.disp = self.output
+        self.output = self.si.get_warped_image()
+        self.phi = self.si.opt.optimizer.ssOpt.get_map()
+        for i in range(self.dim):
+            self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
+
+        if self.compute_inverse_map:
+            self.inversed_map = self.si.get_inverse_map().detach()
+        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+
+
+
+
+
+
 
     def modify_setting(self,params, stds, weights):
         if stds is not None:
@@ -160,73 +211,27 @@ class MermaidIter(MermaidBase):
         params.write_JSON(output_path, save_int=False)
         return output_path
 
-    # def save_setting(self,path, output_path,fname='mermaid_setting.json'):
-    #     params = pars.ParameterDict()
-    #     params.load_JSON(path)
-    #     os.makedirs(output_path, exist_ok=True)
-    #     output_path = os.path.join(output_path, fname)
-    #     params.write_JSON(output_path, save_int=False)
-    #     return output_path
 
 
-    def init_weight_optimization(self):
-        affine_map = self.si.opt.optimizer.ssOpt.get_map()
 
-        self.si =  SI.RegisterImagePair()
-        self.si.set_light_analysis_on(True)
-        extra_info = {}
-        extra_info['pair_name'] = self.fname_list[0]
-        extra_info['batch_id'] = self.fname_list[0]
-        # self.si.opt.optimizer.ssOpt.set_source_label(self.l_moving)
-        # LSource_warped = self.si.get_warped_label()
-        # LSource_warped.detach_()
-
-
-        self.si.opt = None
-        self.si.set_initial_map(affine_map.detach())
-        if self.use_init_weight:
-            init_weight = get_init_weight_from_label_map(self.l_moving, self.spacing,self.weights_for_bg,self.weights_for_fg)
-            init_weight = compute_warped_image_multiNC(init_weight,affine_map,self.spacing,spline_order=1,zero_boundary=False)
-            self.si.set_weight_map(init_weight.detach(), freeze_weight=True)
-
-        self.nonp_model_name= 'lddmm_adapt_smoother_map'
-        if self.saved_mermaid_setting_path is None:
-            self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path,modify=True,weights=self.weights_for_fg)
-
-
-        self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
-                                LTarget=self.l_target,
-                                map_low_res_factor=0.5,
-                                model_name=self.nonp_model_name,
-                                nr_of_iterations=100,
-                                visualize_step=None,
-                                optimizer_name='lbfgs_ls',
-                                use_multi_scale=True,
-                                rel_ftol=0,
-                                similarity_measure_type='lncc',
-                                similarity_measure_sigma=1,
-                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
-                                params=self.saved_mermaid_setting_path)
-        self.disp = self.output
-        self.output = self.si.get_warped_image()
-        self.phi = self.si.opt.optimizer.ssOpt.get_map()
-        for i in range(self.dim):         #######################TODO #######################
-            self.phi[:,i,...] = self.phi[:,i,...] *2/ ((self.input_img_sz[i]-1)*self.spacing[i]) -1.
-        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
-
+    def save_image_into_original_sz_with_given_reference(self):
+        # the original image sz in one batch should be the same
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0],self.phi, inverse_phi=self.inversed_map, use_01=True)
 
 
 
 
     def forward(self,input=None):
-        if self.affine_on and not self.svf_on:
+        if self.affine_on and not self.nonp_on:
             return self.affine_optimization()
-        elif self.svf_on and not self.use_init_weight:
+        elif self.nonp_on and not self.use_init_weight:
             self.affine_optimization()
             return self.svf_optimization()
-        elif self.svf_on and self.use_init_weight:
+        elif self.nonp_on and self.use_init_weight:
             self.affine_optimization()
             return self.init_weight_optimization()
+
+
 
 
 
@@ -249,12 +254,12 @@ class MermaidIter(MermaidBase):
 
     def get_evaluation(self):
         self.output, self.phi, self.disp= self.forward()
-        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=True)
         warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
         self.l_target_np= self.l_target.detach().cpu().numpy()
 
         self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-        self.jacobi_val = self.compute_jacobi_map(self.phi)
+        self.jacobi_val = self.compute_jacobi_map(self.phi, crop_boundary=True, use_01=True)
         print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
 
 
@@ -333,10 +338,10 @@ class MermaidIter(MermaidBase):
             self.save_extra_fig(extraImage,extraName)
 
 
-        if self.disp is not None and len(self.disp.shape)>2 and not self.svf_on:
+        if self.disp is not None and len(self.disp.shape)>2 and not self.nonp_on:
             disp = ((self.disp[:,...]**2).sum(1))**0.5
 
-        if self.svf_on:
+        if self.nonp_on:
             disp = self.disp[:,0,...]
             extra_title='affine'
 

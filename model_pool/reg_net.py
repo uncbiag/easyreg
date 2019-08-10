@@ -17,7 +17,6 @@ try:
 except:
     pass
 from mermaid.utils import compute_warped_image_multiNC
-import  tools.image_rescale as  ires
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
@@ -52,7 +51,6 @@ class RegNet(MermaidBase):
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
-        self.single_mod = opt['tsk_set']['reg'][('single_mod',True,'whether iter the whole model')]
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
         self.multi_gpu_on = False
@@ -80,7 +78,6 @@ class RegNet(MermaidBase):
         img_and_label, self.fname_list = data
         self.pair_path = data[0]['pair_path']
         img_and_label['image'] =img_and_label['image'].cuda()
-
         if 'label' in img_and_label:
             img_and_label['label'] =img_and_label['label'].cuda()
         moving, target, l_moving,l_target = get_pair(img_and_label)
@@ -88,6 +85,8 @@ class RegNet(MermaidBase):
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
+        self.original_spacing = data[0]['original_spacing']
+
 
 
 
@@ -188,47 +187,22 @@ class RegNet(MermaidBase):
         self.output, self.phi, self.disp_or_afparam,_= self.forward()
         self.warped_label_map=None
         if self.l_moving is not None:
-            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi)
+            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=False)
             print("!!!!!!!!!!!!!!!!testing the time cost is {}".format(time() - s1))
             warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
             self.l_target_np= self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-        self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy() )
+        self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True, use_01=False)
         print("current batch jacobi is {}".format(self.jacobi_val))
 
     def get_extra_res(self):
         return self.jacobi_val
 
 
-
     def save_image_into_original_sz_with_given_reference(self):
-        from model_pool.global_variable import original_img_sz
-        num_batch = self.moving.shape[0]
-        img_sz_new = [num_batch,1]+original_img_sz
-        spacing = self.spacing
-        inverse_phi = self.network.get_inverse_map(use_01=True)
-        moving_list = self.pair_path[0]
-        target_list =self.pair_path[1]
-        phi = (self.phi+1)/2.
-        new_phi, warped, new_spacing =ires.resample_warped_phi_and_image(moving_list, phi,spacing,img_sz_new)
-        new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
-        saving_original_sz_path = os.path.join(self.record_path,'original_sz')
-        os.makedirs(saving_original_sz_path,exist_ok=True)
-        fname_list = list(self.fname_list)
-        ires.save_transfrom(new_phi,saving_original_sz_path,fname_list)
-        fname_list = [fname + '_inv' for fname in self.fname_list]
-        ires.save_transfrom(new_inv_phi, saving_original_sz_path, fname_list)
-        reference_list = self.pair_path[0]
-        fname_list = [fname+'_warped' for fname in self.fname_list]
-        ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
-        fname_list = [fname + '_inv_warped' for fname in self.fname_list]
-        ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
-        fname_list = [fname+'_moving' for fname in self.fname_list]
-        ires.save_image_with_given_reference(None,reference_list,saving_original_sz_path,fname_list)
-        reference_list = self.pair_path[1]
-        fname_list = [fname + '_target' for fname in self.fname_list]
-        ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
+        inverse_phi = self.network.get_inverse_map(use_01=False)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_spacing[0], self.phi, inverse_phi=inverse_phi, use_01=False)
 
 
 

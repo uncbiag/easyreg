@@ -56,6 +56,7 @@ class MermaidNet(nn.Module):
 
         self.using_physical_coord = opt_mermaid[('using_physical_coord',False,'use physical coordinate system')]
         self.loss_type = opt['tsk_set']['loss']['type']
+        self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','../mermaid/demos/cur_settings_lbfgs.json',"the path for mermaid settings json")]
         self.using_sym_on = opt_mermaid['using_sym']
         self.sym_factor = opt_mermaid['sym_factor']
@@ -160,7 +161,7 @@ class MermaidNet(nn.Module):
         else:
             # computes model and similarity at the same resolution
             mf = py_mf.ModelFactory(self.img_sz, spacing, self.img_sz, spacing)
-        model_st, criterion_st = mf.create_registration_model(model_name, params['model'], compute_inverse_map=compute_inverse_map)
+        model_st, criterion_st = mf.create_registration_model(model_name, params['model'], compute_inverse_map=self.compute_inverse_map)
 
 
         if use_map:
@@ -277,20 +278,20 @@ class MermaidNet(nn.Module):
         """
         if self.mermaid_low_res_factor is not None:
             self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)  ##########3 TODO  here the input shouold be low_s low_t if self.mermaid_low_res_factor is not None otherwise s,t
-            if not compute_inverse_map:
+            if not self.compute_inverse_map:
                 maps = mermaid_unit(self.lowRes_fn(phi), low_s, variables_from_optimizer={'epoch':self.epoch})
             else:
                 maps, inverse_maps = mermaid_unit(self.lowRes_fn(phi), low_s,phi_inv=self.lowRes_fn(inv_map), variables_from_optimizer={'epoch':self.epoch})
 
             desiredSz = self.img_sz
             rec_phiWarped = get_resampled_image(maps, self.lowResSpacing, desiredSz, 1,zero_boundary=False,identity_map=self.identityMap)
-            if compute_inverse_map:
+            if self.compute_inverse_map:
                 self.inverse_map = get_resampled_image(inverse_maps, self.lowResSpacing, desiredSz, 1,
                                                                   zero_boundary=False,identity_map=self.identityMap)
 
         else:
             self.set_mermaid_param(mermaid_unit,criterion,s, t, m,s)
-            if not compute_inverse_map:
+            if not self.compute_inverse_map:
                 maps = mermaid_unit(phi, s)
             else:
                 maps, self.inverse_map = mermaid_unit(phi, s,phi_inv = inv_map, variables_from_optimizer = {'epoch': self.epoch})
@@ -355,7 +356,7 @@ class MermaidNet(nn.Module):
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
                 affine_map = (affine_map + 1) / 2.
                 inverse_map = None
-                if compute_inverse_map:
+                if self.compute_inverse_map:
                     affine_inverse = get_inverse_affine_param(affine_param)
                     affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
                     inverse_map = (affine_map_inverse + 1) / 2.
@@ -363,13 +364,13 @@ class MermaidNet(nn.Module):
                 if self.using_physical_coord:
                     for i in range(self.dim):
                         affine_map[:, i] = affine_map[:, i] * self.spacing[i] / self.standard_spacing[i]
-                    if compute_inverse_map:
+                    if self.compute_inverse_map:
                         for i in range(self.dim):
                             inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
                 self.inverse_map = inverse_map
         else:
             affine_map = self.identityMap.clone()
-            if compute_inverse_map:
+            if self.compute_inverse_map:
                 self.inverse_map = self.identityMap.clone()
 
             affine_img = moving
@@ -422,7 +423,7 @@ class MermaidNet(nn.Module):
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
                 affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
                 inverse_map = None
-                if compute_inverse_map:
+                if self.compute_inverse_map:
                     affine_inverse = get_inverse_affine_param(affine_param)
                     affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
                     inverse_map = (affine_map_inverse + 1) / 2.
@@ -430,13 +431,13 @@ class MermaidNet(nn.Module):
                 if self.using_physical_coord:
                     for i in range(self.dim):
                         affine_map[:, i] = affine_map[:, i] * self.spacing[i] / self.standard_spacing[i]
-                    if compute_inverse_map:
+                    if self.compute_inverse_map:
                         for i in range(self.dim):
                             inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
                 self.inverse_map = inverse_map
         else:
             affine_map = self.identityMap.clone()
-            if compute_inverse_map:
+            if self.compute_inverse_map:
                 self.inverse_map = self.identityMap.clone()
             affine_img = moving
         warped_img = affine_img
