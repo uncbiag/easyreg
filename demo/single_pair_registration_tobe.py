@@ -55,7 +55,7 @@ def force_test_setting(dm, tsm,output_path):
         dm.data_par['datapro']['dataset']['prepare_data'] = False
         dm.data_par['datapro']['reg']['max_pair_for_loading'] = [1, 1, -1, 1]
         dm.save(data_json_path)
-        dm.save()
+        #dm.save()
     else:
         tsm.task_par['dataset']['max_pair_for_loading'] = [1, 1, -1, 1]
     tsm.task_par['tsk_set']['train'] = False
@@ -64,7 +64,7 @@ def force_test_setting(dm, tsm,output_path):
     tsm.task_par['tsk_set']['reg']['mermaid_net']['using_sym'] = False
     tsk_json_path = os.path.join(output_path, 'cur_task_setting.json')
     tsm.save(tsk_json_path)
-    tsm.save()
+    #tsm.save()
 
 
 

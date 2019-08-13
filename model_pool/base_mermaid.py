@@ -81,6 +81,8 @@ class MermaidBase(BaseModel):
             for i in range(jacobi_abs_map.shape[0]):
                 jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
                 jacobi_neg_img = sitk.GetImageFromArray(jacobi_neg_map[i])
+                jacobi_img.SetSpacing(np.flipud(self.spacing))
+                jacobi_neg_img.SetSpacing(np.flipud(self.spacing))
                 pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_img.nii')
                 n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii')
                 sitk.WriteImage(jacobi_img, pth)
@@ -106,9 +108,9 @@ class MermaidBase(BaseModel):
         saving_original_sz_path = os.path.join(self.record_path,'original_sz')
         os.makedirs(saving_original_sz_path,exist_ok=True)
         fname_list = list(self.fname_list)
-        ires.save_transfrom(new_phi,saving_original_sz_path,fname_list)
+        ires.save_transfrom(new_phi,self.spacing, saving_original_sz_path,fname_list)
         fname_list = [fname + '_inv' for fname in self.fname_list]
-        ires.save_transfrom(new_inv_phi, saving_original_sz_path, fname_list)
+        ires.save_transfrom(new_inv_phi,self.spacing, saving_original_sz_path, fname_list)
         reference_list = pair_path[0]
         fname_list = [fname+'_warped' for fname in self.fname_list]
         ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
@@ -129,7 +131,7 @@ class MermaidBase(BaseModel):
         assert (num_img == len(self.fname_list))
         input_img_sz = self.input_img_sz # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
 
-        img = get_resampled_image(img, None, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
+        img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
             img_to_save = img_np[i, 0]

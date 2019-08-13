@@ -233,25 +233,25 @@ class BaseModel():
             appendix = self.fname_list[i]
             saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
             output = sitk.GetImageFromArray(moving_np[i, 0, ...])
-            #output.SetSpacing(self.spacing)
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
             output = sitk.GetImageFromArray(target_np[i, 0, ...])
-            #output.SetSpacing(self.spacing)
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_affined.nii.gz"
             output = sitk.GetImageFromArray(output_np[i, 0, ...])
-            #output.SetSpacing(self.spacing)
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             if self.warped_label_map is not None:
                 saving_file_path = saving_folder_path + '/' + appendix + "_affined_label.nii.gz"
                 output = sitk.GetImageFromArray(warped_label_map_np[i, 0, ...])
-                # output.SetSpacing(self.spacing)
+                output.SetSpacing(np.flipud(self.spacing))
                 sitk.WriteImage(output, saving_file_path)
             if self.l_target is not None:
                 saving_file_path = saving_folder_path + '/' + appendix + "_target_label.nii.gz"
                 output = sitk.GetImageFromArray(l_target_np[i, 0, ...])
-                # output.SetSpacing(self.spacing)
+                output.SetSpacing(np.flipud(self.spacing))
                 sitk.WriteImage(output, saving_file_path)
 
 

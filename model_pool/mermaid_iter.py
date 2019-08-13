@@ -52,13 +52,14 @@ class MermaidIter(MermaidBase):
 
     def set_input(self, data, is_train=True):
         data[0]['image'] =(data[0]['image'].cuda()+1)/2
-        data[0]['label'] =data[0]['label'].cuda()
+        if 'label' in data[0]:
+            data[0]['label'] =data[0]['label'].cuda()
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
         self.input_img_sz  = list(moving.shape)[2:]
         self.original_im_sz = data[0]['original_sz']
         self.original_spacing = data[0]['original_spacing']
-        self.spacing = data[0]['spacing'] if self.use_physical_coord else 1. / (np.array(self.input_img_sz) - 1)
+        self.spacing = data[0]['spacing'][0] if self.use_physical_coord else 1. / (np.array(self.input_img_sz) - 1)
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         self.moving = moving
         self.target = target
@@ -96,8 +97,8 @@ class MermaidIter(MermaidBase):
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         self.phi = self.phi.detach().clone()
-        for i in range(self.dim):
-            self.phi[:, i, ...] = self.phi[:, i, ...] / ((self.input_img_sz[i] - 1) * self.spacing[i])
+        # for i in range(self.dim):
+        #     self.phi[:, i, ...] = self.phi[:, i, ...] / ((self.input_img_sz[i] - 1) * self.spacing[i])
 
         Ab = self.si.opt.optimizer.ssOpt.model.Ab
         if self.compute_inverse_map:
@@ -135,8 +136,8 @@ class MermaidIter(MermaidBase):
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
-        for i in range(self.dim):
-            self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
+        # for i in range(self.dim):
+        #     self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
@@ -181,8 +182,8 @@ class MermaidIter(MermaidBase):
         self.disp = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
-        for i in range(self.dim):
-            self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
+        # for i in range(self.dim):
+        #     self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
@@ -254,11 +255,12 @@ class MermaidIter(MermaidBase):
 
     def get_evaluation(self):
         self.output, self.phi, self.disp= self.forward()
-        self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=True)
-        warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
-        self.l_target_np= self.l_target.detach().cpu().numpy()
+        if self.l_moving is not None:
+            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=True)
+            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
+            self.l_target_np= self.l_target.detach().cpu().numpy()
 
-        self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
         self.jacobi_val = self.compute_jacobi_map(self.phi, crop_boundary=True, use_01=True)
         print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
 
@@ -360,6 +362,9 @@ class MermaidIter(MermaidBase):
     def save_deformation(self):
         import nibabel as nib
         phi_np = self.phi.detach().cpu().numpy()
+
+        for i in range(self.dim):
+            phi_np[:,i,...] = phi_np[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
         for i in range(phi_np.shape[0]):
             phi = nib.Nifti1Image(phi_np[i], np.eye(4))
             nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')

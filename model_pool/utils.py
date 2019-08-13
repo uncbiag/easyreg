@@ -371,7 +371,7 @@ def get_resampled_image(I,spacing,desiredSize, spline_order=1,zero_boundary=Fals
     if spacing is None:
         img_sz = I.shape[2:]
         spacing = 1./(np.array(img_sz)-1)
-    if identity_map is not None:
+    if identity_map is not None:# todo  will remove, currently fix for symmetric training
         if I.shape[0] != identity_map.shape[0]:
             n_batch = I.shape[0]
             desiredSize =desiredSize.copy()

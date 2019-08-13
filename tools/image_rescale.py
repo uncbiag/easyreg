@@ -95,10 +95,13 @@ def resample_warped_phi_and_image(source,phi,spacing, new_sz,using_file_list=Tru
     return new_phi, warped, new_spacing
 
 
-def save_transfrom(transform,path=None, fname=None,using_affine=False):
+def save_transfrom(transform,spacing, path=None, fname=None,using_affine=False):
     if not using_affine:
         if type(transform) == torch.Tensor:
             transform = transform.detach().cpu().numpy()
+        img_sz = np.array(transform.shape[2:])
+        for i in range(len(img_sz)):
+            transform[:, i, ...] = transform[:, i, ...] / ((img_sz[i] - 1) * spacing[i])
         import nibabel as nib
         for i in range(transform.shape[0]):
             phi = nib.Nifti1Image(transform[i], np.eye(4))
@@ -109,7 +112,7 @@ def save_transfrom(transform,path=None, fname=None,using_affine=False):
         if isinstance(affine_param, list):
             affine_param =affine_param[0]
         affine_param = affine_param.detach().cpu().numpy()
-        for i in range(affine_param.shape[0]):
+        for i in range(affine_param.shape[0]): # todo the bias part of the affine param should also normalized into non-physical space [0,1]
             fn =  '{}_batch_'.format(i)+fname if not type(fname)==list else fname[i]
             np.save(os.path.join(path, fn + '_affine.npy'), affine_param[i])
 

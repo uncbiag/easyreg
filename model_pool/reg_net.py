@@ -42,10 +42,9 @@ class RegNet(MermaidBase):
         self.spacing = np.asarray(opt['dataset'][('spacing',1. / (np.array(input_img_sz) - 1),'spacing')])
 
         network_name =opt['tsk_set']['network_name']
+        self.affine_on = True if 'affine' in network_name else False
         self.mermaid_on = True if 'mermaid' in network_name else False
         self.using_sym_loss = True if 'sym' in network_name else False
-        self.using_affine = True if 'affine' in network_name else False
-
         self.network = model_pool[network_name](input_img_sz, opt)#AffineNetCycle(input_img_sz)#
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
@@ -151,7 +150,7 @@ class RegNet(MermaidBase):
         elif self.using_sym_loss:
             loss = self.cal_sym_loss()
         else:
-            loss=self.cal_loss(output,disp_or_afparam,using_decay_factor=self.using_affine)
+            loss=self.cal_loss(output,disp_or_afparam,using_decay_factor=self.affine_on)
         return output, phi, disp_or_afparam, loss
 
     def optimize_parameters(self,input=None):
@@ -241,7 +240,7 @@ class RegNet(MermaidBase):
                             visual_param=visual_param,extraImages=extraImage, extraName= extraName)
 
     def save_deformation(self):
-        if not self.using_affine:
+        if not self.affine_on:
             import nibabel as nib
             phi_np = self.phi.detach().cpu().numpy()
             for i in range(phi_np.shape[0]):

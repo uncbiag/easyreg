@@ -57,7 +57,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Registeration demo (include train and test)')
 
-parser.add_argument('--gpu', required=False, type=int, default=2,
+parser.add_argument('--gpu', required=False, type=int, default=0,
                     help='give the id to run the gpu')
 parser.add_argument('--llf', required=False, type=bool, default=False,
                     help='run on long leaf')
