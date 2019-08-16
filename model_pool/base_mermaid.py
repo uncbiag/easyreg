@@ -102,25 +102,27 @@ class MermaidBase(BaseModel):
         moving_list = pair_path[0]
         target_list =pair_path[1]
         phi = (phi+1)/2. if not use_01 else phi
-        inverse_phi = (inverse_phi +1)/2. if not use_01 else inverse_phi
         new_phi, warped, new_spacing =ires.resample_warped_phi_and_image(moving_list, phi,spacing,img_sz_new)
-        new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
+
         saving_original_sz_path = os.path.join(self.record_path,'original_sz')
         os.makedirs(saving_original_sz_path,exist_ok=True)
         fname_list = list(self.fname_list)
         ires.save_transfrom(new_phi,self.spacing, saving_original_sz_path,fname_list)
-        fname_list = [fname + '_inv' for fname in self.fname_list]
-        ires.save_transfrom(new_inv_phi,self.spacing, saving_original_sz_path, fname_list)
         reference_list = pair_path[0]
         fname_list = [fname+'_warped' for fname in self.fname_list]
         ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
-        fname_list = [fname + '_inv_warped' for fname in self.fname_list]
-        ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
         fname_list = [fname+'_moving' for fname in self.fname_list]
         ires.save_image_with_given_reference(None,reference_list,saving_original_sz_path,fname_list)
         reference_list = pair_path[1]
         fname_list = [fname + '_target' for fname in self.fname_list]
         ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
+        if inverse_phi is not None:
+            inverse_phi = (inverse_phi +1)/2. if not use_01 else inverse_phi
+            new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
+            fname_list = [fname + '_inv' for fname in self.fname_list]
+            ires.save_transfrom(new_inv_phi, self.spacing, saving_original_sz_path, fname_list)
+            fname_list = [fname + '_inv_warped' for fname in self.fname_list]
+            ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
 
 
 

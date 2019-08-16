@@ -189,3 +189,9 @@ if __name__ == '__main__':
     registration_pair_list= [source_list, target_list, lsource_list, ltarget_list]
 
     do_registration(args, registration_pair_list)
+
+
+
+
+    # --run_demo --demo_name=opt_rdmm_predefined -txt=/data/zhengyang/mlsr/ima2_data008/zyshen/ct_reg_server/pair_path_list.txt -g=3 -o=/data/zhengyang/expri/reg_output_rdmm
+    #-txt=/data/zhengyang/mlsr/ima2_data008/zyshen/ct_reg_server/negative_pair_path_list.txt -g=3 -ts=/data/zhengyang/mlsr/ima2_data008/zyshen/ct_reg_server/settings -o=/data/zhengyang/expri/reg_output_neg
