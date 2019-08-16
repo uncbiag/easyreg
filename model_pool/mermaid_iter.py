@@ -154,52 +154,6 @@ class MermaidIter(MermaidBase):
 
 
 
-    # def init_weight_optimization(self):
-    #     affine_map = self.si.opt.optimizer.ssOpt.get_map()
-    #
-    #     self.si =  SI.RegisterImagePair()
-    #     extra_info = pars.ParameterDict()
-    #     extra_info['pair_name'] = self.fname_list
-    #
-    #     self.si.opt = None
-    #     self.si.set_initial_map(affine_map.detach())
-    #     if self.use_init_weight:
-    #         init_weight = get_init_weight_from_label_map(self.l_moving, self.spacing,self.weights_for_bg,self.weights_for_fg)
-    #         init_weight = compute_warped_image_multiNC(init_weight,affine_map,self.spacing,spline_order=1,zero_boundary=False)
-    #         self.si.set_weight_map(init_weight.detach(), freeze_weight=True)
-    #
-    #     if self.saved_mermaid_setting_path is None:
-    #         self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path,modify=True,weights=self.weights_for_fg)
-    #
-    #
-    #     self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
-    #                             LTarget=self.l_target,
-    #                             map_low_res_factor=0.5,
-    #                             nr_of_iterations=100,
-    #                             visualize_step=None,
-    #                             optimizer_name='lbfgs_ls',
-    #                             use_multi_scale=True,
-    #                             rel_ftol=0,
-    #                             similarity_measure_type='lncc',
-    #                             similarity_measure_sigma=1,
-    #                             compute_inverse_map=self.compute_inverse_map,
-    #                             json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
-    #                             params=self.saved_mermaid_setting_path)
-    #     self.disp = self.output
-    #     self.output = self.si.get_warped_image()
-    #     self.phi = self.si.opt.optimizer.ssOpt.get_map()
-    #     # for i in range(self.dim):
-    #     #     self.phi[:,i,...] = self.phi[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
-    #
-    #     if self.compute_inverse_map:
-    #         self.inversed_map = self.si.get_inverse_map().detach()
-    #     return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
-
-
-
-
-
-
 
     def modify_setting(self,params, stds, weights):
         if stds is not None:
@@ -234,12 +188,6 @@ class MermaidIter(MermaidBase):
         else:
             self.affine_optimization()
             return self.nonp_optimization()
-        # elif self.nonp_on and not self.use_init_weight:
-        #     self.affine_optimization()
-        #     return self.nonp_optimization()
-        # elif self.nonp_on and self.use_init_weight:
-        #     self.affine_optimization()
-        #     return self.init_weight_optimization()
 
 
 
