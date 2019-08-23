@@ -23,7 +23,7 @@
         "mode_train": false,
         "model": "reg_net",
         "model_folder_path": "",
-        "model_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_",
+        "model_path": "/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/rdmm_learn_sm006_sym_500_thisis_std005/checkpoints/epoch_140_",
         "n_in_channel": 1,
         "network_name": "mermaid",
         "optim": {
@@ -62,7 +62,7 @@
             "compute_inverse_map": false,
             "mermaid_net": {
                 "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
-                "mermaid_net_json_pth": "./demo_settings/mermaid/network_vsvf/mermaid_nonp_settings.json",
+                "mermaid_net_json_pth": "./demo_settings/mermaid/network_rdmm/mermaid_nonp_settings.json",
                 "num_step": 2,
                 "optimize_momentum_network": false,
                 "sym_factor": 500,
@@ -78,8 +78,8 @@
         "save_fig_on": true,
         "save_val_fig_epoch": 2,
         "save_3d_img_on": false,
-        "save_extra_3d_img":true,
-        "output_orginal_img_sz": true,
+        "save_extra_3d_img":false,
+        "output_orginal_img_sz": false,
         "task_name": "res",
         "train": false,
         "val_period": 10,

@@ -1,13 +1,7 @@
 from __future__ import absolute_import
 
 import torch
-import torch.optim as optim
-from torch.optim import lr_scheduler
 import torch_dct as dct
-import numpy as np
-from tools import visual_tools as vt
-import mermaid.example_generation as eg
-from tools import depend_on_dct as dod
 import SimpleITK as sitk
 example_img_len = 224
 half_len = example_img_len//2

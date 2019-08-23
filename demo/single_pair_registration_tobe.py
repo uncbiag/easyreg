@@ -125,13 +125,13 @@ def loading_img_list_from_files(path):
 
 def do_registration(args, registration_pair_list):
     task_output_path = args.task_output_path
+    os.makedirs(task_output_path, exist_ok=True)
     run_demo = args.run_demo
     if run_demo:
         demo_name = args.demo_name
         setting_folder_path = os.path.join('./demo_settings/mermaid',demo_name)
         assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined"
-        task_output_path = os.path.join('./demo_output/mermaid',demo_name)
-        os.makedirs(task_output_path,exist_ok=True)
+        #task_output_path = os.path.join('./demo_output/mermaid',demo_name)
     else:
         setting_folder_path = args.setting_folder_path
     source_path_list, target_path_list, l_source_path_list, l_target_path_list = registration_pair_list
@@ -166,7 +166,7 @@ if __name__ == '__main__':
                         help='the source label list,  ls1,ls2,ls3..lsn')
     parser.add_argument('-lt','--ltarget_list',nargs='+', required=False, default=None,
                         help='the target label list,  lt1,lt2,lt3..ltn')
-    parser.add_argument('-o',"--task_output_path",required=False,default=None, help='the output path')
+    parser.add_argument('-o',"--task_output_path",required=True,default=None, help='the output path')
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')
 
     args = parser.parse_args()
@@ -192,6 +192,7 @@ if __name__ == '__main__':
 
 
 
-
-    # --run_demo --demo_name=opt_rdmm_predefined -txt=/data/zhengyang/mlsr/ima2_data008/zyshen/ct_reg_server/pair_path_list.txt -g=3 -o=/data/zhengyang/expri/reg_output_rdmm
-    #-txt=/data/zhengyang/mlsr/ima2_data008/zyshen/ct_reg_server/negative_pair_path_list.txt -g=3 -ts=/data/zhengyang/mlsr/ima2_data008/zyshen/ct_reg_server/settings -o=/data/zhengyang/expri/reg_output_neg
+    # --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf
+    # --run_demo --demo_name=opt_rdmm_predefined -txt=/playpen/zyshen/data/reg_lung_160/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_lung_160/new_interface/test_opt_rdmm_predefined
+    # --run_demo --demo_name=network_vsvf -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf_net
+    # --run_demo --demo_name=network_rdmm -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_rdmm_net

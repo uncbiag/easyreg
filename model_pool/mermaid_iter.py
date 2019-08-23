@@ -21,7 +21,7 @@ class MermaidIter(MermaidBase):
         if network_name =='affine':
             self.affine_on = True
             self.nonp_on = False
-        elif network_name =='svf':
+        elif network_name =='nonp':
             self.affine_on = True
             self.nonp_on = True
         self.si = SI.RegisterImagePair()
@@ -106,8 +106,8 @@ class MermaidIter(MermaidBase):
             identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
             self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, MyTensor(identity_map))  ##########################3
             self.inversed_map = self.inversed_map.detach()
-        self.disp = Ab
-        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+        self.disp_or_afparam = Ab
+        return self.output.detach_(), self.phi.detach_(), self.disp_or_afparam.detach_()
 
 
     def nonp_optimization(self):
@@ -140,7 +140,7 @@ class MermaidIter(MermaidBase):
                                 compute_inverse_map=self.compute_inverse_map,
                                 json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
                                 params=self.saved_mermaid_setting_path) #'../mermaid_settings/cur_settings_svf_dipr.json'
-        self.disp = self.output
+        self.disp_or_afparam = self.output
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         # for i in range(self.dim):
@@ -148,7 +148,7 @@ class MermaidIter(MermaidBase):
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
-        return self.output.detach_(), self.phi.detach_(), self.disp.detach_()
+        return self.output.detach_(), self.phi.detach_(), self.disp_or_afparam.detach_()
 
 
 
@@ -211,7 +211,7 @@ class MermaidIter(MermaidBase):
         self.get_evaluation()
 
     def get_evaluation(self):
-        self.output, self.phi, self.disp= self.forward()
+        self.output, self.phi, self.disp_or_afparam= self.forward()
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=True)
             warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
@@ -277,46 +277,8 @@ class MermaidIter(MermaidBase):
 
 
 
-    def save_fig(self,phase,standard_record=False,saving_gt=True):
-        from model_pool.global_variable import save_extra_fig
-        from model_pool.visualize_registration_results import  show_current_images
-        visual_param={}
-        visual_param['visualize'] = False
-        visual_param['save_fig'] = True
-        visual_param['save_fig_path'] = self.record_path
-        visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
-        visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
-        visual_param['save_fig_num'] = 8
-        visual_param['pair_path'] = self.fname_list
-        visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
-        disp=None
-        extra_title = 'disp'
-        extraImage, extraName = self.get_extra_to_plot()
-
-        if save_extra_fig and extraImage is not None:
-            self.save_extra_fig(extraImage,extraName)
-
-
-        if self.disp is not None and len(self.disp.shape)>2 and not self.nonp_on:
-            disp = ((self.disp[:,...]**2).sum(1))**0.5
-
-        if self.nonp_on:
-            disp = self.disp[:,0,...]
-            extra_title='affine'
-
-        if self.jacobi_map is not None:
-            disp = self.jacobi_map
-            extra_title = 'jacobi det'
-        show_current_images(self.iter_count, iS=self.moving,iT=self.target,iW=self.output,
-                            iSL=self.l_moving,iTL=self.l_target, iWL=self.warped_label_map,
-                            vizImages=disp, vizName=extra_title,phiWarped=self.phi,
-                            visual_param=visual_param,extraImages=extraImage, extraName= extraName)
-
-
-
-
-
     def save_deformation(self):
+        """ The deformation is saved in 0-1 form, not physical form """
         import nibabel as nib
         phi_np = self.phi.detach().cpu().numpy()
 

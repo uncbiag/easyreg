@@ -12,11 +12,7 @@ from .metrics import get_multi_metric
 from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
-try:
-    from model_pool.nn_interpolation import get_nn_interpolation
-except:
-    pass
-from mermaid.utils import compute_warped_image_multiNC
+
 model_pool = {'affine_sim':AffineNet,
               'affine_unet':Affine_unet,
               'affine_cycle':AffineNetCycle,
@@ -37,22 +33,21 @@ class RegNet(MermaidBase):
     def initialize(self,opt):
         MermaidBase.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-
-        input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing = np.asarray(opt['dataset'][('spacing',1. / (np.array(input_img_sz) - 1),'spacing')])
-
+        input_img_sz = opt['dataset']['img_after_resize']
+        self.input_img_sz = input_img_sz
+        self.spacing = np.asarray(opt['dataset']['spacing_to_refer']) if self.use_physical_coord else 1. / (np.array(input_img_sz) - 1)
+        self.spacing = normalize_spacing(self.spacing,self.input_img_sz) if self.use_physical_coord else self.spacing
         network_name =opt['tsk_set']['network_name']
         self.affine_on = True if 'affine' in network_name else False
-        self.mermaid_on = True if 'mermaid' in network_name else False
-        self.using_sym_loss = True if 'sym' in network_name else False
-        self.network = model_pool[network_name](input_img_sz, opt)#AffineNetCycle(input_img_sz)#
+        self.nonp_on = True if 'mermaid' in network_name else False
+        self.using_affine_sym = True if self.affine_on and 'sym' in network_name else False
+        self.network = model_pool[network_name](input_img_sz, opt) #AffineNetCycle(input_img_sz)#
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
-        self.multi_gpu_on = False
         print('---------- Networks initialized -------------')
         print_network(self.network)
         print('-----------------------------------------------')
@@ -84,6 +79,7 @@ class RegNet(MermaidBase):
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
+        self.original_im_sz = data[0]['original_sz']
         self.original_spacing = data[0]['original_spacing']
 
 
@@ -93,11 +89,8 @@ class RegNet(MermaidBase):
 
 
 
-    def cal_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
-        # output should be BxCx....
-        # target should be Bx1x
-        from model_pool.global_variable import reg_factor_in_regnet
-        factor = reg_factor_in_regnet# 1e-7
+    def cal_affine_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
+        factor = 1.0
         if using_decay_factor:
             factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
         if self.loss_fn.criterion is not None:
@@ -109,21 +102,18 @@ class RegNet(MermaidBase):
             print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
         return sim_loss+reg_loss*factor
 
-    def cal_mermaid_loss(self):
-        loss_overall_energy = self.network.get_loss()
-        return loss_overall_energy
-    def cal_sym_loss(self):
+
+
+    def cal_affine_sym_loss(self):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
         sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
         scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
         factor_scale =1e-3  # 1  ############################# TODo #####################
         # factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
         # factor_scale = float( max(1e-3,factor_scale))
-        factor_sym =10#10 ################################### ToDo ####################################
+        factor_sym =10#10
         sim_factor = 1
-
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
-
         if self.iter_count%10==0:
             print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
                 sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
@@ -131,7 +121,9 @@ class RegNet(MermaidBase):
 
         return loss
 
-
+    def cal_mermaid_loss(self):
+        loss = self.network.get_loss()
+        return loss
 
 
     def backward_net(self, loss):
@@ -145,12 +137,12 @@ class RegNet(MermaidBase):
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
         output, phi, disp_or_afparam= self.network.forward(self.moving, self.target)
-        if self.mermaid_on:
+        if self.nonp_on:
             loss = self.cal_mermaid_loss()
-        elif self.using_sym_loss:
-            loss = self.cal_sym_loss()
+        elif self.using_affine_sym:
+            loss = self.cal_affine_sym_loss()
         else:
-            loss=self.cal_loss(output,disp_or_afparam,using_decay_factor=self.affine_on)
+            loss=self.cal_affine_loss(output,disp_or_afparam,using_decay_factor=self.affine_on)
         return output, phi, disp_or_afparam, loss
 
     def optimize_parameters(self,input=None):
@@ -201,52 +193,24 @@ class RegNet(MermaidBase):
 
     def save_image_into_original_sz_with_given_reference(self):
         inverse_phi = self.network.get_inverse_map(use_01=False)
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_spacing[0], self.phi, inverse_phi=inverse_phi, use_01=False)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0], self.phi, inverse_phi=inverse_phi, use_01=False)
 
 
+    def get_extra_to_plot(self):
+        return self.network.get_extra_to_plot()
 
 
-
-    def save_fig(self,phase,standard_record=False,saving_gt=True):
-        from model_pool.global_variable import save_extra_fig
-        from model_pool.visualize_registration_results import show_current_images
-        visual_param={}
-        visual_param['visualize'] = False
-        visual_param['save_fig'] = True
-        visual_param['save_fig_path'] = self.record_path
-        visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
-        visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
-        visual_param['save_fig_num'] = 4
-        visual_param['pair_path'] = self.fname_list
-        visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
-        disp=None
-        extraImage, extraName = self.network.get_extra_to_plot()
-        extra_title = 'disp'
-        if self.disp_or_afparam is not None and len(self.disp_or_afparam.shape)>2 and not self.mermaid_on:
-            disp = ((self.disp_or_afparam[:,...]**2).sum(1))**0.5
-
-        if save_extra_fig and extraImage is not None:
-            self.save_extra_fig(extraImage,extraName)
-
-        if self.mermaid_on:
-            disp = self.disp_or_afparam[:,0,...]
-            extra_title='affine'
-        if self.jacobi_map is not None:
-            disp = self.jacobi_map
-            extra_title = 'jacobi det'
-        show_current_images(self.iter_count, iS=self.moving,iT=self.target,iW=self.output,
-                            iSL=self.l_moving,iTL=self.l_target, iWL=self.warped_label_map,
-                            vizImages=disp, vizName=extra_title,phiWarped=self.phi,
-                            visual_param=visual_param,extraImages=extraImage, extraName= extraName)
 
     def save_deformation(self):
         if not self.affine_on:
             import nibabel as nib
             phi_np = self.phi.detach().cpu().numpy()
+            phi_np = (phi_np+1.)/2.  # normalize the phi into 0, 1
             for i in range(phi_np.shape[0]):
                 phi = nib.Nifti1Image(phi_np[i], np.eye(4))
                 nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
         else:
+            # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
             affine_param = self.disp_or_afparam
             if isinstance(affine_param,list):
                 affine_param = self.disp_or_afparam[0]

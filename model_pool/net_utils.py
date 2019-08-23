@@ -66,7 +66,7 @@ class FcRel(nn.Module):
 
 def identity_map(sz):
     """
-    Returns an identity map.
+    Returns an identity map. todo  now keep for reproduce  this function will be disabled in the next release, replaced by spacing version
 
     :param sz: just the spatial dimensions, i.e., XxYxZ
     :param spacing: list with spacing information [sx,sy,sz]
@@ -89,7 +89,7 @@ def identity_map(sz):
 
 def not_normalized_identity_map(sz):
     """
-    Returns an identity map.
+    Returns an identity map. todo  now keep for reproduce this function will be disabled in the next release, replaced by spacing version
 
     :param sz: just the spatial dimensions, i.e., XxYxZ
     :param spacing: list with spacing information [sx,sy,sz]
@@ -112,7 +112,7 @@ def not_normalized_identity_map(sz):
 
 def gen_identity_map(img_sz, resize_factor=1.,normalized=True):
     """
-    given displacement field,  add displacement on grid field
+    given displacement field,  add displacement on grid field  todo  now keep for reproduce  this function will be disabled in the next release, replaced by spacing version
     """
     if isinstance(resize_factor, list):
         img_sz = [int(img_sz[i] * resize_factor[i]) for i in range(dim)]

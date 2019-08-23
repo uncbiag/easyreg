@@ -4,10 +4,9 @@ import torch
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch_dct as dct
-import numpy as np
 from tools import visual_tools as vt
 import mermaid.example_generation as eg
-from tools import depend_on_dct as dod
+from toremove import depend_on_dct as dod
 
 example_img_len = 64
 dim = 2

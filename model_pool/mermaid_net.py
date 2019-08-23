@@ -2,15 +2,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-
+from model_pool.utils import *
 from model_pool.network_pool import *
-from model_pool.utils import get_inverse_affine_param, get_warped_img_map_param,get_res_size_from_size,get_res_spacing_from_spacing,get_resampled_image
 import mermaid.module_parameters as pars
 import mermaid.model_factory as py_mf
 import mermaid.utils as py_utils
 from functools import partial
 from mermaid.libraries.functions.stn_nd import STNFunction_ND_BCXYZ
-from model_pool.global_variable import *
 
 
 
@@ -47,7 +45,7 @@ class MermaidNet(nn.Module):
         super(MermaidNet, self).__init__()
 
         cur_gpu_id = opt['tsk_set']['gpu_ids']
-        old_gpu_id = opt['tsk_set']['old_gpu_ids']
+        old_gpu_id = opt['tsk_set'][('old_gpu_ids',0,'the gpu id of the trained model')]
         opt_mermaid = opt['tsk_set']['reg']['mermaid_net']
         low_res_factor = opt['tsk_set']['reg'][('low_res_factor',1.,"factor of low-resolution map")]
         batch_sz = opt['tsk_set']['batch_sz']
@@ -58,13 +56,13 @@ class MermaidNet(nn.Module):
         self.loss_type = opt['tsk_set']['loss']['type']
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','../mermaid/demos/cur_settings_lbfgs.json',"the path for mermaid settings json")]
-        self.using_sym_on = opt_mermaid['using_sym']
-        self.sym_factor = opt_mermaid['sym_factor']
+        self.using_sym_on = opt_mermaid[('using_sym',False,'compute symmetric loss')]
+        self.sym_factor = opt_mermaid[('sym_factor',1,'factor on symmetric loss')]
         self.using_mermaid_multi_step = opt_mermaid['using_multi_step']
-        self.step = 1 if not self.using_mermaid_multi_step else opt_mermaid['num_step']
-        self.using_affine_init = opt_mermaid['using_affine_init']
+        self.step = 1 if not self.using_mermaid_multi_step else opt_mermaid[('num_step',2,'compute multi-step loss')]
+        self.using_affine_init = opt_mermaid[('using_affine_init',True,'True, deploy an affine network before mermaid-net')]
         self.load_trained_affine_net = opt_mermaid[('load_trained_affine_net',True,'load the trained affine network')]
-        self.affine_init_path = opt_mermaid['affine_init_path']
+        self.affine_init_path = opt_mermaid[('affine_init_path','',"the path of trained affined network")]
         self.optimize_momentum_network = opt_mermaid[('optimize_momentum_network',True,'true if optimize the momentum network')]
         self.epoch_list_fixed_momentum_network = opt_mermaid[('epoch_list_fixed_momentum_network',[-1],'list of epoch, fix the momentum network')]
         self.epoch_list_fixed_deep_smoother_network = opt_mermaid[('epoch_list_fixed_deep_smoother_network',[-1],'epoch_list_fixed_deep_smoother_network')]
@@ -83,7 +81,9 @@ class MermaidNet(nn.Module):
         self.dim = len(img_sz)
         self.standard_spacing = 1. / (np.array(img_sz) - 1)
         """ here we define the standard spacing measures the image from 0 to 1"""
-        self.spacing = opt['tsk_set'][('spacing',1. / (np.array(img_sz) - 1),'spacing')]
+        self.spacing = np.asarray(opt['dataset']['spacing_to_refer']) if self.using_physical_coord else 1. / (
+                    np.array(img_sz) - 1)
+        self.spacing = normalize_spacing(self.spacing, self.input_img_sz) if self.using_physical_coord else self.spacing
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         self.gpu_switcher = (cur_gpu_id, old_gpu_id)
         self.low_res_factor = low_res_factor
@@ -121,7 +121,7 @@ class MermaidNet(nn.Module):
     def init_mermaid_env(self, spacing):
         """setup the mermaid"""
         params = pars.ParameterDict()
-        params.load_JSON( self.mermaid_net_json_pth) #''../model_pool/cur_settings_svf.json')######TODO ###########
+        params.load_JSON( self.mermaid_net_json_pth) #''../model_pool/cur_settings_svf.json')
         #params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         print(" The mermaid setting from {} included:".format(self.mermaid_net_json_pth))
         print(params)
@@ -132,7 +132,8 @@ class MermaidNet(nn.Module):
         params['model']['registration_model']['similarity_measure']['type'] =self.loss_type
         params.print_settings_off()
         self.mermaid_low_res_factor = self.low_res_factor
-        self.use_adaptive_smoother = params['model']['registration_model']['forward_model']['smoother']['type']=='learned_multiGaussianCombination'
+        smoother_type =  params['model']['registration_model']['forward_model']['smoother']['type']
+        self.use_adaptive_smoother =smoother_type=='learned_multiGaussianCombination'
 
         lowResSize = None
         lowResSpacing = None
@@ -148,9 +149,6 @@ class MermaidNet(nn.Module):
             lowResSpacing = get_res_spacing_from_spacing(spacing, self.img_sz, lowResSize)
             self.lowResSize = lowResSize
             self.lowResSpacing = lowResSpacing
-            #self.lowRes_fn = partial(_compute_low_res_image, spacing=spacing, low_res_size=lowResSize,zero_boundary=False)
-
-
 
         if self.mermaid_low_res_factor is not None:
             # computes model at a lower resolution than the image similarity
@@ -192,6 +190,7 @@ class MermaidNet(nn.Module):
         return torch.mean((identity_map- trans_st_ts)**2)
 
     def do_criterion_cal(self, ISource, ITarget,cur_epoch=-1):
+        # todo the image is not necessary be normalized here, just keep -1,1 would be fine
         ISource = (ISource + 1.) / 2.
         ITarget = (ITarget + 1.) / 2.
 
@@ -238,7 +237,7 @@ class MermaidNet(nn.Module):
             param.requires_grad = True
 
     def get_inverse_map(self,use_01=False):
-        if use_01:
+        if use_01 or self.inverse_map is None:
             return self.inverse_map
         else:
             return self.inverse_map*2-1
@@ -292,7 +291,7 @@ class MermaidNet(nn.Module):
         else:
             self.set_mermaid_param(mermaid_unit,criterion,s, t, m,s)
             if not self.compute_inverse_map:
-                maps = mermaid_unit(phi, s)
+                maps = mermaid_unit(phi, s, variables_from_optimizer={'epoch':self.epoch})
             else:
                 maps, self.inverse_map = mermaid_unit(phi, s,phi_inv = inv_map, variables_from_optimizer = {'epoch': self.epoch})
             rec_phiWarped = maps
@@ -317,7 +316,7 @@ class MermaidNet(nn.Module):
         print(" the current global gaussian stds is {}".format(gaussian_stds))
         view_sz = [1] + [len(gaussian_stds)] + [1] * dim
         gaussian_stds = gaussian_stds.view(*view_sz)
-        adaptive_smoother_map = adaptive_smoother_map**2 # todo   this is only necessary when we use w_K_W
+        adaptive_smoother_map = adaptive_smoother_map**2 # todo   this is true only when we use w_K_W
 
         smoother_map = adaptive_smoother_map*(gaussian_stds**2)
         smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
@@ -339,13 +338,14 @@ class MermaidNet(nn.Module):
 
     def get_extra_to_plot(self):
         if self.use_adaptive_smoother:
+            # the last step adaptive smoother is returned, todo add the first stage smoother
             return self.__get_adaptive_smoother_map(), 'Inital_weight'
         else:
             return None, None
 
 
     def __transfer_return_var(self,rec_IWarped,rec_phiWarped,affine_img):
-        return (rec_IWarped * 2. - 1.).detach(), (rec_phiWarped * 2. - 1.).detach(), affine_img.detach()
+        return (rec_IWarped).detach(), (rec_phiWarped * 2. - 1.).detach(), ((affine_img+1.)/2.).detach()
 
 
 

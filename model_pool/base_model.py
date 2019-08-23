@@ -38,7 +38,7 @@ class BaseModel():
         self.output = None
         self.warped_label_map = None
         self.l_target = None
-        self.multi_gpu_on =False
+        self.multi_gpu_on =False # todo for now the distributed computing is not supported
 
 
 
@@ -124,8 +124,6 @@ class BaseModel():
         self.cur_epoch_beg_tag = True
 
 
-    def backward_net(self):
-        self.loss.backward()
 
 
     def cal_loss(self,output= None):
@@ -224,10 +222,6 @@ class BaseModel():
         moving_np = (self.moving).cpu().numpy()
         target_np = (self.target).cpu().numpy()
         output_np = (self.output).cpu().numpy()
-        if self.warped_label_map is not None:
-            warped_label_map_np = (self.warped_label_map).cpu().numpy()
-        if self.l_target is not None:
-            l_target_np = (self.l_target).cpu().numpy()
 
         for i in range(self.moving.size(0)):
             appendix = self.fname_list[i]
@@ -244,11 +238,13 @@ class BaseModel():
             output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             if self.warped_label_map is not None:
+                warped_label_map_np = (self.warped_label_map).cpu().numpy()
                 saving_file_path = saving_folder_path + '/' + appendix + "_affined_label.nii.gz"
                 output = sitk.GetImageFromArray(warped_label_map_np[i, 0, ...])
                 output.SetSpacing(np.flipud(self.spacing))
                 sitk.WriteImage(output, saving_file_path)
             if self.l_target is not None:
+                l_target_np = (self.l_target).cpu().numpy()
                 saving_file_path = saving_folder_path + '/' + appendix + "_target_label.nii.gz"
                 output = sitk.GetImageFromArray(l_target_np[i, 0, ...])
                 output.SetSpacing(np.flipud(self.spacing))

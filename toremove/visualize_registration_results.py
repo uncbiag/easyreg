@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from model_pool import utils
-from . import viewers
+from tools import viewers
 
 dpi=500
 extension= '.png'

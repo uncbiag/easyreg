@@ -417,3 +417,32 @@ def get_single_gaussian_smoother(gaussian_std,sz,spacing):
 
 def get_gaussion_weight_from_tsk_opt(opt):
     return opt['']
+
+
+def normalize_spacing(spacing,sz,silent_mode=False):
+    """
+    Normalizes spacing.
+    :param spacing: Vector with spacing info, in XxYxZ format
+    :param sz: size vector in XxYxZ format
+    :return: vector with normalized spacings in XxYxZ format
+    """
+    dim = len(spacing)
+    # first determine the largest extent
+    current_largest_extent = -1
+    extent = np.zeros_like(spacing)
+    for d in range(dim):
+        current_extent = spacing[d]*(sz[d]-1)
+        extent[d] = current_extent
+        if current_extent>current_largest_extent:
+            current_largest_extent = current_extent
+
+    scalingFactor = 1./current_largest_extent
+    normalized_spacing = spacing*scalingFactor
+
+    normalized_extent = extent*scalingFactor
+
+    if not silent_mode:
+        print('Normalize spacing: ' + str(spacing) + ' -> ' + str(normalized_spacing))
+        print('Normalize spacing, extent: ' + str(extent) + ' -> ' + str(normalized_extent))
+
+    return normalized_spacing

@@ -41,7 +41,7 @@
         "sgd": {
             "individual": {
                 "dampening": 0.0,
-                "lr": 1e-05,
+                "lr": 5e-04,
                 "momentum": 0.9,
                 "nesterov": true,
                 "weight_decay": 0.0

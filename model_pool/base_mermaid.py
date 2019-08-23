@@ -18,8 +18,9 @@ import  tools.image_rescale as  ires
 class MermaidBase(BaseModel):
     def initialize(self, opt):
         BaseModel.initialize(self,opt)
-
-
+        self.nonp_on = False
+        self.disp_or_afparam = None
+        self.save_extra_3d_img = opt['tsk_opt'][('save_extra_3d_img',False,'save extra image')]
 
     #
     # def get_warped_img_map(self,img, phi):
@@ -31,11 +32,13 @@ class MermaidBase(BaseModel):
     def get_warped_label_map(self,label_map, phi, sched='nn',use_01=False):
         if sched == 'nn':
             ###########TODO temporal comment for torch1 compatability
-            try:
-                print(" the cuda nn interpolation is used")
-                warped_label_map = get_nn_interpolation(label_map, phi)
-            except:
-                warped_label_map = compute_warped_image_multiNC(label_map,phi,self.spacing,spline_order=0,zero_boundary=True,use_01_input=use_01)
+            # try:
+            #     print(" the cuda nn interpolation is used")
+            #     warped_label_map = get_nn_interpolation(label_map, phi)
+            # except:
+            #     warped_label_map = compute_warped_image_multiNC(label_map,phi,self.spacing,spline_order=0,zero_boundary=True,use_01_input=use_01)
+            warped_label_map = compute_warped_image_multiNC(label_map, phi, self.spacing, spline_order=0,
+                                                            zero_boundary=True, use_01_input=use_01)
             # check if here should be add assert
             assert abs(torch.sum(
                 warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
@@ -74,8 +77,8 @@ class MermaidBase(BaseModel):
         jacobi_abs_mean = jacobi_abs / map.shape[0]
         jacobi_num_mean = jacobi_num / map.shape[0]
         self.jacobi_map = None
+        jacobi_abs_map = np.abs(jacobi_det)
         if save_jacobi_map:
-            jacobi_abs_map = np.abs(jacobi_det)
             jacobi_neg_map = np.zeros_like(jacobi_det)
             jacobi_neg_map[jacobi_det<0] =1
             for i in range(jacobi_abs_map.shape[0]):
@@ -87,12 +90,48 @@ class MermaidBase(BaseModel):
                 n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii')
                 sitk.WriteImage(jacobi_img, pth)
                 sitk.WriteImage(jacobi_neg_img, n_pth)
-            self.jacobi_map =jacobi_abs_map
+        self.jacobi_map =jacobi_abs_map
         return jacobi_abs_mean, jacobi_num_mean
 
 
 
+    def get_extra_to_plot(self):
+        return None, None
 
+
+
+    def save_fig(self,phase,standard_record=False,saving_gt=True):
+        from model_pool.visualize_registration_results import show_current_images
+        visual_param={}
+        visual_param['visualize'] = False
+        visual_param['save_fig'] = True
+        visual_param['save_fig_path'] = self.record_path
+        visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
+        visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
+        visual_param['save_fig_num'] = 4
+        visual_param['pair_path'] = self.fname_list
+        visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
+        disp=None
+        extra_title = 'disp'
+        extraImage, extraName = self.get_extra_to_plot()
+
+        if self.save_extra_3d_img and extraImage is not None:
+            self.save_extra_3d_img(extraImage,extraName)
+
+        if self.disp_or_afparam is not None and len(self.disp_or_afparam.shape)>2 and not self.nonp_on:
+            disp = ((self.disp_or_afparam[:,...]**2).sum(1))**0.5
+
+        if self.nonp_on:
+            disp = self.disp_or_afparam[:,0,...]
+            extra_title='affine'
+
+        if self.jacobi_map is not None:
+            disp = self.jacobi_map
+            extra_title = 'jacobi det'
+        show_current_images(self.iter_count, iS=self.moving,iT=self.target,iW=self.output,
+                            iSL=self.l_moving,iTL=self.l_target, iWL=self.warped_label_map,
+                            vizImages=disp, vizName=extra_title,phiWarped=self.phi,
+                            visual_param=visual_param,extraImages=extraImage, extraName= extraName)
 
 
     def _save_image_into_original_sz_with_given_reference(self, pair_path,original_img_sz, phi, inverse_phi=None, use_01=False):
@@ -127,7 +166,7 @@ class MermaidBase(BaseModel):
 
 
 
-    def save_extra_fig(self, img, title):
+    def save_extra_3d_img(self, img, title):
         import SimpleITK as sitk
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))

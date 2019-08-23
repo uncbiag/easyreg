@@ -1,9 +1,8 @@
 import os
 import nibabel as nib
 import SimpleITK as sitk
-import numpy
 import torch
-from tools.visualize_registration_results import show_current_images
+from toremove.visualize_registration_results import show_current_images
 
 
 def read_img(path,is_sitk=True,is_viz=False):

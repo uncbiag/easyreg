@@ -77,9 +77,9 @@
                 0.25
             ],
             "scale_iterations": [
-                50,
-                50,
-                50
+                20,
+                20,
+                20
             ]
         },
         "name": "lbfgs_ls",
