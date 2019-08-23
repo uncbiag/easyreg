@@ -177,7 +177,6 @@ else:
 refer_task = 'reg_adpt_lddamm_wkw_formul_025_1_omt_2step_200sym_minstd_005_allinterp_maskv'
 task_full_path = os.path.join(data_output_path,refer_task)
     #'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'
-
     #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg'
     #'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi'
 """ the path of the setting from a completed task"""

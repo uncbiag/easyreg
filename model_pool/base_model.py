@@ -16,18 +16,20 @@ class BaseModel():
         self.isTrain = opt['tsk_set']['train']
         self.save_dir = opt['tsk_set']['path']['check_point_path']
         self.record_path = opt['tsk_set']['path']['record_path']
-        self.img_sz = opt['tsk_set']['img_size']
+        #self.img_sz = opt['dataset']['img_size']
         self.spacing = None
+        self.use_physical_coord = self.opt['tsk_set'][('use_physical_coord',False,"Keep physical spacing")]
         self.continue_train = opt['tsk_set']['continue_train']
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.n_in_channel = opt['tsk_set']['n_in_channel']
-        self.input_resize_factor = opt['tsk_set']['input_resize_factor']
+        self.input_img_sz = self.opt['dataset'][('img_after_resize',None,"image size after resample")]
+        #self.input_resize_factor = opt['dataset']['input_resize_factor'] # todo remove this
         self.evaluate_label_list = opt['tsk_set']['evaluate_label_list',[-100],'evaluate_label_list']
         self.optimizer= None
         self.lr_scheduler = None
         self.exp_lr_scheduler= None
         self.iter_count = 0
-        self.dim = len(self.img_sz)
+        self.dim = 3#len(self.input_img_sz)
         self.network =None
         self.val_res_dic = {}
         self.fname_list = None
@@ -82,7 +84,7 @@ class BaseModel():
             lr = opt['lr']
             print(" no warming up the learning rate is {}".format(lr))
         else:
-            lr = 1e-4
+            lr = 5e-5
             print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
         lr_sched_opt = opt['lr_scheduler']
@@ -231,25 +233,25 @@ class BaseModel():
             appendix = self.fname_list[i]
             saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
             output = sitk.GetImageFromArray(moving_np[i, 0, ...])
-            #output.SetSpacing(self.spacing)
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
             output = sitk.GetImageFromArray(target_np[i, 0, ...])
-            #output.SetSpacing(self.spacing)
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             saving_file_path = saving_folder_path + '/' + appendix + "_affined.nii.gz"
             output = sitk.GetImageFromArray(output_np[i, 0, ...])
-            #output.SetSpacing(self.spacing)
+            output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
             if self.warped_label_map is not None:
                 saving_file_path = saving_folder_path + '/' + appendix + "_affined_label.nii.gz"
                 output = sitk.GetImageFromArray(warped_label_map_np[i, 0, ...])
-                # output.SetSpacing(self.spacing)
+                output.SetSpacing(np.flipud(self.spacing))
                 sitk.WriteImage(output, saving_file_path)
             if self.l_target is not None:
                 saving_file_path = saving_folder_path + '/' + appendix + "_target_label.nii.gz"
                 output = sitk.GetImageFromArray(l_target_np[i, 0, ...])
-                # output.SetSpacing(self.spacing)
+                output.SetSpacing(np.flipud(self.spacing))
                 sitk.WriteImage(output, saving_file_path)
 
 

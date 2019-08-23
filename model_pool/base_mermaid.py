@@ -7,6 +7,7 @@ except:
     pass
 import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
+import  tools.image_rescale as  ires
 
 
 
@@ -20,21 +21,21 @@ class MermaidBase(BaseModel):
 
 
 
+    #
+    # def get_warped_img_map(self,img, phi):
+    #     bilinear = Bilinear()
+    #     warped_img_map = bilinear(img, phi)
+    #
+    #     return warped_img_map
 
-    def get_warped_img_map(self,img, phi):
-        bilinear = Bilinear()
-        warped_img_map = bilinear(img, phi)
-
-        return warped_img_map
-
-    def get_warped_label_map(self,label_map, phi, sched='nn'):
+    def get_warped_label_map(self,label_map, phi, sched='nn',use_01=False):
         if sched == 'nn':
             ###########TODO temporal comment for torch1 compatability
             try:
                 print(" the cuda nn interpolation is used")
                 warped_label_map = get_nn_interpolation(label_map, phi)
             except:
-                warped_label_map = compute_warped_image_multiNC(label_map,phi,self.spacing,spline_order=0,zero_boundary=True,use_01_input=False)
+                warped_label_map = compute_warped_image_multiNC(label_map,phi,self.spacing,spline_order=0,zero_boundary=True,use_01_input=use_01)
             # check if here should be add assert
             assert abs(torch.sum(
                 warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
@@ -43,15 +44,15 @@ class MermaidBase(BaseModel):
         return warped_label_map
 
 
-    def compute_jacobi_map(self,map,crop_boundary=True):
+    def compute_jacobi_map(self,map,crop_boundary=True, use_01=False):
         """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
           the image direction matrix is identity."""
         from model_pool.global_variable import save_jacobi_map
         import SimpleITK as sitk
         if type(map) == torch.Tensor:
             map = map.detach().cpu().numpy()
-        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        spacing = 2. / (np.array(input_img_sz) - 1)  # the disp coorindate is [-1,1]
+        span = 1.0 if use_01 else 2.0
+        spacing = self.spacing*span # the disp coorindate is [-1,1]
         fd = fdt.FD_np(spacing)
         dfx = fd.dXc(map[:, 0, ...])
         dfy = fd.dYc(map[:, 1, ...])
@@ -80,6 +81,8 @@ class MermaidBase(BaseModel):
             for i in range(jacobi_abs_map.shape[0]):
                 jacobi_img = sitk.GetImageFromArray(jacobi_abs_map[i])
                 jacobi_neg_img = sitk.GetImageFromArray(jacobi_neg_map[i])
+                jacobi_img.SetSpacing(np.flipud(self.spacing))
+                jacobi_neg_img.SetSpacing(np.flipud(self.spacing))
                 pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_img.nii')
                 n_pth = os.path.join(self.record_path, self.fname_list[i] +'_{:04d}'.format(self.cur_epoch+1)+ 'jacobi_neg_img.nii')
                 sitk.WriteImage(jacobi_img, pth)
@@ -87,13 +90,50 @@ class MermaidBase(BaseModel):
             self.jacobi_map =jacobi_abs_map
         return jacobi_abs_mean, jacobi_num_mean
 
+
+
+
+
+
+    def _save_image_into_original_sz_with_given_reference(self, pair_path,original_img_sz, phi, inverse_phi=None, use_01=False):
+        num_batch = self.moving.shape[0]
+        img_sz_new = [num_batch,1]+list(t2np((original_img_sz)))
+        spacing = self.spacing
+        moving_list = pair_path[0]
+        target_list =pair_path[1]
+        phi = (phi+1)/2. if not use_01 else phi
+        new_phi, warped, new_spacing =ires.resample_warped_phi_and_image(moving_list, phi,spacing,img_sz_new)
+
+        saving_original_sz_path = os.path.join(self.record_path,'original_sz')
+        os.makedirs(saving_original_sz_path,exist_ok=True)
+        fname_list = list(self.fname_list)
+        ires.save_transfrom(new_phi,self.spacing, saving_original_sz_path,fname_list)
+        reference_list = pair_path[0]
+        fname_list = [fname+'_warped' for fname in self.fname_list]
+        ires.save_image_with_given_reference(warped,reference_list,saving_original_sz_path,fname_list)
+        fname_list = [fname+'_moving' for fname in self.fname_list]
+        ires.save_image_with_given_reference(None,reference_list,saving_original_sz_path,fname_list)
+        reference_list = pair_path[1]
+        fname_list = [fname + '_target' for fname in self.fname_list]
+        ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
+        if inverse_phi is not None:
+            inverse_phi = (inverse_phi +1)/2. if not use_01 else inverse_phi
+            new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
+            fname_list = [fname + '_inv' for fname in self.fname_list]
+            ires.save_transfrom(new_inv_phi, self.spacing, saving_original_sz_path, fname_list)
+            fname_list = [fname + '_inv_warped' for fname in self.fname_list]
+            ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
+
+
+
+
     def save_extra_fig(self, img, title):
         import SimpleITK as sitk
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))
-        input_img_sz = [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        input_img_sz = self.input_img_sz # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
 
-        img = get_resampled_image(img, None, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
+        img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
             img_to_save = img_np[i, 0]
@@ -101,3 +141,5 @@ class MermaidBase(BaseModel):
                                  self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
             img_to_save = sitk.GetImageFromArray(img_to_save)
             sitk.WriteImage(img_to_save, fpath)
+
+

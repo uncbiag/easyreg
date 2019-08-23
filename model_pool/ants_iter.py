@@ -8,8 +8,6 @@ from model_pool.utils import *
 from model_pool.ants_reg_utils import *
 import mermaid.utils as py_utils
 
-import mermaid.simple_interface as SI
-import mermaid.fileio as FIO
 class AntsRegIter(BaseModel):
     def name(self):
         return 'ants_reg iter'
@@ -17,29 +15,20 @@ class AntsRegIter(BaseModel):
     def initialize(self,opt):
         BaseModel.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
-        #self.spacing = np.asarray(opt['tsk_set']['extra_info']['spacing'])
-        input_img_sz = [int(self.img_sz[i]*self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        self.spacing= 1. / (np.array(input_img_sz)-1)# np.array([0.00501306, 0.00261097, 0.00261097])*2
-        self.resize_factor = opt['tsk_set']['input_resize_factor']
-        self.resize = not all([factor==1 for factor in self.resize_factor])
-
         network_name =opt['tsk_set']['network_name']
         self.network_name = network_name
-        self.single_mod = True
         if network_name =='affine':
             self.affine_on = True
             self.syn_on = False
         elif network_name =='syn':
             self.affine_on = False
             self.syn_on = True
-        self.si = SI.RegisterImagePair()
-        self.im_io = FIO.ImageIO()
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
-        self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
-        self.identity_map = torch.from_numpy(self.identity_map)
+        # self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
+        # self.identity_map = torch.from_numpy(self.identity_map)
 
 
 
@@ -47,22 +36,23 @@ class AntsRegIter(BaseModel):
 
 
     def set_input(self, data, is_train=True):
-        data[0]['image'] =(data[0]['image']+1)/2
-        data[0]['label'] =data[0]['label']
-        moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
+        moving, target, l_moving,l_target = get_pair(data[0])
         self.moving = moving
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
         self.input = input
+        self.input_img_sz  = list(moving.shape)[2:]
+        self.original_im_sz = data[0]['original_sz']
+        self.original_spacing = data[0]['original_spacing']
         self.fname_list = list(data[1])
         self.pair_path = data[0]['pair_path']
         self.pair_path = [path[0] for path in self.pair_path]
-        self.resized_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[0],is_label=False,fname='moving.nii.gz')
-        self.resized_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[1],is_label= False, fname='target.nii.gz')
-        self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True, fname='l_moving.nii.gz')
-        self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz')
+        self.resized_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[0],is_label=False,fname='moving.nii.gz',keep_physical=self.use_physical_coord)
+        self.resized_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[1],is_label= False, fname='target.nii.gz',keep_physical=self.use_physical_coord)
+        self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True, fname='l_moving.nii.gz',keep_physical=self.use_physical_coord)
+        self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz',keep_physical=self.use_physical_coord)
 
 
 
@@ -75,15 +65,15 @@ class AntsRegIter(BaseModel):
         img_org = sitk.ReadImage(img_pth)
         img = self.__read_and_clean_itk_info(img_pth)
         dimension = 3
-        factor = np.flipud(self.resize_factor)
         img_sz = img.GetSize()
-
-        if self.resize:
+        resize_factor = np.array(self.input_img_sz) / np.flipud(img_sz)
+        resize = not all([factor == 1 for factor in resize_factor])
+        factor = np.flipud(resize_factor)
+        if resize:
             resampler= sitk.ResampleImageFilter()
-
             affine = sitk.AffineTransform(dimension)
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-            after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
+            after_size = [round(img_sz[i]*factor[i]) for i in range(dimension)]
             after_size = [int(sz) for sz in after_size]
             matrix[0, 0] =1./ factor[0]
             matrix[1, 1] =1./ factor[1]

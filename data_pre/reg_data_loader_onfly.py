@@ -35,7 +35,7 @@ class RegistrationDataset(Dataset):
         self.load_init_weight=reg_option[('load_init_weight',False,'load init weight for adaptive weighting model')]
 
 
-        # ##########################ToDO  delete this section #################################3
+        # # ##########################ToDO  delete this section #################################3
         # use_extra_inter_intra_judge =True
         # self.is_intra_reg = True
         # if use_extra_inter_intra_judge:
@@ -47,17 +47,20 @@ class RegistrationDataset(Dataset):
         # else:
         #     self.max_num_pair_to_load = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
         #     self.turn_on_pair_regis = True  # if ph
-
-        ######################################################################################3
+        #
+        # ######################################################################################3
 
         self.has_label = False
         self.get_file_list()
         self.reg_option = reg_option
-        self.resize_factor = reg_option['input_resize_factor']
-        self.resize = not all([factor==1 for factor in self.resize_factor])
-        load_training_data_into_memory = reg_option['load_training_data_into_memory']
+        self.img_after_resize = reg_option[('img_after_resize',[-1,-1,-1],"resample the image into desired size")]
+        self.img_after_resize = None if any([sz == -1 for sz in self.img_after_resize]) else self.img_after_resize
+        load_training_data_into_memory = reg_option[('load_training_data_into_memory',False,"when train network, load all training sample into memory can relieve disk burden")]
         self.load_into_memory = load_training_data_into_memory if phase == 'train' else False
         self.pair_list = []
+        self.original_spacing_list = []
+        self.original_sz_list = []
+        self.spacing_list = []
         if self.load_into_memory:
             self.init_img_pool()
 
@@ -103,25 +106,55 @@ class RegistrationDataset(Dataset):
         count = 0
         for fn, img_label_path in img_label_path_dic.items():
             img_label_np_dic = {}
-            img_sitk = self.__read_and_clean_itk_info(img_label_path['img'])
-            if self.has_label:
-                label_sitk = self.__read_and_clean_itk_info(img_label_path['label'])
-            if self.resize:
-                img_np = sitk.GetArrayFromImage(self.resize_img(img_sitk))
-                if self.has_label:
-                    label_np = sitk.GetArrayFromImage(self.resize_img(label_sitk,is_label=True))
-            else:
-                img_np = sitk.GetArrayFromImage(img_sitk)
-                if self.has_label:
-                    label_np = sitk.GetArrayFromImage(label_sitk)
-
+            img_sitk, original_spacing, original_sz = self.__read_and_clean_itk_info(img_label_path['img'])
+            resized_img, resize_factor = self.resize_img(img_sitk)
+            img_np = sitk.GetArrayFromImage(resized_img)
             img_label_np_dic['img'] = blosc.pack_array(img_np.astype(np.float32))
+
             if self.has_label:
+                label_sitk, _, _ = self.__read_and_clean_itk_info(img_label_path['label'])
+                resized_label,_ = self.resize_img(label_sitk,is_label=True)
+                label_np = sitk.GetArrayFromImage(resized_label)
                 img_label_np_dic['label'] = blosc.pack_array(label_np.astype(np.float32))
+            new_spacing=  original_spacing*(original_sz-1)/(np.array(self.img_after_resize)-1)
+            normalized_spacing = self._normalize_spacing(new_spacing,self.img_after_resize, silent_mode=True)
+            img_label_np_dic['original_sz'] =original_sz
+            img_label_np_dic['original_spacing'] = original_spacing
+            img_label_np_dic['spacing'] = normalized_spacing
             img_label_dic[fn] =img_label_np_dic
             count +=1
             pbar.update(count)
         pbar.finish()
+
+
+
+    def _normalize_spacing(self,spacing,sz,silent_mode=False):
+        """
+        Normalizes spacing.
+        :param spacing: Vector with spacing info, in XxYxZ format
+        :param sz: size vector in XxYxZ format
+        :return: vector with normalized spacings in XxYxZ format
+        """
+        dim = len(spacing)
+        # first determine the largest extent
+        current_largest_extent = -1
+        extent = np.zeros_like(spacing)
+        for d in range(dim):
+            current_extent = spacing[d]*(sz[d]-1)
+            extent[d] = current_extent
+            if current_extent>current_largest_extent:
+                current_largest_extent = current_extent
+
+        scalingFactor = 1./current_largest_extent
+        normalized_spacing = spacing*scalingFactor
+
+        normalized_extent = extent*scalingFactor
+
+        if not silent_mode:
+            print('Normalize spacing: ' + str(spacing) + ' -> ' + str(normalized_spacing))
+            print('Normalize spacing, extent: ' + str(extent) + ' -> ' + str(normalized_extent))
+
+        return normalized_spacing
 
 
 
@@ -149,8 +182,6 @@ class RegistrationDataset(Dataset):
                         img_label_path_dic[fn] = {'img':fps[i]}
             pair_name_list.append([get_file_name(fps[0]), get_file_name(fps[1])])
 
-
-
         split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
         procs =[]
         for i in range(num_of_workers):
@@ -175,6 +206,10 @@ class RegistrationDataset(Dataset):
             else:
                 self.pair_list.append([img_label_dic[sn]['img'], img_label_dic[tn]['img']])
 
+            self.original_spacing_list.append(img_label_dic[sn]['original_spacing'])
+            self.original_sz_list.append(img_label_dic[sn]['original_sz'])
+            self.spacing_list.append(img_label_dic[sn]['spacing'])
+
 
 
 
@@ -183,33 +218,45 @@ class RegistrationDataset(Dataset):
         :param img: sitk input, factor is the outputsize/patched_sized
         :return:
         """
-        resampler= sitk.ResampleImageFilter()
-        dimension =3
-        factor = np.flipud(self.resize_factor)
         img_sz = img.GetSize()
-        affine = sitk.AffineTransform(dimension)
-        matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-        after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
-        after_size = [int(sz) for sz in after_size]
-        matrix[0, 0] =1./ factor[0]
-        matrix[1, 1] =1./ factor[1]
-        matrix[2, 2] =1./ factor[2]
-        affine.SetMatrix(matrix.ravel())
-        resampler.SetSize(after_size)
-        resampler.SetTransform(affine)
-        if is_label:
-            resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+        if self.img_after_resize is not None:
+            img_after_resize = self.img_after_resize
         else:
-            resampler.SetInterpolator(sitk.sitkBSpline)
-        img_resampled = resampler.Execute(img)
-        return img_resampled
+            img_after_resize = np.flipud(img_sz)
+        resize_factor = np.array(img_after_resize)/np.flipud(img_sz)
+        resize = not all([factor == 1 for factor in resize_factor])
+        if resize:
+            resampler= sitk.ResampleImageFilter()
+            dimension =3
+            factor = np.flipud(resize_factor)
+            affine = sitk.AffineTransform(dimension)
+            matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
+            after_size = [round(img_sz[i]*factor[i]) for i in range(dimension)]
+            after_size = [int(sz) for sz in after_size]
+            matrix[0, 0] =1./ factor[0]
+            matrix[1, 1] =1./ factor[1]
+            matrix[2, 2] =1./ factor[2]
+            affine.SetMatrix(matrix.ravel())
+            resampler.SetSize(after_size)
+            resampler.SetTransform(affine)
+            if is_label:
+                resampler.SetInterpolator(sitk.sitkNearestNeighbor)
+            else:
+                resampler.SetInterpolator(sitk.sitkBSpline)
+            img_resampled = resampler.Execute(img)
+        else:
+            img_resampled = img
+        return img_resampled, resize_factor
 
 
     def __read_and_clean_itk_info(self,path):
         if path is not None:
-            return sitk.GetImageFromArray(sitk.GetArrayFromImage(sitk.ReadImage(path)))
+            img = sitk.ReadImage(path)
+            spacing_sitk = img.GetSpacing()
+            img_sz_sitk = img.GetSize()
+            return sitk.GetImageFromArray(sitk.GetArrayFromImage(img)), np.flipud(spacing_sitk), np.flipud(img_sz_sitk)
         else:
-            return None
+            return None, None, None
 
     def __read_itk_into_np(self,path):
         return sitk.GetArrayFromImage(sitk.ReadImage(path))
@@ -240,8 +287,10 @@ class RegistrationDataset(Dataset):
         return len(self.name_list) #############################3
 
 
+
     def __getitem__(self, idx):
         """
+        # todo  update the load data part to mermaid fileio
         :param idx: id of the items
         :return: the processed data, return as type of dic
 
@@ -251,17 +300,26 @@ class RegistrationDataset(Dataset):
         pair_path = self.path_list[idx]
         filename = self.name_list[idx]
         if not self.load_into_memory:
-            sitk_pair_list = [ self.__read_and_clean_itk_info(pt) for pt in pair_path]
-            if self.resize:
-                sitk_pair_list[0] = self.resize_img(sitk_pair_list[0])
-                sitk_pair_list[1] = self.resize_img(sitk_pair_list[1])
-                if self.has_label:
-                    sitk_pair_list[2] = self.resize_img(sitk_pair_list[2], is_label=True)
-                    sitk_pair_list[3] = self.resize_img(sitk_pair_list[3], is_label=True)
+            img_spacing_pair_list = [ list(self.__read_and_clean_itk_info(pt)) for pt in pair_path]
+            sitk_pair_list = [item[0] for item in img_spacing_pair_list]
+            original_spacing = img_spacing_pair_list[0][1]
+            original_sz = img_spacing_pair_list[0][2]
+            sitk_pair_list[0], resize_factor = self.resize_img(sitk_pair_list[0])
+            sitk_pair_list[1], _ = self.resize_img(sitk_pair_list[1])
+            if self.has_label:
+                sitk_pair_list[2],_ = self.resize_img(sitk_pair_list[2], is_label=True)
+                sitk_pair_list[3],_ = self.resize_img(sitk_pair_list[3], is_label=True)
             pair_list = [sitk.GetArrayFromImage(sitk_pair) for sitk_pair in sitk_pair_list]
+            img_after_resize = self.img_after_resize if self.img_after_resize is not None else original_sz
+            new_spacing=  original_spacing*(original_sz-1)/(np.array(img_after_resize)-1)
+            spacing = self._normalize_spacing(new_spacing,img_after_resize, silent_mode=True)
+
 
         else:
             zipnp_pair_list = self.pair_list[idx]
+            spacing = self.spacing_list[idx]
+            original_spacing = self.original_spacing_list[idx]
+            original_sz = self.original_sz_list[idx]
             pair_list = [blosc.unpack_array(item) for item in zipnp_pair_list]
 
         sample = {'image': np.asarray([pair_list[0]*2.-1.,pair_list[1]*2.-1.])}
@@ -281,7 +339,10 @@ class RegistrationDataset(Dataset):
             sample['image'] = self.transform(sample['image'])
             if self.has_label:
                  sample['label'] = self.transform(sample['label'])
-        #sample['spacing'] = self.transform(sample['info']['spacing'])
+
+        sample['spacing'] = spacing.copy()
+        sample['original_sz'] = original_sz.copy()
+        sample['original_spacing'] = original_spacing.copy()
         return sample,filename
 
 
@@ -291,5 +352,8 @@ class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, sample):
-        n_tensor = torch.from_numpy(sample)
+        try:
+            n_tensor = torch.from_numpy(sample)
+        except:
+            i=1
         return n_tensor

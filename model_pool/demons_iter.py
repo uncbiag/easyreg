@@ -26,7 +26,6 @@ class DemonsRegIter(BaseModel):
 
         network_name =opt['tsk_set']['network_name']
         self.network_name = network_name
-        self.single_mod = True
         if network_name =='affine':
             self.affine_on = True
             self.demon_on = False
@@ -82,7 +81,7 @@ class DemonsRegIter(BaseModel):
             resampler= sitk.ResampleImageFilter()
             affine = sitk.AffineTransform(dimension)
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
-            after_size = [int(img_sz[i]*factor[i]) for i in range(dimension)]
+            after_size = [round(img_sz[i]*factor[i]) for i in range(dimension)]
             after_size = [int(sz) for sz in after_size]
             matrix[0, 0] =1./ factor[0]
             matrix[1, 1] =1./ factor[1]

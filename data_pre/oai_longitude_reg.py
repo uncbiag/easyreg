@@ -492,7 +492,6 @@ class OAIDataPrepare():
         if self.debug:
             number_of_workers=20
             fp_to_del = []
-            fp_to_del_tmp = []
             file_patitions = np.array_split(self.raw_file_path_list, number_of_workers)
             with Pool(processes=number_of_workers) as pool:
                 fp_to_del_tmp=pool.map(f, file_patitions)

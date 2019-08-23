@@ -1,0 +1,99 @@
+{
+    "tsk_set": {
+        "batch_sz": 1,
+        "use_physical_coord":false,
+        "check_best_model_period": 5,
+        "continue_train": false,
+        "continue_train_lr": 5e-05,
+        "criticUpdates": 1,
+        "epoch": 300,
+        "gpu_ids": 3,
+        "loss": {
+            "ce": {
+                "no_bg": false,
+                "weighted": false
+            },
+            "type": "lncc"
+        },
+        "max_batch_num_per_epoch": [
+            200,
+            8,
+            4
+        ],
+        "mode_train": false,
+        "model": "reg_net",
+        "model_folder_path": "",
+        "model_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_",
+        "n_in_channel": 1,
+        "network_name": "mermaid",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 5e-05,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 12000
+                },
+                "plateau": {
+                    "factor": 0.2,
+                    "min_lr": 1e-06,
+                    "patience": 5,
+                    "threshold": 0.001
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_path": "./demo_output/mermaid/opt_vsvf/reg",
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "affine_net_iter": 7,
+                "using_complex_net": true
+            },
+            "low_res_factor": 0.5,
+            "compute_inverse_map": false,
+            "mermaid_net": {
+                "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
+                "mermaid_net_json_pth": "./demo_settings/mermaid/network_vsvf/mermaid_nonp_settings.json",
+                "num_step": 2,
+                "optimize_momentum_network": false,
+                "sym_factor": 500,
+                "using_affine_init": true,
+                "using_complex_net": true,
+                "using_index_coord": false,
+                "using_lddmm": false,
+                "using_multi_step": true,
+                "using_sym": false
+            }
+        },
+        "save_by_standard_label": true,
+        "save_fig_on": true,
+        "save_val_fig_epoch": 2,
+        "save_3d_img_on": false,
+        "save_extra_3d_img":true,
+        "output_orginal_img_sz": true,
+        "task_name": "res",
+        "train": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    },
+    "dataset": {
+        "load_training_data_into_memory": false,
+        "img_after_resize": [80,192,192],
+        "spacing_to_refer":[0.7, 0.3646,0.3646],
+        "max_pair_for_loading": [
+            1,
+            1,
+            -1,
+            1
+        ]
+    }
+}

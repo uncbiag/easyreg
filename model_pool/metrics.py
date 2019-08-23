@@ -25,7 +25,7 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False, verbose=True):
     pred_list = np.unique(pred).tolist()
     union_set = set(label_list).union(set(pred_list))
     if verbose:
-        if len(union_set)> len(set(label_list)):
+        if len(union_set)> len(set(label_list)): # in case a certain class is not in batch gt, but was wrongly predicted
             print("Warning, label {} is in prediction map but not in the ground truth map".format(set(pred_list)-set(label_list)))
     label_list = list(union_set)
 
@@ -45,6 +45,10 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False, verbose=True):
     label_batch_avg_res ={metric: np.zeros(1) for metric in metrics}
     if num_label==0:
         print("Warning, there is no label in current img")
+        label_avg_res = {metric: np.ones([num_batch, 1]) for metric in metrics}
+        batch_avg_res = {metric: np.ones([1, num_label]) for metric in metrics}
+        batch_label_avg_res = {metric: 1. for metric in metrics}
+        label_batch_avg_res = {metric: 1. for metric in metrics}
         return {'multi_metric_res': multi_metric_res, 'label_avg_res': label_avg_res, 'batch_avg_res': batch_avg_res,
             'label_list': label_list, 'batch_label_avg_res':batch_label_avg_res,'label_batch_avg_res':label_batch_avg_res}
 
