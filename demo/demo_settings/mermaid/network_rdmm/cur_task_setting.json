@@ -20,7 +20,7 @@
             8,
             4
         ],
-        "mode_train": false,
+        "train": false,
         "model": "reg_net",
         "model_folder_path": "",
         "model_path": "/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/rdmm_learn_sm006_sym_500_thisis_std005/checkpoints/epoch_140_",
@@ -81,7 +81,6 @@
         "save_extra_3d_img":false,
         "output_orginal_img_sz": false,
         "task_name": "res",
-        "train": false,
         "val_period": 10,
         "warmming_up_epoch": 2
     },

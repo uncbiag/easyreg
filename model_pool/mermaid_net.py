@@ -49,6 +49,8 @@ class MermaidNet(nn.Module):
         opt_mermaid = opt['tsk_set']['reg']['mermaid_net']
         low_res_factor = opt['tsk_set']['reg'][('low_res_factor',1.,"factor of low-resolution map")]
         batch_sz = opt['tsk_set']['batch_sz']
+        self.record_path = opt['tsk_set']['path']['record_path']
+
         self.is_train = opt['tsk_set']['train']
         self.epoch = 0
 
@@ -118,10 +120,17 @@ class MermaidNet(nn.Module):
             self.print_every_epoch_flag=True
         self.epoch = epoch+1
 
+
+    def save_cur_mermaid_settings(self,params):
+        saving_path = os.path.join(self.record_path,'cur_settings_mermaid_output.json')
+        params.write_JSON(saving_path, save_int=False)
+
+
     def init_mermaid_env(self, spacing):
         """setup the mermaid"""
         params = pars.ParameterDict()
         params.load_JSON( self.mermaid_net_json_pth) #''../model_pool/cur_settings_svf.json')
+        self.save_cur_mermaid_settings(params)
         #params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         print(" The mermaid setting from {} included:".format(self.mermaid_net_json_pth))
         print(params)

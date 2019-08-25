@@ -30,6 +30,10 @@ class AffineNet(nn.Module):
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
         self.bilinear = Bilinear(zero_boundary=False)
+        self.epoch = -1
+
+    def set_cur_epoch(self, cur_epoch):
+        self.epoch = cur_epoch
 
     def gen_affine_map(self,Ab):
         Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
@@ -85,6 +89,11 @@ class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!
         self.phi= gen_identity_map(self.img_sz)
         self.zero_boundary = True
         self.bilinear =Bilinear(self.zero_boundary)
+        self.epoch = -1
+
+
+    def set_cur_epoch(self, cur_epoch):
+        self.epoch = cur_epoch
 
 
     def gen_affine_map(self,Ab):
@@ -162,8 +171,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         super(AffineNetSym, self).__init__()
         self.img_sz = img_sz
         self.dim = len(img_sz)
-        self.step = opt['tsk_set']['reg']['affine_net']['affine_net_iter']
-        self.using_complex_net = opt['tsk_set']['reg']['affine_net']['using_complex_net']
+        self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',1,'num of step')]
+        self.step_record = self.step
+        self.using_complex_net = opt['tsk_set']['reg']['affine_net'][('using_complex_net',True,'use complex version of affine net')]
+        self.epoch_activate_multi_step = opt['tsk_set']['reg']['affine_net'][('epoch_activate_multi_step',-1,'epoch to activate multi-step affine')]
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
         self.phi= gen_identity_map(self.img_sz)
@@ -173,6 +184,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.using_cycle = True
         self.zero_boundary = True
         self.bilinear = Bilinear(self.zero_boundary)
+        self.epoch = -1
+
 
         # #############################################TODO###########################################3
         #
@@ -186,7 +199,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         #
         # print("the affineNetSym is initialized")
 
-
+    def set_cur_epoch(self, cur_epoch):
+        self.epoch = cur_epoch
 
 
     def gen_affine_map(self,Ab):
@@ -267,10 +281,18 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def forward(self,moving, target):
         self.count += 1
-        if  not self.using_cycle:
-            return self.single_forward(moving,target)
-        else:
-            return self.cycle_forward( moving, target)
+        # if  not self.using_cycle:
+        #     return self.single_forward(moving,target)
+        # else:
+        #     return self.cycle_forward( moving, target)
+        if self.epoch_activate_multi_step>0:
+            if self.epoch >= self.epoch_activate_multi_step:
+                if self.step_record != self.step:
+                    print(" the multi step in affine network activated, multi step num: {}".format(self.step_record))
+                self.step = self.step_record
+            else:
+                self.step = 1
+        return self.cycle_forward(moving, target)
 
 
 

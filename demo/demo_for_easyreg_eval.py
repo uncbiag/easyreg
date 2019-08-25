@@ -70,7 +70,7 @@ def force_test_setting(dm, tsm,output_path):
 
 
 
-def init_test_env(task_full_path,output_path, source_path_list, target_path_list, l_source_path_list=None, l_target_path_list=None):
+def init_test_env(setting_path,output_path, source_path_list, target_path_list, l_source_path_list=None, l_target_path_list=None):
     """
     :param task_full_path:  the path of a completed task
     :param source_path: path of the source image
@@ -79,8 +79,8 @@ def init_test_env(task_full_path,output_path, source_path_list, target_path_list
     :param l_target: path of the label of the target image
     :return: None
     """
-    dm_json_path = os.path.join(task_full_path, 'cur_data_setting.json')
-    tsm_json_path = os.path.join(task_full_path, 'cur_task_setting.json')
+    dm_json_path = os.path.join(setting_path, 'cur_data_setting.json')
+    tsm_json_path = os.path.join(setting_path, 'cur_task_setting.json')
     assert os.path.isfile(tsm_json_path),"task setting not exists"
     dm = DataTask('task_reg',dm_json_path) if os.path.isfile(dm_json_path) else None
     tsm = ModelTask('task_reg',tsm_json_path)
@@ -91,8 +91,8 @@ def init_test_env(task_full_path,output_path, source_path_list, target_path_list
         file_list = [[source_path_list[i], target_path_list[i]] for i in range(file_num)]
     os.makedirs(os.path.join(output_path,'reg/test'),exist_ok=True)
     os.makedirs(os.path.join(output_path,'reg/res'),exist_ok=True)
-    pair_txt_path =  os.path.join(output_path,'reg/test/pair_path_list.txt')
-    fn_txt_path =   os.path.join(output_path,'reg/test/pair_name_list.txt')
+    pair_txt_path = os.path.join(output_path,'reg/test/pair_path_list.txt')
+    fn_txt_path = os.path.join(output_path,'reg/test/pair_name_list.txt')
     fname_list = [get_file_name(file_list[i][0])+'_'+get_file_name(file_list[i][1]) for i in range(file_num)]
     write_list_into_txt(pair_txt_path,file_list)
     write_list_into_txt(fn_txt_path,fname_list)
@@ -123,7 +123,7 @@ def loading_img_list_from_files(path):
 
 
 
-def do_registration(args, registration_pair_list):
+def do_registration_eval(args, registration_pair_list):
     task_output_path = args.task_output_path
     os.makedirs(task_output_path, exist_ok=True)
     run_demo = args.run_demo
@@ -187,8 +187,7 @@ if __name__ == '__main__':
         assert len(lsource_list)== len(source_list), "the lsource and source list should be the same length"
         assert len(lsource_list)== len(ltarget_list), " the lsource and ltarget list should be the same length"
     registration_pair_list= [source_list, target_list, lsource_list, ltarget_list]
-
-    do_registration(args, registration_pair_list)
+    do_registration_eval(args, registration_pair_list)
 
 
 

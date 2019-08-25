@@ -108,9 +108,9 @@ class RegNet(MermaidBase):
         sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
         sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
         scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
-        factor_scale =1e-3  # 1  ############################# TODo #####################
-        # factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
-        # factor_scale = float( max(1e-3,factor_scale))
+        factor_scale = 10 #1e-3  # 1  ############################# TODo #####################
+        factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
+        factor_scale = float( max(1e-3,factor_scale))
         factor_sym =10#10
         sim_factor = 1
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss

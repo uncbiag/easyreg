@@ -167,7 +167,7 @@ def train_model(opt,model, dataloaders,writer):
                 # currently we just save model by period, so need to check the best model manually
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
                     if isinstance(model.optimizer, tuple):
-                        # for multi-optimizer cases
+                        # for multi-optimizer cases,
                         optimizer_state = []
                         for term in model.optimizer:
                             optimizer_state.append(term.state_dict())

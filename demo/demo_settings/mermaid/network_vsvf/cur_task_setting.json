@@ -20,7 +20,7 @@
             8,
             4
         ],
-        "mode_train": false,
+        "train": false,
         "model": "reg_net",
         "model_folder_path": "",
         "model_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_",
@@ -81,7 +81,6 @@
         "save_extra_3d_img":true,
         "output_orginal_img_sz": true,
         "task_name": "res",
-        "train": false,
         "val_period": 10,
         "warmming_up_epoch": 2
     },
