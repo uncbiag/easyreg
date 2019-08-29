@@ -187,6 +187,19 @@ class VoxelMorphCVPR2018(nn.Module):
                 if not m.bias is None:
                     m.bias.data.zero_()
 
+    # def cal_affine_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
+    #     factor = 1.0
+    #     if using_decay_factor:
+    #         factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
+    #     if self.loss_fn.criterion is not None:
+    #         sim_loss  = self.loss_fn.get_loss(output,self.target)
+    #     else:
+    #         sim_loss = self.network.get_sim_loss(output,self.target)
+    #     reg_loss = self.network.scale_reg_loss(disp_or_afparam) if disp_or_afparam is not None else 0.
+    #     if self.iter_count%10==0:
+    #         print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
+    #     return sim_loss+reg_loss*factor
+
 
 
 class VoxelMorphMICCAI2019(nn.Module):
@@ -482,7 +495,18 @@ class VoxelMorphMICCAI2019(nn.Module):
                     nn.init.xavier_normal_(m.weight.data)
                 if not m.bias is None:
                     m.bias.data.zero_()
-
+    # def cal_affine_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
+    #     factor = 1.0
+    #     if using_decay_factor:
+    #         factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
+    #     if self.loss_fn.criterion is not None:
+    #         sim_loss  = self.loss_fn.get_loss(output,self.target)
+    #     else:
+    #         sim_loss = self.network.get_sim_loss(output,self.target)
+    #     reg_loss = self.network.scale_reg_loss(disp_or_afparam) if disp_or_afparam is not None else 0.
+    #     if self.iter_count%10==0:
+    #         print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
+    #     return sim_loss+reg_loss*factor
 
 
 

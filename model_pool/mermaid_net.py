@@ -104,7 +104,9 @@ class MermaidNet(nn.Module):
         self.inverse_map = None
 
     def init_affine_net(self,opt):
-        self.affine_net = AffineNetCycle(self.img_sz[2:],opt)
+        self.affine_net = AffineNetSym(self.img_sz[2:],opt)
+        self.affine_net.compute_loss = False
+        self.affine_net.epoch_activate_sym = 1e7  # todo to fix
         model_path = self.affine_init_path
         if self.load_trained_affine_net:
             checkpoint = torch.load(model_path,  map_location='cpu')
@@ -119,6 +121,10 @@ class MermaidNet(nn.Module):
         if self.epoch !=epoch+1:
             self.print_every_epoch_flag=True
         self.epoch = epoch+1
+
+
+    def set_loss_fn(self, loss_fn):
+        pass
 
 
     def save_cur_mermaid_settings(self,params):
@@ -416,7 +422,7 @@ class MermaidNet(nn.Module):
 
 
     def sym_forward(self, moving, target=None):
-        self.n_batch = moving.shape[1]
+        self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
         rec_IWarped_st, rec_phiWarped_st, affine_img_st = self.single_forward(moving_sym, target_sym)
@@ -495,8 +501,8 @@ class MermaidNet(nn.Module):
         self.n_batch = moving.shape[1]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
-        rec_IWarped_st, rec_phiWarped_st, affine_img_st = self.cyc_forward(moving_sym, target_sym)
-        return rec_IWarped_st[:self.n_batch], rec_phiWarped_st[:self.n_batch], affine_img_st[:self.n_batch]
+        rec_IWarped, rec_phiWarped, affine_img = self.cyc_forward(moving_sym, target_sym)
+        return rec_IWarped[:self.n_batch], rec_phiWarped[:self.n_batch], affine_img[:self.n_batch]
 
     def get_affine_map(self,moving, target):
         with torch.no_grad():

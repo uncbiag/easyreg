@@ -5,8 +5,8 @@
         "check_best_model_period": 5,
         "continue_train": false,
         "continue_train_lr": 5e-05,
-        "criticUpdates": 1,
-        "epoch": 300,
+        "criticUpdates": 2,
+        "epoch": 400,
         "gpu_ids": 3,
         "loss": {
             "ce": {
@@ -16,7 +16,7 @@
             "type": "lncc"
         },
         "max_batch_num_per_epoch": [
-            200,
+            400,
             8,
             4
         ],
@@ -30,11 +30,11 @@
             "adam": {
                 "beta": 0.9
             },
-            "lr": 5e-05,
+            "lr": 5e-04,
             "lr_scheduler": {
                 "custom": {
                     "gamma": 0.5,
-                    "step_size": 12000
+                    "step_size": 10000
                 },
                 "plateau": {
                     "factor": 0.2,
@@ -57,7 +57,10 @@
             "affine_net": {
                 "affine_net_iter": 3,
                 "using_complex_net": true,
-                "epoch_activate_multi_step": 20
+                "epoch_activate_multi_step": 200,
+                "epoch_activate_sym": 120,
+                "epoch_activate_sym_loss": 120,
+                "epoch_activate_extern_loss": 100
             },
             "low_res_factor": 0.5,
             "compute_inverse_map": false,
@@ -65,7 +68,7 @@
                 "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
                 "mermaid_net_json_pth": "./demo_settings/mermaid/network_vsvf/mermaid_nonp_settings.json",
                 "num_step": 2,
-                "optimize_momentum_network": false,
+                "optimize_momentum_network": true,
                 "sym_factor": 500,
                 "using_affine_init": true,
                 "using_complex_net": true,
@@ -86,7 +89,7 @@
         "warmming_up_epoch": 8
     },
     "dataset": {
-        "load_training_data_into_memory": true,
+        "load_training_data_into_memory": false,
         "img_after_resize": [80,192,192],
         "spacing_to_refer":[0.7, 0.3646,0.3646],
         "max_pair_for_loading": [

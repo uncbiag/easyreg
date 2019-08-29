@@ -7,151 +7,152 @@ from __future__ import print_function
 from model_pool.modules import *
 from functions.bilinear import *
 from torch.utils.checkpoint import checkpoint
+from model_pool.utils import sigmoid_decay
 
 
-
-class AffineNet(nn.Module):
-    """
-    here we need two affine net,
-    1. do the affine by training single forward network
-    # in this case if we want to do the affine
-    we need to  warp the image then made it as a new input
-
-    2. do affine by training a cycle network
-    in this case, it is like svf , we would feed raw image once, and the
-    network would warp the phi, the advantage of this method is we don't need
-    to warp the image for several time as interpolation would introduce unstability
-    """
-    def __init__(self, img_sz=None, opt=None):
-        super(AffineNet, self).__init__()
-        self.img_sz = img_sz if len(img_sz)<4 else img_sz[2:]
-        self.dim = len(self.img_sz)
-        self.affine_gen = Affine_unet_im()
-        self.affine_cons= AffineConstrain()
-        self.phi= gen_identity_map(self.img_sz)
-        self.bilinear = Bilinear(zero_boundary=False)
-        self.epoch = -1
-
-    def set_cur_epoch(self, cur_epoch):
-        self.epoch = cur_epoch
-
-    def gen_affine_map(self,Ab):
-        Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
-        phi = self.phi.view(self.dim, -1)
-        affine_map = None
-        if self.dim == 3:
-            affine_map = torch.matmul( Ab[:,:3,:], phi)
-            affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
-            affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
-        return affine_map
-
-    def scale_reg_loss(self,param=None,sched='l2'):
-        constr_map =self.affine_cons(param, sched=sched)
-        reg = constr_map.sum()
-        return reg
-
-
-    def forward(self,moving,target=None):
-        affine_param = self.affine_gen(moving,target)
-        affine_map = self.gen_affine_map(affine_param)
-        #affine_map=affine_map.repeat(input.shape[0],1,1,1,1)
-        output = self.bilinear(moving,affine_map)
-        return output, affine_map, affine_param
-
-    def get_extra_to_plot(self):
-        return None, None
-
-
-
-
-class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    """
-    here we need two affine net,
-    1. do the affine by training single forward network
-    # in this case if we want to do the affine
-    we need to  warp the image then made it as a new input
-
-    2. do affine by training a cycle network
-    in this case, it is like svf , we would feed raw image once, and the
-    network would warp the phi, the advantage of this method is we don't need
-    to warp the image for several time as interpolation would introduce unstability
-    """
-    def __init__(self, img_sz=None, opt=None):
-        super(AffineNetCycle, self).__init__()
-        self.img_sz = img_sz
-        self.dim = len(img_sz)
-
-        self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',7,'the number of the step used in multi-step affine')]
-        print("Num of step in multi-step affine network is {}".format(self.step))
-        self.using_complex_net = True
-        self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
-        self.affine_cons= AffineConstrain()
-        self.phi= gen_identity_map(self.img_sz)
-        self.zero_boundary = True
-        self.bilinear =Bilinear(self.zero_boundary)
-        self.epoch = -1
-
-
-    def set_cur_epoch(self, cur_epoch):
-        self.epoch = cur_epoch
-
-
-    def gen_affine_map(self,Ab):
-        Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
-        phi = self.phi.view(self.dim, -1)
-        affine_map = None
-        if self.dim == 3:
-            affine_map = torch.matmul( Ab[:,:3,:], phi)
-            affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
-            affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
-        return affine_map
-
-    def update_affine_param(self, cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
-        cur_af = cur_af.view(cur_af.shape[0], 4, 3)
-        last_af = last_af.view(last_af.shape[0],4,3)
-        updated_af = Variable(torch.zeros_like(cur_af.data)).cuda()
-        if self.dim==3:
-            updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
-            updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
-        updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
-        return updated_af
-
-    def get_inverse_affine_param(self,affine_param):
-        """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
-
-        affine_param = affine_param.view(affine_param.shape[0], 4, 3)
-        inverse_param = torch.zeros_like(affine_param.data).cuda()
-        for n in range(affine_param.shape[0]):
-            tm_inv = torch.inverse(affine_param[n, :3,:])
-            inverse_param[n, :3, :] = tm_inv
-            inverse_param[n, :, 3] = - torch.matmul(tm_inv, affine_param[n, 3, :])
-            inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
-        return inverse_param
-
-    def scale_reg_loss(self,param=None,sched='l2'):
-        constr_map =self.affine_cons(param, sched=sched)
-        reg = constr_map.sum()
-        return reg
-
-    def forward(self,moving=None,target=None):
-        output = None
-        moving_cp = moving
-        affine_param_last = None
-        bilinear = [Bilinear(self.zero_boundary) for i in range(self.step)]
-
-        for i in range(self.step):
-            affine_param = self.affine_gen(moving,target)
-            if i >0:
-                affine_param = self.update_affine_param(affine_param,affine_param_last)
-            affine_param_last = affine_param
-            affine_map = self.gen_affine_map(affine_param)
-            output = bilinear[i](moving_cp,affine_map)
-            moving = output
-
-        return output, affine_map, affine_param
-
-    def get_extra_to_plot(self):
-        return None, None
+#
+# class AffineNet(nn.Module):
+#     """
+#     here we need two affine net,
+#     1. do the affine by training single forward network
+#     # in this case if we want to do the affine
+#     we need to  warp the image then made it as a new input
+#
+#     2. do affine by training a cycle network
+#     in this case, it is like svf , we would feed raw image once, and the
+#     network would warp the phi, the advantage of this method is we don't need
+#     to warp the image for several time as interpolation would introduce unstability
+#     """
+#     def __init__(self, img_sz=None, opt=None):
+#         super(AffineNet, self).__init__()
+#         self.img_sz = img_sz if len(img_sz)<4 else img_sz[2:]
+#         self.dim = len(self.img_sz)
+#         self.affine_gen = Affine_unet_im()
+#         self.affine_cons= AffineConstrain()
+#         self.id_map= gen_identity_map(self.img_sz)
+#         self.bilinear = Bilinear(zero_boundary=False)
+#         self.epoch = -1
+#
+#     def set_cur_epoch(self, cur_epoch):
+#         self.epoch = cur_epoch
+#
+#     def gen_affine_map(self,Ab):
+#         Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
+#         id_map = self.id_map.view(self.dim, -1)
+#         affine_map = None
+#         if self.dim == 3:
+#             affine_map = torch.matmul( Ab[:,:3,:], id_map)
+#             affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
+#             affine_map= affine_map.view([Ab.shape[0]] + list(self.id_map.shape))
+#         return affine_map
+#
+#     def scale_reg_loss(self,param=None,sched='l2'):
+#         constr_map =self.affine_cons(param, sched=sched)
+#         reg = constr_map.sum()
+#         return reg
+#
+#
+#     def forward(self,moving,target=None):
+#         affine_param = self.affine_gen(moving,target)
+#         affine_map = self.gen_affine_map(affine_param)
+#         #affine_map=affine_map.repeat(input.shape[0],1,1,1,1)
+#         output = self.bilinear(moving,affine_map)
+#         return output, affine_map, affine_param
+#
+#     def get_extra_to_plot(self):
+#         return None, None
+#
+#
+#
+#
+# class AffineNetCycle(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#     """
+#     here we need two affine net,
+#     1. do the affine by training single forward network
+#     # in this case if we want to do the affine
+#     we need to  warp the image then made it as a new input
+#
+#     2. do affine by training a cycle network
+#     in this case, it is like svf , we would feed raw image once, and the
+#     network would warp the phi, the advantage of this method is we don't need
+#     to warp the image for several time as interpolation would introduce unstability
+#     """
+#     def __init__(self, img_sz=None, opt=None):
+#         super(AffineNetCycle, self).__init__()
+#         self.img_sz = img_sz
+#         self.dim = len(img_sz)
+#
+#         self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',7,'the number of the step used in multi-step affine')]
+#         print("Num of step in multi-step affine network is {}".format(self.step))
+#         self.using_complex_net = True
+#         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
+#         self.affine_cons= AffineConstrain()
+#         self.id_map= gen_identity_map(self.img_sz)
+#         self.zero_boundary = True
+#         self.bilinear =Bilinear(self.zero_boundary)
+#         self.epoch = -1
+#
+#
+#     def set_cur_epoch(self, cur_epoch):
+#         self.epoch = cur_epoch
+#
+#
+#     def gen_affine_map(self,Ab):
+#         Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
+#         id_map = self.id_map.view(self.dim, -1)
+#         affine_map = None
+#         if self.dim == 3:
+#             affine_map = torch.matmul( Ab[:,:3,:], id_map)
+#             affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
+#             affine_map= affine_map.view([Ab.shape[0]] + list(self.id_map.shape))
+#         return affine_map
+#
+#     def update_affine_param(self, cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
+#         cur_af = cur_af.view(cur_af.shape[0], 4, 3)
+#         last_af = last_af.view(last_af.shape[0],4,3)
+#         updated_af = Variable(torch.zeros_like(cur_af.data)).cuda()
+#         if self.dim==3:
+#             updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
+#             updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
+#         updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
+#         return updated_af
+#
+#     def get_inverse_affine_param(self,affine_param):
+#         """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
+#
+#         affine_param = affine_param.view(affine_param.shape[0], 4, 3)
+#         inverse_param = torch.zeros_like(affine_param.data).cuda()
+#         for n in range(affine_param.shape[0]):
+#             tm_inv = torch.inverse(affine_param[n, :3,:])
+#             inverse_param[n, :3, :] = tm_inv
+#             inverse_param[n, :, 3] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+#             inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
+#         return inverse_param
+#
+#     def scale_reg_loss(self,param=None,sched='l2'):
+#         constr_map =self.affine_cons(param, sched=sched)
+#         reg = constr_map.sum()
+#         return reg
+#
+#     def forward(self,moving=None,target=None):
+#         output = None
+#         moving_cp = moving
+#         affine_param_last = None
+#         bilinear = [Bilinear(self.zero_boundary) for i in range(self.step)]
+#
+#         for i in range(self.step):
+#             affine_param = self.affine_gen(moving,target)
+#             if i >0:
+#                 affine_param = self.update_affine_param(affine_param,affine_param_last)
+#             affine_param_last = affine_param
+#             affine_map = self.gen_affine_map(affine_param)
+#             output = bilinear[i](moving_cp,affine_map)
+#             moving = output
+#
+#         return output, affine_map, affine_param
+#
+#     def get_extra_to_plot(self):
+#         return None, None
 
 
 
@@ -175,42 +176,39 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.step_record = self.step
         self.using_complex_net = opt['tsk_set']['reg']['affine_net'][('using_complex_net',True,'use complex version of affine net')]
         self.epoch_activate_multi_step = opt['tsk_set']['reg']['affine_net'][('epoch_activate_multi_step',-1,'epoch to activate multi-step affine')]
+        self.epoch_activate_sym = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric forward')]
+        self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric loss')]
+        self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate lncc loss')]
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         self.affine_cons= AffineConstrain()
-        self.phi= gen_identity_map(self.img_sz)
+        self.id_map= gen_identity_map(self.img_sz)
         self.count =0
         self.gen_identity_ap()
-        self.grid_sample = F.grid_sample
         self.using_cycle = True
         self.zero_boundary = True
-        self.bilinear = Bilinear(self.zero_boundary)
         self.epoch = -1
+        from model_pool.losses import NCCLoss
+        self.ncc = NCCLoss()
+        self.extern_loss = None
+        self.compute_loss = True
 
 
-        # #############################################TODO###########################################3
-        #
-        # model_path = '/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_'
-        # checkpoint = torch.load(model_path,
-        #                         map_location='cpu')
-        #
-        # self.load_state_dict(checkpoint['state_dict'])
-        # self.cuda()
-        # print("ATTENTION!!!!!   AFFINE NET INITIALIZED BY ENTERNAL MODEL")
-        #
-        # print("the affineNetSym is initialized")
+    def set_loss_fn(self, loss_fn):
+        self.extern_loss = loss_fn
+
 
     def set_cur_epoch(self, cur_epoch):
         self.epoch = cur_epoch
 
 
     def gen_affine_map(self,Ab):
-        Ab = Ab.view( Ab.shape[0],4,3 ) # 3d: (batch,3)
-        phi = self.phi.view(self.dim, -1)
+        Ab = Ab.view( Ab.shape[0],4,3) # 3d: (batch,3)
+        id_map = self.id_map.view(self.dim, -1)
         affine_map = None
         if self.dim == 3:
-            affine_map = torch.matmul( Ab[:,:3,:], phi)
+            affine_map = torch.matmul( Ab[:,:3,:], id_map)
             affine_map = Ab[:,3,:].contiguous().view(-1,3,1) + affine_map
-            affine_map= affine_map.view([Ab.shape[0]] + list(self.phi.shape))
+            affine_map= affine_map.view([Ab.shape[0]] + list(self.id_map.shape))
         return affine_map
 
 
@@ -236,6 +234,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         then ac = I, ad+b = 0
         :return:
         """
+
         ap_st, ap_ts  = self.affine_param
 
         ap_st = ap_st.view(-1, 4, 3)
@@ -257,14 +256,22 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             print("linear_transfer_part:{}, translation_part:{}, bias_factor:{}".format(linear_transfer_part.cpu().data.numpy(), translation_part.cpu().data.numpy(),bias_factor))
         return sym_reg_loss/ap_st.shape[0]
 
-    def sym_sim_loss(self,loss_fn,moving,target):
-        output = self.output
-        sim_st = loss_fn(output[0],target)
-        sim_ts = loss_fn(output[1], moving)
-        sim_loss = sim_st +sim_ts
-        return sim_loss / moving.shape[0]/2.
+    # def sym_sim_loss(self,loss_fn,moving,target):
+    #     loss_fn = self.ncc if self.epoch < self.epoch_activate_extern_loss else loss_fn
+    #     output = self.output
+    #     sim_st = loss_fn(output[0],target)
+    #     sim_ts = loss_fn(output[1], moving)
+    #     sim_loss = sim_st +sim_ts
+    #     return sim_loss / moving.shape[0]/2.
+    #
 
-    def scale_reg_loss(self,param=None,sched='l2'):
+    def sim_loss(self,loss_fn,output,target):
+        loss_fn = self.ncc if self.epoch < self.epoch_activate_extern_loss else loss_fn
+        sim_loss = loss_fn(output,target)
+        return sim_loss / output.shape[0]
+
+
+    def scale_sym_reg_loss(self,sched='l2'):
         affine_param = self.affine_param
         if sched=='l2':
             loss = torch.sum((affine_param[0]-self.affine_identity)**2 + (affine_param[1]-self.affine_identity)**2 )\
@@ -276,7 +283,56 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
                 for i in range(affine_param[j].shape[0]):
                     affine_matrix = affine_param[j][i,:9].contiguous().view(3,3)
                     loss += (torch.det(affine_matrix) -1.)**2
-            return  loss / (affine_param[0].shape[0])
+            return loss / (affine_param[0].shape[0])
+
+    def scale_cycle_reg_loss(self,sched='l2'):
+        affine_param = self.affine_param
+        if sched == 'l2':
+            return torch.sum((self.affine_identity - affine_param) ** 2)\
+                   / (affine_param.shape[0])
+        elif sched == 'det':
+            mean_det = 0.
+            for i in range(affine_param.shape[0]):
+                affine_matrix = affine_param[i, :9].contiguous().view(3, 3)
+                mean_det += torch.det(affine_matrix)
+            return mean_det / affine_param.shape[0]
+
+
+
+    def compute_cycle_loss(self, loss_fn, output, target):
+
+        sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
+        scale_reg_loss = self.scale_cycle_reg_loss(sched = 'l2')
+        factor_scale = 10
+        factor_scale = float(max(sigmoid_decay(self.epoch, static=20, k=3) * factor_scale,1e-5))
+        sim_factor = 1
+        loss = sim_factor*sim_loss + factor_scale * scale_reg_loss
+        if self.count%10==0:
+            print('sim_loss:{}, factor_scale {}, scale_reg_loss: {}'.format(
+                sim_loss.item(),factor_scale,scale_reg_loss.item())
+            )
+
+        return loss
+
+    def compute_sym_loss(self, loss_fn, output, target):
+        sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
+        sym_reg_loss = self.sym_reg_loss(bias_factor=1.)
+        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2')
+        factor_scale = 10
+        factor_scale = float(max(sigmoid_decay(self.epoch, static=15, k=3) * factor_scale,1e-5))
+        factor_sym =10. if self.epoch > self.epoch_activate_sym_loss else 0.
+        sim_factor = 1.
+        loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
+        if self.count%10==0:
+            print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
+                sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
+            )
+        return loss
+
+
+    def get_loss(self):
+        return self.loss
+
 
 
     def forward(self,moving, target):
@@ -292,70 +348,92 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
                 self.step = self.step_record
             else:
                 self.step = 1
-        return self.cycle_forward(moving, target)
+        if self.epoch < self.epoch_activate_sym:
+            return self.cycle_forward(moving, target, self.compute_loss)
+        else:
+            return self.sym_cycle_forward(moving, target)
 
 
 
-    def single_forward(self,moving,target):
 
-        self.affine_param = None
-        self.output = None
-        bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
-        affine_param_st = self.affine_gen(moving,target)
-        affine_param_ts = self.affine_gen(target,moving)
-        affine_map_st = self.gen_affine_map(affine_param_st)
-        affine_map_ts = self.gen_affine_map(affine_param_ts)
-        output_st = bilinear[0](moving, affine_map_st)
-        output_ts = bilinear[1](target, affine_map_ts)
-        # output_st = self.grid_sample(moving,affine_map_st.permute([0,2,3,4,1]),mode='trilinear', padding_mode='zeros')
-        # output_ts = self.grid_sample(target,affine_map_ts.permute([0,2,3,4,1]),mode='trilinear', padding_mode='zeros')
-        output = (output_st, output_ts)
-        affine_param = (affine_param_st, affine_param_ts)
-        self.affine_param = affine_param
-        self.output= output
 
-        return output_st, affine_map_st, affine_param_st
+    def cycle_forward(self,moving,target, compute_loss=True):
 
-    def cycle_forward(self,moving, target):
+        output = None
         moving_cp = moving
-        target_cp = target
-        affine_param_st_last = None
-        affine_param_ts_last = None
+        affine_param = None
+        affine_param_last = None
+        affine_map = None
+        bilinear = [Bilinear(self.zero_boundary) for i in range(self.step)]
 
         for i in range(self.step):
-            bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
-            # affine_param_st = self.affine_gen(moving, target_cp)
-            # affine_param_ts = self.affine_gen(target, moving_cp)
-            # if i==0:
-            #     affine_param_st = self.affine_gen(moving, target_cp)
-            #     affine_param_ts = self.affine_gen(target, moving_cp)
-            # else:
-            #     affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
-            #     affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
-            affine_param_st = self.affine_gen(moving, target_cp)
-            affine_param_ts = self.affine_gen(target, moving_cp)
+            #affine_param = self.affine_gen(moving, target)
+            if i == 0:
+                affine_param = self.affine_gen(moving, target)
+            else:
+                affine_param = checkpoint(self.affine_gen, moving, target)
             if i > 0:
-                affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
-                affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
-            affine_param_st_last = affine_param_st
-            affine_param_ts_last = affine_param_ts
-            affine_map_st = self.gen_affine_map(affine_param_st)
-            affine_map_ts = self.gen_affine_map(affine_param_ts)
+                affine_param = self.update_affine_param(affine_param, affine_param_last)
+            affine_param_last = affine_param
+            affine_map = self.gen_affine_map(affine_param)
+            output = bilinear[i](moving_cp, affine_map)
+            moving = output
+        if compute_loss:
+            self.affine_param = affine_param
+            self.loss =self.compute_cycle_loss(self.extern_loss,output, target)
+        return output, affine_map, affine_param
 
 
-            output_st = bilinear[0](moving_cp, affine_map_st)
-            output_ts = bilinear[1](target_cp, affine_map_ts)
+    def sym_cycle_forward(self, moving, target):
+        self.n_batch = moving.shape[0]
+        moving_sym = torch.cat((moving, target), 0)
+        target_sym = torch.cat((target, moving), 0)
+        output, affine_map, affine_param = self.cycle_forward(moving_sym, target_sym, compute_loss=False)
+        self.affine_param =(affine_param[:self.n_batch], affine_param[self.n_batch:])
+        self.loss = self.compute_sym_loss(self.extern_loss,output, target_sym)
+        return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
 
 
-            moving = output_st
-            target = output_ts
 
-        output = (output_st, output_ts)
-        affine_param = (affine_param_st, affine_param_ts)
-        self.affine_param = affine_param
-        self.output = output
 
-        return output_st, affine_map_st, affine_param_st
+    # def __sym_cycle_forward(self,moving, target):
+    #     moving_cp = moving
+    #     target_cp = target
+    #     affine_param_st_last = None
+    #     affine_param_ts_last = None
+    #
+    #     for i in range(self.step):
+    #         bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
+    #         if i==0:
+    #             affine_param_st = self.affine_gen(moving, target_cp)
+    #             affine_param_ts = self.affine_gen(target, moving_cp)
+    #         else:
+    #             affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
+    #             affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
+    #         # affine_param_st = self.affine_gen(moving, target_cp)
+    #         # affine_param_ts = self.affine_gen(target, moving_cp)
+    #         if i > 0:
+    #             affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
+    #             affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
+    #         affine_param_st_last = affine_param_st
+    #         affine_param_ts_last = affine_param_ts
+    #         affine_map_st = self.gen_affine_map(affine_param_st)
+    #         affine_map_ts = self.gen_affine_map(affine_param_ts)
+    #
+    #
+    #         output_st = bilinear[0](moving_cp, affine_map_st)
+    #         output_ts = bilinear[1](target_cp, affine_map_ts)
+    #
+    #
+    #         moving = output_st
+    #         target = output_ts
+    #
+    #     output = (output_st, output_ts)
+    #     affine_param = (affine_param_st, affine_param_ts)
+    #     self.affine_param = affine_param
+    #     self.output = output
+    #
+    #     return output_st, affine_map_st, affine_param_st
 
     def get_extra_to_plot(self):
         return None, None

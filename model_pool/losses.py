@@ -24,9 +24,9 @@ class Loss(object):
             lncc.initialize()
             self.criterion =lncc
         elif cont_loss_type =='morph_cvpr':
-            lncc =  MorphCVPR()
-            lncc.initialize()
-            self.criterion =lncc
+            vm =  MorphCVPR()
+            vm.initialize()
+            self.criterion =vm
         elif cont_loss_type =='empty':
             self.criterion = None
         else:

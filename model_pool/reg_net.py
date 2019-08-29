@@ -13,9 +13,9 @@ from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
 
-model_pool = {'affine_sim':AffineNet,
-              'affine_unet':Affine_unet,
-              'affine_cycle':AffineNetCycle,
+model_pool = {#'affine_sim':AffineNet,
+              #'affine_unet':Affine_unet,
+              #'affine_cycle':AffineNetCycle,
               'affine_sym': AffineNetSym,
               'mermaid':MermaidNet,
               'vm_cvpr':VoxelMorphCVPR2018,
@@ -44,7 +44,8 @@ class RegNet(MermaidBase):
         self.network = model_pool[network_name](input_img_sz, opt) #AffineNetCycle(input_img_sz)#
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
-        self.loss_fn = Loss(opt)
+        loss_fn = Loss(opt)
+        self.network.set_loss_fn(loss_fn)
         self.opt_optim = opt['tsk_set']['optim']
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
@@ -84,44 +85,7 @@ class RegNet(MermaidBase):
 
 
 
-
-
-
-
-
-    def cal_affine_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
-        factor = 1.0
-        if using_decay_factor:
-            factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
-        if self.loss_fn.criterion is not None:
-            sim_loss  = self.loss_fn.get_loss(output,self.target)
-        else:
-            sim_loss = self.network.get_sim_loss(output,self.target)
-        reg_loss = self.network.scale_reg_loss(disp_or_afparam) if disp_or_afparam is not None else 0.
-        if self.iter_count%10==0:
-            print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
-        return sim_loss+reg_loss*factor
-
-
-
-    def cal_affine_sym_loss(self):
-        sim_loss = self.network.sym_sim_loss(self.loss_fn.get_loss,self.moving,self.target)
-        sym_reg_loss = self.network.sym_reg_loss(bias_factor=1.)
-        scale_reg_loss = self.network.scale_reg_loss(sched = 'l2')
-        factor_scale = 10 #1e-3  # 1  ############################# TODo #####################
-        factor_scale = float(max(sigmoid_decay(self.cur_epoch, static=30, k=3) * factor_scale,0.1))  #################static 1 TODO ##################3
-        factor_scale = float( max(1e-3,factor_scale))
-        factor_sym =10#10
-        sim_factor = 1
-        loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
-        if self.iter_count%10==0:
-            print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
-                sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
-            )
-
-        return loss
-
-    def cal_mermaid_loss(self):
+    def cal_loss(self, output=None):
         loss = self.network.get_loss()
         return loss
 
@@ -137,12 +101,8 @@ class RegNet(MermaidBase):
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
         output, phi, disp_or_afparam= self.network.forward(self.moving, self.target)
-        if self.nonp_on:
-            loss = self.cal_mermaid_loss()
-        elif self.using_affine_sym:
-            loss = self.cal_affine_sym_loss()
-        else:
-            loss=self.cal_affine_loss(output,disp_or_afparam,using_decay_factor=self.affine_on)
+        loss = self.cal_loss()
+
         return output, phi, disp_or_afparam, loss
 
     def optimize_parameters(self,input=None):
@@ -152,7 +112,7 @@ class RegNet(MermaidBase):
 
         self.output, self.phi, self.disp_or_afparam,loss = self.forward()
 
-        self.backward_net(loss)
+        self.backward_net(loss/self.criticUpdates)
         self.loss = loss.item()
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()

@@ -12,14 +12,19 @@ from model_pool.test_expr import test_model
 
 
 class Pipline():
-    def initialize(self,task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json'):
+    def initialize(self,task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json',data_loaders=None):
         initializer = Initializer()
         initializer.initialize_data_manager(data_setting_pth)
         self.tsk_opt = initializer.init_task_option(task_setting_pth)
         self.writer = initializer.initialize_log_env()
         self.tsk_opt = initializer.get_task_option()
-        self.data_loaders = initializer.get_data_loader()
+        self.data_loaders = initializer.get_data_loader() if data_loaders is None else data_loaders
         self.model = create_model(self.tsk_opt)
+
+    def clean_up(self):
+        self.tsk_opt = None
+        self.writer  = None
+        self.model = None
 
     def run_task(self):
         if self.tsk_opt['tsk_set']['train']:
@@ -32,10 +37,11 @@ class Pipline():
 
 
 
-def run_one_task(task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json'):
+def run_one_task(task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json',data_loaders=None):
     pipline = Pipline()
-    pipline.initialize(task_setting_pth,data_setting_pth)
+    pipline.initialize(task_setting_pth,data_setting_pth,data_loaders)
     pipline.run_task()
+    return pipline
 
 
 if __name__ == '__main__':

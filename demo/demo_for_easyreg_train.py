@@ -2,6 +2,7 @@ import matplotlib as matplt
 matplt.use('Agg')
 import SimpleITK as sitk
 import sys,os
+import torch
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
@@ -80,7 +81,7 @@ def init_train_env(setting_path,data_folder, task_name, data_task_name=None):
     return dm, tsm
 
 
-def __do_registration_train(args):
+def __do_registration_train(args,pipeline=None):
 
     data_folder = args.data_folder
     task_name = args.task_name
@@ -97,16 +98,34 @@ def __do_registration_train(args):
     tsm.save(tsm_json_path)
     if dm is not None:
         dm.save(dm_json_path)
-    run_one_task(tsm_json_path, dm_json_path)
+    data_loaders = pipeline.data_loaders if pipeline is not None else None
+    pipeline = run_one_task(tsm_json_path, dm_json_path,data_loaders)
+    return pipeline
 
 def do_registration_train(args):
     task_name = args.task_name
+    pipeline = None
     if args.train_affine_first:
         args.task_name = task_name +'_stage1_affine'
-        __do_registration_train(args)
+        pipeline = __do_registration_train(args)
+        pipeline.clean_up()
+        #torch.cuda.empty_cache()
         args.train_affine_first=False
         args.task_name = task_name+'_stage2_nonp'
-    __do_registration_train(args)
+    __do_registration_train(args,pipeline)
+
+
+def do_registration_train_stable(args):
+    task_name = args.task_name
+    pipeline = None
+    if args.train_affine_first:
+        args.task_name = task_name +'_stage1_affine'
+        pipeline = __do_registration_train(args)
+        pipeline.clean_up()
+        #torch.cuda.empty_cache()
+        args.train_affine_first=False
+        args.task_name = task_name+'_stage2_nonp'
+    __do_registration_train(args,pipeline)
 
 
 
@@ -124,14 +143,16 @@ if __name__ == '__main__':
                         default=None,help='the name of the task')
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
                         default=None,help='path to load settings')
-    parser.add_argument('-af', '--train_affine_first', required=False, type=bool,
-                        default=False, help='train affine network first, then train non-parametric network')
+    parser.add_argument('--train_affine_first',required=False,action='store_true',
+                        help='train affine network first, then train non-parametric network')
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')
     args = parser.parse_args()
     print(args)
     do_registration_train(args)
 
+
     # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf -g=3
+    # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf --train_affine_first -g=2
 
 
 

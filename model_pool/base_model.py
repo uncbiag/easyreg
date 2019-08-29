@@ -84,7 +84,7 @@ class BaseModel():
             lr = opt['lr']
             print(" no warming up the learning rate is {}".format(lr))
         else:
-            lr = 1e-5
+            lr = 5e-4
             print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
         lr_sched_opt = opt['lr_scheduler']
