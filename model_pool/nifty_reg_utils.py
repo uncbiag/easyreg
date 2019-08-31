@@ -1,10 +1,11 @@
 import os
 import subprocess
 import numpy as np
-from model_pool.global_variable import *
+#from model_pool.global_variable import *
 import SimpleITK as sitk
 import nibabel as nib
-
+nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'# todo write into json setting
+nifty_reg_cmd = ' -sx -10 --lncc 40 -pad 0 -jl 0.01  '# todo write into json setting
 
 
 def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, levels=None,aff= None):
@@ -194,7 +195,7 @@ def performRegistration(mv_path, target_path, registration_type='bspline', recor
     process.wait()
 
     output = nifty_read(output_path)
-    phi = nifty_read_phi(deformation_path)
+    phi = None
     jacobi=None
     if registration_type =='bspline':
         jacobi =nifty_read(jacobi_path)

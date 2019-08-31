@@ -123,16 +123,6 @@ class RegNet(MermaidBase):
         return self.loss
 
 
-
-
-
-
-    def cal_val_errors(self):
-        self.cal_test_errors()
-
-    def cal_test_errors(self):
-        self.get_evaluation()
-
     def get_evaluation(self):
         s1 = time()
         self.output, self.phi, self.disp_or_afparam,_= self.forward()

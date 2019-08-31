@@ -3,9 +3,7 @@ import numpy as np
 import ants
 import time
 import SimpleITK as sitk
-from model_pool.global_variable import param_in_ants
 from model_pool.nifty_reg_utils import expand_batch_ch_dim
-from mermaid.utils import identity_map_multiN
 import subprocess
 import nibabel as nib
 
@@ -22,6 +20,7 @@ def nifty_read_phi(path):
 
 
 def __init_identity_map(moving,spacing):
+    from mermaid.utils import identity_map_multiN
     spacing = 1. / (np.array(moving.shape) - 1)
     identity_map = identity_map_multiN(moving.shape, spacing)
     phi_tmp = np.zeros( list(identity_map.shape[2:])+[3])

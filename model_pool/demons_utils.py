@@ -4,9 +4,6 @@ import time
 import SimpleITK as sitk
 import subprocess
 from model_pool.nifty_reg_utils import expand_batch_ch_dim, nifty_reg_affine, nifty_reg_resample
-import copy
-from model_pool.utils import factor_tuple
-from model_pool.global_variable import *
 
 def smooth_and_resample(image, shrink_factor, smoothing_sigma):
     """
@@ -158,6 +155,7 @@ def performDemonsRegistration(mv_path, target_path, registration_type='demons', 
     demons_filter.SetStandardDeviations(1.5)  #1,4
 
     # Run the registration.
+    param_in_demons = (2,1) # todo write into json settings
     print("!!!!!!!!!!demons param{}".format(param_in_demons) )
     tx,jacobi_image = multiscale_demons(registration_algorithm=demons_filter,
                            fixed_image_pth=target_path,

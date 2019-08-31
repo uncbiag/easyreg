@@ -1,10 +1,5 @@
-
 from .base_model import BaseModel
 from model_pool.utils import *
-try:
-    from model_pool.nn_interpolation import get_nn_interpolation
-except:
-    pass
 import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
 import  tools.image_rescale as  ires

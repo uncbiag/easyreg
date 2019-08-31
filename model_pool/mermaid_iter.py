@@ -16,7 +16,6 @@ class MermaidIter(MermaidBase):
 
     def initialize(self,opt):
         MermaidBase.initialize(self,opt)
-        self.print_val_detail = opt['tsk_set']['print_val_detail']
         network_name =opt['tsk_set']['network_name']
         if network_name =='affine':
             self.affine_on = True
@@ -26,7 +25,6 @@ class MermaidIter(MermaidBase):
             self.nonp_on = True
         self.si = SI.RegisterImagePair()
         self.opt_optim = opt['tsk_set']['optim']
-        self.step_count =0.
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         self.opt_mermaid= self.opt['tsk_set']['reg']['mermaid_iter']
         self.use_init_weight = self.opt_mermaid[('use_init_weight',False,'whether to use init weight for RDMM registration')]
@@ -186,19 +184,6 @@ class MermaidIter(MermaidBase):
         else:
             self.affine_optimization()
             return self.nonp_optimization()
-
-
-
-
-
-
-
-
-    # get image paths
-    def get_image_paths(self):
-        return self.fname_list
-
-
 
 
 

@@ -289,38 +289,35 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
                 mean_det += torch.det(affine_matrix)
             return mean_det / affine_param.shape[0]
 
+    def get_factor_reg_scale(self):
+        epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
+        factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1
+        static_epoch = 20 if self.epoch < self.epoch_activate_multi_step else 10
+        min_threshold = 1e-3
+        decay_factor = 3
+        factor_scale = float(
+            max(sigmoid_decay(epoch_for_reg, static=static_epoch, k=decay_factor) * factor_scale, min_threshold))
+        return factor_scale
 
 
-    def compute_cycle_loss(self, loss_fn, output, target):
 
+    def compute_overall_loss(self, loss_fn, output, target):
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
-        scale_reg_loss = self.scale_cycle_reg_loss(sched = 'l2')
-        factor_scale = 10
-        min_threshold = 1e-3 if self.epoch> self.epoch_activate_multi_step else 1e-3
-        factor_scale = float(max(sigmoid_decay(self.epoch, static=20, k=3) * factor_scale,min_threshold))
-        sim_factor = 1
-        loss = sim_factor*sim_loss + factor_scale * scale_reg_loss
-        if self.count%10==0:
-            print('sim_loss:{}, factor_scale {}, scale_reg_loss: {}'.format(
-                sim_loss.item(),factor_scale,scale_reg_loss.item())
-            )
-
-        return loss
-
-    def compute_sym_loss(self, loss_fn, output, target):
-        sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
-        sym_reg_loss = self.sym_reg_loss(bias_factor=1.)
-        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2')
-        factor_scale = 10
-        min_threshold = 1e-3 if self.epoch> self.epoch_activate_multi_step else 1e-3
-        factor_scale = float(max(sigmoid_decay(self.epoch, static=20, k=3) * factor_scale,min_threshold))
-        factor_sym =10. if self.epoch > self.epoch_activate_sym_loss else 0.
+        sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if self.epoch>= self.epoch_activate_sym else 0.
+        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2') if self.epoch>= self.epoch_activate_sym else self.scale_cycle_reg_loss(sched='l2')
+        factor_scale = self.get_factor_reg_scale()
+        factor_sym =10. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
         if self.count%10==0:
-            print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
-                sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
-            )
+            if self.epoch >= self.epoch_activate_sym:
+                print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
+                    sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
+                )
+            else:
+                print('sim_loss:{}, factor_scale {}, scale_reg_loss: {}'.format(
+                    sim_loss.item(), factor_scale, scale_reg_loss.item())
+                )
         return loss
 
 
@@ -331,10 +328,6 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def forward(self,moving, target):
         self.count += 1
-        # if  not self.using_cycle:
-        #     return self.single_forward(moving,target)
-        # else:
-        #     return self.cycle_forward( moving, target)
         if self.epoch_activate_multi_step>0:
             if self.epoch >= self.epoch_activate_multi_step:
                 if self.step_record != self.step:
@@ -374,7 +367,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             moving = output
         if compute_loss:
             self.affine_param = affine_param
-            self.loss =self.compute_cycle_loss(self.extern_loss,output, target)
+            self.loss =self.compute_overall_loss(self.extern_loss,output, target)
         return output, affine_map, affine_param
 
 
@@ -384,7 +377,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         target_sym = torch.cat((target, moving), 0)
         output, affine_map, affine_param = self.cycle_forward(moving_sym, target_sym, compute_loss=False)
         self.affine_param =(affine_param[:self.n_batch], affine_param[self.n_batch:])
-        self.loss = self.compute_sym_loss(self.extern_loss,output, target_sym)
+        self.loss = self.compute_overall_loss(self.extern_loss,output, target_sym)
         return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
 
     def get_extra_to_plot(self):

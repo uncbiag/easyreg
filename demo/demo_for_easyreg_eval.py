@@ -130,7 +130,7 @@ def do_registration_eval(args, registration_pair_list):
     if run_demo:
         demo_name = args.demo_name
         setting_folder_path = os.path.join('./demo_settings/mermaid',demo_name)
-        assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined"
+        assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg"
         #task_output_path = os.path.join('./demo_output/mermaid',demo_name)
     else:
         setting_folder_path = args.setting_folder_path
@@ -191,7 +191,10 @@ if __name__ == '__main__':
 
 
 
-    # --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf
+    # --run_demo --demo_name=demons -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_demons
+    # --run_demo --demo_name=nifty_reg -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_nifty_reg
+    # --run_demo --demo_name=ants -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_ants
+    # --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_opt_vsvf
     # --run_demo --demo_name=opt_rdmm_predefined -txt=/playpen/zyshen/data/reg_lung_160/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_lung_160/new_interface/test_opt_rdmm_predefined
     # --run_demo --demo_name=network_vsvf -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf_net
     # --run_demo --demo_name=network_rdmm -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_rdmm_net

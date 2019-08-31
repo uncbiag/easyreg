@@ -38,6 +38,10 @@ class BaseModel():
         self.output = None
         self.warped_label_map = None
         self.l_target = None
+        self.jacobi_val = None
+        self.phi = None
+        self.disp = None
+        self.jacobian=None
         self.multi_gpu_on =False # todo for now the distributed computing is not supported
 
 
@@ -141,11 +145,15 @@ class BaseModel():
 
 
 
-    def cal_val_errors(self, split_size=2):
-        self.cal_test_errors(split_size)
+    def cal_val_errors(self):
+        self.cal_test_errors()
 
-    def cal_test_errors(self,split_size=2):
-       pass
+    def cal_test_errors(self):
+        self.get_evaluation()
+
+    def get_evaluation(self):
+        pass
+
 
 
     def update_loss(self, epoch, end_of_epoch):
@@ -249,13 +257,6 @@ class BaseModel():
                 output = sitk.GetImageFromArray(l_target_np[i, 0, ...])
                 output.SetSpacing(np.flipud(self.spacing))
                 sitk.WriteImage(output, saving_file_path)
-
-
-
-
-
-
-
 
 
 
