@@ -64,7 +64,7 @@ class FcRel(nn.Module):
         return x
 
 
-def identity_map(sz):
+def identity_map_for_reproduce(sz):
     """
     Returns an identity map. todo  now keep for reproduce  this function will be disabled in the next release, replaced by spacing version
 
@@ -86,10 +86,40 @@ def identity_map(sz):
     # id= id*2-1
     return torch.from_numpy(id.astype(np.float32)).cuda()
 
+def identity_map(sz, dtype= np.float32):
+    """
+    Returns an identity map. todo  now keep for reproduce  this function will be disabled in the next release, replaced by spacing version
+
+    :param sz: just the spatial dimensions, i.e., XxYxZ
+    :param spacing: list with spacing information [sx,sy,sz]
+    :param dtype: numpy data-type ('float32', 'float64', ...)
+    :return: returns the identity map of dimension dimxXxYxZ
+    """
+    dim = len(sz)
+    if dim == 1:
+        id = np.mgrid[0: sz[0]]
+    elif dim == 2:
+        id = np.mgrid[0: sz[0], 0: sz[1]]
+    elif dim == 3:
+        # id = np.mgrid[0:sz[0], 0:sz[1], 0:sz[2]]
+        id = np.mgrid[0: sz[0], 0:sz[1], 0: sz[2]]
+    else:
+        raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
+    id = np.array(id.astype(dtype))
+    if dim == 1:
+        id = id.reshape(1, sz[0])  # add a dummy first index
+    spacing = 1./ (np.array(sz)-1)
+
+    for d in range(dim):
+        id[d] *= spacing[d]
+        id[d] = id[d]*2 - 1
+
+    return torch.from_numpy(id.astype(np.float32)).cuda()
+
 
 def not_normalized_identity_map(sz):
     """
-    Returns an identity map. todo  now keep for reproduce this function will be disabled in the next release, replaced by spacing version
+    Returns an identity map.
 
     :param sz: just the spatial dimensions, i.e., XxYxZ
     :param spacing: list with spacing information [sx,sy,sz]

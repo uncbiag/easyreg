@@ -24,11 +24,8 @@ class AntsRegIter(BaseModel):
             self.affine_on = False
             self.syn_on = True
         self.criticUpdates = opt['tsk_set']['criticUpdates']
-        self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
-        # self.identity_map = py_utils.identity_map_multiN([1,1]+input_img_sz, self.spacing)*2-1
-        # self.identity_map = torch.from_numpy(self.identity_map)
 
 
 

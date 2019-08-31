@@ -25,8 +25,6 @@ class MermaidIter(MermaidBase):
             self.affine_on = True
             self.nonp_on = True
         self.si = SI.RegisterImagePair()
-        self.criticUpdates = opt['tsk_set']['criticUpdates']
-        self.loss_fn = Loss(opt)
         self.opt_optim = opt['tsk_set']['optim']
         self.step_count =0.
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]

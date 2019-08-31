@@ -41,7 +41,7 @@ class RegNet(MermaidBase):
         self.affine_on = True if 'affine' in network_name else False
         self.nonp_on = True if 'mermaid' in network_name else False
         self.using_affine_sym = True if self.affine_on and 'sym' in network_name else False
-        self.network = model_pool[network_name](input_img_sz, opt) #AffineNetCycle(input_img_sz)#
+        self.network = model_pool[network_name](input_img_sz, opt)
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         loss_fn = Loss(opt)

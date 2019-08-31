@@ -256,14 +256,6 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             print("linear_transfer_part:{}, translation_part:{}, bias_factor:{}".format(linear_transfer_part.cpu().data.numpy(), translation_part.cpu().data.numpy(),bias_factor))
         return sym_reg_loss/ap_st.shape[0]
 
-    # def sym_sim_loss(self,loss_fn,moving,target):
-    #     loss_fn = self.ncc if self.epoch < self.epoch_activate_extern_loss else loss_fn
-    #     output = self.output
-    #     sim_st = loss_fn(output[0],target)
-    #     sim_ts = loss_fn(output[1], moving)
-    #     sim_loss = sim_st +sim_ts
-    #     return sim_loss / moving.shape[0]/2.
-    #
 
     def sim_loss(self,loss_fn,output,target):
         loss_fn = self.ncc if self.epoch < self.epoch_activate_extern_loss else loss_fn
@@ -304,7 +296,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
         scale_reg_loss = self.scale_cycle_reg_loss(sched = 'l2')
         factor_scale = 10
-        factor_scale = float(max(sigmoid_decay(self.epoch, static=20, k=3) * factor_scale,1e-5))
+        min_threshold = 1e-3 if self.epoch> self.epoch_activate_multi_step else 1e-3
+        factor_scale = float(max(sigmoid_decay(self.epoch, static=20, k=3) * factor_scale,min_threshold))
         sim_factor = 1
         loss = sim_factor*sim_loss + factor_scale * scale_reg_loss
         if self.count%10==0:
@@ -319,7 +312,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sym_reg_loss = self.sym_reg_loss(bias_factor=1.)
         scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2')
         factor_scale = 10
-        factor_scale = float(max(sigmoid_decay(self.epoch, static=15, k=3) * factor_scale,1e-5))
+        min_threshold = 1e-3 if self.epoch> self.epoch_activate_multi_step else 1e-3
+        factor_scale = float(max(sigmoid_decay(self.epoch, static=20, k=3) * factor_scale,min_threshold))
         factor_sym =10. if self.epoch > self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
@@ -392,48 +386,6 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.affine_param =(affine_param[:self.n_batch], affine_param[self.n_batch:])
         self.loss = self.compute_sym_loss(self.extern_loss,output, target_sym)
         return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
-
-
-
-
-    # def __sym_cycle_forward(self,moving, target):
-    #     moving_cp = moving
-    #     target_cp = target
-    #     affine_param_st_last = None
-    #     affine_param_ts_last = None
-    #
-    #     for i in range(self.step):
-    #         bilinear = [Bilinear(self.zero_boundary) for _ in range(2)]
-    #         if i==0:
-    #             affine_param_st = self.affine_gen(moving, target_cp)
-    #             affine_param_ts = self.affine_gen(target, moving_cp)
-    #         else:
-    #             affine_param_st=checkpoint(self.affine_gen,moving, target_cp)
-    #             affine_param_ts=checkpoint(self.affine_gen,target, moving_cp)
-    #         # affine_param_st = self.affine_gen(moving, target_cp)
-    #         # affine_param_ts = self.affine_gen(target, moving_cp)
-    #         if i > 0:
-    #             affine_param_st = self.update_affine_param(affine_param_st, affine_param_st_last)
-    #             affine_param_ts = self.update_affine_param(affine_param_ts, affine_param_ts_last)
-    #         affine_param_st_last = affine_param_st
-    #         affine_param_ts_last = affine_param_ts
-    #         affine_map_st = self.gen_affine_map(affine_param_st)
-    #         affine_map_ts = self.gen_affine_map(affine_param_ts)
-    #
-    #
-    #         output_st = bilinear[0](moving_cp, affine_map_st)
-    #         output_ts = bilinear[1](target_cp, affine_map_ts)
-    #
-    #
-    #         moving = output_st
-    #         target = output_ts
-    #
-    #     output = (output_st, output_ts)
-    #     affine_param = (affine_param_st, affine_param_ts)
-    #     self.affine_param = affine_param
-    #     self.output = output
-    #
-    #     return output_st, affine_map_st, affine_param_st
 
     def get_extra_to_plot(self):
         return None, None

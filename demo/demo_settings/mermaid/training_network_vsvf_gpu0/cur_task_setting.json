@@ -23,7 +23,7 @@
         "train": true,
         "model": "reg_net",
         "model_folder_path": "",
-        "model_path": "/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/interface_vsvf_crtic2/checkpoints/model_best.pth.tar",
+        "model_path": "",
         "n_in_channel": 1,
         "network_name": "affine_sym",
         "optim": {
@@ -65,7 +65,7 @@
             "low_res_factor": 0.5,
             "compute_inverse_map": false,
             "mermaid_net": {
-                "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
+                "affine_init_path": "",
                 "mermaid_net_json_pth": "./demo_settings/mermaid/network_vsvf/mermaid_nonp_settings.json",
                 "num_step": 2,
                 "optimize_momentum_network": true,
