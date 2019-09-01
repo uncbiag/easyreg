@@ -193,6 +193,7 @@ class BaseModel():
         self.output = None
 
 
+
     def save_fig_3D(self,phase=None):
         if type(self.moving)==torch.Tensor:
             moving = self.moving.detach().cpu().numpy()

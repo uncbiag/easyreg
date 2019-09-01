@@ -58,10 +58,10 @@ class MermaidNet(nn.Module):
         self.loss_type = opt['tsk_set']['loss']['type']
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','../mermaid/demos/cur_settings_lbfgs.json',"the path for mermaid settings json")]
-        self.using_sym_on = opt_mermaid[('using_sym',False,'compute symmetric loss')]
         self.sym_factor = opt_mermaid[('sym_factor',1,'factor on symmetric loss')]
-        self.using_mermaid_multi_step = opt_mermaid['using_multi_step']
-        self.step = 1 if not self.using_mermaid_multi_step else opt_mermaid[('num_step',2,'compute multi-step loss')]
+        self.epoch_activate_sym = opt_mermaid[('epoch_activate_sym',-1,'epoch activate the symmetric')]
+        self.epoch_activate_multi_step = opt_mermaid[('epoch_activate_multi_step',-1,'epoch activate the multi-step')]
+        self.multi_step = opt_mermaid[('num_step',2,'compute multi-step loss')]
         self.using_affine_init = opt_mermaid[('using_affine_init',True,'True, deploy an affine network before mermaid-net')]
         self.load_trained_affine_net = opt_mermaid[('load_trained_affine_net',True,'load the trained affine network')]
         self.affine_init_path = opt_mermaid[('affine_init_path','',"the path of trained affined network")]
@@ -71,6 +71,7 @@ class MermaidNet(nn.Module):
         self.clamp_momentum = opt_mermaid[('clamp_momentum',False,'clamp_momentum')]
         self.clamp_thre = 1.
         self.use_adaptive_smoother = False
+        self.using_sym_on = True
 
         if self.clamp_momentum:
             print("Attention, the clamp momentum is on")
@@ -230,10 +231,10 @@ class MermaidNet(nn.Module):
                     sym_factor,
                     sym_energy.item(),
                     reg_energy.item()))
-        if self.using_mermaid_multi_step and self.step_loss is not None:
+        if self.step_loss is not None:
             self.step_loss += loss_overall_energy
             loss_overall_energy = self.step_loss
-        if self.using_mermaid_multi_step and self.cur_step<self.step-1:
+        if self.cur_step<self.step-1:
             self.print_count -= 1
         self.print_count += 1
         return loss_overall_energy, sim_energy, reg_energy
@@ -484,7 +485,7 @@ class MermaidNet(nn.Module):
             warped_img = rec_IWarped * 2 - 1  # [0,1] -> [-1,1]
             init_map = rec_phiWarped  # [0,1]
             self.rec_phiWarped = rec_phiWarped
-            if self.using_mermaid_multi_step and i < self.step - 1:
+            if  i < self.step - 1:
                 self.step_loss, _, _ = self.do_criterion_cal(moving, target, self.epoch)
 
         if self.using_physical_coord:
@@ -498,7 +499,7 @@ class MermaidNet(nn.Module):
 
 
     def cyc_sym_forward(self,moving, target= None):
-        self.n_batch = moving.shape[1]
+        self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
         rec_IWarped, rec_phiWarped, affine_img = self.cyc_forward(moving_sym, target_sym)
@@ -510,24 +511,33 @@ class MermaidNet(nn.Module):
         return affine_map
 
 
-    def forward(self, moving, target=None):
 
-        if self.using_mermaid_multi_step and self.using_sym_on:
+    def get_step_config(self):
+        if self.is_train:
+            self.step = self.multi_step if self.epoch > self.epoch_activate_multi_step else 1
+            self.using_sym_on = True if self.epoch> self.epoch_activate_sym else False
+        else:
+            self.step = self.multi_step
+            self.using_sym_on =  False
+
+    def forward(self, moving, target=None):
+        self.get_step_config()
+        if self.using_sym_on:
             if not self.print_count:
                 print(" The mermaid network is in multi-step and symmetric mode, with step {}".format(self.step))
             return self.cyc_sym_forward(moving,target)
-        if self.using_mermaid_multi_step:
+        else:
             if not self.print_count:
                 print(" The mermaid network is in multi-step mode, with step {}".format(self.step))
             return self.cyc_forward(moving, target)
-        if not self.using_sym_on:
-            if not self.print_count:
-                print(" The mermaid network is in simple mode")
-            return self.single_forward(moving, target)
-        else:
-            if not self.print_count:
-                print(" The mermaid network is in symmetric mode")
-            return self.sym_forward(moving,target)
+        # if not self.using_sym_on:
+        #     if not self.print_count:
+        #         print(" The mermaid network is in simple mode")
+        #     return self.single_forward(moving, target)
+        # else:
+        #     if not self.print_count:
+        #         print(" The mermaid network is in symmetric mode")
+        #     return self.sym_forward(moving,target)
 
 
 def bh(m, gi, go):

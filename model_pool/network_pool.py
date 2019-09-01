@@ -175,6 +175,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',1,'num of step')]
         self.step_record = self.step
         self.using_complex_net = opt['tsk_set']['reg']['affine_net'][('using_complex_net',True,'use complex version of affine net')]
+        self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'use complex version of affine net')]
         self.epoch_activate_multi_step = opt['tsk_set']['reg']['affine_net'][('epoch_activate_multi_step',-1,'epoch to activate multi-step affine')]
         self.epoch_activate_sym = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric forward')]
         self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric loss')]
@@ -294,7 +295,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1
         static_epoch = 20 if self.epoch < self.epoch_activate_multi_step else 10
         min_threshold = 1e-3
-        decay_factor = 3
+        decay_factor = 4
         factor_scale = float(
             max(sigmoid_decay(epoch_for_reg, static=static_epoch, k=decay_factor) * factor_scale, min_threshold))
         return factor_scale
@@ -303,8 +304,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def compute_overall_loss(self, loss_fn, output, target):
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
-        sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if self.epoch>= self.epoch_activate_sym else 0.
-        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2') if self.epoch>= self.epoch_activate_sym else self.scale_cycle_reg_loss(sched='l2')
+        sym_on = self.epoch>= self.epoch_activate_sym
+        self.affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
+        sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if  sym_on else 0.
+        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2') if sym_on else self.scale_cycle_reg_loss(sched='l2')
         factor_scale = self.get_factor_reg_scale()
         factor_sym =10. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
@@ -352,7 +355,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         affine_param_last = None
         affine_map = None
         bilinear = [Bilinear(self.zero_boundary) for i in range(self.step)]
-
+        self.loss = 0.
         for i in range(self.step):
             #affine_param = self.affine_gen(moving, target)
             if i == 0:
@@ -365,9 +368,11 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             affine_map = self.gen_affine_map(affine_param)
             output = bilinear[i](moving_cp, affine_map)
             moving = output
-        if compute_loss:
             self.affine_param = affine_param
-            self.loss =self.compute_overall_loss(self.extern_loss,output, target)
+            if compute_loss and (i==self.step-1 or self.acc_multi_step_loss):
+                self.loss +=self.compute_overall_loss(self.extern_loss,output, target)
+        if compute_loss and self.acc_multi_step_loss:
+            self.loss = self.loss / self.step
         return output, affine_map, affine_param
 
 
@@ -375,11 +380,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
-        output, affine_map, affine_param = self.cycle_forward(moving_sym, target_sym, compute_loss=False)
-        self.affine_param =(affine_param[:self.n_batch], affine_param[self.n_batch:])
-        self.loss = self.compute_overall_loss(self.extern_loss,output, target_sym)
+        output, affine_map, affine_param = self.cycle_forward(moving_sym, target_sym)
         return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
-
     def get_extra_to_plot(self):
         return None, None
 

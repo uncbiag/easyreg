@@ -6,7 +6,7 @@
         "continue_train": false,
         "continue_train_lr": 1e-05,
         "criticUpdates": 2,
-        "epoch": 400,
+        "epoch": 200,
         "gpu_ids": 3,
         "loss": {
             "ce": {
@@ -25,7 +25,7 @@
         "model_folder_path": "",
         "model_path": "/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/interface_vsvf_crtic2/checkpoints/model_best.pth.tar",
         "n_in_channel": 1,
-        "network_name": "affine_sym",
+        "network_name": "mermaid",
         "optim": {
             "adam": {
                 "beta": 0.9
@@ -57,25 +57,25 @@
             "affine_net": {
                 "affine_net_iter": 3,
                 "using_complex_net": true,
-                "epoch_activate_multi_step": 200,
+                "epoch_activate_multi_step": 160,
                 "epoch_activate_sym": 120,
                 "epoch_activate_sym_loss": 120,
-                "epoch_activate_extern_loss": 100
+                "epoch_activate_extern_loss": 100,
+                "acc_multi_step_loss": false
             },
             "low_res_factor": 0.5,
             "compute_inverse_map": false,
             "mermaid_net": {
                 "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
-                "mermaid_net_json_pth": "./demo_settings/mermaid/network_vsvf/mermaid_nonp_settings.json",
+                "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json",
                 "num_step": 2,
                 "optimize_momentum_network": true,
                 "sym_factor": 500,
                 "using_affine_init": true,
                 "using_complex_net": true,
                 "using_index_coord": false,
-                "using_lddmm": false,
-                "using_multi_step": true,
-                "using_sym": false
+                "epoch_activate_multi_step": -1,
+                "epoch_activate_sym": -1
             }
         },
         "save_by_standard_label": true,
