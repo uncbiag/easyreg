@@ -3,7 +3,7 @@ import numpy as np
 import time
 import SimpleITK as sitk
 import subprocess
-from model_pool.nifty_reg_utils import expand_batch_ch_dim, nifty_reg_affine, nifty_reg_resample
+from model_pool.nifty_reg_utils import expand_batch_ch_dim, nifty_reg_affine
 
 def smooth_and_resample(image, shrink_factor, smoothing_sigma):
     """
@@ -28,10 +28,10 @@ def smooth_and_resample(image, shrink_factor, smoothing_sigma):
 
 
 
-def get_initial_transform(fixed_image_pth, moving_image_path,fname = None):
+def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = None):
     affine_path = moving_image_path.replace('moving.nii.gz', 'affine.nii.gz')
     affine_txt = moving_image_path.replace('moving.nii.gz', fname + '_af.txt')
-    cmd = nifty_reg_affine(ref=fixed_image_pth, flo=moving_image_path, aff=affine_txt, res=affine_path)
+    cmd = nifty_reg_affine(nifty_bin=nifty_bin, ref=fixed_image_pth, flo=moving_image_path, aff=affine_txt, res=affine_path)
     process = subprocess.Popen(cmd, shell=True)
     process.wait()
     affine_trans = get_affine_transform(affine_txt)
@@ -138,30 +138,33 @@ def sitk_grid_sampling(fixed,moving, displacement,is_label=False):
     return out
 
 
-def performDemonsRegistration(mv_path, target_path, registration_type='demons', record_path = None, ml_path=None,tl_path= None,fname=None):
+def performDemonsRegistration(param, mv_path, target_path, registration_type='demons', record_path = None, ml_path=None,tl_path= None,fname=None):
 
     start = time.time()
 
     print("start demons registration")
     assert registration_type =='demons'
+    iter_num = param['iter']
+    stand_dev = param['std']
+    nifty_bin = param['nifty_bin']
 
     #mv_path, ml_path = get_affined_moving_image(target_path, mv_path, ml_path=ml_path,fname=fname)
-    initial_transform = get_initial_transform(target_path, mv_path, fname=fname)
+    initial_transform = get_initial_transform(nifty_bin, target_path, mv_path, fname=fname)
 
     demons_filter = sitk.FastSymmetricForcesDemonsRegistrationFilter()
-    demons_filter.SetNumberOfIterations(500)
+    demons_filter.SetNumberOfIterations(iter_num)
     # Regularization (update field - viscous, total field - elastic).
     demons_filter.SetSmoothDisplacementField(True)
-    demons_filter.SetStandardDeviations(1.5)  #1,4
+    demons_filter.SetStandardDeviations(stand_dev)  #1,4
 
     # Run the registration.
-    param_in_demons = (2,1) # todo write into json settings
-    print("!!!!!!!!!!demons param{}".format(param_in_demons) )
+    # param_in_demons = (2,1) # todo write into json settings
+    # print("!!!!!!!!!!demons param{}".format(param_in_demons) )
     tx,jacobi_image = multiscale_demons(registration_algorithm=demons_filter,
                            fixed_image_pth=target_path,
                            moving_image_pth=mv_path,
                            shrink_factors=None,#[4, 2],
-                           smoothing_sigmas=param_in_demons,
+                           smoothing_sigmas=None,
                                         initial_transform=initial_transform,
                                 record_path=record_path,fname =fname) #[2,1],[4, 2]) (8,4)
     warped_img = sitk_grid_sampling(sitk.ReadImage(target_path), sitk.ReadImage(mv_path), tx,

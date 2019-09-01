@@ -32,7 +32,7 @@ def __init_identity_map(moving,spacing):
 
 
 
-def performAntsRegistration(mv_path, target_path, registration_type='syn', record_path = None, ml_path=None,tl_path= None, fname = None, return_syn=False):
+def performAntsRegistration(param, mv_path, target_path, registration_type='syn', record_path = None, ml_path=None,tl_path= None, fname = None, return_syn=False):
     loutput =None
     phi = None
     moving = ants.image_read(mv_path)

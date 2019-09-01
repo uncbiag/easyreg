@@ -1,6 +1,5 @@
 import matplotlib as matplt
 matplt.use('Agg')
-import SimpleITK as sitk
 import sys,os
 import torch
 torch.backends.cudnn.benchmark=True
@@ -8,12 +7,10 @@ sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
-print(sys.path)
+#print(sys.path)
 import data_pre.module_parameters as pars
-import subprocess
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name
 
 
 
@@ -177,8 +174,6 @@ if __name__ == '__main__':
     # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf -g=3
     # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf --train_affine_first -g=2
     # -df=//playpen/zyshen/ll1/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter_gpu0 -tn=interface_vsvf_dev_gpu0 -ts=/playpen/zyshen/ll1/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf_gpu0 --train_affine_first -g=2
-
-
 
     # --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf
     # --run_demo --demo_name=opt_rdmm_predefined -txt=/playpen/zyshen/data/reg_lung_160/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_lung_160/new_interface/test_opt_rdmm_predefined

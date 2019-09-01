@@ -41,6 +41,13 @@
             4
         ],
         "print_val_detail": true,
+        "reg": {
+            "demons": {
+                "iter": 500,
+                "std": 1.5,
+                "nifty_bin":"/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin"
+            }
+        },
         "save_by_standard_label": true,
         "save_fig_on": true,
         "save_val_fig_epoch": 2,

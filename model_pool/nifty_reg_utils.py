@@ -1,14 +1,11 @@
 import os
 import subprocess
 import numpy as np
-#from model_pool.global_variable import *
 import SimpleITK as sitk
 import nibabel as nib
-nifty_bin = '/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin'# todo write into json setting
-nifty_reg_cmd = ' -sx -10 --lncc 40 -pad 0 -jl 0.01  '# todo write into json setting
 
 
-def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, levels=None,aff= None):
+def nifty_reg_bspline(nifty_bin, nifty_reg_cmd, ref, flo, res=None, cpp=None, rmask=None, fmask=None, levels=None,aff= None):
     executable = nifty_bin + '/reg_f3d'
 
     cmd = executable + ' -ref ' + ref + ' -flo ' + flo
@@ -31,7 +28,7 @@ def nifty_reg_bspline(ref, flo, res=None, cpp=None, rmask=None, fmask=None, leve
     return cmd
 
 
-def nifty_reg_affine(ref, flo, res=None, aff=None, rmask=None, fmask=None, symmetric=True, init='center'):
+def nifty_reg_affine(nifty_bin, ref, flo, res=None, aff=None, rmask=None, fmask=None, symmetric=True, init='center'):
     executable = nifty_bin + '/reg_aladin'
     cmd = executable + ' -ref ' + ref + ' -flo ' + flo
     if res != None:
@@ -49,7 +46,7 @@ def nifty_reg_affine(ref, flo, res=None, aff=None, rmask=None, fmask=None, symme
     return cmd
 
 
-def nifty_reg_transform(ref=None, ref2=None, invAff1=None, invAff2=None, invNrr1=None, invNrr2=None,
+def nifty_reg_transform(nifty_bin, ref=None, ref2=None, invAff1=None, invAff2=None, invNrr1=None, invNrr2=None,
                         invNrr3=None, disp1=None, disp2=None, def1=None, def2=None, comp1=None, comp2=None,
                         comp3=None):
     executable = nifty_bin + '/reg_transform'
@@ -72,7 +69,7 @@ def nifty_reg_transform(ref=None, ref2=None, invAff1=None, invAff2=None, invNrr1
     return cmd
 
 
-def nifty_reg_resample(ref, flo, trans=None, res=None, inter=None, pad=0):
+def nifty_reg_resample(nifty_bin, ref, flo, trans=None, res=None, inter=None, pad=0):
     executable = nifty_bin + '/reg_resample'
     cmd = executable + ' -ref ' + ref + ' -flo ' + flo
     if trans != None:
@@ -87,7 +84,7 @@ def nifty_reg_resample(ref, flo, trans=None, res=None, inter=None, pad=0):
     return cmd
 
 
-def nifty_reg_jacobian(ref, trans=None, res=None):
+def nifty_reg_jacobian(nifty_bin, ref, trans=None, res=None):
     executable = nifty_bin + '/reg_jacobian'
     cmd = executable + ' -trans ' + trans + ' -ref ' + ref + ' -jac ' + res
     return cmd
@@ -133,10 +130,10 @@ def init_phi(mv_path,phi_path='.',record_path=None):
      sitk.WriteImage(y,os.path.join(record_path,'identity_y.nii.gz'))
      sitk.WriteImage(z,os.path.join(record_path,'identity_z.nii.gz'))
 
-def _get_deformation(cmd, target_path, record_path,output_txt):
-    cmd += '\n' + nifty_reg_resample(ref=target_path, flo=os.path.join(record_path,'identity_x.nii.gz'), trans=output_txt, res=os.path.join(record_path,'warped_x.nii.gz'), inter=1)
-    cmd += '\n' + nifty_reg_resample(ref=target_path, flo=os.path.join(record_path,'identity_y.nii.gz'), trans=output_txt, res=os.path.join(record_path,'warped_y.nii.gz'), inter=1)
-    cmd += '\n' + nifty_reg_resample(ref=target_path, flo=os.path.join(record_path,'identity_z.nii.gz'), trans=output_txt, res=os.path.join(record_path,'warped_z.nii.gz'), inter=1)
+def _get_deformation(nifty_bin, cmd, target_path, record_path,output_txt):
+    cmd += '\n' + nifty_reg_resample(nifty_bin=nifty_bin, ref=target_path, flo=os.path.join(record_path,'identity_x.nii.gz'), trans=output_txt, res=os.path.join(record_path,'warped_x.nii.gz'), inter=1)
+    cmd += '\n' + nifty_reg_resample(nifty_bin=nifty_bin, ref=target_path, flo=os.path.join(record_path,'identity_y.nii.gz'), trans=output_txt, res=os.path.join(record_path,'warped_y.nii.gz'), inter=1)
+    cmd += '\n' + nifty_reg_resample(nifty_bin=nifty_bin, ref=target_path, flo=os.path.join(record_path,'identity_z.nii.gz'), trans=output_txt, res=os.path.join(record_path,'warped_z.nii.gz'), inter=1)
     return cmd
 
 def combine_deformation(record_path):
@@ -158,9 +155,11 @@ def combine_deformation(record_path):
 
 
 
-def performRegistration(mv_path, target_path, registration_type='bspline', record_path = None, ml_path=None, affine_on=True,fname = ''):
+def performRegistration(param, mv_path, target_path, registration_type='bspline', record_path = None, ml_path=None, affine_on=True,fname = ''):
     if record_path is None:
         record_path = './'
+    nifty_bin = param['nifty_bin']
+    nifty_reg_cmd = param['nifty_reg_cmd']
     deformation_path = os.path.join(record_path,fname+ '_deformation.nii.gz')
     displacement_path = os.path.join(record_path, fname+ '_displacement.nii.gz')
     affine_path = os.path.join(record_path, fname+ '_affine_image.nii.gz')
@@ -173,35 +172,34 @@ def performRegistration(mv_path, target_path, registration_type='bspline', recor
     output_txt = None
     if True and affine_on :
         affine_txt = os.path.join(record_path, fname+'_affine_transform.txt')
-        cmd += '\n' + nifty_reg_affine(ref=target_path, flo=mv_path, aff=affine_txt, res=affine_path)
+        cmd += '\n' + nifty_reg_affine(nifty_bin=nifty_bin, ref=target_path, flo=mv_path, aff=affine_txt, res=affine_path)
         output_path = affine_path
         output_txt = affine_txt
     if registration_type =='bspline':
         bspline_txt = os.path.join(record_path,fname+'_bspline_transform.nii')
-        cmd += '\n' + nifty_reg_bspline(ref=target_path, flo=mv_path, cpp=bspline_txt, res=bspline_path, aff= output_txt )
+        cmd += '\n' + nifty_reg_bspline(nifty_bin=nifty_bin, nifty_reg_cmd=nifty_reg_cmd, ref=target_path, flo=mv_path, cpp=bspline_txt, res=bspline_path, aff= output_txt )
         output_path = bspline_path
         output_txt = bspline_txt
-        cmd += '\n' + nifty_reg_jacobian(ref=target_path, trans=output_txt, res=jacobi_path)
+        cmd += '\n' + nifty_reg_jacobian(nifty_bin=nifty_bin, ref=target_path, trans=output_txt, res=jacobi_path)
 
-    cmd += '\n' + nifty_reg_transform(ref=target_path, def1=output_txt, def2=deformation_path)
+    cmd += '\n' + nifty_reg_transform(nifty_bin=nifty_bin,ref=target_path, def1=output_txt, def2=deformation_path)
     #cmd = _get_deformation(cmd, target_path,record_path,output_txt)
-   # cmd += '\n' + nifty_reg_transform(ref=target_path, disp1=output_txt, disp2=displacement_path)
+    #cmd += '\n' + nifty_reg_transform(ref=target_path, disp1=output_txt, disp2=displacement_path)
 
     if ml_path is not None:
         loutput_path = os.path.join(record_path, fname+'_warped_label.nii.gz')
-        cmd += '\n' + nifty_reg_resample(ref=target_path,flo=ml_path,trans=output_txt, res=loutput_path, inter= 0)
+        cmd += '\n' + nifty_reg_resample(nifty_bin=nifty_bin, ref=target_path,flo=ml_path,trans=output_txt, res=loutput_path, inter= 0)
 
     process = subprocess.Popen(cmd, shell=True)
     process.wait()
 
     output = nifty_read(output_path)
-    phi = None
-    jacobi=None
-    if registration_type =='bspline':
+    phi = None # nifty_read_phi(deformation_path)
+    jacobi = None
+    if registration_type == 'bspline':
         jacobi =nifty_read(jacobi_path)
     #print("starting merge phi")
     #phi = combine_deformation(record_path)
-
 
     if ml_path:
         loutput = nifty_read(loutput_path)

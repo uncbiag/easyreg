@@ -24,6 +24,7 @@ class DemonsRegIter(ToolkitBase):
             """ In this case, the nifty affine would be first called"""
             self.affine_on = False
             self.warp_on = True
+        self.demons_param = opt['tsk_set']['reg']['demons']
 
 
 
@@ -31,7 +32,7 @@ class DemonsRegIter(ToolkitBase):
 
     def affine_optimization(self):
 
-        output, loutput, phi = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, phi = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -42,7 +43,7 @@ class DemonsRegIter(ToolkitBase):
 
 
     def demons_optimization(self):
-        output, loutput, phi,jacobian = performDemonsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, phi,jacobian = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
 
         self.disp = None

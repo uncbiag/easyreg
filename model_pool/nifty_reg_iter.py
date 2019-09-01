@@ -16,12 +16,14 @@ class NiftyRegIter(ToolkitBase):
         elif self.network_name =='bspline':
             self.affine_on = False
             self.warp_on = True
+        self.nifty_reg_param = opt['tsk_set']['reg']['nifty_reg']
+
 
 
 
 
     def affine_optimization(self):
-        output, loutput, phi,_ = performRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
+        output, loutput, phi,_ = performRegistration(self.nifty_reg_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -32,7 +34,7 @@ class NiftyRegIter(ToolkitBase):
 
 
     def bspline_optimization(self):
-        output, loutput, phi,jacobian = performRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
+        output, loutput, phi,jacobian = performRegistration(self.nifty_reg_param,self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
 
 
         self.disp = None

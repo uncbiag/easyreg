@@ -15,10 +15,12 @@ class AntsRegIter(ToolkitBase):
         elif self.network_name =='syn':
             self.affine_on = False
             self.warp_on = True
+        self.ants_param = opt['tsk_set']['reg']['ants']
+
 
 
     def affine_optimization(self):
-        output, loutput, phi,_ = performAntsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, phi,_ = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -28,7 +30,7 @@ class AntsRegIter(ToolkitBase):
 
 
     def syn_optimization(self):
-        output, loutput, disp,jacobian = performAntsRegistration(self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, disp,jacobian = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
 
         #self.disp = None

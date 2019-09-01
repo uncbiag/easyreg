@@ -41,6 +41,10 @@
             4
         ],
         "print_val_detail": true,
+        "reg": {
+            "ants": {
+            }
+        },
         "save_by_standard_label": true,
         "save_fig_on": true,
         "save_val_fig_epoch": 2,

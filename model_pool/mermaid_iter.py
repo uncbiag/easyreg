@@ -1,6 +1,5 @@
 
 from .base_mermaid import MermaidBase
-from .losses import Loss
 from .metrics import get_multi_metric
 from model_pool.utils import *
 try:
