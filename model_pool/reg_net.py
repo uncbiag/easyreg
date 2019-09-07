@@ -1,6 +1,3 @@
-import numpy as np
-import torch
-import os
 from time import time
 
 from .base_mermaid import MermaidBase
@@ -117,6 +114,9 @@ class RegNet(MermaidBase):
         if self.iter_count % self.criticUpdates==0:
             self.optimizer.step()
             self.optimizer.zero_grad()
+        update_lr, lr = self.network.check_if_update_lr()
+        if update_lr:
+            self.adjust_learning_rate(lr)
 
 
     def get_current_errors(self):

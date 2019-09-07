@@ -30,14 +30,14 @@
             "adam": {
                 "beta": 0.9
             },
-            "lr": 1e-04,
+            "lr": 0.0001,
             "lr_scheduler": {
                 "custom": {
                     "gamma": 0.5,
-                    "step_size": 10000
+                    "step_size": 12000
                 },
                 "plateau": {
-                    "factor": 0.2,
+                    "factor": 0.5,
                     "min_lr": 1e-06,
                     "patience": 5,
                     "threshold": 0.001
@@ -55,12 +55,14 @@
         "print_val_detail": true,
         "reg": {
             "affine_net": {
-                "affine_net_iter": 3,
+               "affine_net_iter": 3,
                 "using_complex_net": true,
-                "epoch_activate_multi_step": 200,
-                "epoch_activate_sym": 120,
-                "epoch_activate_sym_loss": 120,
-                "epoch_activate_extern_loss": 100
+                "epoch_activate_multi_step": 300,
+                "epoch_activate_sym": 200,
+                "epoch_activate_sym_loss": 200,
+                "epoch_activate_extern_loss": 100,
+                "acc_multi_step_loss": false,
+                "reset_lr_for_multi_step": true
             },
             "low_res_factor": 0.5,
             "compute_inverse_map": false,
@@ -73,9 +75,8 @@
                 "using_affine_init": true,
                 "using_complex_net": true,
                 "using_index_coord": false,
-                "using_lddmm": false,
-                "using_multi_step": true,
-                "using_sym": false
+                "epoch_activate_multi_step": -1,
+                "epoch_activate_sym": -1
             }
         },
         "save_by_standard_label": true,

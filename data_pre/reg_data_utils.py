@@ -296,11 +296,6 @@ def get_file_name(file_path):
     return os.path.split(file_path)[1].split('.')[0]
 
 
-
-
-
-
-
 def generate_pair_name(pair_path_list,sched='mixed'):
     """
     rename the filename for different dataset,

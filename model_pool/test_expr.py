@@ -2,8 +2,6 @@ from time import time
 from model_pool.net_utils import get_test_model
 import os
 import numpy as np
-from model_pool.global_variable import output_orginal_img_sz
-
 
 
 def test_model(opt,model, dataloaders):

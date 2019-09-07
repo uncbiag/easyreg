@@ -1,4 +1,4 @@
-from time import time, sleep
+from time import time
 from model_pool.net_utils import *
 
 
@@ -16,9 +16,9 @@ def train_model(opt,model, dataloaders,writer):
     max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
     gpu_id = opt['tsk_set']['gpu_ids']
     best_score = 0
-    epoch_val_score=0.
     is_best = False
     start_epoch = 0
+    best_epoch = -1
     phases =['train','val','debug']
     global_step = {x:0 for x in phases}
     period_loss = {x: 0. for x in phases}
@@ -74,7 +74,7 @@ def train_model(opt,model, dataloaders,writer):
                 break
             if phase == 'train':
                 model.set_train()
-            elif phase =='val':
+            elif phase == 'val':
                 model.set_val()
             else:
                 model.set_debug()
@@ -200,7 +200,7 @@ def train_model(opt,model, dataloaders,writer):
     time_elapsed = time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best val score: {:4f}'.format(best_score))
+    print('Best val score : {:4f} is at epoch {}'.format(best_score, best_epoch))
     writer.close()
     # return the model at the last epoch, not the best epoch
     return model
@@ -220,5 +220,3 @@ def save_and_debug_model(model, info,check_point_path,epoch,global_step):
     save_checkpoint({'epoch': epoch, 'state_dict': model.network.state_dict(), 'optimizer': optimizer_state,
                      'best_score': 0.0, 'global_step': global_step}, False, check_point_path,
                     'epoch_' + 'debug', '')
-
-    pass

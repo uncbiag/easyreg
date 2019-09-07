@@ -45,7 +45,7 @@ class MermaidBase(BaseModel):
     def compute_jacobi_map(self,map,crop_boundary=True, use_01=False):
         """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
           the image direction matrix is identity."""
-        from model_pool.global_variable import save_jacobi_map
+        from toremove.global_variable import save_jacobi_map
         import SimpleITK as sitk
         if type(map) == torch.Tensor:
             map = map.detach().cpu().numpy()

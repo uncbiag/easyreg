@@ -54,6 +54,7 @@ class MermaidNet(nn.Module):
         self.is_train = opt['tsk_set']['train']
         self.epoch = 0
 
+
         self.using_physical_coord = opt_mermaid[('using_physical_coord',False,'use physical coordinate system')]
         self.loss_type = opt['tsk_set']['loss']['type']
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
@@ -61,6 +62,8 @@ class MermaidNet(nn.Module):
         self.sym_factor = opt_mermaid[('sym_factor',1,'factor on symmetric loss')]
         self.epoch_activate_sym = opt_mermaid[('epoch_activate_sym',-1,'epoch activate the symmetric')]
         self.epoch_activate_multi_step = opt_mermaid[('epoch_activate_multi_step',-1,'epoch activate the multi-step')]
+        self.reset_lr_for_multi_step = opt_mermaid[('reset_lr_for_multi_step',False,'if True, reset learning rate when multi-step begins')]
+        self.lr_for_multi_step = opt_mermaid[('lr_for_multi_step',opt['tsk_set']['optim']['lr']/2,'if reset_lr_for_multi_step, reset learning rate when multi-step begins')]
         self.multi_step = opt_mermaid[('num_step',2,'compute multi-step loss')]
         self.using_affine_init = opt_mermaid[('using_affine_init',True,'True, deploy an affine network before mermaid-net')]
         self.load_trained_affine_net = opt_mermaid[('load_trained_affine_net',True,'load the trained affine network')]
@@ -104,12 +107,22 @@ class MermaidNet(nn.Module):
         self.n_batch = -1
         self.inverse_map = None
 
+
+    def check_if_update_lr(self):
+        if self.epoch == self.epoch_activate_multi_step and self.reset_lr_for_multi_step:
+            lr = self.lr_for_multi_step
+            self.reset_lr_for_multi_step = False
+            print("the lr is change into {} due to the activation of the multi-step".format(lr))
+            return True, lr
+        else:
+            return False, None
+
     def init_affine_net(self,opt):
         self.affine_net = AffineNetSym(self.img_sz[2:],opt)
         self.affine_net.compute_loss = False
         self.affine_net.epoch_activate_sym = 1e7  # todo to fix
         model_path = self.affine_init_path
-        if self.load_trained_affine_net:
+        if self.load_trained_affine_net and self.is_train:
             checkpoint = torch.load(model_path,  map_location='cpu')
             self.affine_net.load_state_dict(checkpoint['state_dict'])
             self.affine_net.cuda()

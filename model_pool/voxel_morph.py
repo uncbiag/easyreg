@@ -9,7 +9,6 @@ import sys
 
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
-from model_pool.network_pool import *
 
 from model_pool.net_utils import gen_identity_map
 import mermaid.finite_differences as fdt
@@ -18,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functions.bilinear import *
 from mermaid.libraries.modules import stn_nd
-from model_pool.global_variable import *
+from toremove.global_variable import *
 
 class convBlock(nn.Module):
     """

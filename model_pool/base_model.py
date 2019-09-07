@@ -12,16 +12,15 @@ class BaseModel():
 
     def initialize(self, opt):
         self.opt = opt
-        self.gpu_ids = opt['tsk_set']['gpu_ids']
-        self.isTrain = opt['tsk_set']['train']
+        self.gpu_ids = opt['tsk_set'][('gpu_ids',0,'the gpu id used for network methods')]
+        self.isTrain = opt['tsk_set'][('train',True,'True, take the train mode')]
         self.save_dir = opt['tsk_set']['path']['check_point_path']
         self.record_path = opt['tsk_set']['path']['record_path']
-        #self.img_sz = opt['dataset']['img_size']
         self.spacing = None
         self.use_physical_coord = self.opt['tsk_set'][('use_physical_coord',False,"Keep physical spacing")]
-        self.continue_train = opt['tsk_set']['continue_train']
-        self.criticUpdates = opt['tsk_set']['criticUpdates']
-        self.n_in_channel = opt['tsk_set']['n_in_channel']
+        self.continue_train = opt['tsk_set'][('continue_train',False,"for network training method, continue training the model loaded from model_path")]
+        self.criticUpdates = opt['tsk_set'][('criticUpdates',1,"for network training method, the num determines gradient update every # iter")]
+        self.n_in_channel = opt['tsk_set'][('n_in_channel',1,"for network training method, the color channel typically set to 1")]
         self.input_img_sz = self.opt['dataset'][('img_after_resize',None,"image size after resample")]
         #self.input_resize_factor = opt['dataset']['input_resize_factor'] # todo remove this
         self.evaluate_label_list = opt['tsk_set']['evaluate_label_list',[-100],'evaluate_label_list']

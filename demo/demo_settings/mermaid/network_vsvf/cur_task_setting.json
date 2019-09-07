@@ -23,7 +23,7 @@
         "train": false,
         "model": "reg_net",
         "model_folder_path": "",
-        "model_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_170_",
+        "model_path": "./demo_saved_models/network_vsvf/model",
         "n_in_channel": 1,
         "network_name": "mermaid",
         "optim": {
@@ -61,7 +61,7 @@
             "low_res_factor": 0.5,
             "compute_inverse_map": false,
             "mermaid_net": {
-                "affine_init_path": "/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_intra/train_affine_net_sym_lncc/checkpoints/epoch_1070_",
+                "affine_init_path": "",
                 "mermaid_net_json_pth": "./demo_settings/mermaid/network_vsvf/mermaid_nonp_settings.json",
                 "num_step": 2,
                 "optimize_momentum_network": false,

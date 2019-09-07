@@ -12,12 +12,10 @@ provide x-tick labels for each sample.
 A good general reference on boxplots and their history can be found
 here: http://vita.had.co.nz/papers/boxplots.pdf
 """
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import time
 # Random test data
 def get_experiment_data_from_record(order,path):
     data = np.load(path)
@@ -279,8 +277,8 @@ def draw_histogram(name_list, data_list1, data_list2, label="Jacobi Distribution
 
 
 
-def draw_single_boxplot(name_list,data_list1,label ='Dice Score',titile=None, fpth=None ,data_name= None,title=None):
-    df = get_df_from_list(name_list,data_list1,name=data_name)
+def draw_single_boxplot(name_list,data_list,label ='Dice Score',titile=None, fpth=None ,data_name= None,title=None):
+    df = get_df_from_list(name_list,data_list,name=data_name)
     df = df[['Group', data_name]]
     dd = pd.melt(df, id_vars=['Group'], value_vars=[data_name], var_name='task')
     fig, ax = plt.subplots(figsize=(22, 10))

@@ -2,8 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 # from builtins import str
 # from builtins import range
-import matplotlib as matplt
-from model_pool.global_variable import is_lung
+from toremove.global_variable import is_lung
 
 from data_pre.reg_data_utils import make_dir
 #from .config_parser import MATPLOTLIB_AGG

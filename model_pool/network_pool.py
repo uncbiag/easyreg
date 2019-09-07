@@ -177,6 +177,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.using_complex_net = opt['tsk_set']['reg']['affine_net'][('using_complex_net',True,'use complex version of affine net')]
         self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'use complex version of affine net')]
         self.epoch_activate_multi_step = opt['tsk_set']['reg']['affine_net'][('epoch_activate_multi_step',-1,'epoch to activate multi-step affine')]
+        self.reset_lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('reset_lr_for_multi_step',False,'if True, reset learning rate when multi-step begins')]
+        self.lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('lr_for_multi_step',opt['tsk_set']['optim']['lr']/2,'if reset_lr_for_multi_step, reset learning rate when multi-step begins')]
         self.epoch_activate_sym = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric forward')]
         self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric loss')]
         self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate lncc loss')]
@@ -188,6 +190,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.using_cycle = True
         self.zero_boundary = True
         self.epoch = -1
+        self.reset_lr = False
         from model_pool.losses import NCCLoss
         self.ncc = NCCLoss()
         self.extern_loss = None
@@ -201,6 +204,14 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
     def set_cur_epoch(self, cur_epoch):
         self.epoch = cur_epoch
 
+    def check_if_update_lr(self):
+        if self.epoch == self.epoch_activate_multi_step and self.reset_lr_for_multi_step:
+            lr = self.lr_for_multi_step
+            self.reset_lr_for_multi_step = False
+            print("the lr is change into {} due to the activation of the multi-step".format(lr))
+            return True, lr
+        else:
+            return False, None
 
     def gen_affine_map(self,Ab):
         Ab = Ab.view( Ab.shape[0],4,3) # 3d: (batch,3)
@@ -293,9 +304,9 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
     def get_factor_reg_scale(self):
         epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
         factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1
-        static_epoch = 20 if self.epoch < self.epoch_activate_multi_step else 10
+        static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 10
         min_threshold = 1e-3
-        decay_factor = 4
+        decay_factor = 3
         factor_scale = float(
             max(sigmoid_decay(epoch_for_reg, static=static_epoch, k=decay_factor) * factor_scale, min_threshold))
         return factor_scale

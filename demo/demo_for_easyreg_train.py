@@ -7,7 +7,6 @@ sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
-#print(sys.path)
 import data_pre.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task

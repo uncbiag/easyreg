@@ -31,7 +31,7 @@ class Pipline():
             train_model(self.tsk_opt, self.model, self.data_loaders,self.writer)
 
         else:
-            from model_pool.compare_symmetric import cal_sym
+            from model_pool.compare_sym import cal_sym
             test_model(self.tsk_opt, self.model, self.data_loaders)
             #cal_sym(self.tsk_opt,self.data_loaders)
 

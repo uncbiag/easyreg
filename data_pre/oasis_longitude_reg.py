@@ -125,7 +125,7 @@ class Patient:
 
 class Patients: 
                 class Patients are initialized from patient_slice folder, so it need the path of patient_slice folder as input
-                this class has a list of Patient class, and can set some condtions in order to filter the patients
+                1.0this class has a list of Patient class, and can set some condtions in order to filter the patients
 
                 object varaible included:
                     patients_id_list (list), patients( list of class Patient)

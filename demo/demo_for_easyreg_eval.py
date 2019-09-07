@@ -129,7 +129,10 @@ def do_registration_eval(args, registration_pair_list):
     run_demo = args.run_demo
     if run_demo:
         demo_name = args.demo_name
-        setting_folder_path = os.path.join('./demo_settings/mermaid',demo_name)
+        if demo_name not in['ants','demons','nifty_reg']:
+            setting_folder_path = os.path.join('./demo_settings/mermaid',demo_name)
+        else:
+            setting_folder_path = os.path.join('./demo_settings', demo_name)
         assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg"
         #task_output_path = os.path.join('./demo_output/mermaid',demo_name)
     else:
