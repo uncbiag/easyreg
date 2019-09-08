@@ -151,7 +151,6 @@ class MermaidNet(nn.Module):
         params = pars.ParameterDict()
         params.load_JSON( self.mermaid_net_json_pth) #''../model_pool/cur_settings_svf.json')
         self.save_cur_mermaid_settings(params)
-        #params.load_JSON( '../mermaid/demos/cur_settings_lbfgs_forlddmm.json') #''../model_pool/cur_settings_svf.json')
         print(" The mermaid setting from {} included:".format(self.mermaid_net_json_pth))
         print(params)
         model_name = params['model']['registration_model']['type']
@@ -487,7 +486,7 @@ class MermaidNet(nn.Module):
                 if self.epoch in self.epoch_list_fixed_momentum_network:
                     print("In this epoch, the momentum network is fixed")
                 if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-                    print("In this epoch, the deep smoother deep network is fixed")
+                    print("In this epoch, the deep regularizer network is fixed")
                 self.print_every_epoch_flag = False
             input = torch.cat((warped_img, target), 1)
             m = self.momentum_net(input)

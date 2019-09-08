@@ -6,7 +6,7 @@
         "continue_train": false,
         "continue_train_lr": 1e-05,
         "criticUpdates": 2,
-        "epoch": 400,
+        "epoch": 500,
         "gpu_ids": 3,
         "loss": {
             "ce": {
@@ -25,7 +25,7 @@
         "model_folder_path": "",
         "model_path": "",
         "n_in_channel": 1,
-        "network_name": "affine_sym",
+        "network_name": "mermaid",
         "optim": {
             "adam": {
                 "beta": 0.9
@@ -74,7 +74,6 @@
                 "sym_factor": 500,
                 "using_affine_init": true,
                 "using_complex_net": true,
-                "using_index_coord": false,
                 "epoch_activate_multi_step": -1,
                 "epoch_activate_sym": -1
             }

@@ -303,7 +303,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def get_factor_reg_scale(self):
         epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
-        factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1
+        factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1e-3
         static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 10
         min_threshold = 1e-3
         decay_factor = 3

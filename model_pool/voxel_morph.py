@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 """
 registration network described in voxelmorph
-Created by zhenlinx on 11/8/18
+An experimental pytorch implemetation on https://github.com/voxelmorph/voxelmorph
+
+Unsupervised Learning of Probabilistic Diffeomorphic Registration for Images and Surfaces
+Adrian V. Dalca, Guha Balakrishnan, John Guttag, Mert R. Sabuncu
+MedIA: Medial Image Analysis. 2019. eprint arXiv:1903.03545
+
+Unsupervised Learning for Fast Probabilistic Diffeomorphic Registration
+Adrian V. Dalca, Guha Balakrishnan, John Guttag, Mert R. Sabuncu
+MICCAI 2018. eprint arXiv:1805.04605
 """
 
 import os

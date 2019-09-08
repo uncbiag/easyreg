@@ -64,7 +64,6 @@
                 "sym_factor": "the weight for the symmetric factor",
                 "using_affine_init": "using affine network ( need to be trained first) for initailization False: using id transform as initialization",
                 "using_complex_net": "using a complex unet if True",
-                "using_index_coord": "using index coordinate",
                 "using_lddmm": "True: using lddmm (copyright in mermaid) Flase: using vSVF (copyright in mermaid)",
                 "using_multi_step": "using multi-step training for mermaid_based method",
                 "using_sym": "using symmetric training, if true, the loss is combined with source2target, target2source and symmetric loss"

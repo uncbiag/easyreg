@@ -80,7 +80,6 @@ def get_task_settings( task_settings_filename = None ):
     task_params['tsk_set'][('reg',{},"settings for registration task")]
     task_params['tsk_set']['reg'][('low_res_factor', 0.5,'low resolution map factor for non-parametric method')]
     task_params['tsk_set']['reg'][('mermaid_net',{},"settings for mermaid net")]
-    task_params['tsk_set']['reg']['mermaid_net'][('using_index_coord', False,    "using index coordinate")]
     task_params['tsk_set']['reg']['mermaid_net'][('using_sym',False,'using symmetric training, if true, the loss is combined with source2target, target2source and symmetric loss')]
     task_params['tsk_set']['reg']['mermaid_net'][('sym_factor', 100,'the weight for the symmetric factor')]
     task_params['tsk_set']['reg']['mermaid_net'][('using_complex_net', True, 'using a complex unet if True')]

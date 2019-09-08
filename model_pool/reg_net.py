@@ -10,9 +10,7 @@ from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
 
-model_pool = {#'affine_sim':AffineNet,
-              #'affine_unet':Affine_unet,
-              #'affine_cycle':AffineNetCycle,
+model_pool = {
               'affine_sym': AffineNetSym,
               'mermaid':MermaidNet,
               'vm_cvpr':VoxelMorphCVPR2018,

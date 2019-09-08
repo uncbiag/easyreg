@@ -81,7 +81,6 @@
                 "sym_factor": 100,
                 "using_affine_init": true,
                 "using_complex_net": true,
-                "using_index_coord": false,
                 "using_lddmm": false,
                 "using_multi_step": true,
                 "using_sym": false
