@@ -171,7 +171,7 @@
                 },
             "type": "lddmm_adapt_smoother_map",
             "shooting_vector_momentum":{
-                "use_velocity_mask_on_boundary":false,
+                "use_velocity_mask_on_boundary":true,
                 "adapt_model": {
                     "addition_smoother":"localAdaptive",
                     "update_sm_by_advect": true,

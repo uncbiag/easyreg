@@ -23,7 +23,7 @@
         "train": false,
         "model": "reg_net",
         "model_folder_path": "",
-        "model_path": "./demo_saved_models/network_vsvf/model",
+        "model_path": "./demo_saved_models/mermaid/network_vsvf/model",
         "n_in_channel": 1,
         "network_name": "mermaid",
         "optim": {

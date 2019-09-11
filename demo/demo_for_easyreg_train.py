@@ -153,7 +153,7 @@ def do_registration_train(args):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='implementation of Adaptive vector-momentum-based Stationary Velocity Field Mappinp (AVSM)')
+    parser = argparse.ArgumentParser(description="An easy interface for training registration models")
     parser.add_argument('-df','--data_folder', required=False, type=str,
                         default=None,help='the path of data folder')
     parser.add_argument('-dtn','--data_task_name', required=False, type=str,

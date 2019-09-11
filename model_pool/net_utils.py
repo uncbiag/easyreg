@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import torch.nn.init as init
 import os
+from model_pool.reproduce_paper_results import reproduce_paper_result
 
 dim = 3
 Conv = nn.Conv2d if dim == 2 else nn.Conv3d
@@ -149,7 +150,7 @@ def gen_identity_map(img_sz, resize_factor=1.,normalized=True):
     else:
         img_sz = [int(img_sz[i] * resize_factor) for i in range(dim)]
     if normalized:
-        grid = identity_map(img_sz)
+        grid = identity_map(img_sz) if not reproduce_paper_result else identity_map_for_reproduce(img_sz)
     else:
         grid = not_normalized_identity_map(img_sz)
     return grid

@@ -8,7 +8,7 @@
         "registration_model": {
             "forward_model": {
                 "number_of_time_steps": 10,
-                "solver": "rk4",
+                "solver": "dopri5",
                 "adjoin_on": true,
                 "rtol": 1e-5,
                 "atol": 1e-5,
@@ -77,9 +77,9 @@
                 0.25
             ],
             "scale_iterations": [
-                20,
-                20,
-                20
+                60,
+                60,
+                60
             ]
         },
         "name": "lbfgs_ls",

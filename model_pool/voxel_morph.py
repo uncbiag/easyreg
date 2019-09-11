@@ -3,9 +3,9 @@
 registration network described in voxelmorph
 An experimental pytorch implemetation on https://github.com/voxelmorph/voxelmorph
 
-Unsupervised Learning of Probabilistic Diffeomorphic Registration for Images and Surfaces
-Adrian V. Dalca, Guha Balakrishnan, John Guttag, Mert R. Sabuncu
-MedIA: Medial Image Analysis. 2019. eprint arXiv:1903.03545
+An Unsupervised Learning Model for Deformable Medical Image Registration
+Guha Balakrishnan, Amy Zhao, Mert R. Sabuncu, John Guttag, Adrian V. Dalca
+CVPR 2018. eprint arXiv:1802.02604
 
 Unsupervised Learning for Fast Probabilistic Diffeomorphic Registration
 Adrian V. Dalca, Guha Balakrishnan, John Guttag, Mert R. Sabuncu

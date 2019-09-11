@@ -12,7 +12,7 @@ source activate easyreg
 git clone https://github.com/uncbiag/easyreg.git
 cd easyreg
 gdown https://drive.google.com/open?id=1RjFV0lht4uQFc2jYmBYxmXtRrdYAzk8S
-unzip demo_saved_models.zip -d .
+unzip demo.zip -d .
 git clone https://github.com/uncbiag/mermaid.git
 pip install -r requirements.txt
 cd mermaid
