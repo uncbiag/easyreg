@@ -144,9 +144,15 @@ def performDemonsRegistration(param, mv_path, target_path, registration_type='de
 
     print("start demons registration")
     assert registration_type =='demons'
-    iter_num = param['iter']
-    stand_dev = param['std']
-    nifty_bin = param['nifty_bin']
+    iter_num = param[('iter', 500,'num of the iteration') ]
+    stand_dev = param['std',1.5 , 'the standard deviation in demon registration']
+    nifty_bin = param['nifty_bin','','the path of the nifth reg binary file']
+    shrink_factors = param['shrink_factors',[],'the multi-scale shrink factor in demons']
+    shrink_sigma = param['shrink_sigma',[],'amount of smoothing which is done prior to resmapling the image using the given shrink factor']
+    shrink_factors = shrink_factors if len(shrink_factors) else None
+    shrink_sigma = shrink_sigma if len(shrink_sigma) else None
+    output = None
+    loutput = None
 
     #mv_path, ml_path = get_affined_moving_image(target_path, mv_path, ml_path=ml_path,fname=fname)
     initial_transform = get_initial_transform(nifty_bin, target_path, mv_path, fname=fname)
@@ -163,20 +169,21 @@ def performDemonsRegistration(param, mv_path, target_path, registration_type='de
     tx,jacobi_image = multiscale_demons(registration_algorithm=demons_filter,
                            fixed_image_pth=target_path,
                            moving_image_pth=mv_path,
-                           shrink_factors=None,#[4, 2],
-                           smoothing_sigmas=None,
+                           shrink_factors=shrink_factors,#[4, 2],
+                           smoothing_sigmas=shrink_sigma,
                                         initial_transform=initial_transform,
                                 record_path=record_path,fname =fname) #[2,1],[4, 2]) (8,4)
     warped_img = sitk_grid_sampling(sitk.ReadImage(target_path), sitk.ReadImage(mv_path), tx,
                                     is_label=False)
-    warped_label = sitk_grid_sampling(sitk.ReadImage(tl_path), sitk.ReadImage(ml_path), tx,
-                                      is_label=True)
+    output  = sitk.GetArrayFromImage(warped_img)
+    if ml_path is not None and tl_path is not None:
+        warped_label = sitk_grid_sampling(sitk.ReadImage(tl_path), sitk.ReadImage(ml_path), tx,
+                                          is_label=True)
+        loutput = sitk.GetArrayFromImage(warped_label)
 
     print('demons registration finished and takes: :', time.time() - start)
 
 
-    output  = sitk.GetArrayFromImage(warped_img)
-    loutput = sitk.GetArrayFromImage(warped_label)
     jacobian_np = sitk.GetArrayFromImage(jacobi_image)
     # phi = sitk.GetArrayFromImage(tx.GetDisplacementField())
     # """ todo  check that whether the xyz order is the same as the interpolation assumed"""

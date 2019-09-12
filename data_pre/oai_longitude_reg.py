@@ -51,34 +51,6 @@ the patient slices list will be save in folder  "patient_slice"
 
 ########################################   Section 3. Code Organization  ####################################################
 
-
-
-
-abnormal example list:
-!! image size not matched , img:9901199_20090422_SAG_3D_DESS_RIGHT_12800503_image.nii.gz sz:(160, 384, 352) 
-!! image size not matched , img:9052335_20090126_SAG_3D_DESS_RIGHT_12766414_image.nii.gz sz:(176, 384, 384) 
-!! image size not matched , img:9163391_20110808_SAG_3D_DESS_LEFT_16613250603_image.nii.gz sz:(159, 384, 384) 
-!! image size not matched , img:9712762_20090420_SAG_3D_DESS_RIGHT_12583306_image.nii.gz sz:(160, 384, 352) 
-!! image size not matched , img:9388265_20040405_SAG_3D_DESS_LEFT_10016906_image.nii.gz sz:(176, 384, 384) 
-!! image size not matched , img:9388265_20040405_SAG_3D_DESS_LEFT_10016903_image.nii.gz sz:(176, 384, 384) 
-!! image size not matched , img:9938453_20071130_SAG_3D_DESS_RIGHT_12140103_image.nii.gz sz:(159, 384, 384) 
-!! image size not matched , img:9452305_20070228_SAG_3D_DESS_RIGHT_11633112_image.nii.gz sz:(109, 384, 384) 
-!! image size not matched , img:9219500_20080326_SAG_3D_DESS_RIGHT_12266509_image.nii.gz sz:(8, 384, 384) 
-!! image size not matched , img:9011949_20060118_SAG_3D_DESS_LEFT_10667703_image.nii.gz sz:(156, 384, 384) 
-!! image size not matched , img:9885303_20051212_SAG_3D_DESS_LEFT_10624403_image.nii.gz sz:(155, 384, 384) 
-!! image size not matched , img:9833782_20090519_SAG_3D_DESS_RIGHT_12802313_image.nii.gz sz:(176, 384, 384) 
-!! image size not matched , img:9462278_20050524_SAG_3D_DESS_RIGHT_10546912_image.nii.gz sz:(156, 384, 384) 
-!! image size not matched , img:9126260_20060921_SAG_3D_DESS_RIGHT_11309309_image.nii.gz sz:(66, 384, 384) 
-!! image size not matched , img:9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz sz:(176, 384, 384) 
-!! image size not matched , img:9847480_20081007_SAG_3D_DESS_RIGHT_11508512_image.nii.gz sz:(159, 384, 384) 
-!! image size not matched , img:9020714_20101207_SAG_3D_DESS_RIGHT_16613171935_image.nii.gz sz:(118, 384, 384) 
-
-
-
-
-
-
-
 class DataPrepare:
                 class Dataprepare are specificed to oai_dataset, which will transfer Raw Data Organization into Processed Data Organization
                 
@@ -143,33 +115,7 @@ class Patients:
                       __init_basic_info
                       __init_full_info
                       
-                      
 
-
-
-
-
-class OAILongitudeRegistration:
-                first, we need to filter some patients  and implement longitude registration,
-                
-                for each patient, we would registrate images from different time phases to time phase 0
-                
-                then, we need use the moving map to map label, then do result analysis
-                
-                functions called outside:
-                set_patients()
-                set_model()
-                do_registration()
-                do_result_analysis
-                
-                
-                function called inside:
-                __initial_model()
-                __inital_source_and_target()
-                __do_registration()
-
-
-                                   
 
 """
 
@@ -387,6 +333,38 @@ def __debug_check_img_sz(file_path_list):
     return fp_to_del
 
 f= __debug_check_img_sz
+
+
+
+
+################################################################
+
+"""
+abnormal example list:
+!! image size not matched , img:9901199_20090422_SAG_3D_DESS_RIGHT_12800503_image.nii.gz sz:(160, 384, 352) 
+!! image size not matched , img:9052335_20090126_SAG_3D_DESS_RIGHT_12766414_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9163391_20110808_SAG_3D_DESS_LEFT_16613250603_image.nii.gz sz:(159, 384, 384) 
+!! image size not matched , img:9712762_20090420_SAG_3D_DESS_RIGHT_12583306_image.nii.gz sz:(160, 384, 352) 
+!! image size not matched , img:9388265_20040405_SAG_3D_DESS_LEFT_10016906_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9388265_20040405_SAG_3D_DESS_LEFT_10016903_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9938453_20071130_SAG_3D_DESS_RIGHT_12140103_image.nii.gz sz:(159, 384, 384) 
+!! image size not matched , img:9452305_20070228_SAG_3D_DESS_RIGHT_11633112_image.nii.gz sz:(109, 384, 384) 
+!! image size not matched , img:9219500_20080326_SAG_3D_DESS_RIGHT_12266509_image.nii.gz sz:(8, 384, 384) 
+!! image size not matched , img:9011949_20060118_SAG_3D_DESS_LEFT_10667703_image.nii.gz sz:(156, 384, 384) 
+!! image size not matched , img:9885303_20051212_SAG_3D_DESS_LEFT_10624403_image.nii.gz sz:(155, 384, 384) 
+!! image size not matched , img:9833782_20090519_SAG_3D_DESS_RIGHT_12802313_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9462278_20050524_SAG_3D_DESS_RIGHT_10546912_image.nii.gz sz:(156, 384, 384) 
+!! image size not matched , img:9126260_20060921_SAG_3D_DESS_RIGHT_11309309_image.nii.gz sz:(66, 384, 384) 
+!! image size not matched , img:9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz sz:(176, 384, 384) 
+!! image size not matched , img:9847480_20081007_SAG_3D_DESS_RIGHT_11508512_image.nii.gz sz:(159, 384, 384) 
+!! image size not matched , img:9020714_20101207_SAG_3D_DESS_RIGHT_16613171935_image.nii.gz sz:(118, 384, 384) 
+
+"""
+
+#####################################################################
+
+
+
 
 
 

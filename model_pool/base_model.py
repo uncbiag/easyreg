@@ -36,6 +36,7 @@ class BaseModel():
         self.target = None
         self.output = None
         self.warped_label_map = None
+        self.l_moving = None
         self.l_target = None
         self.jacobi_val = None
         self.phi = None

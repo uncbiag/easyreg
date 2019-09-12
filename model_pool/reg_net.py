@@ -1,11 +1,7 @@
-from time import time
-
 from .base_mermaid import MermaidBase
-
 from .network_pool import *
 from .net_utils import print_network
 from .losses import Loss
-from .metrics import get_multi_metric
 from model_pool.utils import *
 from model_pool.mermaid_net import MermaidNet
 from model_pool.voxel_morph import VoxelMorphCVPR2018,VoxelMorphMICCAI2019
@@ -44,6 +40,7 @@ class RegNet(MermaidBase):
         self.opt_optim = opt['tsk_set']['optim']
         self.init_optimize_instance(warmming_up=True)
         self.step_count =0.
+        self.use_01 = False
         print('---------- Networks initialized -------------')
         print_network(self.network)
         print('-----------------------------------------------')
@@ -121,27 +118,15 @@ class RegNet(MermaidBase):
         return self.loss
 
 
-    def get_evaluation(self):
-        s1 = time()
-        self.output, self.phi, self.disp_or_afparam,_= self.forward()
-        self.warped_label_map=None
-        if self.l_moving is not None:
-            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=False)
-            print("!!!!!!!!!!!!!!!!testing the time cost is {}".format(time() - s1))
-            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np= self.l_target.detach().cpu().numpy()
 
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-        self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True, use_01=False)
-        print("current batch jacobi is {}".format(self.jacobi_val))
 
     def get_extra_res(self):
         return self.jacobi_val
 
 
     def save_image_into_original_sz_with_given_reference(self):
-        inverse_phi = self.network.get_inverse_map(use_01=False)
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0], self.phi, inverse_phi=inverse_phi, use_01=False)
+        inverse_phi = self.network.get_inverse_map(use_01=self.use_01)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0], self.phi, inverse_phi=inverse_phi, use_01=self.use_01)
 
 
     def get_extra_to_plot(self):

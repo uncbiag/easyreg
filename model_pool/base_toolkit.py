@@ -32,8 +32,11 @@ class ToolkitBase(BaseModel):
         self.pair_path = [path[0] for path in self.pair_path]
         self.resized_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[0],is_label=False,fname='moving.nii.gz',keep_physical=self.use_physical_coord)
         self.resized_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[1],is_label= False, fname='target.nii.gz',keep_physical=self.use_physical_coord)
-        self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True, fname='l_moving.nii.gz',keep_physical=self.use_physical_coord)
-        self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz',keep_physical=self.use_physical_coord)
+        self.resized_l_moving_path = None
+        self.resized_l_target_path = None
+        if self.l_moving is not None and self.l_target is not None:
+            self.resized_l_moving_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[2],is_label= True, fname='l_moving.nii.gz',keep_physical=self.use_physical_coord)
+            self.resized_l_target_path = self.resize_input_img_and_save_it_as_tmp(self.pair_path[3],is_label= True, fname='l_target.nii.gz',keep_physical=self.use_physical_coord)
 
 
     def resize_input_img_and_save_it_as_tmp(self, img_pth, is_label=False,fname=None,keep_physical=False):

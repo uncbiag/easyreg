@@ -96,7 +96,10 @@ def nifty_read(path):
     img_data =  img.get_fdata()
     return np.transpose(img_data)
 def expand_batch_ch_dim(input):
-    return np.expand_dims(np.expand_dims(input,0),0)
+    if input is not None:
+        return np.expand_dims(np.expand_dims(input,0),0)
+    else:
+        return None
 
 def nifty_read_phi(path):
     phi_nib = nib.load(path)

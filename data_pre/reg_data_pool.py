@@ -295,7 +295,7 @@ class LabeledDataSet(BaseRegDataSet):
 
 class CustomDataSet(BaseRegDataSet):
     """
-    dataset format that orgnized as data_path/slice1, slic2, slice3 .......
+     a folder includes all images, dataset format that orgnized as data_path/slice1, slic2, slice3 .......
     """
     def __init__(self,dataset_type, file_type_list,full_comb=False):
         BaseRegDataSet.__init__(self, dataset_type, file_type_list)
@@ -348,7 +348,7 @@ class VolumetricDataSet(BaseRegDataSet):
 
 class MixedDataSet(BaseRegDataSet):
     """
-     include inter-personal and intra-personal data, which is orgnized as oasis2d, root/patient1_folder/slice1,slice2...
+     each folder refers to a patient with several cases included, which is organized as oasis2d, root/patient1_folder/slice1,slice2...
     """
     def __init__(self, dataset_type, file_type_list, sched, full_comb=False):
         BaseRegDataSet.__init__(self, dataset_type, file_type_list, sched=sched)

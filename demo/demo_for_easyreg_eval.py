@@ -11,7 +11,7 @@ import data_pre.module_parameters as pars
 import subprocess
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name
+from data_pre.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
 
 class BaseTask():
     __metaclass__ = ABCMeta
@@ -24,7 +24,7 @@ class BaseTask():
 
 class DataTask(BaseTask):
     """
-    load the data settings from json
+    base module for data setting files (.json)
     """
     def __init__(self,name,path='../settings/base_data_settings.json'):
         super(DataTask,self).__init__(name)
@@ -37,7 +37,7 @@ class DataTask(BaseTask):
 
 class ModelTask(BaseTask):
     """
-    load the task settings from json
+    base module for task setting files (.json)
     """
     def __init__(self,name,path='../settings/base_task_settings.json'):
         super(ModelTask,self).__init__(name)
@@ -50,6 +50,15 @@ class ModelTask(BaseTask):
 
 
 def force_test_setting(dm, tsm,output_path):
+    """
+    To run in test mode, force set related param in datapro and tsk_set.
+    The updated param are saved in output_path/cur_data_setting.json and output_path/cur_task_setting.json
+
+    :param dm:  ParameterDict, settings for data proprecessing (disabled if the settings have already put in tsk_set)
+    :param tsm: ParameterDict, settings for the task
+    :param output_path:
+    :return:
+    """
     if dm is not None:
         data_json_path = os.path.join(output_path, 'cur_data_setting.json')
         dm.data_par['datapro']['dataset']['prepare_data'] = False
@@ -72,12 +81,16 @@ def force_test_setting(dm, tsm,output_path):
 
 def init_test_env(setting_path,output_path, source_path_list, target_path_list, l_source_path_list=None, l_target_path_list=None):
     """
-    :param task_full_path:  the path of a completed task
-    :param source_path: path of the source image
-    :param target_path: path of the target image
-    :param l_source: path of the label of the source image
-    :param l_target: path of the label of the target image
-    :return: None
+    create test environment, the pair list would be saved into output_path/reg/test/pair_path_list.txt,
+     a corresponding auto-parsed filename list would also be saved in output/path/reg/test/pair_name_list.txt
+
+    :param setting_path: the path to load 'cur_task_setting.json' and 'cur_data_setting.json' (optional if the related settings are in cur_task_setting)
+    :param output_path: the output path of the task
+    :param source_path_list: the source image list, each item refers to the abstract path of the image
+    :param target_path_list: the target image list,  each item refers to the abstract path of the image
+    :param l_source_path_list: optional, the label of source image list, each item refers to the abstract path of the image
+    :param l_target_path_list:optional, the label of target image list, each item refers to the abstract path of the image
+    :return: tuple of ParameterDict,  datapro (optional) and tsk_set
     """
     dm_json_path = os.path.join(setting_path, 'cur_data_setting.json')
     tsm_json_path = os.path.join(setting_path, 'cur_task_setting.json')
@@ -105,25 +118,17 @@ def init_test_env(setting_path,output_path, source_path_list, target_path_list, 
     tsm.task_par['tsk_set']['data_folder'] = os.path.join(output_path,data_task_name)
     return dm, tsm
 
-def loading_img_list_from_files(path):
-    from data_pre.reg_data_utils import read_txt_into_list
-    path_list = read_txt_into_list(path)
-    num_pair = len(path_list)
-    assert len(path_list[0])>=2
-    has_label = True if len(path_list[0])==4 else False
-    source_path_list = [path_list[i][0] for i in range(num_pair)]
-    target_path_list = [path_list[i][1] for i in range(num_pair)]
-    l_source_path_list = None
-    l_target_path_list = None
-    if has_label:
-        l_source_path_list = [path_list[i][2] for i in range(num_pair)]
-        l_target_path_list = [path_list[i][3] for i in range(num_pair)]
-    return source_path_list, target_path_list, l_source_path_list, l_target_path_list
-
 
 
 
 def do_registration_eval(args, registration_pair_list):
+    """
+    set running env and run the task
+
+    :param args: the parsed arguments
+    :param registration_pair_list:  list of registration pairs, [source_list, target_list, lsource_list, ltarget_list]
+    :return: None
+    """
     task_output_path = args.task_output_path
     os.makedirs(task_output_path, exist_ok=True)
     run_demo = args.run_demo
@@ -152,6 +157,18 @@ def do_registration_eval(args, registration_pair_list):
 
 
 if __name__ == '__main__':
+    """
+    A evaluation interface for optimization methods or learning methods with pre-trained models.
+    Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
+    The method support list :  mermaid-related ( optimizing/pretrained) methods, ants, demons, niftyreg
+    The demos supported by category are : 
+        mermaid: network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined
+        ants: ants
+        demons: demons
+        niftyreg: niftyreg
+    * network_* refers to learning methods with pre-trained models
+    * opt_* : refers to optimization based methods
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
@@ -160,7 +177,7 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------------------------------------------------------------
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
                         default=None,help='path to load settings')
-    parser.add_argument('-txt','--pair_txt_path', required=False, default='./oai_examples.txt', type=str,
+    parser.add_argument('-txt','--pair_txt_path', required=False, default='./oai_examples_debug.txt', type=str,
                         help='the txt file recording the pairs to registration')  # 2
     parser.add_argument('-s','--source_list',nargs='+', required=False, default=None,
                         help='the source list,  s1 s2 s3..sn')

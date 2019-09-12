@@ -214,7 +214,7 @@ def str_concat(lists,linker='_'):
 
 def divide_data_set(root_path, pair_num,ratio):
     """
-    divide the dataset into root_path/train root_path/val root_path/test
+    divide the dataset into root_path/train root_path/val root_path/test root_path/debug
     :param root_path: the root path for saving the task_dataset
     :param pair_num: num of pair
     :param ratio: tuple of (train_ratio, val_ratio, test_ratio) from all the pairs
@@ -246,11 +246,12 @@ def divide_data_set(root_path, pair_num,ratio):
 
 def get_divided_dic(file_id_dic, pair_path_list, pair_name_list):
     """
+    get the set dict of the image pair path and pair name
 
-    :param file_id_dic:
-    :param pair_path_list:
-    :param pair_name_list:
-    :return: divided_path_dic {'pair_path_list':{'train': [path1,path2..],'val':[..],...}, 'pair_name_list':{'train':[fn1,fn2...],'val':[..],..}}
+    :param file_id_dic: dict of set index, {'train':[1,2,3,..100], 'val':[101,...120]......}
+    :param pair_path_list: list of pair_path, [[s1,t1], [s2,t2],.....]
+    :param pair_name_list: list of fnmae [s1_t1, s2_t2,....]
+    :return: divided_path_dic {'pair_path_list':{'train': [[s1,t1],[s2,t2]..],'val':[..],...}, 'pair_name_list':{'train':[s1_t1, s2_t2,...],'val':[..],..}}
     """
     divided_path_dic = {}
     sesses = ['train','val','test','debug']
@@ -264,13 +265,34 @@ def get_divided_dic(file_id_dic, pair_path_list, pair_name_list):
 
 
 def saving_pair_info(sub_folder_dic, divided_path_dic):
+    """
+    saved the image pair into txt
+    :param sub_folder_dic: dict of path , i.e. {'train':train_saving_folder_pth, 'val': val_saving_folder_pth, ....}
+    :param divided_path_dic:  dict of image pairs i.e. {
+                                                 'pair_path_list':{'train':[[s1, t1], [s2, t2]....], 'val': [[s1, t1], [s2, t2]....]}....},
+                                                 'pair_name_list':{'train':[s1_t1, s2_ts,....], 'val':[s1_t1, s2_t2].....}
+                                                 }
+    :return: None
+    """
     for sess, sub_folder_path in sub_folder_dic.items():
         for item, list_to_write in divided_path_dic.items():
             file_path = os.path.join(sub_folder_path,item+'.txt')
             write_list_into_txt(file_path, list_to_write[sess])
 
 
+
+
+
+
 def write_list_into_txt(file_path, list_to_write):
+    """
+    write the list into txt,  each elem refers to a line
+    if elem is also a list, then each sub elem is separated by the space
+
+    :param file_path: the file path to write in
+    :param list_to_write: the list to refer
+    :return: None
+    """
     with open(file_path, 'w') as f:
         if len(list_to_write):
             if isinstance(list_to_write[0],(float, int, str)):
@@ -282,6 +304,12 @@ def write_list_into_txt(file_path, list_to_write):
                 raise(ValueError,"not implemented yet")
 
 def read_txt_into_list(file_path):
+    """
+    read the list from the file, each elem in a line compose a list, each line compose to a list,
+    the elem "None" would be filtered and not considered
+    :param file_path: the file path to read
+    :return: list of list
+    """
     import re
     lists= []
     with open(file_path,'r') as f:
@@ -292,7 +320,32 @@ def read_txt_into_list(file_path):
         lists = [item[0] if len(item) == 1 else item for item in lists]
     return lists
 
+def loading_img_list_from_files(path):
+    """
+    loading image pair list from the file
+    :param path: path of the file to read
+    :return: source_path_list, target_path_list, l_source_path_list ( None if there is no label), l_target_path_list (None if there is no label)
+    """
+    path_list = read_txt_into_list(path)
+    num_pair = len(path_list)
+    assert len(path_list[0])>=2
+    has_label = True if len(path_list[0])==4 else False
+    source_path_list = [path_list[i][0] for i in range(num_pair)]
+    target_path_list = [path_list[i][1] for i in range(num_pair)]
+    l_source_path_list = None
+    l_target_path_list = None
+    if has_label:
+        l_source_path_list = [path_list[i][2] for i in range(num_pair)]
+        l_target_path_list = [path_list[i][3] for i in range(num_pair)]
+    return source_path_list, target_path_list, l_source_path_list, l_target_path_list
+
+
 def get_file_name(file_path):
+    """
+    get the filename given path, i.e. /path/fname.nii.gz
+    :param file_path:
+    :return: the fname
+    """
     return os.path.split(file_path)[1].split('.')[0]
 
 
@@ -311,9 +364,11 @@ def generate_pair_name(pair_path_list,sched='mixed'):
 
 def mixed_pair_name(pair_path_list):
     """
+    specific to data folder organized like  ***/paitent1_id/slice1_id, ****/patient2_id/slice2_id
     the filename is orgnized as: patient1_id_slice1_id_patient2_id_slice2_id
-    :param pair_path_list:
-    :return:
+
+    :param pair_path_list: list of pair path, each pair path refers to [path_source, path_target]
+    :return: list of pair name
     """
     f = lambda name: os.path.split(name)
     get_in = lambda x: os.path.splitext(f(x)[1])[0]
@@ -324,9 +379,10 @@ def mixed_pair_name(pair_path_list):
 
 def custom_pair_name(pair_path_list):
     """
+        specific to data folder organized like  ****/slice1_id, ****/slice2_id
         the filename is orgnized as: slice1_id_slice2_id
-        :param pair_path_list:
-        :return:
+        :param pair_path_list: list of pair path, each pair path refers to [path_source, path_target]
+        :return: list of pair name
         """
     f = lambda name: os.path.split(name)
     get_img_name = lambda x: os.path.splitext(f(x)[1])[0]

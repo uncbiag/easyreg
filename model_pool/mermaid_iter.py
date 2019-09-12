@@ -38,6 +38,7 @@ class MermaidIter(MermaidBase):
         self.saved_mermaid_setting_path = None
         self.saved_affine_setting_path = None
         self.inversed_map = None
+        self.use_01 = True
 
 
 
@@ -172,7 +173,7 @@ class MermaidIter(MermaidBase):
 
     def save_image_into_original_sz_with_given_reference(self):
         # the original image sz in one batch should be the same
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0],self.phi, inverse_phi=self.inversed_map, use_01=True)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0],self.phi, inverse_phi=self.inversed_map, use_01=self.use_01)
 
 
 
@@ -192,16 +193,6 @@ class MermaidIter(MermaidBase):
     def cal_test_errors(self):
         self.get_evaluation()
 
-    def get_evaluation(self):
-        self.output, self.phi, self.disp_or_afparam= self.forward()
-        if self.l_moving is not None:
-            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=True)
-            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
-            self.l_target_np= self.l_target.detach().cpu().numpy()
-
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
-        self.jacobi_val = self.compute_jacobi_map(self.phi, crop_boundary=True, use_01=True)
-        print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
 
 
     def get_extra_res(self):

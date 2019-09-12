@@ -1,8 +1,10 @@
+from time import time
 from .base_model import BaseModel
 from model_pool.utils import *
 import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
 import  tools.image_rescale as  ires
+from .metrics import get_multi_metric
 
 
 
@@ -16,6 +18,7 @@ class MermaidBase(BaseModel):
         self.nonp_on = False
         self.disp_or_afparam = None
         self.save_extra_3d_img = opt['tsk_opt'][('save_extra_3d_img',False,'save extra image')]
+        self.use_01 = True
 
     #
     # def get_warped_img_map(self,img, phi):
@@ -40,6 +43,27 @@ class MermaidBase(BaseModel):
         else:
             raise ValueError(" the label warpping method is not implemented")
         return warped_label_map
+
+
+
+
+    def get_evaluation(self):
+        s1 = time()
+        self.output, self.phi, self.disp_or_afparam,_= self.forward()
+        self.warped_label_map=None
+        if self.l_moving is not None:
+            self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=self.use_01)
+            print("Not take IO cost into consideration, the testing time cost is {}".format(time() - s1))
+            warped_label_map_np= self.warped_label_map.detach().cpu().numpy()
+            self.l_target_np= self.l_target.detach().cpu().numpy()
+
+            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+        self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True, use_01=self.use_01)
+        print("current batch jacobi is {}".format(self.jacobi_val))
+
+
+
+
 
 
     def compute_jacobi_map(self,map,crop_boundary=True, use_01=False):

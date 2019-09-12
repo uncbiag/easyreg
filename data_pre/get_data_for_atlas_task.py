@@ -1,20 +1,6 @@
 import os
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name
+from data_pre.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
 
-def loading_img_list_from_files(path):
-    from data_pre.reg_data_utils import read_txt_into_list
-    path_list = read_txt_into_list(path)
-    num_pair = len(path_list)
-    assert len(path_list[0])>=2
-    has_label = True if len(path_list[0])==4 else False
-    source_path_list = [path_list[i][0] for i in range(num_pair)]
-    target_path_list = [path_list[i][1] for i in range(num_pair)]
-    l_source_path_list = None
-    l_target_path_list = None
-    if has_label:
-        l_source_path_list = [path_list[i][2] for i in range(num_pair)]
-        l_target_path_list = [path_list[i][3] for i in range(num_pair)]
-    return source_path_list, target_path_list, l_source_path_list, l_target_path_list
 
 def generate_atlas_set(original_txt_path,atlas_path,l_atlas_path, output_path,phase='train'):
     source_path_list,target_path_list,l_source_path_list, l_target_path_list=loading_img_list_from_files(original_txt_path)

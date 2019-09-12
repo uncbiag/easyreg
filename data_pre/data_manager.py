@@ -9,7 +9,7 @@ class DataManager(object):
     def __init__(self, task_name, dataset_name):
         """
         the class for easy data management
-        including two part: 1. preprocess data   2. set dataloader
+        including two part: 1. preprocess data (disabled)   2. set dataloader
         1. preprocess data,  currently support lpba, ibsr, oasis2d, cumc,
            the data will be saved in output_path/auto_generated_name/train|val|test
            files are named by the pair_name, source_target.h5py
