@@ -24,7 +24,7 @@ class BaseTask():
 
 class DataTask(BaseTask):
     """
-    load the data settings from json
+    base module for data setting files (.json)
     """
     def __init__(self,name,path='../settings/base_data_settings.json'):
         super(DataTask,self).__init__(name)
@@ -37,7 +37,7 @@ class DataTask(BaseTask):
 
 class ModelTask(BaseTask):
     """
-    load the task settings from json
+    base module for task setting files (.json)
     """
     def __init__(self,name,path='../settings/base_task_settings.json'):
         super(ModelTask,self).__init__(name)
@@ -51,14 +51,15 @@ class ModelTask(BaseTask):
 
 
 
-def init_train_env(setting_path,data_folder, task_name, data_task_name=None):
+def init_train_env(setting_path,output_root_path, task_name, data_task_name=None):
     """
-    :param task_full_path:  the path of a completed task
-    :param source_path: path of the source image
-    :param target_path: path of the target image
-    :param l_source: path of the label of the source image
-    :param l_target: path of the label of the target image
-    :return: None
+    create train environment.
+
+    :param setting_path: the path to load 'cur_task_setting.json' and 'cur_data_setting.json' (optional if the related settings are in cur_task_setting)
+    :param output_root_path: the output path
+    :param data_task_name: data task name i.e. lung_reg_task , oai_reg_task
+    :param task_name: task name i.e. run_training_vsvf_task, run_training_rdmm_task
+    :return:
     """
     dm_json_path = os.path.join(setting_path, 'cur_data_setting.json')
     tsm_json_path = os.path.join(setting_path, 'cur_task_setting.json')
@@ -66,18 +67,25 @@ def init_train_env(setting_path,data_folder, task_name, data_task_name=None):
     dm = DataTask('task_reg',dm_json_path) if os.path.isfile(dm_json_path) else None
     tsm = ModelTask('task_reg',tsm_json_path)
     data_task_name =  data_task_name if len(data_task_name) else 'custom'
-    data_task_path = os.path.join(data_folder,data_task_name)
+    data_task_path = os.path.join(output_root_path,data_task_name)
     if dm is not None:
-        dm.data_par['datapro']['dataset']['output_path'] = data_folder
+        dm.data_par['datapro']['dataset']['output_path'] = output_root_path
         dm.data_par['datapro']['dataset']['task_name'] = data_task_name
     tsm.task_par['tsk_set']['task_name'] = task_name
-    tsm.task_par['tsk_set']['data_folder'] = data_task_path
+    tsm.task_par['tsk_set']['output_root_path'] = data_task_path
 
     return dm, tsm
 
 
-def addition_settings(dm, tsm):
-    data_task_path = tsm.task_par['tsk_set']['data_folder']
+def addition_settings_for_two_stage_training(dm, tsm):
+    """
+    addition settings when perform two-stage training, we assume the affine is the first stage, a non-linear method is the second stage
+
+    :param dm: ParameterDict, data processing setting (not used for now)
+    :param tsm: ParameterDict, task setting
+    :return: tuple of ParameterDict,  datapro (optional) and tsk_set
+    """
+    data_task_path = tsm.task_par['tsk_set']['output_root_path']
     task_name = tsm.task_par['tsk_set']['task_name']
     task_output_path = os.path.join(data_task_path, task_name)
     if args.affine_stage_in_two_stage_training:
@@ -92,6 +100,14 @@ def addition_settings(dm, tsm):
     return dm, tsm
 
 def backup_settings(args,dm,tsm):
+    """
+    The settings saved in setting_folder_path/task_name/cur_data_setting.json and setting_folder_path/task_name/cur_task_setting.json
+
+    :param args:
+    :param dm: arameterDict, data processing setting (not used for now)
+    :param tsm: ParameterDict, task setting
+    :return: Bibe
+    """
     setting_folder_path = args.setting_folder_path
     task_name = args.task_name_record
     setting_backup = os.path.join(setting_folder_path, task_name)
@@ -105,17 +121,24 @@ def backup_settings(args,dm,tsm):
 
 
 def __do_registration_train(args,pipeline=None):
+    """
+        set running env and run the task
 
-    data_folder = args.data_folder
+        :param args: the parsed arguments
+        :param pipeline:a Pipeline object, only used for two-stage training, the pipeline of the first stage (including dataloader) would be pass to the second stage
+        :return: a Pipeline object
+    """
+
+    output_root_path = args.output_root_path
     task_name = args.task_name
     data_task_name = args.data_task_name
     setting_folder_path = args.setting_folder_path
-    data_task_path = os.path.join(data_folder,data_task_name)
+    data_task_path = os.path.join(output_root_path,data_task_name)
     task_output_path = os.path.join(data_task_path,task_name)
     os.makedirs(task_output_path, exist_ok=True)
-    dm, tsm = init_train_env(setting_folder_path,data_folder,task_name,data_task_name)
+    dm, tsm = init_train_env(setting_folder_path,output_root_path,task_name,data_task_name)
     backup_settings(args,dm, tsm)
-    dm, tsm = addition_settings(dm, tsm)
+    dm, tsm = addition_settings_for_two_stage_training(dm, tsm)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
     dm_json_path = os.path.join(task_output_path, 'cur_data_setting.json') if dm is not None else None
     tsm_json_path = os.path.join(task_output_path, 'cur_task_setting.json')
@@ -127,6 +150,12 @@ def __do_registration_train(args,pipeline=None):
     return pipeline
 
 def do_registration_train(args):
+    """
+    a interface for setting one-stage training or two stage training (include affine)
+
+    :param args: the parsed arguments
+    :return: None
+    """
     task_name = args.task_name
     args.task_name_record = task_name
     pipeline = None
@@ -151,11 +180,22 @@ def do_registration_train(args):
 
 
 if __name__ == '__main__':
+    """
+        A training interface for learning methods.
+        The method support list :  mermaid-related methods
+        Assume there is three level folder, output_root_path/ data_task_folder/ task_folder 
+        Arguments: 
+            --output_root_path/ -o: the path of output folder
+            --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task
+            --task_name / -tn: task name i.e. run_training_vsvf_task, run_training_rdmm_task
+            --train_affine_first: train affine network first, then train non-parametric network
+            --gpu_id/ -g: gpu_id to use
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description="An easy interface for training registration models")
-    parser.add_argument('-df','--data_folder', required=False, type=str,
-                        default=None,help='the path of data folder')
+    parser.add_argument('-o','--output_root_path', required=False, type=str,
+                        default=None,help='the path of output folder')
     parser.add_argument('-dtn','--data_task_name', required=False, type=str,
                         default='',help='the name of the data related task (like subsampling)')
     parser.add_argument('-tn','--task_name', required=False, type=str,
@@ -170,12 +210,8 @@ if __name__ == '__main__':
     do_registration_train(args)
 
 
-    # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_rdmm -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_rdmm -g=3
-    # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf -g=3
-    # -df=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf --train_affine_first -g=2
-    # -df=//playpen/zyshen/ll1/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter_gpu0 -tn=interface_vsvf_dev_gpu0 -ts=/playpen/zyshen/ll1/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf_gpu0 --train_affine_first -g=2
+    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_rdmm -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_rdmm -g=3
+    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf -g=3
+    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf --train_affine_first -g=2
+    # -o=//playpen/zyshen/ll1/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter_gpu0 -tn=interface_vsvf_dev_gpu0 -ts=/playpen/zyshen/ll1/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf_gpu0 --train_affine_first -g=2
 
-    # --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf
-    # --run_demo --demo_name=opt_rdmm_predefined -txt=/playpen/zyshen/data/reg_lung_160/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_lung_160/new_interface/test_opt_rdmm_predefined
-    # --run_demo --demo_name=network_vsvf -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf_net
-    # --run_demo --demo_name=network_rdmm -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_rdmm_net

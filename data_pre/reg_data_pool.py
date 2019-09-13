@@ -35,8 +35,9 @@ class BaseRegDataSet(object):
         self.sched = sched
         """inter or intra, for inter-personal or intra-personal registration"""
         self.dataset_type = dataset_type
-        self.saving_h5py=False
         """custom or mixed"""
+        self.saving_h5py=False
+        """if true, save the preprocessed results as h5py"""
         self.normalize= False
         """ settings for normalization, currently not used"""
         self.divided_ratio = (0.7, 0.1, 0.2)
@@ -135,7 +136,7 @@ class UnlabeledDataSet(BaseRegDataSet):
 
     def save_pair_to_txt(self, info=None):
         """
-        save the file into h5py
+        save the file into txt
         :param pair_path_list: N*2  [[full_path_img1, full_path_img2],[full_path_img2, full_path_img3]
         :param pair_name_list: N*1 for 'mix': [patientName1_volumeName1_patientName2_volumeName2, .....]  for custom: [volumeName1_volumeName2, .....]
         :param ratio:  divide dataset into training val and test, based on ratio, e.g [0.7, 0.1, 0.2]
@@ -550,8 +551,8 @@ class PatientStructureDataSet(VolumetricDataSet):
             saving_pair_info(sub_folder_dic, divided_path_and_name_dic)
         else:
             for sess in sesses:
-                h5py_data_folder = sub_folder_dic[sess]
-                pair_path_list = [[os.path.join(h5py_data_folder,get_file_name(fps[i])+'.h5py') for i in [0,1]] for fps in divided_path_and_name_dic['pair_path_list'][sess]]
+                h5py_output_root_path = sub_folder_dic[sess]
+                pair_path_list = [[os.path.join(h5py_output_root_path,get_file_name(fps[i])+'.h5py') for i in [0,1]] for fps in divided_path_and_name_dic['pair_path_list'][sess]]
                 divided_path_and_name_dic['pair_path_list'][sess] = pair_path_list
             saving_pair_info(sub_folder_dic, divided_path_and_name_dic)
 

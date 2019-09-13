@@ -12,7 +12,19 @@ from model_pool.test_expr import test_model
 
 
 class Pipline():
+    """
+    Pipeline class,
+    initialize  env : data_manager, log settings and task settings
+    run_task : run training based model or evaluation based model
+    """
     def initialize(self,task_setting_pth='../settings/task_settings.json',data_setting_pth='../settings/data_settings.json',data_loaders=None):
+        """
+        initialize task environment
+        :param task_setting_pth: the path of current task setting file
+        :param data_setting_pth:  the path of current data processing setting file (option if already set in task_setting_file)
+        :param data_loaders: the dataloader for tasks
+        :return: None
+        """
         initializer = Initializer()
         initializer.initialize_data_manager(data_setting_pth)
         self.tsk_opt = initializer.init_task_option(task_setting_pth)
@@ -22,11 +34,19 @@ class Pipline():
         self.model = create_model(self.tsk_opt)
 
     def clean_up(self):
+        """
+        clean the environment settings, but keep the dataloader
+        :return: None
+        """
         self.tsk_opt = None
         self.writer  = None
         self.model = None
 
     def run_task(self):
+        """
+        run training based model or evaluation based model
+        :return: None
+        """
         if self.tsk_opt['tsk_set']['train']:
             train_model(self.tsk_opt, self.model, self.data_loaders,self.writer)
 

@@ -31,7 +31,7 @@ code for specific dataset.
 And take the following format
 
 * image itself should be normalized into 0-1 and saved as nii.gz
-* **train**, **val**,  **test**, **debug** (subset of train data, to check overfit)  folder should be put under **data_folder/data_task_folder**, each of the folder should
+* **train**, **val**,  **test**, **debug** (subset of train data, to check overfit)  folder should be put under **output_root_path/data_task_folder**, each of the folder should
    include **'pair_path_list.txt'** and **'pair_name_list.txt'**\
    **'pair_path_list.txt'**: each line of the txt include 4 terms: s_pth t_pth ls_path\
     _s refers to source, t refers to target, ls refers to label of source (string 'None' if not exist)_ \
@@ -41,12 +41,11 @@ And take the following format
 
 2 . Training Setting
 * general settings for paths\
-we assume there is three level folder, data_folder/ data_task_folder/ task_folder 
-In data folder, each folder works on different data, i.e. lung, brain, (just for organization, data can be put in other location)
+we assume there is three level folder, output_root_path/ data_task_folder/ task_folder 
 In data_task_folder, each folder refer to different preprocessing strategy, i.e. resampling into different size,\
 In task_folder, each folder refer to a specific setting
 
-so the task folder would be created as data_folder/data_task_folder/your_current_task_name\
+so the task folder would be created as output_root_path/data_task_folder/your_current_task_name\
 
 
 In the 'your_current_task_name' folder, three folder will be auto created, **log** for tensorboard, **checkpoints** for saving models,

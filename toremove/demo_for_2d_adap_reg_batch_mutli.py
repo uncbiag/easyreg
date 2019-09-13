@@ -478,15 +478,15 @@ def demo_multi():
             else:
                 mermaid_setting_path = '../mermaid/demos/sample_generation/cur_settings_svf_for_synth.json'
     expr_name = args.expr_name + '_multi'
-    data_folder = os.path.join(root_path, 'test')
+    output_root_path = os.path.join(root_path, 'test')
     expr_folder = os.path.join(root_path, expr_name)
     do_affine = False
     use_init_weight = False
     os.makedirs(expr_folder, exist_ok=True)
-    pair_path_list, pair_name_list = get_pair_list(data_folder)
+    pair_path_list, pair_name_list = get_pair_list(output_root_path)
     init_weight_path_list = None
     if use_init_weight:
-        init_weight_path_list = get_init_weight_list(data_folder)
+        init_weight_path_list = get_init_weight_list(output_root_path)
     do_optimization = True  # todo make sure this is true in optimization
     do_evaluation = True
     color_image = False

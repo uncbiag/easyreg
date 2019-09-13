@@ -1,6 +1,5 @@
 import matplotlib as matplt
 matplt.use('Agg')
-import SimpleITK as sitk
 import sys,os
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
@@ -8,7 +7,6 @@ sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
 print(sys.path)
 import data_pre.module_parameters as pars
-import subprocess
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task
 from data_pre.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
@@ -57,14 +55,13 @@ def force_test_setting(dm, tsm,output_path):
     :param dm:  ParameterDict, settings for data proprecessing (disabled if the settings have already put in tsk_set)
     :param tsm: ParameterDict, settings for the task
     :param output_path:
-    :return:
+    :return: None
     """
     if dm is not None:
         data_json_path = os.path.join(output_path, 'cur_data_setting.json')
         dm.data_par['datapro']['dataset']['prepare_data'] = False
         dm.data_par['datapro']['reg']['max_pair_for_loading'] = [1, 1, -1, 1]
         dm.save(data_json_path)
-        #dm.save()
     else:
         tsm.task_par['dataset']['max_pair_for_loading'] = [1, 1, -1, 1]
     tsm.task_par['tsk_set']['train'] = False
@@ -73,7 +70,6 @@ def force_test_setting(dm, tsm,output_path):
     tsm.task_par['tsk_set']['reg']['mermaid_net']['using_sym'] = False
     tsk_json_path = os.path.join(output_path, 'cur_task_setting.json')
     tsm.save(tsk_json_path)
-    #tsm.save()
 
 
 
@@ -115,7 +111,7 @@ def init_test_env(setting_path,output_path, source_path_list, target_path_list, 
         dm.data_par['datapro']['dataset']['output_path'] = output_path
         dm.data_par['datapro']['dataset']['task_name'] = data_task_name
     tsm.task_par['tsk_set']['task_name'] = cur_task_name
-    tsm.task_par['tsk_set']['data_folder'] = os.path.join(output_path,data_task_name)
+    tsm.task_par['tsk_set']['output_root_path'] = os.path.join(output_path,data_task_name)
     return dm, tsm
 
 
@@ -168,12 +164,31 @@ if __name__ == '__main__':
         niftyreg: niftyreg
     * network_* refers to learning methods with pre-trained models
     * opt_* : refers to optimization based methods
+    
+    Arguments:
+        demo related:
+             --run_demo: run the demo
+             --demo_name: network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg
+        input related:two input styles are supported,
+            1. given txt
+             --pair_txt_path/-txt: the txt file recording the pairs to registration
+            2. given image
+            --source_list/ -s: the source list,  s1 s2 s3..sn
+            --target_list/ -t: the target list,  t1 t2 t3..tn
+            --lsource_list/ -ls: optional, the source label list,  ls1,ls2,ls3..lsn
+            --ltarget_list/ -lt: optional, the target label list,  lt1,lt2,lt3..ltn
+        other arguments:
+             --setting_folder_path/-ts :path of the folder where settings are saved
+             --task_output_path/ -o: the path of output folder
+             --gpu_id/ -g: gpu_id to use
+    
+    
     """
     import argparse
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
     parser.add_argument("--run_demo",required=False,action='store_true',help='run demo')
-    parser.add_argument('--demo_name',required=False, type=str, default='opt_vsvf',help='if run_demo, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined')
+    parser.add_argument('--demo_name',required=False, type=str, default='opt_vsvf',help='if run_demo, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg')
     #---------------------------------------------------------------------------------------------------------------------------
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
                         default=None,help='path to load settings')

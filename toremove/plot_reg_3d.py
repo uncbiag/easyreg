@@ -406,10 +406,10 @@ def demo_multi():
         root_path = '/pine/scr/z/y/zyshen/expri/syn_data'
 
     expr_name = 'rddmm_maxstd008_omt_01_200iter_abs_reg10_range10_10_200'  #args.expr_name + '_multi'
-    data_folder = os.path.join(root_path, 'test')
+    output_root_path = os.path.join(root_path, 'test')
     expr_folder = os.path.join(root_path, expr_name)
     os.makedirs(expr_folder, exist_ok=True)
-    pair_path_list, pair_name_list = get_pair_list(data_folder)
+    pair_path_list, pair_name_list = get_pair_list(output_root_path)
 
 
     do_grid_evaluation = False

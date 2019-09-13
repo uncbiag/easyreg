@@ -500,20 +500,20 @@ def demo_multi():
             else:
                 mermaid_setting_path = '../mermaid/demos/sample_generation/cur_settings_svf_for_synth_sgd.json'
     expr_name = args.expr_name + '_multi_sm002'
-    data_folder = os.path.join(root_path, 'test')
+    output_root_path = os.path.join(root_path, 'test')
     expr_folder = os.path.join(root_path, expr_name)
     do_affine = False
     use_init_weight = False
     use_init_momentum=True
     os.makedirs(expr_folder, exist_ok=True)
-    pair_path_list, pair_name_list = get_pair_list(data_folder)
+    pair_path_list, pair_name_list = get_pair_list(output_root_path)
 
     pair_path_list =pair_path_list[1:10]
     pair_name_list = pair_name_list[1:10]
 
     init_weight_path_list = None
     if use_init_weight:
-        init_weight_path_list = get_init_weight_list(data_folder)
+        init_weight_path_list = get_init_weight_list(output_root_path)
     init_momentum_path_list = None
     if use_init_momentum:
         momentum_folder  = '/playpen/zyshen/data/syn_data/rdmm_comparison/lddmm_reg10_range10_10_lncc_nomask/analysis'

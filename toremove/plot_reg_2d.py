@@ -475,10 +475,10 @@ def demo_multi():
         root_path = '/pine/scr/z/y/zyshen/expri/syn_data'
 
     expr_name = 'non_name_tv_weighted_no_omt3_1_multi_sm002/0_0'  #args.expr_name + '_multi'
-    data_folder = os.path.join(root_path, 'test')
+    output_root_path = os.path.join(root_path, 'test')
     expr_folder = os.path.join(root_path, expr_name)
     os.makedirs(expr_folder, exist_ok=True)
-    pair_path_list, pair_name_list = get_pair_list(data_folder)
+    pair_path_list, pair_name_list = get_pair_list(output_root_path)
     pair_path_list = pair_path_list[1:10]
     pair_name_list = pair_name_list[1:10]
 

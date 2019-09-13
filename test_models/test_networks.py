@@ -14,7 +14,7 @@ class Test_Networks(unittest.TestCase):
         par_dir = os.path.abspath(os.path.join(cur_dir, os.pardir))
         self.demo_dir = os.path.join(par_dir,'demo')
         self.gpu_id  = 0
-        self.input_pair_txt_path = '/playpen/zyshen/debugs/get_val_and_debug_res/example_for_demo.txt'
+        self.input_pair_txt_path = os.path.join(self.demo_dir,'oai_examples.txt')
         self.output_folder = os.path.join(cur_dir,'test_networks_ouput')
         os.makedirs(self.output_folder,exist_ok=True)
 
