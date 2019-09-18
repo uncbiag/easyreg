@@ -12,8 +12,8 @@
                 "max_displacement": 0.05
             }, 
             "similarity_measure": {
-                "sigma": 0.5, 
-                "type": "ncc"
+                "sigma": 0.7,
+                "type": "lncc"
             },
             "spline_order": 1,
             "type": "affine_map"

@@ -1,8 +1,8 @@
 from data_pre.reg_data_utils import *
 from torchvision import transforms
 import torch
-import data_pre.reg_data_loader_onfly as  reg_loader_of
-from data_pre.reg_data_loader_onfly  import ToTensor
+import data_pre.reg_data_loader_onfly as reg_loader_of
+from data_pre.reg_data_loader_onfly import ToTensor
 import  data_pre.reg_data_pool as reg_pool
 
 class DataManager(object):
@@ -23,7 +23,7 @@ class DataManager(object):
 
         """
         self.task_name = task_name
-        """name for easy recognition"""
+        """name for task"""
         self.task_type = None
         """" the type of task 'reg','seg'(disabled)'"""
         self.full_task_name = None

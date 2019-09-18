@@ -9,6 +9,9 @@ from .metrics import get_multi_metric
 
 
 class ToolkitBase(BaseModel):
+    """
+    generalize toolkit class  i.e. ants, demons and niftyreg
+    """
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
         network_name = opt['tsk_set']['network_name']
@@ -17,6 +20,9 @@ class ToolkitBase(BaseModel):
         self.warp_on = False
 
     def set_input(self, data, is_train=True):
+        """
+        get input from the dataloader
+        """
         input = (data[0]['image']+1)/2
         moving, target, l_moving,l_target = get_pair(data[0])
         self.moving = moving
@@ -88,8 +94,13 @@ class ToolkitBase(BaseModel):
 
 
 
-    def save_fig(self,phase,standard_record=False,saving_gt=True):
-        from model_pool.visualize_registration_results import  show_current_images
+    def save_fig(self,phase):
+        """
+        save 2d center slice from x,y, z axis, for moving, target, warped, l_moving (optional), l_target(optional), (l_warped)
+        :param phase:
+        :return:
+        """
+        from model_pool.visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True
@@ -115,6 +126,10 @@ class ToolkitBase(BaseModel):
 
 
     def get_evaluation(self):
+        """
+        evaluate the transformation by compute overlap on label map and folding in transformation
+        :return:
+        """
         self.output, _,_= self.forward(input=None)
         if self.l_moving is not None:
             warped_label_map_np= self.warped_label_map
@@ -125,8 +140,12 @@ class ToolkitBase(BaseModel):
         print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
 
     def save_image_into_original_sz_with_given_reference(self):
+        """
+         not implemented yet for Ants/ Demons/Niftyreg
+        :return:
+        """
         try:
-            raise ValueError(" save_image_into_original_sz_with_given_reference has not implemented yet for Ants/ Demons/Niftyreg")
+            raise ValueError(" save_image_into_original_sz_with_given_reference has not implemented yet for Ants/ Demons/Niftyreg, avoid resample image when you pass in")
         except:
             pass
 

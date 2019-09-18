@@ -9,30 +9,22 @@ import nibabel as nib
 
 
 
-def nifty_read_phi(path):
-    phi_nib = nib.load(path)
-    phi = phi_nib.get_fdata()
-    phi_tmp = np.zeros([1,3]+list(phi.shape[:3]))
-    phi_tmp[0,0] = -phi[...,0,0]
-    phi_tmp[0,1] = -phi[...,0,2]
-    phi_tmp[0,2] =  phi[...,0,1]
-    return phi_tmp
 
 
-def __init_identity_map(moving,spacing):
-    from mermaid.utils import identity_map_multiN
-    spacing = 1. / (np.array(moving.shape) - 1)
-    identity_map = identity_map_multiN(moving.shape, spacing)
-    phi_tmp = np.zeros( list(identity_map.shape[2:])+[3])
-    phi_tmp[...,0] = identity_map[ 0, 0,...]
-    phi_tmp[...,1] = identity_map[0, 1,...]
-    phi_tmp[..., 2] = identity_map[0, 2,...]
-    return phi_tmp
+def performAntsRegistration(param, mv_path, target_path, registration_type='syn', record_path = None, ml_path=None,tl_path= None, fname = None):
+    """
+    call [AntsPy](https://github.com/ANTsX/ANTsPy),
 
-
-
-
-def performAntsRegistration(param, mv_path, target_path, registration_type='syn', record_path = None, ml_path=None,tl_path= None, fname = None, return_syn=False):
+    :param param: ParameterDict, affine related params
+    :param mv_path: path of moving image
+    :param target_path: path of target image
+    :param registration_type: type of registration, support 'affine' and 'syn'(include affine)
+    :param record_path: path of saving results
+    :param ml_path: path of label of moving image
+    :param tl_path: path of label fo target image
+    :param fname: pair name or saving name of the image pair
+    :return: warped image, warped label, transformation map (None), jacobian map
+    """
     loutput =None
     phi = None
     moving = ants.image_read(mv_path)
@@ -88,8 +80,8 @@ def performAntsRegistration(param, mv_path, target_path, registration_type='syn'
 
     output = np.transpose(output,(2,1,0))
     loutput = np.transpose(loutput,(2,1,0)) if loutput is not None else None
-    disp = nifty_read_phi(syn_res['fwdtransforms'][0])
-    disp = np.transpose(disp, (0,1,4, 3, 2))
+    # disp = nifty_read_phi(syn_res['fwdtransforms'][0])
+    # disp = np.transpose(disp, (0,1,4, 3, 2))
     cmd = 'mv ' + syn_res['fwdtransforms'][0] + ' ' + os.path.join(record_path,fname+'_disp.nii.gz')
     cmd += '\n mv ' + syn_res['fwdtransforms'][1] + ' ' + os.path.join(record_path,fname+'_affine.mat')
     cmd += '\n mv ' + syn_res['invtransforms'][0] + ' ' + os.path.join(record_path,fname+'_invdisp.nii.gz')
@@ -100,7 +92,4 @@ def performAntsRegistration(param, mv_path, target_path, registration_type='syn'
         jacobian = ants.create_jacobian_determinant_image(target, os.path.join(record_path,fname+'_disp.nii.gz'), False)
         jacobian_np = jacobian.numpy()
 
-    if not return_syn:
-        return expand_batch_ch_dim(output), expand_batch_ch_dim(loutput), disp,jacobian_np
-    else:
-        return syn_res
+    return expand_batch_ch_dim(output), expand_batch_ch_dim(loutput), phi, jacobian_np

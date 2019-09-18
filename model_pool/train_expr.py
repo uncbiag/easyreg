@@ -28,6 +28,7 @@ def train_model(opt,model, dataloaders,writer):
     check_best_model_period =opt['tsk_set']['check_best_model_period']
     tensorboard_print_period = { phase: min(max_batch_num_per_epoch[phase],period[phase]) for phase in phases}
     save_fig_epoch = opt['tsk_set'][('save_val_fig_epoch',2,'saving every num epoch')]
+    save_3d_img_on = opt['tsk_set'][('save_3d_img_on', False, 'saving fig')]
     val_period = opt['tsk_set'][('val_period',10,'saving every num epoch')]
     save_fig_on = opt['tsk_set'][('save_fig_on',True,'saving fig')]
     warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
@@ -109,10 +110,12 @@ def train_model(opt,model, dataloaders,writer):
 
                 elif phase =='val':
                     model.cal_val_errors()
-                    if   epoch % save_fig_epoch ==0 and save_fig_on:
-                        model.save_fig(phase,standard_record=False)
+                    if epoch % save_fig_epoch ==0 and save_fig_on:
+                        model.save_fig(phase)
+                        if save_3d_img_on:
+                            model.save_fig_3D(phase='val')
                     score, detailed_scores= model.get_val_res()
-                    print('val loss of batch {} is {}:'.format(model.get_image_paths(),score))
+                    print('val loss of batch {} is {}:'.format(model.get_image_names(),score))
                     model.update_loss(epoch,end_of_epoch)
                     running_val_score += score
                     loss = score
@@ -123,7 +126,9 @@ def train_model(opt,model, dataloaders,writer):
                     print('debugging loss:')
                     model.cal_val_errors()
                     if epoch>0 and epoch % save_fig_epoch ==0 and save_fig_on:
-                        model.save_fig(phase,standard_record=False)
+                        model.save_fig(phase)
+                        if save_3d_img_on:
+                            model.save_fig_3D(phase='debug')
                     score, detailed_scores = model.get_val_res()
                     running_debug_score += score
                     loss = score

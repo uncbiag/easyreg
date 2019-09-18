@@ -21,58 +21,73 @@ class MermaidNet(nn.Module):
 
     1 . (optional) affine net the affine network is used to affine the source and target image
     2. the momentum generation net work, this network is a u-net like encoder decoder
-    3. the mermaid part, an single-scale optimizer would be called from the mermaid code
+    3. the mermaid part, an map-based registration model would be called from the mermaid code
 
-    In detail of implementation, we should take care of the memory issue, one possible solution is using low-resolution mapping
+    In detail of implementation, we should take care of the memory issue, one possible solution is using low-resolution mapping and then upsampling the transformation map
 
-    1. affine network, this is a pretrained network, so the only the forward flow is used, the input should be set as volatile,
-        in current  design, the input and output of this net is of the full resolution
+    1. affine network, this is a pretrained network, so only the forward model is used,
+        in current  design, the input and output of this net is not downsampled
     2. momentum generation net, this is a trainable network, but we would have a low-res factor to train it at a low-resolution
-        the input may still at original resolution, but the output size may be determined by the low-res factor
+        the input may still at original resolution (for high quality interpolation), but the size during the computation and of the output are determined by the low-res factor
 
-    3. mermaid part, this is an non-parametric unit, where should call the single-scale optimizer, and the output should be upsampled to the
-        full resolution size.
+    3. mermaid part, this is an non-parametric unit, where should call from the mermaid, and the output transformation map should be upsampled to the
+        full resolution size. All map based mermaid registration method should be supported.
 
     so the input and the output of each part should be
 
     1. affine: input: source, target,   output: s_warped, affine_map
-    2. momentum: input: init_warped_source, target,  output: low_res_m
-    3. mermaid: input: s, low_res_m, low_res_initial_map  output: map, warped_source
+    2. momentum: input: init_warped_source, target,  output: low_res_mom
+    3. mermaid: input: s, low_res_mom, low_res_initial_map  output: map, warped_source
 
     """
 
     def __init__(self, img_sz=None, opt=None):
         super(MermaidNet, self).__init__()
 
-        cur_gpu_id = opt['tsk_set']['gpu_ids']
-        old_gpu_id = opt['tsk_set'][('old_gpu_ids',0,'the gpu id of the trained model')]
         opt_mermaid = opt['tsk_set']['reg']['mermaid_net']
         low_res_factor = opt['tsk_set']['reg'][('low_res_factor',1.,"factor of low-resolution map")]
         batch_sz = opt['tsk_set']['batch_sz']
         self.record_path = opt['tsk_set']['path']['record_path']
-
-        self.is_train = opt['tsk_set']['train']
+        """record path of the task"""
+        self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
+        """if is in train mode"""
         self.epoch = 0
-
-
+        """the current epoch"""
         self.using_physical_coord = opt_mermaid[('using_physical_coord',False,'use physical coordinate system')]
-        self.loss_type = opt['tsk_set']['loss']['type']
+        """'use physical coordinate system"""
+        self.loss_type = opt['tsk_set']['loss'][('type','lncc','the similarity measure type')]
+        """the similarity measure supported by the mermaid:  'ssd','ncc','ncc_positive','ncc_negative', 'lncc', 'omt'"""
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
+        """compute the inverse transformation map"""
         self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','../mermaid/demos/cur_settings_lbfgs.json',"the path for mermaid settings json")]
+        """the path for mermaid settings json"""
         self.sym_factor = opt_mermaid[('sym_factor',1,'factor on symmetric loss')]
-        self.epoch_activate_sym = opt_mermaid[('epoch_activate_sym',-1,'epoch activate the symmetric')]
+        """factor on symmetric loss"""
+        self.epoch_activate_sym = opt_mermaid[('epoch_activate_sym',-1,'epoch activate the symmetric loss')]
+        """epoch activate the symmetric loss"""
         self.epoch_activate_multi_step = opt_mermaid[('epoch_activate_multi_step',-1,'epoch activate the multi-step')]
+        """epoch activate the multi-step"""
         self.reset_lr_for_multi_step = opt_mermaid[('reset_lr_for_multi_step',False,'if True, reset learning rate when multi-step begins')]
+        """if True, reset learning rate when multi-step begins"""
         self.lr_for_multi_step = opt_mermaid[('lr_for_multi_step',opt['tsk_set']['optim']['lr']/2,'if reset_lr_for_multi_step, reset learning rate when multi-step begins')]
+        """if reset_lr_for_multi_step, reset learning rate when multi-step begins"""
         self.multi_step = opt_mermaid[('num_step',2,'compute multi-step loss')]
-        self.using_affine_init = opt_mermaid[('using_affine_init',True,'True, deploy an affine network before mermaid-net')]
+        """compute multi-step loss"""
+        self.using_affine_init = opt_mermaid[('using_affine_init',True,'if ture, deploy an affine network before mermaid-net')]
+        """if ture, deploy an affine network before mermaid-net"""
         self.load_trained_affine_net = opt_mermaid[('load_trained_affine_net',True,'load the trained affine network')]
+        """load the trained affine network"""
         self.affine_init_path = opt_mermaid[('affine_init_path','',"the path of trained affined network")]
-        self.optimize_momentum_network = opt_mermaid[('optimize_momentum_network',True,'true if optimize the momentum network')]
+        """the path of trained affined network"""
+        self.optimize_momentum_network = opt_mermaid[('optimize_momentum_network',True,'if true, optimize the momentum network')]
+        """if true optimize the momentum network"""
         self.epoch_list_fixed_momentum_network = opt_mermaid[('epoch_list_fixed_momentum_network',[-1],'list of epoch, fix the momentum network')]
+        """list of epoch, fix the momentum network"""
         self.epoch_list_fixed_deep_smoother_network = opt_mermaid[('epoch_list_fixed_deep_smoother_network',[-1],'epoch_list_fixed_deep_smoother_network')]
+        """epoch_list_fixed_deep_smoother_network"""
         self.clamp_momentum = opt_mermaid[('clamp_momentum',False,'clamp_momentum')]
-        self.clamp_thre = 1.
+        """clamp_momentum"""
+        self.clamp_thre =opt_mermaid[('clamp_thre',1.0,'clamp momentum into [-clamp_thre, clamp_thre]')]
         self.use_adaptive_smoother = False
         self.using_sym_on = True
 
@@ -86,12 +101,11 @@ class MermaidNet(nn.Module):
         self.img_sz = [batch_sz, 1] + img_sz
         self.dim = len(img_sz)
         self.standard_spacing = 1. / (np.array(img_sz) - 1)
-        """ here we define the standard spacing measures the image from 0 to 1"""
+        """ here we define the standard spacing measures the image coord from 0 to 1"""
         self.spacing = np.asarray(opt['dataset']['spacing_to_refer']) if self.using_physical_coord else 1. / (
                     np.array(img_sz) - 1)
         self.spacing = normalize_spacing(self.spacing, self.input_img_sz) if self.using_physical_coord else self.spacing
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
-        self.gpu_switcher = (cur_gpu_id, old_gpu_id)
         self.low_res_factor = low_res_factor
         self.momentum_net = MomentumNet(low_res_factor,opt_mermaid)
         if self.using_affine_init:
@@ -120,7 +134,7 @@ class MermaidNet(nn.Module):
     def init_affine_net(self,opt):
         self.affine_net = AffineNetSym(self.img_sz[2:],opt)
         self.affine_net.compute_loss = False
-        self.affine_net.epoch_activate_sym = 1e7  # todo to fix
+        self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
         model_path = self.affine_init_path
         if self.load_trained_affine_net and self.is_train:
             checkpoint = torch.load(model_path,  map_location='cpu')
@@ -304,7 +318,7 @@ class MermaidNet(nn.Module):
         :return:  warped image, deformation field
         """
         if self.mermaid_low_res_factor is not None:
-            self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)  ##########3 TODO  here the input shouold be low_s low_t if self.mermaid_low_res_factor is not None otherwise s,t
+            self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)
             if not self.compute_inverse_map:
                 maps = mermaid_unit(self.lowRes_fn(phi), low_s, variables_from_optimizer={'epoch':self.epoch})
             else:
@@ -344,7 +358,7 @@ class MermaidNet(nn.Module):
         print(" the current global gaussian stds is {}".format(gaussian_stds))
         view_sz = [1] + [len(gaussian_stds)] + [1] * dim
         gaussian_stds = gaussian_stds.view(*view_sz)
-        adaptive_smoother_map = adaptive_smoother_map**2 # todo   this is true only when we use w_K_W
+        adaptive_smoother_map = adaptive_smoother_map**2 # todo  add if judgement, this is true only when we use w_K_W
 
         smoother_map = adaptive_smoother_map*(gaussian_stds**2)
         smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))

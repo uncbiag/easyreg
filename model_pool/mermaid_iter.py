@@ -1,19 +1,16 @@
-
 from .base_mermaid import MermaidBase
-from .metrics import get_multi_metric
 from model_pool.utils import *
-try:
-    from model_pool.nn_interpolation import get_nn_interpolation
-except:
-    pass
-from mermaid.utils import compute_warped_image_multiNC
-
+import mermaid.utils as py_utils
 import mermaid.simple_interface as SI
 class MermaidIter(MermaidBase):
     def name(self):
-        return 'reg-unet'
+        return 'mermaid-iter'
 
     def initialize(self,opt):
+        """
+        :param opt: ParameterDict, task settings
+        :return:
+        """
         MermaidBase.initialize(self,opt)
         network_name =opt['tsk_set']['network_name']
         if network_name =='affine':
@@ -69,6 +66,10 @@ class MermaidIter(MermaidBase):
 
 
     def affine_optimization(self):
+        """
+        call affine optimization registration in mermaid
+        :return: warped image, transformation map, affine parameter
+        """
         self.si = SI.RegisterImagePair()
         extra_info = pars.ParameterDict()
         extra_info['pair_name'] = self.fname_list
@@ -80,13 +81,9 @@ class MermaidIter(MermaidBase):
 
 
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
-                                map_low_res_factor=1.0,
-                                nr_of_iterations=100,
                                 visualize_step=None,
-                                optimizer_name='sgd',
                                 use_multi_scale=True,
                                 rel_ftol=0,
-                                similarity_measure_type='lncc',
                                 similarity_measure_sigma=af_sigma,
                                 json_config_out_filename=os.path.join(self.record_path,'cur_settings_affine_output.json'),  #########################################
                                 params =self.saved_affine_setting_path) #'../model_pool/cur_settings_affine_tmp.json'
@@ -100,43 +97,46 @@ class MermaidIter(MermaidBase):
         if self.compute_inverse_map:
             inv_Ab = py_utils.get_inverse_affine_param(Ab.detach())
             identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
-            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, MyTensor(identity_map))  ##########################3
+            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
         self.disp_or_afparam = Ab
         return self.output.detach_(), self.phi.detach_(), self.disp_or_afparam.detach_()
 
 
     def nonp_optimization(self):
+        """
+        call non-parametric image registration in mermaid
+        if the affine registration is performed first, the affine transformation map would be taken as the initial map
+        if the init weight on mutli-gaussian regularizer are set, the initial weight map would be computed from the label map, make sure the model called support spatial variant regularizer
+
+        :return: warped image, transformation map, affined image
+        """
         affine_map = self.si.opt.optimizer.ssOpt.get_map()
 
         self.si =  SI.RegisterImagePair()
         extra_info = pars.ParameterDict()
         extra_info['pair_name'] = self.fname_list
         self.si.opt = None
-        self.si.set_initial_map(affine_map.detach(), self.inversed_map)
+        if affine_map is not None:
+            self.si.set_initial_map(affine_map.detach(), self.inversed_map)
 
         if self.use_init_weight:
             init_weight = get_init_weight_from_label_map(self.l_moving, self.spacing,self.weights_for_bg,self.weights_for_fg)
-            init_weight = compute_warped_image_multiNC(init_weight,affine_map,self.spacing,spline_order=1,zero_boundary=False)
+            init_weight = py_utils.compute_warped_image_multiNC(init_weight,affine_map,self.spacing,spline_order=1,zero_boundary=False)
             self.si.set_weight_map(init_weight.detach(), freeze_weight=True)
 
         if self.saved_mermaid_setting_path is None:
-            self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path)
+            self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path,"nonp_setting.json")
 
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
-                                map_low_res_factor=0.5,
-                                nr_of_iterations=100,
                                 visualize_step=None,
-                                optimizer_name='lbfgs_ls',
                                 use_multi_scale=True,
                                 rel_ftol=0,
-                                similarity_measure_type='lncc',
-                                similarity_measure_sigma=1,
                                 compute_inverse_map=self.compute_inverse_map,
                                 json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
                                 params=self.saved_mermaid_setting_path) #'../mermaid_settings/cur_settings_svf_dipr.json'
-        self.disp_or_afparam = self.output
+        self.disp_or_afparam = self.output # here return the affine image
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         # for i in range(self.dim):
@@ -147,22 +147,16 @@ class MermaidIter(MermaidBase):
         return self.output.detach_(), self.phi.detach_(), self.disp_or_afparam.detach_()
 
 
-
-
-
-
-    def modify_setting(self,params, stds, weights):
-        if stds is not None:
-            params['model']['registration_model']['forward_model']['smoother']['multi_gaussian_stds'] = stds
-        if weights is not None:
-            params['model']['registration_model']['forward_model']['smoother']['multi_gaussian_weights'] = weights
-        return params
-
-    def save_setting(self,path, output_path,fname='mermaid_setting.json', modify=False, stds=None, weights=None):
+    def save_setting(self,path, output_path,fname='mermaid_setting.json'):
+        """
+        save the mermaid settings into task record folder
+        :param path: path of mermaid setting file
+        :param output_path: path of task record folder
+        :param fname: saving name
+        :return: saved setting path
+        """
         params = pars.ParameterDict()
         params.load_JSON(path)
-        if modify:
-            params = self.modify_setting(params, stds, weights)
         os.makedirs(output_path, exist_ok=True)
         output_path = os.path.join(output_path, fname)
         params.write_JSON(output_path, save_int=False)
@@ -172,6 +166,10 @@ class MermaidIter(MermaidBase):
 
 
     def save_image_into_original_sz_with_given_reference(self):
+        """
+        save the image into original sz (the sz before resampling) and with the original physical settings, i.e. spacing, origin, orientation
+        :return:
+        """
         # the original image sz in one batch should be the same
         self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0],self.phi, inverse_phi=self.inversed_map, use_01=self.use_01)
 
@@ -207,6 +205,15 @@ class MermaidIter(MermaidBase):
 
 
     def __get_adaptive_smoother_map(self):
+        """
+        get the adaptive smoother weight map from spatial-variant regualrizer model
+        supported weighting type 'sqrt_w_K_sqrt_w' and 'w_K_w'
+        for weighting type == 'w_k_w'
+        :math:'\sigma^{2}(x)=\sum_{i=0}^{N-1} w^2_{i}(x) \sigma_{i}^{2}'
+        for weighting type = 'sqrt_w_K_sqrt_w'
+        :math:'\sigma^{2}(x)=\sum_{i=0}^{N-1} w_{i}(x) \sigma_{i}^{2}'
+        :return: adapative smoother weight map \sigma
+        """
         model =  self.si.opt.optimizer.ssOpt.model
         smoother =  self.si.opt.optimizer.ssOpt.model.smoother
         adaptive_smoother_map = model.local_weights.detach()
@@ -224,22 +231,32 @@ class MermaidIter(MermaidBase):
         smoother_map = adaptive_smoother_map*(gaussian_stds**2)
         smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
         #_,smoother_map = torch.max(adaptive_smoother_map.detach(),dim=1,keepdim=True)
-        self._display_stats(smoother_map.float(),'statistic for max_smoother map')
+        self._display_stats(smoother_map.float(),'statistic for weighted smoother map')
         return smoother_map
 
     def _display_stats(self, Ia, iname):
+        """
+        statistic analysis on variable
+        :param Ia: the input variable
+        :param iname: variable name
+        :return:
+        """
 
         Ia_min = Ia.min().detach().cpu().numpy()
         Ia_max = Ia.max().detach().cpu().numpy()
         Ia_mean = Ia.mean().detach().cpu().numpy()
         Ia_std = Ia.std().detach().cpu().numpy()
 
-        print('{}:after: [{:.2f},{:.2f},{:.2f}]({:.2f})'.format(iname, Ia_min,Ia_mean,Ia_max,Ia_std))
+        print('{}:the: [min {:.2f},mean {:.2f},max {:.2f}](std {:.2f})'.format(iname, Ia_min,Ia_mean,Ia_max,Ia_std))
 
 
 
 
     def get_extra_to_plot(self):
+        """
+        plot extra image, i.e. the initial weight map of rdmm model
+        :return:
+        """
         if self.nonp_model_name=='lddmm_adapt_smoother_map':
             return self.__get_adaptive_smoother_map(), 'inital_weight'
         else:
@@ -251,7 +268,8 @@ class MermaidIter(MermaidBase):
 
 
     def save_deformation(self):
-        """ The deformation is saved in 0-1 form, not physical form """
+        """ The deformation is saved in 0-1 form, not physical form
+         """
         import nibabel as nib
         phi_np = self.phi.detach().cpu().numpy()
 

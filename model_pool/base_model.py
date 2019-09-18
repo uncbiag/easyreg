@@ -7,10 +7,17 @@ import SimpleITK as sitk
 
 
 class BaseModel():
+    """
+    the base class for image registration
+    """
     def name(self):
         return 'BaseModel'
 
     def initialize(self, opt):
+        """
+        :param opt: ParameterDict, task settings
+        :return: None
+        """
         self.opt = opt
         self.gpu_ids = opt['tsk_set'][('gpu_ids',0,'the gpu id used for network methods')]
         self.isTrain = opt['tsk_set'][('train',True,'True, take the train mode')]
@@ -22,6 +29,8 @@ class BaseModel():
         self.criticUpdates = opt['tsk_set'][('criticUpdates',1,"for network training method, the num determines gradient update every # iter")]
         self.n_in_channel = opt['tsk_set'][('n_in_channel',1,"for network training method, the color channel typically set to 1")]
         self.input_img_sz = self.opt['dataset'][('img_after_resize',None,"image size after resample")]
+        self.original_im_sz = None
+        self.original_spacing = None
         #self.input_resize_factor = opt['dataset']['input_resize_factor'] # todo remove this
         self.evaluate_label_list = opt['tsk_set']['evaluate_label_list',[-100],'evaluate_label_list']
         self.optimizer= None
@@ -50,6 +59,11 @@ class BaseModel():
 
 
     def set_input(self, input):
+        """
+        set the input of the method
+        :param input:
+        :return:
+        """
         self.input = input
 
     def forward(self,input):
@@ -59,30 +73,61 @@ class BaseModel():
         pass
 
     def set_train(self):
+        """
+        set the model in train mode (only for learning methods)
+        :return:
+        """
         self.network.train(True)
         self.is_train =True
     def set_val(self):
+        """
+        set the model in validation mode (only for learning methods)
+        :return:
+        """
         self.network.train(False)
         self.is_train = False
 
     def set_debug(self):
+        """
+        set the model in debug (subset of training set) mode (only for learning methods)
+        :return:
+        """
         self.network.train(False)
         self.is_train = False
 
     def set_test(self):
+        """
+        set the model in test mode ( only for learning methods)
+        :return:
+        """
         self.network.train(False)
         self.is_train = False
 
 
     def set_multi_gpu_on(self):
+        """
+        multi gpu support (disabled)
+        :return:
+        """
         self.multi_gpu_on = True
 
 
 
     def optimize_parameters(self):
+        """
+        optimize model parameters
+        :return:
+        """
         pass
 
     def init_optim(self, opt,network, warmming_up = False):
+        """
+        set optimizers and scheduler
+        :param opt: settings on optimizer
+        :param network: model with learnable parameters
+        :param warmming_up: if set as warmming up
+        :return: optimizer, custom scheduler, plateau scheduler
+        """
         optimize_name = opt['optim_type']
         if not warmming_up:
             lr = opt['lr']
@@ -116,16 +161,22 @@ class BaseModel():
 
 
     def get_debug_info(self):
+        """ get debug info"""
         return None
 
     # get image paths
-    def get_image_paths(self):
+    def get_image_names(self):
+        """get image name list"""
         return self.fname_list
 
 
     def set_cur_epoch(self,epoch):
+        """
+        set epoch
+        :param epoch:
+        :return:
+        """
         self.cur_epoch = epoch
-        self.cur_epoch_beg_tag = True
 
 
 
@@ -135,6 +186,10 @@ class BaseModel():
 
 
     def get_current_errors(self):
+        """
+        get the current loss
+        :return:
+        """
         return self.loss.data[0]
 
 
@@ -146,12 +201,15 @@ class BaseModel():
 
 
     def cal_val_errors(self):
+        """ compute the loss on validatoin set"""
         self.cal_test_errors()
 
     def cal_test_errors(self):
+        """ compute the loss on test set"""
         self.get_evaluation()
 
     def get_evaluation(self):
+        """evaluate the performance of the current model"""
         pass
 
 
@@ -160,6 +218,13 @@ class BaseModel():
         pass
 
     def get_val_res(self, detail=False):
+        """
+        if the label map is given, evaluate the overlap sturcture
+        :param detail:
+        if detail, then output average dice score of each non-bg structure; and different scores of each structure
+        if not, then output average dice score of each non-bg structure; and dice score of each structure
+        :return:
+        """
         if len(self.val_res_dic):
             if not detail:
 
@@ -172,18 +237,26 @@ class BaseModel():
 
 
     def get_test_res(self, detail=False):
-        return self.get_val_res(detail = detail)
+        """
+        if the label map is given, evaluate the overlap strucrue
+        :param detail:
+        if detail, then output average dice score of each non-bg structure; and different scores of each structure
+        if not, then output average dice score of each non-bg structure; and dice score of each structure
+        :return:
+        """
+        return self.get_val_res(detail=detail)
 
     def get_extra_res(self):
+        """
+        get extra results, like the weight map in rdmm, from model during test
+        :return:
+        """
         return None
 
 
-    def save_fig(self,phase,standard_record=False,saving_gt=True):
+    def save_fig(self,phase):
        pass
 
-
-    def check_and_update_model(self,epoch):
-        return None
 
 
     def do_some_clean(self):
@@ -195,6 +268,15 @@ class BaseModel():
 
 
     def save_fig_3D(self,phase=None):
+        """
+        save 3d output, i.e. moving, target and warped images,
+        the propose of this function is for visualize the reg performance
+        for toolkit based method, they will default save the 3d images, so no need to call this function
+        for mermaid related method, this function is for result analysis, for practice use, try "save_image_into_original_sz_with_given_reference",
+        the physical information like  origin, orientation is not saved, todo, include this information
+        :param phase: train|val|test|debug
+        :return:
+        """
         if type(self.moving)==torch.Tensor:
             moving = self.moving.detach().cpu().numpy()
             target = self.target.detach().cpu().numpy()
@@ -225,39 +307,7 @@ class BaseModel():
     def save_deformation(self):
         pass
 
-    def save_fig_3D_tmp(self,phase=None):
-        saving_folder_path = os.path.join(self.record_path, '3D')
-        make_dir(saving_folder_path)
-        moving_np = (self.moving).cpu().numpy()
-        target_np = (self.target).cpu().numpy()
-        output_np = (self.output).cpu().numpy()
 
-        for i in range(self.moving.size(0)):
-            appendix = self.fname_list[i]
-            saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
-            output = sitk.GetImageFromArray(moving_np[i, 0, ...])
-            output.SetSpacing(np.flipud(self.spacing))
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
-            output = sitk.GetImageFromArray(target_np[i, 0, ...])
-            output.SetSpacing(np.flipud(self.spacing))
-            sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_affined.nii.gz"
-            output = sitk.GetImageFromArray(output_np[i, 0, ...])
-            output.SetSpacing(np.flipud(self.spacing))
-            sitk.WriteImage(output, saving_file_path)
-            if self.warped_label_map is not None:
-                warped_label_map_np = (self.warped_label_map).cpu().numpy()
-                saving_file_path = saving_folder_path + '/' + appendix + "_affined_label.nii.gz"
-                output = sitk.GetImageFromArray(warped_label_map_np[i, 0, ...])
-                output.SetSpacing(np.flipud(self.spacing))
-                sitk.WriteImage(output, saving_file_path)
-            if self.l_target is not None:
-                l_target_np = (self.l_target).cpu().numpy()
-                saving_file_path = saving_folder_path + '/' + appendix + "_target_label.nii.gz"
-                output = sitk.GetImageFromArray(l_target_np[i, 0, ...])
-                output.SetSpacing(np.flipud(self.spacing))
-                sitk.WriteImage(output, saving_file_path)
 
 
 

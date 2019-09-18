@@ -29,6 +29,14 @@ def smooth_and_resample(image, shrink_factor, smoothing_sigma):
 
 
 def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = None):
+    """
+    call the niftyreg affine transform, and set it in sitk form
+    :param nifty_bin: tniftyreg execuable path
+    :param fixed_image_pth: fixed/target image path
+    :param moving_image_path: moving/source image path
+    :param fname: name of image pair
+    :return:
+    """
     affine_path = moving_image_path.replace('moving.nii.gz', 'affine.nii.gz')
     affine_txt = moving_image_path.replace('moving.nii.gz', fname + '_af.txt')
     cmd = nifty_reg_affine(nifty_bin=nifty_bin, ref=fixed_image_pth, flo=moving_image_path, aff=affine_txt, res=affine_path)
@@ -39,6 +47,11 @@ def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = 
 
 
 def get_affine_transform(af_pth):
+    """
+    read the niftyreg affine txt to initialize the sitk object
+    :param af_pth: path of affine txt
+    :return: affine object
+    """
     matrix, trans = read_nifty_reg_affine(af_pth)
     affine = sitk.AffineTransform(3)
     affine.SetMatrix(matrix.ravel())
@@ -47,6 +60,11 @@ def get_affine_transform(af_pth):
 
 
 def read_nifty_reg_affine(affine_txt):
+    """
+    read the nifti affine results(RAS) form to sitk form(LPS)
+    :param affine_txt:
+    :return: affine matrix (3x3), translation (3x1)
+    """
     res = np.loadtxt(affine_txt, delimiter=' ')
     matrix = res[:3,:3]
     matrix_cp = matrix.copy()
@@ -81,7 +99,7 @@ def multiscale_demons(registration_algorithm,
         smoothing_sigmas: Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These
                           are in physical (image spacing) units.
     Returns:
-        SimpleITK.DisplacementFieldTransform
+        SimpleITK.DisplacementFieldTransform, jacobi of the transform
     """
     # Create image pyramid.
     fixed_image = sitk.ReadImage(fixed_image_pth)
@@ -127,18 +145,39 @@ def multiscale_demons(registration_algorithm,
 
 
 
-def sitk_grid_sampling(fixed,moving, displacement,is_label=False):
+def sitk_grid_sampling(fixed, moving, transform,is_label=False):
+    """
+    resample the fixed image though transformation map
+    :param fixed: fixed or the target image
+    :param moving: the moving or the source image
+    :param transform: the transformation map
+    :param is_label: nearestneighbor interpolation if is label else linear interpolation
+    :return: warped image
+    """
     resampler = sitk.ResampleImageFilter()
     resampler.SetReferenceImage(fixed)
     interpolator = sitk.sitkNearestNeighbor if is_label else sitk.sitkLinear
     resampler.SetInterpolator(interpolator)
     resampler.SetDefaultPixelValue(0)
-    resampler.SetTransform(displacement)
+    resampler.SetTransform(transform)
     out = resampler.Execute(moving)
     return out
 
 
 def performDemonsRegistration(param, mv_path, target_path, registration_type='demons', record_path = None, ml_path=None,tl_path= None,fname=None):
+    """
+    call a symmetric forces demons  algorithm, which is provided by simple itk
+
+    :param param: ParameterDict, demons related params
+    :param mv_path: path of moving image
+    :param target_path: path of target image
+    :param registration_type: type of registration, support 'demons' for now
+    :param record_path: path of saving results
+    :param ml_path: path of label of moving image
+    :param tl_path: path of label fo target image
+    :param fname: pair name or saving name of the image pair
+    :return: warped image, warped label, transformation map (None), jacobian map
+    """
 
     start = time.time()
 

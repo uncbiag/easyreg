@@ -11,10 +11,20 @@ import mermaid.utils as py_utils
 import mermaid.simple_interface as SI
 import mermaid.fileio as FIO
 class DemonsRegIter(ToolkitBase):
+    """
+    a symmetric forces demons  algorithm
+    """
     def name(self):
         return 'demons_reg iter'
 
     def initialize(self,opt):
+        """
+        initialize the demons registration
+        mehtod support: "demons"
+        * the "demons" include niftyreg affine as preproccessing
+        :param opt: task opt settings
+        :return: None
+        """
         ToolkitBase.initialize(self, opt)
         if self.network_name =='affine':
             self.affine_on = True
@@ -27,25 +37,13 @@ class DemonsRegIter(ToolkitBase):
         self.demons_param = opt['tsk_set']['reg']['demons']
 
 
-
-
-
-    def affine_optimization(self):
-
-        output, loutput, phi = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
-
-        self.output = output
-        self.warped_label_map = loutput
-
-        self.disp = None
-        self.phi = None
-        return self.output, None, None
-
-
     def demons_optimization(self):
+        """
+        run the demons optimization
+        the results, including warped image, warped label, transformation map, etc. take the demons format and saved in record path
+        :return: warped image, warped label(None), transformation map(None)
+        """
         output, loutput, phi,jacobian = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
-
-
         self.disp = None
         self.output = output
         self.warped_label_map = loutput
@@ -56,22 +54,31 @@ class DemonsRegIter(ToolkitBase):
 
 
     def forward(self,input=None):
-        if self.affine_on and not self.warp_on:
-            return self.affine_optimization()
-        elif self.warp_on:
+        """
+        forward the model
+
+        :param input:
+        :return:
+        """
+        if self.warp_on:
             return self.demons_optimization()
 
 
 
 
     def compute_jacobi_map(self,jacobian):
+        """
+        compute the jacobi statistics
+        :param jacobian: jacob determinant  map of the transformation map
+        :return:the abs sum of the negative determinate, the num of negative determinate voxel
+        """
         jacobi_abs = - np.sum(jacobian[jacobian < 0.])  #
         jacobi_num = np.sum(jacobian < 0.)
         print("the jacobi_value of fold points for current batch is {}".format(jacobi_abs))
         print("the number of fold points for current batch is {}".format(jacobi_num))
         # np.sum(np.abs(dfx[dfx<0])) + np.sum(np.abs(dfy[dfy<0])) + np.sum(np.abs(dfz[dfz<0]))
-        jacobi_abs_mean = jacobi_abs  # / np.prod(map.shape)
-        return jacobi_abs_mean, jacobi_num
+        #jacobi_abs_mean = jacobi_abs  # / np.prod(map.shape)
+        return jacobi_abs, jacobi_num
 
 
 

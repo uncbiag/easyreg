@@ -77,7 +77,7 @@
         "save_val_fig_epoch": 2,
         "save_3d_img_on": false,
         "save_extra_3d_img":false,
-        "output_orginal_img_sz": false,
+        "output_orginal_img_type": false,
         "task_name": "res",
         "val_period": 10,
         "warmming_up_epoch": 2

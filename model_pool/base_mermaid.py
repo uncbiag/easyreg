@@ -29,7 +29,7 @@ class MermaidBase(BaseModel):
 
     def get_warped_label_map(self,label_map, phi, sched='nn',use_01=False):
         if sched == 'nn':
-            ###########TODO temporal comment for torch1 compatability
+            ###########TODO fix with new cuda interface,  now comment for torch1 compatability
             # try:
             #     print(" the cuda nn interpolation is used")
             #     warped_label_map = get_nn_interpolation(label_map, phi)
@@ -119,7 +119,7 @@ class MermaidBase(BaseModel):
 
 
 
-    def save_fig(self,phase,standard_record=False,saving_gt=True):
+    def save_fig(self,phase):
         from model_pool.visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False

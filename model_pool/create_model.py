@@ -1,6 +1,11 @@
 import torch
 import os
 def create_model(opt):
+    """
+    create registration model object
+    :param opt: ParameterDict, task setting
+    :return: model object
+    """
     model = None
     model_name = opt['tsk_set']['model']
     gpu_id = opt['tsk_set']['gpu_ids']
