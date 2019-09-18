@@ -16,8 +16,8 @@ bysingle_int = False  # update by single phase interoplation
 
 
 is_lung = False  ###  # todo this should be False
-compute_inverse_map = False
-output_orginal_img_sz= False
+compute_inverse_map = True
+output_orginal_img_sz= True
 original_img_sz = [160,384,384]
 
 reg_factor_in_regnet = 1
