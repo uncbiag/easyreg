@@ -189,7 +189,7 @@ tsm.task_par['tsk_set']['n_in_channel'] = 1
 general settings for tasks
 models support list: 'reg_net'  'mermaid_iter'  'ants'  'nifty_reg' 'demons'
 each model supports several methods
-methods support by reg_net: 'affine_sim','affine_cycle','affine_sym', 'mermaid'
+methods support by reg_net: 'affine_sym', 'mermaid'
 methods support by mermaid_iter: 'affine','svf' ( including affine registration first)
 methods support by ants: 'affine','syn' ( including affine registration first)
 methods support by nifty_reg: 'affine','bspline' ( including affine registration first)
@@ -197,8 +197,6 @@ methods support by demons: 'demons' ( including niftyreg affine registration fir
 
 
 reg_net refers to registration network. 
-affine_sim refers to single affine network, 
-affine_cycle refers to multi-step affine network,
 affine_sym refers to multi-step affine symmetric network (s-t, t-s),
 mermaid refers to the mermaid library ( including various fluid based registration methods, our implementation is based on velocity momentum based svf method)
 mermaid_iter refers to mermaid library, here we compare with 'affine' and 'svf' ( actually the velocity momentum based svf) method

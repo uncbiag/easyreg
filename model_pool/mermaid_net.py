@@ -31,13 +31,18 @@ class MermaidNet(nn.Module):
         the input may still at original resolution (for high quality interpolation), but the size during the computation and of the output are determined by the low-res factor
 
     3. mermaid part, this is an non-parametric unit, where should call from the mermaid, and the output transformation map should be upsampled to the
-        full resolution size. All map based mermaid registration method should be supported.
+        full resolution size. All momentum based mermaid registration method should be supported. (todo support velcoity methods)
 
     so the input and the output of each part should be
 
     1. affine: input: source, target,   output: s_warped, affine_map
     2. momentum: input: init_warped_source, target,  output: low_res_mom
     3. mermaid: input: s, low_res_mom, low_res_initial_map  output: map, warped_source
+
+    pay attention in mermaid, the image intensity and identity transformation coord are normalized into [0,1],
+    while in networks the intensity and identity transformation coord are normalized into [-1,1],
+    todo use the coordinate system consistent with mermaid [0,1]
+
 
     """
 
@@ -86,8 +91,9 @@ class MermaidNet(nn.Module):
         self.epoch_list_fixed_deep_smoother_network = opt_mermaid[('epoch_list_fixed_deep_smoother_network',[-1],'epoch_list_fixed_deep_smoother_network')]
         """epoch_list_fixed_deep_smoother_network"""
         self.clamp_momentum = opt_mermaid[('clamp_momentum',False,'clamp_momentum')]
-        """clamp_momentum"""
+        """if true, clamp_momentum"""
         self.clamp_thre =opt_mermaid[('clamp_thre',1.0,'clamp momentum into [-clamp_thre, clamp_thre]')]
+        """clamp momentum into [-clamp_thre, clamp_thre]"""
         self.use_adaptive_smoother = False
         self.using_sym_on = True
 
@@ -114,8 +120,8 @@ class MermaidNet(nn.Module):
             print("Attention, the affine net is not used")
 
 
-        self.mermaid_unit_st = None
-        self.init_mermaid_env(self.spacing)
+        self.mermaid_unit = None
+        self.init_mermaid_env()
         self.print_count = 0
         self.print_every_epoch_flag = True
         self.n_batch = -1
@@ -123,6 +129,11 @@ class MermaidNet(nn.Module):
 
 
     def check_if_update_lr(self):
+        """
+        check if the learning rate need to be updated,  in mermaid net, it is implemented for adjusting the lr in the multi-step training
+
+        :return: if update the lr, return True and new lr, else return False and None
+        """
         if self.epoch == self.epoch_activate_multi_step and self.reset_lr_for_multi_step:
             lr = self.lr_for_multi_step
             self.reset_lr_for_multi_step = False
@@ -132,6 +143,11 @@ class MermaidNet(nn.Module):
             return False, None
 
     def init_affine_net(self,opt):
+        """
+        initialize the affine network, if an affine_init_path is given , then load the affine model from the path.
+        :param opt: ParameterDict, task setting
+        :return:
+        """
         self.affine_net = AffineNetSym(self.img_sz[2:],opt)
         self.affine_net.compute_loss = False
         self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
@@ -146,22 +162,43 @@ class MermaidNet(nn.Module):
         self.affine_net.eval()
 
     def set_cur_epoch(self,epoch=-1):
+        """
+        set current epoch
+        :param epoch:
+        :return:
+        """
         if self.epoch !=epoch+1:
             self.print_every_epoch_flag=True
         self.epoch = epoch+1
 
 
     def set_loss_fn(self, loss_fn):
+        """
+        set loss function (disabled)
+        :param loss_fn:
+        :return:
+        """
         pass
 
 
     def save_cur_mermaid_settings(self,params):
-        saving_path = os.path.join(self.record_path,'cur_settings_mermaid_output.json')
+        """
+        save the mermaid settings into task record folder
+        :param params:
+        :return:
+        """
+        saving_path = os.path.join(self.record_path,'nonp_setting.json')
         params.write_JSON(saving_path, save_int=False)
 
 
-    def init_mermaid_env(self, spacing):
-        """setup the mermaid"""
+    def init_mermaid_env(self):
+        """
+        setup the mermaid environemnt
+        * saving the settings into record folder
+        * initialize model from model, criterion and related variables
+
+        """
+        spacing = self.spacing
         params = pars.ParameterDict()
         params.load_JSON( self.mermaid_net_json_pth) #''../model_pool/cur_settings_svf.json')
         self.save_cur_mermaid_settings(params)
@@ -201,7 +238,7 @@ class MermaidNet(nn.Module):
         else:
             # computes model and similarity at the same resolution
             mf = py_mf.ModelFactory(self.img_sz, spacing, self.img_sz, spacing)
-        model_st, criterion_st = mf.create_registration_model(model_name, params['model'], compute_inverse_map=self.compute_inverse_map)
+        model, criterion = mf.create_registration_model(model_name, params['model'], compute_inverse_map=self.compute_inverse_map)
 
 
         if use_map:
@@ -214,14 +251,24 @@ class MermaidNet(nn.Module):
                 self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
                 print(torch.min(self.lowResIdentityMap))
         self.lowRes_fn = partial(get_resampled_image, spacing=spacing, desiredSize=lowResSize, zero_boundary=False,identity_map=self.lowResIdentityMap)
-        self.mermaid_unit_st = model_st.cuda()
-        self.criterion_st = criterion_st
-        self.mermaid_unit_st.associate_parameters_with_module()
+        self.mermaid_unit = model.cuda()
+        self.criterion = criterion
+        self.mermaid_unit.associate_parameters_with_module()
 
     def get_loss(self):
+        """
+        get the overall loss
+        :return:
+        """
         return self.overall_loss
 
     def __cal_sym_loss(self,rec_phiWarped):
+        """
+        compute the symmetric loss,
+        :math: `loss_{sym} = \|(\varphi^{s t})^{-1} \circ(\varphi^{t s})^{-1}-i d\|_{2}^{2}`
+        :param rec_phiWarped:the transformation map, including two direction ( s-t, t-s in batch dimension)
+        :return: mean(`loss_{sym}`)
+        """
         trans1 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
         trans2 = STNFunction_ND_BCXYZ(self.spacing,zero_boundary=False)
         st_map = rec_phiWarped[:self.n_batch]
@@ -232,13 +279,20 @@ class MermaidNet(nn.Module):
         return torch.mean((identity_map- trans_st_ts)**2)
 
     def do_criterion_cal(self, ISource, ITarget,cur_epoch=-1):
-        # todo the image is not necessary be normalized here, just keep -1,1 would be fine
+        """
+        get the loss according to mermaid criterion
+        :param ISource: Source image with full size
+        :param ITarget: Target image with full size
+        :param cur_epoch: current epoch
+        :return: overall loss (include sim, reg and sym(optional)), similarity loss and the regularization loss
+        """
+        # todo the image is not necessary be normalized to [0,1] here, just keep -1,1 would be fine
         ISource = (ISource + 1.) / 2.
         ITarget = (ITarget + 1.) / 2.
 
-        loss_overall_energy, sim_energy, reg_energy = self.criterion_st(self.identityMap, self.rec_phiWarped, ISource,
+        loss_overall_energy, sim_energy, reg_energy = self.criterion(self.identityMap, self.rec_phiWarped, ISource,
                                                                      ITarget, self.low_moving,
-                                                                     self.mermaid_unit_st.get_variables_to_transfer_to_loss_function(),
+                                                                     self.mermaid_unit.get_variables_to_transfer_to_loss_function(),
                                                                      None)
         if not self.using_sym_on:
             if self.print_count % 10 == 0 and cur_epoch>=0:
@@ -266,19 +320,46 @@ class MermaidNet(nn.Module):
         return loss_overall_energy, sim_energy, reg_energy
 
     def set_mermaid_param(self,mermaid_unit,criterion, s, t, m,s_full=None):
+        """
+        set variables need to be passed into mermaid model and mermaid criterion
+
+        :param mermaid_unit:  model created by mermaid
+        :param criterion:  criterion create by mermaid
+        :param s: source image (can be downsampled)
+        :param t: target image (can be downsampled)
+        :param m: momentum (can be downsampled)
+        :param s_full: full resolution image ( to get better sampling results)
+        :return:
+        """
         mermaid_unit.set_dictionary_to_pass_to_integrator({'I0': s, 'I1': t,'I0_full':s_full})
         criterion.set_dictionary_to_pass_to_smoother({'I0': s, 'I1': t,'I0_full':s_full})
         mermaid_unit.m = m
         criterion.m = m
+
     def __freeze_param(self,params):
+        """
+        freeze the parameters during training
+        :param params: the parameters to be trained
+        :return:
+        """
         for param in params:
             param.requires_grad = False
 
     def __active_param(self,params):
+        """
+        active the frozen parameters
+        :param params: the parameters to be activated
+        :return:
+        """
         for param in params:
             param.requires_grad = True
 
     def get_inverse_map(self,use_01=False):
+        """
+        get the inverse map
+        :param use_01: if ture, get the map in [0,1] else in [-1,1]
+        :return: the inverse map
+        """
         if use_01 or self.inverse_map is None:
             return self.inverse_map
         else:
@@ -288,12 +369,17 @@ class MermaidNet(nn.Module):
 
 
     def init_mermaid_param(self,s):
+        """
+        initialize the  mermaid parameters
+        :param s:
+        :return:
+        """
         if self.use_adaptive_smoother:
             if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-                #self.mermaid_unit_st.smoother._enable_force_nn_gradients_to_zero_hooks()
-                self.__freeze_param(self.mermaid_unit_st.smoother.ws.parameters())
+                #self.mermaid_unit.smoother._enable_force_nn_gradients_to_zero_hooks()
+                self.__freeze_param(self.mermaid_unit.smoother.ws.parameters())
             else:
-                self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
+                self.__active_param(self.mermaid_unit.smoother.ws.parameters())
 
 
         if self.mermaid_low_res_factor is not None:
@@ -311,11 +397,16 @@ class MermaidNet(nn.Module):
 
     def do_mermaid_reg(self,mermaid_unit,criterion, s, t, m, phi,low_s=None,low_t=None,inv_map=None):
         """
+        perform mermaid registrtion unit
+
         :param s: source image
         :param t: target image
         :param m: initial momentum
         :param phi: initial deformation field
-        :return:  warped image, deformation field
+        :param low_s: downsampled source
+        :param low_t: downsampled target
+        :param inv_map: inversed map
+        :return:  warped image, transformation map
         """
         if self.mermaid_low_res_factor is not None:
             self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)
@@ -343,22 +434,31 @@ class MermaidNet(nn.Module):
         return rec_IWarped, rec_phiWarped
 
     def __get_adaptive_smoother_map(self):
-
-        adaptive_smoother_map = self.mermaid_unit_st.smoother.get_deep_smoother_weights()
+        """
+        get the adaptive smoother weight map from spatial-variant regualrizer model
+        supported weighting type 'sqrt_w_K_sqrt_w' and 'w_K_w'
+        for weighting type == 'w_k_w'
+        :math:'\sigma^{2}(x)=\sum_{i=0}^{N-1} w^2_{i}(x) \sigma_{i}^{2}'
+        for weighting type = 'sqrt_w_K_sqrt_w'
+        :math:'\sigma^{2}(x)=\sum_{i=0}^{N-1} w_{i}(x) \sigma_{i}^{2}'
+        :return: adapative smoother weight map \sigma
+        """
+        adaptive_smoother_map = self.mermaid_unit.smoother.get_deep_smoother_weights()
+        weighting_type = self.mermaid_unit.smoother.weighting_type
         if not self.using_sym_on:
             adaptive_smoother_map = adaptive_smoother_map.detach()
         else:
             adaptive_smoother_map = adaptive_smoother_map[:self.n_batch].detach()
-        gaussian_weights = self.mermaid_unit_st.smoother.get_gaussian_weights()
+        gaussian_weights = self.mermaid_unit.smoother.get_gaussian_weights()
         gaussian_weights = gaussian_weights.detach()
         print(" the current global gaussian weight is {}".format(gaussian_weights))
-
-        gaussian_stds = self.mermaid_unit_st.smoother.get_gaussian_stds()
+        gaussian_stds = self.mermaid_unit.smoother.get_gaussian_stds()
         gaussian_stds = gaussian_stds.detach()
         print(" the current global gaussian stds is {}".format(gaussian_stds))
         view_sz = [1] + [len(gaussian_stds)] + [1] * dim
         gaussian_stds = gaussian_stds.view(*view_sz)
-        adaptive_smoother_map = adaptive_smoother_map**2 # todo  add if judgement, this is true only when we use w_K_W
+        if weighting_type == 'w_K_w':
+            adaptive_smoother_map = adaptive_smoother_map**2 # todo  add if judgement, this is true only when we use w_K_W
 
         smoother_map = adaptive_smoother_map*(gaussian_stds**2)
         smoother_map = torch.sqrt(torch.sum(smoother_map,1,keepdim=True))
@@ -367,6 +467,12 @@ class MermaidNet(nn.Module):
         return smoother_map
 
     def _display_stats(self, Ia, iname):
+        """
+        statistic analysis on variable
+        :param Ia: the input variable
+        :param iname: variable name
+        :return:
+        """
 
         Ia_min = Ia.min().detach().cpu().numpy()
         Ia_max = Ia.max().detach().cpu().numpy()
@@ -379,6 +485,10 @@ class MermaidNet(nn.Module):
 
 
     def get_extra_to_plot(self):
+        """
+        plot extra image, i.e. the initial weight map of rdmm model
+        :return: extra image, name
+        """
         if self.use_adaptive_smoother:
             # the last step adaptive smoother is returned, todo add the first stage smoother
             return self.__get_adaptive_smoother_map(), 'Inital_weight'
@@ -387,12 +497,25 @@ class MermaidNet(nn.Module):
 
 
     def __transfer_return_var(self,rec_IWarped,rec_phiWarped,affine_img):
+        """
+        normalize the image into [0,1] while map into [-1,1]
+        :param rec_IWarped: warped image
+        :param rec_phiWarped: transformation map
+        :param affine_img: affine image
+        :return:
+        """
         return (rec_IWarped).detach(), (rec_phiWarped * 2. - 1.).detach(), ((affine_img+1.)/2.).detach()
 
 
 
 
     def single_forward(self, moving, target=None):
+        """
+        single step mermaid registration
+        :param moving: moving image with intensity [-1,1]
+        :param target: target image with intensity [-1,1]
+        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
+        """
         if self.using_affine_init:
             with torch.no_grad():
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
@@ -434,7 +557,7 @@ class MermaidNet(nn.Module):
         self.low_moving = self.init_mermaid_param(moving)
         self.low_target = self.init_mermaid_param(target)
         torch.set_grad_enabled(record_is_grad_enabled)
-        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving, target, m, affine_map,self.low_moving, self.low_target,self.inverse_map)
+        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit,self.criterion,moving, target, m, affine_map,self.low_moving, self.low_target,self.inverse_map)
         self.rec_phiWarped = rec_phiWarped
         if self.using_physical_coord:
             rec_phiWarped_tmp = rec_phiWarped.detach().clone()
@@ -449,6 +572,14 @@ class MermaidNet(nn.Module):
 
 
     def sym_forward(self, moving, target=None):
+        """
+        symmetric single step mermaid registration
+        the "source" is concatenated by source and target, the "target" is concatenated by target and source
+        then the single_forward is called
+        :param moving: moving image with intensity [-1,1]
+        :param target: target image with intensity [-1,1]
+        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
+        """
         self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
@@ -458,7 +589,13 @@ class MermaidNet(nn.Module):
 
 
 
-    def cyc_forward(self, moving,target=None):
+    def mutli_step_forward(self, moving,target=None):
+        """
+        mutli-step mermaid registration
+        :param moving: moving image with intensity [-1,1]
+        :param target: target image with intensity [-1,1]
+        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
+        """
         self.step_loss = None
         if self.using_affine_init:
             with torch.no_grad():
@@ -507,7 +644,7 @@ class MermaidNet(nn.Module):
             if self.clamp_momentum:
                 m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
             torch.set_grad_enabled(record_is_grad_enabled)
-            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion_st,moving_n, target_n, m, init_map,self.low_moving, self.low_target, self.inverse_map)
+            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit,self.criterion,moving_n, target_n, m, init_map,self.low_moving, self.low_target, self.inverse_map)
             warped_img = rec_IWarped * 2 - 1  # [0,1] -> [-1,1]
             init_map = rec_phiWarped  # [0,1]
             self.rec_phiWarped = rec_phiWarped
@@ -524,14 +661,28 @@ class MermaidNet(nn.Module):
 
 
 
-    def cyc_sym_forward(self,moving, target= None):
+    def mutli_step_sym_forward(self,moving, target= None):
+        """
+         symmetric multi-step mermaid registration
+         the "source" is concatenated by source and target, the "target" is concatenated by target and source
+         then the single_forward is called
+         :param moving: moving image with intensity [-1,1]
+         :param target: target image with intensity [-1,1]
+         :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
+         """
         self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
-        rec_IWarped, rec_phiWarped, affine_img = self.cyc_forward(moving_sym, target_sym)
+        rec_IWarped, rec_phiWarped, affine_img = self.mutli_step_forward(moving_sym, target_sym)
         return rec_IWarped[:self.n_batch], rec_phiWarped[:self.n_batch], affine_img[:self.n_batch]
 
     def get_affine_map(self,moving, target):
+        """
+        compute affine map from the affine registration network
+        :param moving: moving image [-1, 1]
+        :param target: target image [-1, 1]
+        :return: affined image [-1,1]
+        """
         with torch.no_grad():
             affine_img, affine_map, _ = self.affine_net(moving, target)
         return affine_map
@@ -539,6 +690,10 @@ class MermaidNet(nn.Module):
 
 
     def get_step_config(self):
+        """
+        check if the multi-step, symmetric forward shoud be activated
+        :return:
+        """
         if self.is_train:
             self.step = self.multi_step if self.epoch > self.epoch_activate_multi_step else 1
             self.using_sym_on = True if self.epoch> self.epoch_activate_sym else False
@@ -547,15 +702,21 @@ class MermaidNet(nn.Module):
             self.using_sym_on =  False
 
     def forward(self, moving, target=None):
+        """
+        forward the mermaid registration model
+        :param moving: moving image intensity normalized in [-1,1]
+        :param target: target image intensity normalized in [-1,1]
+        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
+        """
         self.get_step_config()
         if self.using_sym_on:
             if not self.print_count:
                 print(" The mermaid network is in multi-step and symmetric mode, with step {}".format(self.step))
-            return self.cyc_sym_forward(moving,target)
+            return self.mutli_step_sym_forward(moving,target)
         else:
             if not self.print_count:
                 print(" The mermaid network is in multi-step mode, with step {}".format(self.step))
-            return self.cyc_forward(moving, target)
+            return self.mutli_step_forward(moving, target)
         # if not self.using_sym_on:
         #     if not self.print_count:
         #         print(" The mermaid network is in simple mode")
@@ -565,11 +726,4 @@ class MermaidNet(nn.Module):
         #         print(" The mermaid network is in symmetric mode")
         #     return self.sym_forward(moving,target)
 
-
-def bh(m, gi, go):
-    print("Grad Input")
-    print((torch.sum(gi[0].data), torch.sum(gi[1].data)))
-    print("Grad Output")
-    print(torch.sum(go[0].data))
-    return gi[0], gi[1], gi[2]
 

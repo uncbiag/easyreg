@@ -34,8 +34,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
 
     phases = ['test'] #['val','test']  ###################################3
     if len(model_path):
-        old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        get_test_model(model_path, model.network,  model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)     ##############TODO  model.optimizer
+        get_test_model(model_path, model.network,  model.optimizer)     ##############TODO  model.optimizer
     else:
         print("Warning, the model is not manual loaded, make sure your model itself has been inited")
 
@@ -51,7 +50,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
         loss_detail_list = []
         jacobi_val_res = 0.
         jacobi_num_res = 0.
-        running_test_loss = 0
+        running_test_score = 0
         time_total= 0
         for idx, data in enumerate(dataloaders[phase]):
             i= idx
@@ -83,7 +82,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
 
 
             loss,loss_detail = model.get_test_res(detail=True)
-            running_test_loss += loss * batch_size
+            running_test_score += loss * batch_size
             extra_res  = model.get_extra_res()
             if extra_res is not None:
                 jacobi_val_res += extra_res[0] * batch_size
@@ -93,16 +92,16 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
             records_score_np[i] = loss
             loss_detail_list += [loss_detail]
             print("id {} and current pair name is : {}".format(i,data[1]))
-            print('the current running_loss:{}'.format(loss))
-            print('the current average running_loss:{}'.format(running_test_loss/(i+1)/batch_size))
+            print('the current running_score:{}'.format(loss))
+            print('the current average running_score:{}'.format(running_test_score/(i+1)/batch_size))
             print('the current jocobi is {}'.format(extra_res))
             print('the current averge jocobi val is {}'.format(jacobi_val_res/(i+1)/batch_size))
             print('the current averge jocobi num is {}'.format(jacobi_num_res/(i+1)/batch_size))
-        test_loss = running_test_loss / len(dataloaders[phase].dataset)
+        test_score = running_test_score / len(dataloaders[phase].dataset)
         jacobi_val_res = jacobi_val_res/len(dataloaders[phase].dataset)
         jacobi_num_res = jacobi_num_res/len(dataloaders[phase].dataset)
         time_per_img = time_total/len((dataloaders[phase].dataset))
-        print('the average {}_loss: {:.4f}'.format(phase,test_loss))
+        print('the average {}_loss: {:.4f}'.format(phase,test_score))
         print("the average {}_ jacobi val: {}  :".format(phase, jacobi_val_res))
         print("the average {}_ jacobi num: {}  :".format(phase, jacobi_num_res))
         print("the average time for per image is {}".format(time_per_img))

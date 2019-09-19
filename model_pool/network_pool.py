@@ -8,6 +8,7 @@ from model_pool.modules import *
 from functions.bilinear import *
 from torch.utils.checkpoint import checkpoint
 from model_pool.utils import sigmoid_decay
+from model_pool.losses import NCCLoss
 
 
 #
@@ -18,7 +19,7 @@ from model_pool.utils import sigmoid_decay
 #     # in this case if we want to do the affine
 #     we need to  warp the image then made it as a new input
 #
-#     2. do affine by training a cycle network
+#     2. do affine by training a multi_step network
 #     in this case, it is like svf , we would feed raw image once, and the
 #     network would warp the phi, the advantage of this method is we don't need
 #     to warp the image for several time as interpolation would introduce unstability
@@ -72,7 +73,7 @@ from model_pool.utils import sigmoid_decay
 #     # in this case if we want to do the affine
 #     we need to  warp the image then made it as a new input
 #
-#     2. do affine by training a cycle network
+#     2. do affine by training a multi_step network
 #     in this case, it is like svf , we would feed raw image once, and the
 #     network would warp the phi, the advantage of this method is we don't need
 #     to warp the image for several time as interpolation would introduce unstability
@@ -158,53 +159,83 @@ from model_pool.utils import sigmoid_decay
 
 class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     """
-    here we need two affine net,
-    1. do the affine by training single forward network
-    # in this case if we want to do the affine
-    we need to  warp the image then made it as a new input
+    A multi-step symmetirc -force affine network
 
-    2. do affine by training a cycle network
-    in this case, it is like svf , we would feed raw image once, and the
-    network would warp the phi, the advantage of this method is we don't need
-    to warp the image for several time as interpolation would introduce unstability
+    at each step. the network would update the affine parameter
+    the advantage is we don't need to warp the image for several time (only interpolated by the latest affine transform) as the interpolation would diffuse the image
+
     """
     def __init__(self, img_sz=None, opt=None):
         super(AffineNetSym, self).__init__()
         self.img_sz = img_sz
+        """ the image sz  in numpy coord"""
         self.dim = len(img_sz)
+        """ the dim of image"""
         self.step = opt['tsk_set']['reg']['affine_net'][('affine_net_iter',1,'num of step')]
+        """ the num of step"""
         self.step_record = self.step
+        """ a copy on step"""
         self.using_complex_net = opt['tsk_set']['reg']['affine_net'][('using_complex_net',True,'use complex version of affine net')]
-        self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'use complex version of affine net')]
+        """if true, use complex version of affine net"""
+        self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'accumulate loss from each step')]
+        """accumulate loss from each step"""
         self.epoch_activate_multi_step = opt['tsk_set']['reg']['affine_net'][('epoch_activate_multi_step',-1,'epoch to activate multi-step affine')]
+        """epoch to activate multi-step affine"""
         self.reset_lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('reset_lr_for_multi_step',False,'if True, reset learning rate when multi-step begins')]
-        self.lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('lr_for_multi_step',opt['tsk_set']['optim']['lr']/2,'if reset_lr_for_multi_step, reset learning rate when multi-step begins')]
+        """if True, reset learning rate when multi-step begins"""
+        self.lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('lr_for_multi_step',opt['tsk_set']['optim']['lr']/2,'if reset_lr_for_multi_step, reset learning rate into # when multi-step begins')]
+        """if reset_lr_for_multi_step, reset learning rate into # when multi-step begins"""
         self.epoch_activate_sym = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric forward')]
-        self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric loss')]
+        """epoch to activate symmetric forward"""
+        self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym_loss',-1,'the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss')]
+        """ the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss"""
         self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate lncc loss')]
+        """epoch to activate lncc loss"""
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
+        """ the affine network output the affine parameter"""
         self.affine_cons= AffineConstrain()
+        """ the func return regularization loss on affine parameter"""
         self.id_map= gen_identity_map(self.img_sz)
-        self.count =0
+        """ the identity map"""
         self.gen_identity_ap()
-        self.using_cycle = True
+        """ generate identity affine parameter"""
+
+        ################### init variable  #####################3
+        self.iter_count = 0
+        """the num of iteration"""
+        self.using_multi_step = True
+        """ set multi-step on"""
         self.zero_boundary = True
+        """ zero boundary is used for interpolated images"""
         self.epoch = -1
+        """ the current epoch"""
         self.reset_lr = False
-        from model_pool.losses import NCCLoss
+        """ reset learning rate"""
         self.ncc = NCCLoss()
+        """ normalized cross correlation loss"""
         self.extern_loss = None
+        """ external loss used during training"""
         self.compute_loss = True
+        """ compute loss, set true during affine netowrk training"""
+
+
 
 
     def set_loss_fn(self, loss_fn):
+        """ set loss function"""
         self.extern_loss = loss_fn
 
 
     def set_cur_epoch(self, cur_epoch):
+        """ set current epoch"""
         self.epoch = cur_epoch
 
     def check_if_update_lr(self):
+        """
+        check if the learning rate need to be updated
+        during affine training, both epoch_activate_multi_step and reset_lr_for_multi_step are activated
+        the learning rate would be set to reset_lr_for_multi_step
+        """
         if self.epoch == self.epoch_activate_multi_step and self.reset_lr_for_multi_step:
             lr = self.lr_for_multi_step
             self.reset_lr_for_multi_step = False
@@ -214,6 +245,11 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             return False, None
 
     def gen_affine_map(self,Ab):
+        """
+        generate the affine transformation map with regard to affine parameter
+        :param Ab: affine parameter
+        :return: affine transformation map
+        """
         Ab = Ab.view( Ab.shape[0],4,3) # 3d: (batch,3)
         id_map = self.id_map.view(self.dim, -1)
         affine_map = None
@@ -225,6 +261,13 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
     def update_affine_param(self, cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
+        """
+        update the current affine parameter A2 based on last affine parameter A1
+         A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2, results in the composed affine parameter A3=(A2A1, A2*b1+b2)
+        :param cur_af: current affine parameter
+        :param last_af: last affine parameter
+        :return: composed affine parameter A3
+        """
         cur_af = cur_af.view(cur_af.shape[0], 4, 3)
         last_af = last_af.view(last_af.shape[0],4,3)
         updated_af = Variable(torch.zeros_like(cur_af.data)).cuda()
@@ -235,6 +278,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         return updated_af
 
     def gen_identity_ap(self):
+        """
+        get the idenityt affine parameter
+        :return:
+        """
         self.affine_identity = Variable(torch.zeros(12)).cuda()
         self.affine_identity[0] = 1.
         self.affine_identity[4] = 1.
@@ -242,9 +289,14 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def sym_reg_loss(self, bias_factor=1.):
         """
-        y = ax+b = a(cy+d)+b = acy +ad+b =y
+        compute the symmetry loss
+        s-t transform (a,b), t-s transform (c,d), then assume transform from t-s-t
+        a(cy+d)+b = acy +ad+b =y
         then ac = I, ad+b = 0
-        :return:
+        the l2 loss is taken to constrain the above two terms
+        ||ac-I||_2^2 +  bias_factor *||ad+b||_2^2
+        :param bias_factor: the factor on the translation term
+        :return: the symmetry loss (average on batch)
         """
 
         ap_st, ap_ts  = self.affine_param
@@ -264,15 +316,22 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         translation_part = bias_factor * (torch.sum(ad_b**2))
 
         sym_reg_loss = linear_transfer_part + translation_part
-        if self.count %10 ==0:
+        if self.iter_count %10 ==0:
             print("linear_transfer_part:{}, translation_part:{}, bias_factor:{}".format(linear_transfer_part.cpu().data.numpy(), translation_part.cpu().data.numpy(),bias_factor))
         return sym_reg_loss/ap_st.shape[0]
 
 
-    def sim_loss(self,loss_fn,output,target):
+    def sim_loss(self,loss_fn,warped,target):
+        """
+        compute the similarity loss
+        :param loss_fn: the loss function
+        :param output: the warped image
+        :param target: the target image
+        :return: the similarity loss average on batch
+        """
         loss_fn = self.ncc if self.epoch < self.epoch_activate_extern_loss else loss_fn
-        sim_loss = loss_fn(output,target)
-        return sim_loss / output.shape[0]
+        sim_loss = loss_fn(warped,target)
+        return sim_loss / warped.shape[0]
 
 
     def scale_sym_reg_loss(self,sched='l2'):
@@ -289,7 +348,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
                     loss += (torch.det(affine_matrix) -1.)**2
             return loss / (affine_param[0].shape[0])
 
-    def scale_cycle_reg_loss(self,sched='l2'):
+    def scale_multi_step_reg_loss(self,sched='l2'):
         affine_param = self.affine_param
         if sched == 'l2':
             return torch.sum((self.affine_identity - affine_param) ** 2)\
@@ -318,12 +377,12 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sym_on = self.epoch>= self.epoch_activate_sym
         self.affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
         sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if  sym_on else 0.
-        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2') if sym_on else self.scale_cycle_reg_loss(sched='l2')
+        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(sched='l2')
         factor_scale = self.get_factor_reg_scale()
         factor_sym =10. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
-        if self.count%10==0:
+        if self.iter_count%10==0:
             if self.epoch >= self.epoch_activate_sym:
                 print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
                     sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())
@@ -341,7 +400,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
     def forward(self,moving, target):
-        self.count += 1
+        self.iter_count += 1
         if self.epoch_activate_multi_step>0:
             if self.epoch >= self.epoch_activate_multi_step:
                 if self.step_record != self.step:
@@ -350,15 +409,15 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             else:
                 self.step = 1
         if self.epoch < self.epoch_activate_sym:
-            return self.cycle_forward(moving, target, self.compute_loss)
+            return self.multi_step_forward(moving, target, self.compute_loss)
         else:
-            return self.sym_cycle_forward(moving, target)
+            return self.sym_multi_step_forward(moving, target)
 
 
 
 
 
-    def cycle_forward(self,moving,target, compute_loss=True):
+    def multi_step_forward(self,moving,target, compute_loss=True):
 
         output = None
         moving_cp = moving
@@ -387,11 +446,11 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         return output, affine_map, affine_param
 
 
-    def sym_cycle_forward(self, moving, target):
+    def sym_multi_step_forward(self, moving, target):
         self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
-        output, affine_map, affine_param = self.cycle_forward(moving_sym, target_sym)
+        output, affine_map, affine_param = self.multi_step_forward(moving_sym, target_sym)
         return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
     def get_extra_to_plot(self):
         return None, None
@@ -416,25 +475,3 @@ class MomentumNet(nn.Module):
         return self.mom_gen(input)
 
 
-
-class SimpleNet(nn.Module):
-    def __init__(self, img_sz=None, resize_factor=1.):
-        from model_pool.voxel_morph import VoxelMorphCVPR2018
-        super(SimpleNet,self).__init__()
-        self.img_sz = img_sz
-        self.denseGen = DisGen_Simple()
-        init_weights(self.denseGen,init_type='kaiming')
-        self.hessianField = HessianField()
-        self.jacobiField = JacobiField()
-        self.identity_map= gen_identity_map(self.img_sz,resize_factor)
-        self.bilinear = Bilinear(zero_boundary=False)
-    def forward(self, input, moving):
-        disField = self.denseGen(input)
-        #hessianField = self.hessianField(disField)
-        gridField = torch.add(self.identity_map,disField)
-        #gridField= torch.tanh(gridField)
-        output = self.bilinear(moving,gridField)
-        return output, gridField, disField
-
-    def get_extra_to_plot(self):
-        return None, None

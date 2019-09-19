@@ -16,7 +16,10 @@ conv = F.conv2d if dim == 2 else F.conv3d
 
 
 class conv_bn_rel(nn.Module):
-    # conv + bn (optional) + relu
+    """
+    conv + bn (optional) + relu
+
+    """
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, active_unit='relu', same_padding=False,
                  bn=False, reverse=False, group=1, dilation=1):
         super(conv_bn_rel, self).__init__()
@@ -47,7 +50,9 @@ class conv_bn_rel(nn.Module):
 
 
 class FcRel(nn.Module):
-    # fc+ relu(option)
+    """
+    fc+ relu(option)
+    """
     def __init__(self, in_features, out_features, active_unit='relu'):
         super(FcRel, self).__init__()
         self.fc = nn.Linear(in_features, out_features)
@@ -67,7 +72,7 @@ class FcRel(nn.Module):
 
 def identity_map_for_reproduce(sz):
     """
-    Returns an identity map. todo  now keep for reproduce  this function will be disabled in the next release, replaced by spacing version
+    Returns an identity map. todo keep for preproduce result, this function will be disabled in the next release, replaced by spacing version
 
     :param sz: just the spatial dimensions, i.e., XxYxZ
     :param spacing: list with spacing information [sx,sy,sz]
@@ -89,7 +94,7 @@ def identity_map_for_reproduce(sz):
 
 def identity_map(sz, dtype= np.float32):
     """
-    Returns an identity map. todo  now keep for reproduce  this function will be disabled in the next release, replaced by spacing version
+    Returns an identity map.
 
     :param sz: just the spatial dimensions, i.e., XxYxZ
     :param spacing: list with spacing information [sx,sy,sz]
@@ -156,63 +161,13 @@ def gen_identity_map(img_sz, resize_factor=1.,normalized=True):
     return grid
 
 
-# class HessianField(object):
-#     def __init__(self):
-#         if dim ==2:
-#             self.laplace = Variable(torch.cuda.FloatTensor([0.,1.,0.],[1.,-4,1.],[0.,1.,0.])).view(1,1,3,3)
-#         elif dim==3:
-#             self.laplace = Variable(torch.cuda.FloatTensor([[[0., 0., 0.], [0., 1., 0.], [0., 0., 0.]],
-#                                                             [[0., 1., 0.], [1., -6, 1.], [0., 1., 0.]]
-#                                                             [[0., 0., 0.], [0., 1., 0.], [0., 0., 0.]]]
-#                                                            )).view(1,1,3,3,3)
-#     def __call__(self,disField):
-#         x = conv(disField,self.laplace)
-#         return x
-
-
-class HessianField(object):
-    def __init__(self):
-        if dim == 2:
-            dx = Variable(torch.cuda.FloatTensor([[1., 0., -1.], [2., 0., -2.], [1., 0., -1.]])).view(1, 1, 3, 3)
-            dy = Variable(torch.cuda.FloatTensor([[1., 2., 1.], [0., 0., 0.], [-1., -2., -1.]])).view(1, 1, 3, 3)
-            self.spatial_filter = torch.cat((dx, dy), 1)
-            self.spatial_filter.v(2, 1, 1, 1)
-        elif dim == 3:
-            dx = Variable(torch.cuda.FloatTensor([[[-1., -3., -1.], [-3., -6., -3.], [-1., -3., -1.]],
-                                                  [[0., 0., 0.], [0., 0, 0.], [0., 0., 0.]],
-                                                  [[1., 3., 1.], [3., 6., 3.], [1., 3., 1.]]]
-                                                 )).view(1, 1, 3, 3, 3)
-            dy = Variable(
-                torch.cuda.FloatTensor([[[1., 3., 1.], [0., 0., 0.], [-1., -3., -1.]],
-                                        [[3., 6., 3.], [0., 0, 0.], [-3., -6., -3.]],
-                                        [[1., 3., 1.], [0., 0., 0.], [-1., -3., -1.]]]
-                                       )).view(1, 1, 3, 3, 3)
-            dz = Variable(
-                torch.cuda.FloatTensor([[[-1., 0., 1.], [-3., 0., 3.], [-1., 0., 1.]],
-                                        [[-3., 0., 3.], [-6., 0, 6.], [-3., 0., 3.]],
-                                        [[-1., 0., 1.], [-3., 0., 3.], [-1., 0., 1.]]]
-                                       )).view(1, 1, 3, 3, 3)
-            self.spatial_filter = torch.cat((dx, dy, dz), 1)
-            self.spatial_filter = self.spatial_filter.repeat(3, 1, 1, 1, 1)
-
-    def __call__(self, disField):
-        hessionField = conv(disField, self.spatial_filter)
-        if dim == 2:
-            return hessionField[:, 0:1, ...] ** 2 + hessionField[:, 1:2, ...] ** 2
-
-        elif dim == 3:
-            return hessionField[:, 0:1, ...] ** 2 + hessionField[:, 1:2, ...] ** 2 + hessionField[:, 2:3, ...] ** 2
-
-
-class JacobiField(object):
-    def __call__(self, disField):
-        if dim == 2:
-            return disField[:, 0:1, ...] ** 2 + disField[:, 1:2, ...] ** 2
-        elif dim == 3:
-            return disField[:, 0:1, ...] ** 2 + disField[:, 1:2, ...] ** 2 + disField[:, 2:3, ...] ** 2
-
-
 class AffineConstrain(object):
+    """
+    regularization on affine parameters,
+    sched:
+        'l2':  square loss
+        'det': determinant loss
+    """
     def __init__(self):
         if dim == 3:
             self.affine_identity = Variable(torch.zeros(12)).cuda()
@@ -233,44 +188,6 @@ class AffineConstrain(object):
             return mean_det / affine_param.shape[0]
 
 
-def save_net(fname, net):
-    import h5py
-    h5f = h5py.File(fname, mode='w')
-    for k, v in net.state_dict().items():
-        # like the weight and bias
-        h5f.create_dataset(k, data=v.cpu().numpy())
-
-
-def load_net(fname, net):
-    import h5py
-    h5f = h5py.File(fname, mode='r')
-    for k, v in net.state_dict().items():
-        param = torch.from_numpy(np.asarray(h5f[k]))
-        v.copy_(param)
-
-
-def np_to_variable(x, is_cuda=True, dtype=torch.FloatTensor):
-    v = Variable(torch.from_numpy(x).type(dtype))
-    if is_cuda:
-        v = v.cuda()
-    return v
-
-
-def set_trainable(model, requires_grad):
-    for param in model.parameters():
-        param.requires_grad = requires_grad
-
-
-def weights_normal_init(model, dev=0.01):
-    if isinstance(model, list):
-        for m in model:
-            weights_normal_init(m, dev)
-    else:
-        for m in model.modules():
-            if isinstance(m, nn.Conv2d):
-                m.weight.data.normal_(0.0, dev)
-            elif isinstance(m, nn.Linear):
-                m.weight.data.normal_(0.0, dev)
 
 
 def clip_gradient(model, clip_norm):
@@ -404,6 +321,7 @@ def init_weights(net, init_type='normal'):
 
 
 def print_network(net):
+    """ print out the structure of the network"""
     num_params = 0
     for param in net.parameters():
         num_params += param.numel()
@@ -411,10 +329,16 @@ def print_network(net):
     print('Total number of parameters: %d' % num_params)
 
 
-def resume_train(model_path, model, optimizer, old_gpu=0, cur_gpu=0):
+def resume_train(model_path, model, optimizer):
+    """
+    resume the training from checkpoint
+    :param model_path: the checkpoint path
+    :param model: the model to be set
+    :param optimizer: the optimizer to be set
+    :return:
+    """
     if os.path.isfile(model_path):
         print("=> loading checkpoint '{}'".format(model_path))
-        print("load from old gpu {} to cur gpu {}".format(old_gpu, cur_gpu))
         checkpoint = torch.load(model_path, map_location='cpu')  # {'cuda:'+str(old_gpu):'cuda:'+str(cur_gpu)})
         start_epoch = 0
         best_prec1 = 0.0
@@ -462,18 +386,18 @@ def resume_train(model_path, model, optimizer, old_gpu=0, cur_gpu=0):
 get_test_model = resume_train
 
 
-def load_from_existed_model(old_model_dic, new_model):
-    model_dict = new_model.state_dict()
-
-    # 1. filter out unnecessary keys
-    pretrained_dict = {k: v for k, v in old_model_dic.items() if k in model_dict and k.find('models.0') != -1}
-    # 2. overwrite entries in the existing state dict
-    model_dict.update(pretrained_dict)
-    # 3. load the new state dict
-    new_model.load_state_dict(model_dict)
-
-
 def save_checkpoint(state, is_best, path, prefix, filename='checkpoint.pth.tar'):
+    """
+    save checkpoint during training
+    'epoch': epoch,'
+    :param state_dict': {'epoch': epoch,'state_dict':  model.network.state_dict(),'optimizer': optimizer_state,
+                  'best_score': best_score, 'global_step':global_step}
+    :param is_best: if is the best model
+    :param path: path to save the checkpoint
+    :param prefix: prefix to add before the fname
+    :param filename: filename
+    :return:
+    """
     if not os.path.exists(path):
         os.mkdir(path)
     prefix_save = os.path.join(path, prefix)

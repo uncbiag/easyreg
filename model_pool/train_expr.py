@@ -25,7 +25,7 @@ def train_model(opt,model, dataloaders,writer):
     period_detailed_scores = {x: 0. for x in phases}
     max_batch_num_per_epoch ={x: max_batch_num_per_epoch_list[i] for i, x in enumerate(phases)}
     period ={x: print_step[i] for i, x in enumerate(phases)}
-    check_best_model_period =opt['tsk_set']['check_best_model_period']
+    check_best_model_period =opt['tsk_set'][('check_best_model_period',5,'save best performanced model every # epoch')]
     tensorboard_print_period = { phase: min(max_batch_num_per_epoch[phase],period[phase]) for phase in phases}
     save_fig_epoch = opt['tsk_set'][('save_val_fig_epoch',2,'saving every num epoch')]
     save_3d_img_on = opt['tsk_set'][('save_3d_img_on', False, 'saving fig')]
@@ -36,9 +36,7 @@ def train_model(opt,model, dataloaders,writer):
 
 
     if resume_training:
-        cur_gpu_id = opt['tsk_set']['gpu_ids']
-        old_gpu_id = opt['tsk_set']['old_gpu_ids']
-        start_epoch, best_prec1, global_step=resume_train(model_path, model.network,model.optimizer,old_gpu=old_gpu_id,cur_gpu=cur_gpu_id)
+        start_epoch, best_prec1, global_step=resume_train(model_path, model.network,model.optimizer)
         if continue_train_lr > 0:
             model.adjust_learning_rate(continue_train_lr)
             print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
