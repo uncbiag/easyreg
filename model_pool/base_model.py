@@ -49,7 +49,7 @@ class BaseModel():
         self.l_target = None
         self.jacobi_val = None
         self.phi = None
-        self.disp = None
+        self.afimg_or_afparam = None
         self.jacobian=None
         self.multi_gpu_on =False # todo for now the distributed computing is not supported
 
@@ -66,7 +66,7 @@ class BaseModel():
         """
         self.input = input
 
-    def forward(self,input):
+    def forward(self,input=None):
         pass
 
     def test(self):

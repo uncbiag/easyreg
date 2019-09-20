@@ -8,26 +8,33 @@ from .metrics import get_multi_metric
 
 
 
-
-
-
-
 class MermaidBase(BaseModel):
+    """
+    the base class of mermaid
+    """
+
     def initialize(self, opt):
+        """
+        initialize env parameter in mermaid registration
+        :param opt:
+        :return:
+        """
         BaseModel.initialize(self,opt)
         self.nonp_on = False
-        self.disp_or_afparam = None
+        self.afimg_or_afparam = None
         self.save_extra_3d_img = opt['tsk_opt'][('save_extra_3d_img',False,'save extra image')]
         self.use_01 = True
 
-    #
-    # def get_warped_img_map(self,img, phi):
-    #     bilinear = Bilinear()
-    #     warped_img_map = bilinear(img, phi)
-    #
-    #     return warped_img_map
 
     def get_warped_label_map(self,label_map, phi, sched='nn',use_01=False):
+        """
+        get warped label map
+        :param label_map: label map to warp
+        :param phi: transformation map
+        :param sched: 'nn' neareast neighbor
+        :param use_01: if use_01, the phi is assumed to be [0,1] else  the phi is assumed to be [-1,1]
+        :return: the warped label map
+        """
         if sched == 'nn':
             ###########TODO fix with new cuda interface,  now comment for torch1 compatability
             # try:
@@ -48,8 +55,13 @@ class MermaidBase(BaseModel):
 
 
     def get_evaluation(self):
+        """
+        evaluate the transformation by compute overlap on label map and folding in transformation
+        :return:
+        """
+
         s1 = time()
-        self.output, self.phi, self.disp_or_afparam,_= self.forward()
+        self.output, self.phi, self.afimg_or_afparam,_= self.forward()
         self.warped_label_map=None
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving,self.phi,use_01=self.use_01)
@@ -67,8 +79,13 @@ class MermaidBase(BaseModel):
 
 
     def compute_jacobi_map(self,map,crop_boundary=True, use_01=False):
-        """ here we compute the jacobi in numpy coord. It is consistant to jacobi in image coord only when
-          the image direction matrix is identity."""
+        """
+        compute determinant jacobi on transformatiomm map,  the coordinate should be canonical.
+        :param map: the transformation map
+        :param crop_boundary: if crop the boundary, then jacobi analysis would only analysis on cropped map
+        :param use_01: infer the input map is in[0,1]  else is in [-1,1]
+        :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
+        """
         from toremove.global_variable import save_jacobi_map
         import SimpleITK as sitk
         if type(map) == torch.Tensor:
@@ -115,6 +132,10 @@ class MermaidBase(BaseModel):
 
 
     def get_extra_to_plot(self):
+        """
+        extra image needs to be plot
+        :return: image to plot, name
+        """
         return None, None
 
 
@@ -137,11 +158,12 @@ class MermaidBase(BaseModel):
         if self.save_extra_3d_img and extraImage is not None:
             self.save_extra_3d_img(extraImage,extraName)
 
-        if self.disp_or_afparam is not None and len(self.disp_or_afparam.shape)>2 and not self.nonp_on:
-            disp = ((self.disp_or_afparam[:,...]**2).sum(1))**0.5
+        if self.afimg_or_afparam is not None and len(self.afimg_or_afparam.shape)>2 and not self.nonp_on:
+            raise ValueError("displacement field is removed from current version")
+            #disp = ((self.afimg_or_afparam[:,...]**2).sum(1))**0.5
 
         if self.nonp_on:
-            disp = self.disp_or_afparam[:,0,...]
+            disp = self.afimg_or_afparam[:,0,...]
             extra_title='affine'
 
         if self.jacobi_map is not None:

@@ -334,22 +334,25 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         return sim_loss / warped.shape[0]
 
 
-    def scale_sym_reg_loss(self,sched='l2'):
-        affine_param = self.affine_param
-        if sched=='l2':
-            loss = torch.sum((affine_param[0]-self.affine_identity)**2 + (affine_param[1]-self.affine_identity)**2 )\
-                   / (affine_param[0].shape[0])
-            return loss
-        elif sched=='det':
-            loss = 0.
-            for j in range(2):
-                for i in range(affine_param[j].shape[0]):
-                    affine_matrix = affine_param[j][i,:9].contiguous().view(3,3)
-                    loss += (torch.det(affine_matrix) -1.)**2
-            return loss / (affine_param[0].shape[0])
+    def scale_sym_reg_loss(self,affine_param, sched='l2'):
+        """
+        in symmetric forward, compute regularization loss of  affine parameters,
+        l2: compute the l2 loss between the affine parameter and the identity parameter
+        det: compute the determinant of the affine parameter, which prefers to rigid transformation
+        :param sched: 'l2' , 'det'
+        :return: the regularization loss on batch
+        """
+        loss = self.scale_multi_step_reg_loss(affine_param[0],sched) + self.scale_multi_step_reg_loss((affine_param[1],sched))
+        return loss
 
-    def scale_multi_step_reg_loss(self,sched='l2'):
-        affine_param = self.affine_param
+    def scale_multi_step_reg_loss(self,affine_param, sched='l2'):
+        """
+        compute regularization loss of  affine parameters,
+        l2: compute the l2 loss between the affine parameter and the identity parameter
+        det: compute the determinant of the affine parameter, which prefers to rigid transformation
+        :param sched: 'l2' , 'det'
+        :return: the regularization loss on batch
+        """
         if sched == 'l2':
             return torch.sum((self.affine_identity - affine_param) ** 2)\
                    / (affine_param.shape[0])
@@ -361,6 +364,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
             return mean_det / affine_param.shape[0]
 
     def get_factor_reg_scale(self):
+        """
+        get the regularizer factor according to training strategy
+        :return:
+        """
         epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
         factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1e-3
         static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 10
@@ -373,11 +380,19 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
     def compute_overall_loss(self, loss_fn, output, target):
+        """
+        compute the overall loss for affine tranning
+        overall loss = multi-step similarity loss + symmetry loss + regularization loss
+        :param loss_fn: loss function to compute the similarity
+        :param output: warped image
+        :param target:target image
+        :return:overall loss
+        """
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
         sym_on = self.epoch>= self.epoch_activate_sym
         self.affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
         sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if  sym_on else 0.
-        scale_reg_loss = self.scale_sym_reg_loss(sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(sched='l2')
+        scale_reg_loss = self.scale_sym_reg_loss(self.affineparam, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(self.affine_param, sched='l2')
         factor_scale = self.get_factor_reg_scale()
         factor_sym =10. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
@@ -395,11 +410,20 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
     def get_loss(self):
+        """
+        :return: the overall loss
+        """
         return self.loss
 
 
 
     def forward(self,moving, target):
+        """
+        forward the affine network
+        :param moving: moving image
+        :param target: target image
+        :return: warped image (intensity[-1,1]), transformation map (coord [-1,1]), affine param
+        """
         self.iter_count += 1
         if self.epoch_activate_multi_step>0:
             if self.epoch >= self.epoch_activate_multi_step:
@@ -418,6 +442,13 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
     def multi_step_forward(self,moving,target, compute_loss=True):
+        """
+        mutli-step forward, A_t is composed of A_update and A_last
+        :param moving: the moving image
+        :param target: the target image
+        :param compute_loss: if true, compute the loss
+        :return: warped image (intensity[-1,1]), transformation map (coord [-1,1]), affine param
+        """
 
         output = None
         moving_cp = moving
@@ -447,21 +478,38 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
 
     def sym_multi_step_forward(self, moving, target):
+        """
+        symmetry forward
+        the "source" is concatenated by source and target, the "target" is concatenated by target and source
+        the the multi step foward is called
+
+        :param moving:
+        :param target:
+        :return:
+        """
         self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
         output, affine_map, affine_param = self.multi_step_forward(moving_sym, target_sym)
         return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
     def get_extra_to_plot(self):
+        """
+        no extra image need to be ploted
+        :return:
+        """
         return None, None
 
 
 
 
 class MomentumNet(nn.Module):
+    """
+    momentum generation network
+    """
     def __init__(self, low_res_factor,opt):
         super(MomentumNet,self).__init__()
         self.low_res_factor = low_res_factor
+        """ the low_res_factor control the momentum sz, which should be consistent with the map sz in mermaid unit"""
         using_complex_net = opt['using_complex_net']
 
         if using_complex_net:
@@ -472,6 +520,10 @@ class MomentumNet(nn.Module):
             print("=================    im version momentum network is used==============")
 
     def forward(self,input):
+        """
+        :param input: concatenate of moving and target image
+        :return: momentum
+        """
         return self.mom_gen(input)
 
 

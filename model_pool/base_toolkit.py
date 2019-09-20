@@ -112,12 +112,12 @@ class ToolkitBase(BaseModel):
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'
-        if self.disp is not None and len(self.disp.shape)>2 and not self.warp_on:
-            disp = ((self.disp[:,...]**2).sum(1))**0.5
+        if self.afimg_or_afparam is not None and len(self.afimg_or_afparam.shape)>2 and not self.warp_on:
+            disp = ((self.afimg_or_afparam[:,...]**2).sum(1))**0.5
 
 
-        if self.warp_on and self.disp is not None:
-            disp = self.disp[:,0,...]
+        if self.warp_on and self.afimg_or_afparam is not None:
+            disp = self.afimg_or_afparam[:,0,...]
             extra_title='affine'
         show_current_images(self.iter_count,  self.moving, self.target,self.output, self.l_moving,self.l_target,self.warped_label_map,
                             disp, extra_title, self.phi, visual_param=visual_param)

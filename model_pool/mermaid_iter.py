@@ -99,8 +99,8 @@ class MermaidIter(MermaidBase):
             identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
             self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
-        self.disp_or_afparam = Ab
-        return self.output.detach_(), self.phi.detach_(), self.disp_or_afparam.detach_()
+        self.afimg_or_afparam = Ab
+        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_()
 
 
     def nonp_optimization(self):
@@ -136,7 +136,7 @@ class MermaidIter(MermaidBase):
                                 compute_inverse_map=self.compute_inverse_map,
                                 json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
                                 params=self.saved_mermaid_setting_path) #'../mermaid_settings/cur_settings_svf_dipr.json'
-        self.disp_or_afparam = self.output # here return the affine image
+        self.afimg_or_afparam = self.output # here return the affine image
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         # for i in range(self.dim):
@@ -144,7 +144,7 @@ class MermaidIter(MermaidBase):
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
-        return self.output.detach_(), self.phi.detach_(), self.disp_or_afparam.detach_()
+        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_()
 
 
     def save_setting(self,path, output_path,fname='mermaid_setting.json'):

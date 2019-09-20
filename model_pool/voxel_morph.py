@@ -194,7 +194,7 @@ class VoxelMorphCVPR2018(nn.Module):
                 if not m.bias is None:
                     m.bias.data.zero_()
 
-    # def cal_affine_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
+    # def cal_affine_loss(self,output=None,afimg_or_afparam=None,using_decay_factor=False):
     #     factor = 1.0
     #     if using_decay_factor:
     #         factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
@@ -202,7 +202,7 @@ class VoxelMorphCVPR2018(nn.Module):
     #         sim_loss  = self.loss_fn.get_loss(output,self.target)
     #     else:
     #         sim_loss = self.network.get_sim_loss(output,self.target)
-    #     reg_loss = self.network.scale_reg_loss(disp_or_afparam) if disp_or_afparam is not None else 0.
+    #     reg_loss = self.network.scale_reg_loss(afimg_or_afparam) if afimg_or_afparam is not None else 0.
     #     if self.iter_count%10==0:
     #         print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
     #     return sim_loss+reg_loss*factor
@@ -367,7 +367,7 @@ class VoxelMorphMICCAI2019(nn.Module):
         deform_field = disp_field + affine_map
         #print("the min and max of disp_filed is {} {}, of the deform field is {},{} ".format(disp_field.min(),disp_field.max(),deform_field.min(), deform_field.max()))
         warped_source = self.bilinear_img(source, deform_field)
-        self.disp = disp_field
+        self.afimg_or_afparam = disp_field
         self.res_flow_mean  =  flow #flow_mean TODO  in original code here is flow_mean, but it doesn't work
         self.res_log_sigma = log_sigma
         self.warped = warped_source
@@ -380,7 +380,7 @@ class VoxelMorphMICCAI2019(nn.Module):
     def get_extra_to_plot(self):
         return None, None
     def __do_some_clean(self):
-        self.disp = None
+        self.afimg_or_afparam = None
         self.res_flow_mean = None
         self.res_log_sigma = None
         self.warped = None
@@ -502,7 +502,7 @@ class VoxelMorphMICCAI2019(nn.Module):
                     nn.init.xavier_normal_(m.weight.data)
                 if not m.bias is None:
                     m.bias.data.zero_()
-    # def cal_affine_loss(self,output=None,disp_or_afparam=None,using_decay_factor=False):
+    # def cal_affine_loss(self,output=None,afimg_or_afparam=None,using_decay_factor=False):
     #     factor = 1.0
     #     if using_decay_factor:
     #         factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
@@ -510,7 +510,7 @@ class VoxelMorphMICCAI2019(nn.Module):
     #         sim_loss  = self.loss_fn.get_loss(output,self.target)
     #     else:
     #         sim_loss = self.network.get_sim_loss(output,self.target)
-    #     reg_loss = self.network.scale_reg_loss(disp_or_afparam) if disp_or_afparam is not None else 0.
+    #     reg_loss = self.network.scale_reg_loss(afimg_or_afparam) if afimg_or_afparam is not None else 0.
     #     if self.iter_count%10==0:
     #         print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
     #     return sim_loss+reg_loss*factor

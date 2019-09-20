@@ -193,7 +193,7 @@ class MomentumGen_im(nn.Module):
         u2_2 = self.up_path_2_2(torch.cat((d2_2, u2_1), 1))
         output = self.up_path_2_3(u2_2)
         if not self.low_res_factor==0.5:
-            raise('low resolution only')
+            raise('for now. only half sz downsampling is supported')
 
         return output
 
@@ -261,7 +261,7 @@ class MomentumGen_resid(nn.Module):
         u2_2 = self.up_path_2_2(torch.cat((d2_3, u2_1), 1))
         output = self.up_path_2_3(u2_2)
         if not self.low_res_factor==0.5:
-            raise('low resolution only')
+            raise('for now. only half sz downsampling is supported')
 
         return output
 

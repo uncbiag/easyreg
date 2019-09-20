@@ -44,7 +44,7 @@ class DemonsRegIter(ToolkitBase):
         :return: warped image, warped label(None), transformation map(None)
         """
         output, loutput, phi,jacobian = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
-        self.disp = None
+        self.afimg_or_afparam = None
         self.output = output
         self.warped_label_map = loutput
         self.jacobian =jacobian

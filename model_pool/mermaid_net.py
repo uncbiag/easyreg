@@ -665,7 +665,7 @@ class MermaidNet(nn.Module):
         """
          symmetric multi-step mermaid registration
          the "source" is concatenated by source and target, the "target" is concatenated by target and source
-         then the single_forward is called
+         then the multi-step forward is called
          :param moving: moving image with intensity [-1,1]
          :param target: target image with intensity [-1,1]
          :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)

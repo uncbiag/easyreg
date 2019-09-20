@@ -92,17 +92,17 @@ class RegNet(MermaidBase):
     def forward(self, input=None):
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
-        output, phi, disp_or_afparam= self.network.forward(self.moving, self.target)
+        output, phi, afimg_or_afparam= self.network.forward(self.moving, self.target)
         loss = self.cal_loss()
 
-        return output, phi, disp_or_afparam, loss
+        return output, phi, afimg_or_afparam, loss
 
     def optimize_parameters(self,input=None):
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
 
-        self.output, self.phi, self.disp_or_afparam,loss = self.forward()
+        self.output, self.phi, self.afimg_or_afparam,loss = self.forward()
 
         self.backward_net(loss/self.criticUpdates)
         self.loss = loss.item()
@@ -144,9 +144,9 @@ class RegNet(MermaidBase):
                 nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
         else:
             # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
-            affine_param = self.disp_or_afparam
+            affine_param = self.afimg_or_afparam
             if isinstance(affine_param,list):
-                affine_param = self.disp_or_afparam[0]
+                affine_param = self.afimg_or_afparam[0]
             affine_param = affine_param.detach().cpu().numpy()
             for i in range(affine_param.shape[0]):
                 np.save( os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy',affine_param[i])
