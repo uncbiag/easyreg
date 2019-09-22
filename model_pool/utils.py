@@ -13,14 +13,29 @@ import mermaid.utils as py_utils
 import mermaid.module_parameters as pars
 import mermaid.smoother_factory as sf
 
-def get_pair(data, pair= True, target=None):
+def get_pair(data,ch=1):
+    """
+    get image pair from data, pair is concatenated by the channel
+    :param data: a dict, including {'img':, 'label':}
+    :param pair:
+    :param target: target image
+    :param ch: the num of input channel
+    :return: image BxCxXxYxZ, label BxCxXxYxZ
+    """
     if 'label' in data:
-        return data['image'][:,0:1], data['image'][:,1:2],data['label'][:,0:1],data['label'][:,1:2]
+        return data['image'][:,0:ch], data['image'][:,ch:2*ch],data['label'][:,0:ch],data['label'][:,ch:2*ch]
     else:
-        return data['image'][:,0:1], data['image'][:,1:2],None, None
+        return data['image'][:,0:ch], data['image'][:,ch:2*ch],None, None
 
 
 def sigmoid_explode(ep, static =5, k=5):
+    """
+    factor  increase with epoch, factor = (k + exp(ep / k))/k
+    :param ep: cur epoch
+    :param static: at the first #  epoch, the factor keep unchanged
+    :param k: the explode factor
+    :return:
+    """
     static = static
     if ep < static:
         return 1.
@@ -30,6 +45,13 @@ def sigmoid_explode(ep, static =5, k=5):
         return float(factor)
 
 def sigmoid_decay(ep, static =5, k=5):
+    """
+    factor  decease with epoch, factor = k/(k + exp(ep / k))
+    :param ep: cur epoch
+    :param static: at the first #  epoch, the factor keep unchanged
+    :param k: the decay factor
+    :return:
+    """
     static = static
     if ep < static:
         return float(1.)
@@ -40,10 +62,23 @@ def sigmoid_decay(ep, static =5, k=5):
 
 
 def factor_tuple(input,factor):
+    """
+    multiply a factor to each tuple elem
+    :param input:
+    :param factor:
+    :return:
+    """
     input_np = np.array(list(input))
     input_np = input_np*factor
     return tuple(list(input_np))
 def resize_spacing(img_sz,img_sp,factor):
+    """
+    compute the new spacing with regard to the image resampling factor
+    :param img_sz: img sz
+    :param img_sp: img spacing
+    :param factor: factor of resampling image
+    :return:
+    """
     img_sz_np = np.array(list(img_sz))
     img_sp_np = np.array(list(img_sp))
     new_sz_np = img_sz_np*factor
@@ -51,69 +86,21 @@ def resize_spacing(img_sz,img_sp,factor):
     return tuple(list(new_sp))
 
 
-def organize_data(moving, target, sched='depth_concat'):
-    if sched == 'depth_concat':
-        input = torch.cat([moving, target], dim=1)
-    elif sched == 'width_concat':
-        input = torch.cat((moving, target), dim=3)
-    elif sched =='list_concat':
-        input = torch.cat((moving.unsqueeze(0),target.unsqueeze(0)),dim=0)
-    return input
-
-
 def save_image_with_scale(path, variable):
-      arr = variable.cpu().data.numpy()
-      arr = np.clip(arr, -1., 1.)
-      arr = (arr+1.)/2 * 255.
-      arr = arr.astype(np.uint8)
-      skimage.io.imsave(path, arr)
+    """
+    the input variable is [-1,1], save into image
+    :param path: path to save
+    :param variable: variable to save, XxY
+    :return:
+    """
+
+    arr = variable.cpu().data.numpy()
+    arr = np.clip(arr, -1., 1.)
+    arr = (arr+1.)/2 * 255.
+    arr = arr.astype(np.uint8)
+    skimage.io.imsave(path, arr)
 
 
-def save_result(path, appendix, moving, target, reproduce):
-    if not os.path.exists(path):
-        os.makedirs(path)
-    for i in range(moving.size(0)):
-      save_image_with_scale(path+appendix+"_b{:02d}_moving.tif".format(i), moving[i,0,...])
-      save_image_with_scale(path+appendix+"_b{:02d}_target.tif".format(i), target[i,0,...])
-      save_image_with_scale(path+appendix+"_b{:02d}_reproduce.tif".format(i),reproduce[i,0,...])
-
-
-def unet_weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        if not m.weight is None:
-            nn.init.xavier_normal(m.weight.data)
-        if not m.bias is None:
-            nn.init.xavier_normal(m.bias.data)
-
-def vnet_weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv3d') != -1:
-        nn.init.kaiming_normal(m.weight)
-        m.bias.data.zero_()
-
-
-def save_checkpoint(state, is_best, path, prefix, filename='checkpoint.pth.tar'):
-    if not os.path.exists(path):
-        os.mkdir(path)
-    prefix_save = os.path.join(path, prefix)
-    name = '_'.join([prefix_save, filename])
-    torch.save(state, name)
-    if is_best:
-        torch.save(state, path + '/model_best.pth.tar')
-
-def CrossCorrelationLoss(input, target):
-    eps =1e-9
-    size_img = input.size()
-    input = input.view(size_img[0], size_img[1],-1)
-    target = target.view(size_img[0], size_img[1], -1)
-    m_input = input - torch.mean(input,dim=2, keepdim = True)
-    m_target = target - torch.mean(target, dim=2, keepdim = True)
-    cc = torch.sum(m_input * m_target, dim=2, keepdim=True)
-    norm = torch.sqrt(torch.sum(m_input**2, dim=2, keepdim=True)) * torch.sqrt(torch.sum(m_target**2, dim=2, keepdim=True))
-    ncc = cc/(norm +eps)
-    ncc = - torch.sum(ncc)/(size_img[0] * size_img[1])
-    return ncc
 
 
 
@@ -218,6 +205,13 @@ def lift_to_dimension(A,dim):
 
 
 def update_affine_param( cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2
+    """
+       update the current affine parameter A2 based on last affine parameter A1
+        A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b2, results in the composed affine parameter A3=(A2A1, A2*b1+b2)
+       :param cur_af: current affine parameter
+       :param last_af: last affine parameter
+       :return: composed affine parameter A3
+    """
     cur_af = cur_af.view(cur_af.shape[0], 4, 3)
     last_af = last_af.view(last_af.shape[0],4,3)
     updated_af = torch.zeros_like(cur_af.data).cuda()
@@ -240,6 +234,12 @@ def get_inverse_affine_param(affine_param):
     return inverse_param
 
 def gen_affine_map(Ab, img_sz, dim=3):
+    """
+       generate the affine transformation map with regard to affine parameter
+       :param Ab: affine parameter
+       :param img_sz: image sz  [X,Y,Z]
+       :return: affine transformation map
+    """
     Ab = Ab.view(Ab.shape[0], 4, 3)  # 3d: (batch,3)
     phi = gen_identity_map(img_sz)
     phi_cp = phi.view(dim, -1)
@@ -251,6 +251,14 @@ def gen_affine_map(Ab, img_sz, dim=3):
     return affine_map
 
 def get_warped_img_map_param( Ab, img_sz, moving, dim=3, zero_boundary=True):
+    """
+           generate the affine transformation map with regard to affine parameter
+           :param Ab: affine parameter
+           :param img_sz: image sz [X,Y,Z]
+           :param moving:  moving image BxCxXxYxZ
+           :param zero_boundary:  zero_boundary condition
+           :return: affine image, affine transformation map, affine parameter
+        """
     bilinear = Bilinear(zero_boundary)
     affine_map = gen_affine_map(Ab,img_sz,dim)
     output = bilinear(moving, affine_map)
@@ -258,7 +266,13 @@ def get_warped_img_map_param( Ab, img_sz, moving, dim=3, zero_boundary=True):
 
 
 
-def show_current_images_3d(iS,iT):
+def show_current_pair_by_3d_slice(iS,iT):
+    """
+    visualize the pair image by slice
+    :param iS: source image
+    :param iT: target image
+    :return:
+    """
     import matplotlib.pyplot as plt
     import model_pool.viewers as viewers
     fig, ax = plt.subplots(2,3)
@@ -390,6 +404,16 @@ def load_inital_weight_from_pt(path):
 
 
 def get_init_weight_from_label_map(lsource, spacing,default_multi_gaussian_weights,multi_gaussian_weights,weight_type='w_K_w'):
+    """
+    for rdmm model with spatial-variant regularizer, we initialize multi gaussian weight with regard to the label map
+    assume img sz BxCxXxYxZ and N gaussian smoothers are taken, the return weight map should be BxNxXxYxZ
+    :param lsource: label of the source image
+    :param spacing: image spacing
+    :param default_multi_gaussian_weights: multi-gaussian weight set for the background
+    :param multi_gaussian_weights: multi-gaussian weight set for the foreground( labeled region)
+    :param weight_type: either w_K_w or sqrt_w_K_sqrt_w
+    :return: weight map BxNxXxYxZ
+    """
     if type(lsource)==torch.Tensor:
         lsource = lsource.detach().cpu().numpy()
     sz = lsource.shape[2:]

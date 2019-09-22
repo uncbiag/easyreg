@@ -246,10 +246,9 @@ class BaseModel():
         """
         return self.get_val_res(detail=detail)
 
-    def get_extra_res(self):
+    def get_jacobi_val(self):
         """
-        get extra results, like the weight map in rdmm, from model during test
-        :return:
+        :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
         """
         return None
 
@@ -272,7 +271,7 @@ class BaseModel():
         save 3d output, i.e. moving, target and warped images,
         the propose of this function is for visualize the reg performance
         for toolkit based method, they will default save the 3d images, so no need to call this function
-        for mermaid related method, this function is for result analysis, for practice use, try "save_image_into_original_sz_with_given_reference",
+        for mermaid related method, this function is for result analysis, for original sz output, see "save_image_into_original_sz_with_given_reference",
         the physical information like  origin, orientation is not saved, todo, include this information
         :param phase: train|val|test|debug
         :return:

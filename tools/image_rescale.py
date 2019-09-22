@@ -80,17 +80,14 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(0.5,0.5,0.5), i
         return fpth
 
 
-def resample_warped_phi_and_image(source,phi,spacing, new_sz,using_file_list=True):
-    if using_file_list:
-        num_s = len(source)
-        s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source]
-        sz = [num_s,1]+list(s[0].shape)
-        source = np.stack(s,axis=0)
-        source = source.reshape(*sz)
-        source = MyTensor(source)
-
-
-    new_phi,new_spacing = resample_image( phi, spacing, new_sz, 1, zero_boundary=True)
+def resample_warped_phi_and_image(source,phi,spacing):
+    num_s = len(source)
+    s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source]
+    sz = [num_s,1]+list(s[0].shape)
+    source = np.stack(s,axis=0)
+    source = source.reshape(*sz)
+    source = MyTensor(source)
+    new_phi,new_spacing = resample_image( phi, spacing, sz, 1, zero_boundary=True)
     warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
     return new_phi, warped, new_spacing
 

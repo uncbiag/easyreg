@@ -83,18 +83,18 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
 
             loss,loss_detail = model.get_test_res(detail=True)
             running_test_score += loss * batch_size
-            extra_res  = model.get_extra_res()
-            if extra_res is not None:
-                jacobi_val_res += extra_res[0] * batch_size
-                jacobi_num_res += extra_res[1] * batch_size
-                records_jacobi_val_np[i] = extra_res[0]
-                records_jacobi_num_np[i] = extra_res[1]
+            jaocbi_res = model.get_jacobi_val()
+            if jaocbi_res is not None:
+                jacobi_val_res += jaocbi_res[0] * batch_size
+                jacobi_num_res += jaocbi_res[1] * batch_size
+                records_jacobi_val_np[i] = jaocbi_res[0]
+                records_jacobi_num_np[i] = jaocbi_res[1]
             records_score_np[i] = loss
             loss_detail_list += [loss_detail]
             print("id {} and current pair name is : {}".format(i,data[1]))
             print('the current running_score:{}'.format(loss))
             print('the current average running_score:{}'.format(running_test_score/(i+1)/batch_size))
-            print('the current jocobi is {}'.format(extra_res))
+            print('the current jacobi is {}'.format(jaocbi_res))
             print('the current averge jocobi val is {}'.format(jacobi_val_res/(i+1)/batch_size))
             print('the current averge jocobi num is {}'.format(jacobi_num_res/(i+1)/batch_size))
         test_score = running_test_score / len(dataloaders[phase].dataset)

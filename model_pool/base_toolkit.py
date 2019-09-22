@@ -31,7 +31,6 @@ class ToolkitBase(BaseModel):
         self.l_target = l_target
         self.input = input
         self.input_img_sz  = list(moving.shape)[2:]
-        self.original_im_sz = data[0]['original_sz']
         self.original_spacing = data[0]['original_spacing']
         self.fname_list = list(data[1])
         self.pair_path = data[0]['pair_path']
@@ -159,7 +158,10 @@ class ToolkitBase(BaseModel):
     def set_test(self):
         self.is_train = False
 
-    def get_extra_res(self):
+    def get_jacobi_val(self):
+        """
+        :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
+        """
         return self.jacobi_val
 
     def cal_val_errors(self):

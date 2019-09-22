@@ -95,6 +95,7 @@ class MermaidNet(nn.Module):
         self.clamp_thre =opt_mermaid[('clamp_thre',1.0,'clamp momentum into [-clamp_thre, clamp_thre]')]
         """clamp momentum into [-clamp_thre, clamp_thre]"""
         self.use_adaptive_smoother = False
+        self.print_loss_every_n_iter = 10 if self.is_train else 1
         self.using_sym_on = True
 
         if self.clamp_momentum:
@@ -295,7 +296,7 @@ class MermaidNet(nn.Module):
                                                                      self.mermaid_unit.get_variables_to_transfer_to_loss_function(),
                                                                      None)
         if not self.using_sym_on:
-            if self.print_count % 10 == 0 and cur_epoch>=0:
+            if self.print_count % self.print_loss_every_n_iter == 0 and cur_epoch>=0:
                 print('the loss_over_all:{} sim_energy:{}, reg_energy:{}'.format(loss_overall_energy.item(),
                                                                                    sim_energy.item(),
                                                                                    reg_energy.item()))
@@ -304,7 +305,7 @@ class MermaidNet(nn.Module):
             sym_factor = self.sym_factor  # min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
             loss_overall_energy = loss_overall_energy + sym_factor * sym_energy
             loss_overall_energy = loss_overall_energy + sym_factor * sym_energy
-            if self.print_count % 10 == 0 and cur_epoch >= 0:
+            if self.print_count % self.print_loss_every_n_iter == 0 and cur_epoch >= 0:
                 print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}'.format(
                     loss_overall_energy.item(),
                     sim_energy.item(),
@@ -522,9 +523,10 @@ class MermaidNet(nn.Module):
                 affine_map = (affine_map + 1) / 2.
                 inverse_map = None
                 if self.compute_inverse_map:
-                    affine_inverse = get_inverse_affine_param(affine_param)
-                    affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
-                    inverse_map = (affine_map_inverse + 1) / 2.
+                    # affine_inverse = get_inverse_affine_param(affine_param)
+                    # affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
+                    # inverse_map = (affine_map_inverse + 1) / 2.
+                    inverse_map = self.affine_net.get_inverse_map(use_01=True)
 
                 if self.using_physical_coord:
                     for i in range(self.dim):
@@ -603,9 +605,11 @@ class MermaidNet(nn.Module):
                 affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
                 inverse_map = None
                 if self.compute_inverse_map:
-                    affine_inverse = get_inverse_affine_param(affine_param)
-                    affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
-                    inverse_map = (affine_map_inverse + 1) / 2.
+                    # affine_inverse = get_inverse_affine_param(affine_param)
+                    # affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
+                    # inverse_map = (affine_map_inverse + 1) / 2.
+                    inverse_map = self.affine_net.get_inverse_map(use_01=True)
+
 
                 if self.using_physical_coord:
                     for i in range(self.dim):

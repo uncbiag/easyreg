@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 registration network described in voxelmorph
-An experimental pytorch implemetation on https://github.com/voxelmorph/voxelmorph
+An experimental pytorch implemetation refers to https://github.com/voxelmorph/voxelmorph
 
 An Unsupervised Learning Model for Deformable Medical Image Registration
 Guha Balakrishnan, Amy Zhao, Mert R. Sabuncu, John Guttag, Adrian V. Dalca

@@ -38,7 +38,7 @@ def train_model(opt,model, dataloaders,writer):
     if resume_training:
         start_epoch, best_prec1, global_step=resume_train(model_path, model.network,model.optimizer)
         if continue_train_lr > 0:
-            model.adjust_learning_rate(continue_train_lr)
+            model.update_learning_rate(continue_train_lr)
             print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
         if load_model_but_train_from_begin:
             start_epoch=load_model_but_train_from_epoch
@@ -62,7 +62,7 @@ def train_model(opt,model, dataloaders,writer):
         print('-' * 10)
         model.set_cur_epoch(epoch)
         if epoch == warmming_up_epoch:
-            model.adjust_learning_rate()
+            model.update_learning_rate()
 
         for phase in phases:
             # if is not training phase, and not the #*val_period , then break

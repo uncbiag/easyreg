@@ -277,6 +277,41 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
         return updated_af
 
+    def get_inverse_affine_param(self, affine_param):
+        """
+        A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1
+        """
+        affine_param = affine_param.view(affine_param.shape[0], 4, 3)
+        inverse_param = torch.zeros_like(affine_param.data).cuda()
+        for n in range(affine_param.shape[0]):
+            tm_inv = torch.inverse(affine_param[n, :3,:])
+            inverse_param[n, :3, :] = tm_inv
+            inverse_param[n, :, 3] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+        inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
+        return inverse_param
+
+    def __get_inverse_map(self):
+        sym_on = self.epoch>= self.epoch_activate_sym
+        affine_param  = self.affine_param[0] if sym_on else self.affine_param
+        inverse_affine_param = self.get_inverse_affine_param(affine_param)
+        inverse_map = self.gen_affine_map(inverse_affine_param)
+        return inverse_map
+
+    def get_inverse_map(self,use_01=False):
+        """
+        get the inverse map
+        :param use_01: if ture, get the map in [0,1] else in [-1,1]
+        :return: the inverse map
+        """
+        inverse_map = self.__get_inverse_map()
+        if self.inverse_map is None:
+            if use_01:
+                return (inverse_map+1)/2
+            else:
+                return inverse_map
+        else:
+            return None
+
     def gen_identity_ap(self):
         """
         get the idenityt affine parameter

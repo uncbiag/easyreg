@@ -7,6 +7,7 @@ ffi = FFI()
 from lib._ext import nn_interpolation
 
 def nn_interpolation_fn_sel(input1, input2, output, ndim, device_c):
+    """ select corresponding 1d,2d,3d cuda version nearest interpolation, (disabled after torch0.4)"""
     if ndim == 1:
         nn_interpolation.nearestNeighBCW_updateOutput_cuda_1D(input1, input2, output, device_c)
     elif ndim == 2:
@@ -17,6 +18,12 @@ def nn_interpolation_fn_sel(input1, input2, output, ndim, device_c):
 
 
 def get_nn_interpolation(input1, input2):
+    """
+    call cuda version nearest interpolation, (disabled after torch0.4)
+    :param input1: Tensor, BxCxXxYxZ image to be interpolate
+    :param input2: Tensor, BxDimxXxYxZ mesh coordinates
+    :return: interpolated values
+    """
     device_c = ffi.new("int *")
     ndim = len(input1.size())-2
     if ndim == 1:

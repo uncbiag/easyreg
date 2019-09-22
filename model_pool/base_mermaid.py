@@ -20,6 +20,7 @@ class MermaidBase(BaseModel):
         :return:
         """
         BaseModel.initialize(self,opt)
+        self.affine_on = False
         self.nonp_on = False
         self.afimg_or_afparam = None
         self.save_extra_3d_img = opt['tsk_opt'][('save_extra_3d_img',False,'save extra image')]
@@ -141,6 +142,11 @@ class MermaidBase(BaseModel):
 
 
     def save_fig(self,phase):
+        """
+        save 2d center slice from x,y, z axis, for moving, target, warped, l_moving (optional), l_target(optional), (l_warped)
+        :param phase: train|val|test|debug
+        :return:
+        """
         from model_pool.visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False
@@ -156,7 +162,7 @@ class MermaidBase(BaseModel):
         extraImage, extraName = self.get_extra_to_plot()
 
         if self.save_extra_3d_img and extraImage is not None:
-            self.save_extra_3d_img(extraImage,extraName)
+            self.save_extra_img(extraImage,extraName)
 
         if self.afimg_or_afparam is not None and len(self.afimg_or_afparam.shape)>2 and not self.nonp_on:
             raise ValueError("displacement field is removed from current version")
@@ -175,14 +181,20 @@ class MermaidBase(BaseModel):
                             visual_param=visual_param,extraImages=extraImage, extraName= extraName)
 
 
-    def _save_image_into_original_sz_with_given_reference(self, pair_path,original_img_sz, phi, inverse_phi=None, use_01=False):
-        num_batch = self.moving.shape[0]
-        img_sz_new = [num_batch,1]+list(t2np((original_img_sz)))
+    def _save_image_into_original_sz_with_given_reference(self, pair_path, phi, inverse_phi=None, use_01=False):
+        """
+        the images (moving, target, warped, transformation map, inverse transformation map world coord[0,1] ) are saved in record_path/original_sz
+        :param pair_path: list, moving image path, target image path
+        :param phi: transformation map
+        :param inverse_phi: inverse transformation map
+        :param use_01: indicate the transformation use [0,1] coord or [-1,1] coord
+        :return:
+        """
         spacing = self.spacing
         moving_list = pair_path[0]
         target_list =pair_path[1]
         phi = (phi+1)/2. if not use_01 else phi
-        new_phi, warped, new_spacing =ires.resample_warped_phi_and_image(moving_list, phi,spacing,img_sz_new)
+        new_phi, warped, new_spacing =ires.resample_warped_phi_and_image(moving_list, phi,spacing)
 
         saving_original_sz_path = os.path.join(self.record_path,'original_sz')
         os.makedirs(saving_original_sz_path,exist_ok=True)
@@ -198,7 +210,7 @@ class MermaidBase(BaseModel):
         ires.save_image_with_given_reference(None,reference_list, saving_original_sz_path, fname_list)
         if inverse_phi is not None:
             inverse_phi = (inverse_phi +1)/2. if not use_01 else inverse_phi
-            new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing,img_sz_new)
+            new_inv_phi, inv_warped, _ =ires.resample_warped_phi_and_image(target_list, inverse_phi,spacing)
             fname_list = [fname + '_inv' for fname in self.fname_list]
             ires.save_transfrom(new_inv_phi, self.spacing, saving_original_sz_path, fname_list)
             fname_list = [fname + '_inv_warped' for fname in self.fname_list]
@@ -207,12 +219,21 @@ class MermaidBase(BaseModel):
 
 
 
-    def save_extra_3d_img(self, img, title):
+    def save_extra_img(self, img, title):
+        """
+        the propose of this function is for visualize the reg performance
+        the extra image not include moving, target, warped, transformation map, which can refers to save save_fig_3D, save_deformation
+        this function is for result analysis, for the saved image sz is equal to input_sz
+        the physical information like  origin, orientation is not saved, todo, include this information
+
+        :param img:
+        :param title:
+        :return:
+        """
         import SimpleITK as sitk
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))
         input_img_sz = self.input_img_sz # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-
         img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
@@ -220,6 +241,30 @@ class MermaidBase(BaseModel):
             fpath = os.path.join(self.record_path,
                                  self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
             img_to_save = sitk.GetImageFromArray(img_to_save)
+            img_to_save.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(img_to_save, fpath)
+
+
+
+    def save_deformation(self):
+        """
+
+        :return:
+        """
+        if not self.affine_on:
+            import nibabel as nib
+            phi_np = self.phi.detach().cpu().numpy()
+            phi_np = (phi_np+1.)/2.  # normalize the phi into 0, 1
+            for i in range(phi_np.shape[0]):
+                phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+                nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
+        else:
+            # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
+            affine_param = self.afimg_or_afparam
+            if isinstance(affine_param,list):
+                affine_param = self.afimg_or_afparam[0]
+            affine_param = affine_param.detach().cpu().numpy()
+            for i in range(affine_param.shape[0]):
+                np.save( os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy',affine_param[i])
 
 

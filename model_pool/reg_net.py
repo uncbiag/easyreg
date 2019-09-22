@@ -17,41 +17,62 @@ model_pool = {
 
 
 class RegNet(MermaidBase):
+    """registration network class"""
 
     def name(self):
-        return 'reg-unet'
+        return 'reg-net'
 
     def initialize(self,opt):
+        """
+        initialize variable settings of RegNet
+        :param opt: ParameterDict, task settings
+        :return:
+        """
         MermaidBase.initialize(self,opt)
         self.print_val_detail = opt['tsk_set']['print_val_detail']
+        """ if true, print performance of each structure; false: print average performance of structures"""
         input_img_sz = opt['dataset']['img_after_resize']
         self.input_img_sz = input_img_sz
-        self.spacing = np.asarray(opt['dataset']['spacing_to_refer']) if self.use_physical_coord else 1. / (np.array(input_img_sz) - 1)
-        self.spacing = normalize_spacing(self.spacing,self.input_img_sz) if self.use_physical_coord else self.spacing
+        """ the input image sz of the network"""
+        self.spacing = normalize_spacing(opt['dataset']['spacing_to_refer'],self.input_img_sz) if self.use_physical_coord else 1. / (np.array(input_img_sz) - 1)
+        """ image spacing"""
         network_name =opt['tsk_set']['network_name']
         self.affine_on = True if 'affine' in network_name else False
-        self.nonp_on = True if 'mermaid' in network_name else False
-        self.using_affine_sym = True if self.affine_on and 'sym' in network_name else False
+        """ perform affine registrtion, if affine is in the network name"""
+        self.nonp_on = not self.affine_on
+        """ perform affine and nonparametric registration, if mermaid is in the network name"""
         self.network = model_pool[network_name](input_img_sz, opt)
+        """create network model"""
         #self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
+        """update the gradient every # iter"""
         loss_fn = Loss(opt)
         self.network.set_loss_fn(loss_fn)
         self.opt_optim = opt['tsk_set']['optim']
+        """settings for the optimizer"""
         self.init_optimize_instance(warmming_up=True)
+        """initialize the optimizer and scheduler"""
         self.step_count =0.
+        """ count of the step"""
         self.use_01 = False
+        """ the map is normalized to [-1,1] in registration net, todo normalized into [0,1], to be consisitent with mermaid """
         print('---------- Networks initialized -------------')
         print_network(self.network)
         print('-----------------------------------------------')
 
 
     def init_optimize_instance(self, warmming_up=False):
+        """ get optimizer and scheduler instance"""
         self.optimizer, self.lr_scheduler, self.exp_lr_scheduler = self.init_optim(self.opt_optim,self.network,
                                                                                    warmming_up=warmming_up)
 
 
-    def adjust_learning_rate(self, new_lr=-1):
+    def update_learning_rate(self, new_lr=-1):
+        """
+        set new learning rate
+        :param new_lr: new learning rate
+        :return:
+        """
         if new_lr<0:
             lr = self.opt_optim['lr']
         else:
@@ -62,6 +83,11 @@ class RegNet(MermaidBase):
 
 
     def set_input(self, data, is_train=True):
+        """
+        :param data:
+        :param is_train:
+        :return:
+        """
         img_and_label, self.fname_list = data
         self.pair_path = data[0]['pair_path']
         img_and_label['image'] =img_and_label['image'].cuda()
@@ -72,7 +98,6 @@ class RegNet(MermaidBase):
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
-        self.original_im_sz = data[0]['original_sz']
         self.original_spacing = data[0]['original_spacing']
 
 
@@ -86,10 +111,15 @@ class RegNet(MermaidBase):
         loss.backward()
 
     def get_debug_info(self):
+        """ get filename of the failed cases"""
         info = {'file_name':self.fname_list}
         return info
 
     def forward(self, input=None):
+        """
+        :param input(not used )
+        :return: warped image intensity with [-1,1], transformation map defined in [-1,1], affine image if nonparameteric reg else affine parameter
+        """
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
         output, phi, afimg_or_afparam= self.network.forward(self.moving, self.target)
@@ -98,6 +128,11 @@ class RegNet(MermaidBase):
         return output, phi, afimg_or_afparam, loss
 
     def optimize_parameters(self,input=None):
+        """
+        forward and backward the model, optimize parameters and manage the learning rate
+        :param input: input(not used)
+        :return:
+        """
         self.iter_count+=1
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
@@ -111,7 +146,7 @@ class RegNet(MermaidBase):
             self.optimizer.zero_grad()
         update_lr, lr = self.network.check_if_update_lr()
         if update_lr:
-            self.adjust_learning_rate(lr)
+            self.update_learning_rate(lr)
 
 
     def get_current_errors(self):
@@ -120,36 +155,33 @@ class RegNet(MermaidBase):
 
 
 
-    def get_extra_res(self):
+    def get_jacobi_val(self):
+        """
+        :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
+
+        """
         return self.jacobi_val
 
 
     def save_image_into_original_sz_with_given_reference(self):
+        """
+        save the image into original image sz and physical coordinate, the path of reference image should be given
+        :return:
+        """
         inverse_phi = self.network.get_inverse_map(use_01=self.use_01)
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0], self.phi, inverse_phi=inverse_phi, use_01=self.use_01)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phi=inverse_phi, use_01=self.use_01)
 
 
     def get_extra_to_plot(self):
+        """
+        extra image to be visualized
+        :return: image (BxCxXxYxZ), name
+        """
         return self.network.get_extra_to_plot()
 
 
 
-    def save_deformation(self):
-        if not self.affine_on:
-            import nibabel as nib
-            phi_np = self.phi.detach().cpu().numpy()
-            phi_np = (phi_np+1.)/2.  # normalize the phi into 0, 1
-            for i in range(phi_np.shape[0]):
-                phi = nib.Nifti1Image(phi_np[i], np.eye(4))
-                nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
-        else:
-            # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
-            affine_param = self.afimg_or_afparam
-            if isinstance(affine_param,list):
-                affine_param = self.afimg_or_afparam[0]
-            affine_param = affine_param.detach().cpu().numpy()
-            for i in range(affine_param.shape[0]):
-                np.save( os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy',affine_param[i])
+
 
 
     def set_train(self):

@@ -50,7 +50,6 @@ class MermaidIter(MermaidBase):
         moving, target, l_moving,l_target = get_pair(data[0])
         input = data[0]['image']
         self.input_img_sz  = list(moving.shape)[2:]
-        self.original_im_sz = data[0]['original_sz']
         self.original_spacing = data[0]['original_spacing']
         self.spacing = data[0]['spacing'][0] if self.use_physical_coord else 1. / (np.array(self.input_img_sz) - 1)
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
@@ -171,7 +170,7 @@ class MermaidIter(MermaidBase):
         :return:
         """
         # the original image sz in one batch should be the same
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.original_im_sz[0],self.phi, inverse_phi=self.inversed_map, use_01=self.use_01)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path,self.phi, inverse_phi=self.inversed_map, use_01=self.use_01)
 
 
 
@@ -193,7 +192,10 @@ class MermaidIter(MermaidBase):
 
 
 
-    def get_extra_res(self):
+    def get_jacobi_val(self):
+        """
+        :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
+        """
         return self.jacobi_val
 
     def get_the_jacobi_val(self):
