@@ -86,14 +86,14 @@ class PatientPair(object):
         inv_map, img_sz = self.get_transform_map()
         spacing = 1. / (img_sz - 1)
         norm_mesh_list = self.normalize_mesh(mesh_list, spacing)
-        norm_mesh_np = np.array(norm_mesh_list)
-        norm_mesh_np = np.transpose(norm_mesh_np)
+        norm_mesh_np = np.array(norm_mesh_list) # N*3
+        norm_mesh_np = np.transpose(norm_mesh_np) # 3*N
         norm_mesh = MyTensor(norm_mesh_np).view([1, 3, -1, 1, 1])*2-1
         warped_mesh = compute_warped_image_multiNC(inv_map, norm_mesh, spacing, spline_order=1, zero_boundary=False,
                                            use_01_input=False)
 
         warped_mesh_np = warped_mesh.cpu().numpy()[0,:,:,0,0]
-        warped_mesh_np = np.transpose(warped_mesh_np)
+        warped_mesh_np = np.transpose(warped_mesh_np)# N*3
         warped_mesh_orig_np = self.get_mesh_in_original_space(warped_mesh_np, spacing)
         warped_mesh_original_list = [warped_mesh_orig_np[i] for i in range(len(mesh_list))]
         return warped_mesh_original_list

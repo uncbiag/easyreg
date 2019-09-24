@@ -25,7 +25,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functions.bilinear import *
 from mermaid.libraries.modules import stn_nd
-from toremove.global_variable import *
+from backup.global_variable import *
 
 class convBlock(nn.Module):
     """

@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 # from builtins import str
 # from builtins import range
-from toremove.global_variable import is_lung
+from backup.global_variable import is_lung
 
 from data_pre.reg_data_utils import make_dir
 #from .config_parser import MATPLOTLIB_AGG
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from model_pool import utils
-from toremove import viewers
+from backup import viewers
 
 dpi=500
 extension= '.png'

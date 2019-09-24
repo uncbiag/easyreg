@@ -1,7 +1,7 @@
 
 
 from .base_toolkit import ToolkitBase
-from model_pool.ants_reg_utils import *
+from model_pool.ants_utils import *
 
 class AntsRegIter(ToolkitBase):
     """
@@ -16,6 +16,7 @@ class AntsRegIter(ToolkitBase):
         initialize the ants registration
         mehtod support: "affine", "syn"
         * the "syn" include affine as preproccessing
+
         :param opt: task opt settings
         :return: None
         """
@@ -34,6 +35,7 @@ class AntsRegIter(ToolkitBase):
         """
         run the affine optimization
         the results, including warped image, warped label, transformation map, etc. take the ants format and saved in record path
+
         :return: warped image, warped label(None), transformation map(None)
         """
         output, loutput, phi,_ = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
@@ -49,6 +51,7 @@ class AntsRegIter(ToolkitBase):
         """
         run the syn optimization
         the results, including warped image, warped label, transformation map, etc. take the ants format and saved in record path
+
         :return: warped image, warped label(None), transformation map(None)
         """
         output, loutput, disp,jacobian = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
@@ -65,6 +68,7 @@ class AntsRegIter(ToolkitBase):
     def forward(self,input=None):
         """
         forward the model
+
         :param input:
         :return:
         """
@@ -81,6 +85,7 @@ class AntsRegIter(ToolkitBase):
         In ants, negative jacobi are set to zero,
         we compute the num of zero jacobi instead
         the jacobi_abs_sum is not used here
+
         :param jacobian:
         :return:
         """

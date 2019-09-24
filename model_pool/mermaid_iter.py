@@ -267,21 +267,6 @@ class MermaidIter(MermaidBase):
 
 
 
-
-
-    def save_deformation(self):
-        """ The deformation is saved in 0-1 form, not physical form
-         """
-        import nibabel as nib
-        phi_np = self.phi.detach().cpu().numpy()
-
-        for i in range(self.dim):
-            phi_np[:,i,...] = phi_np[:,i,...]/ ((self.input_img_sz[i]-1)*self.spacing[i])
-        for i in range(phi_np.shape[0]):
-            phi = nib.Nifti1Image(phi_np[i], np.eye(4))
-            nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
-
-
     def set_val(self):
         self.is_train = False
 

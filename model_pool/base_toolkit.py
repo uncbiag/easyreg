@@ -1,4 +1,4 @@
-from .base_model import BaseModel
+from .base_model import ModelBase
 from model_pool.utils import *
 import SimpleITK as sitk
 from .metrics import get_multi_metric
@@ -8,12 +8,12 @@ from .metrics import get_multi_metric
 
 
 
-class ToolkitBase(BaseModel):
+class ToolkitBase(ModelBase):
     """
     generalize toolkit class  i.e. ants, demons and niftyreg
     """
     def initialize(self, opt):
-        BaseModel.initialize(self, opt)
+        ModelBase.initialize(self, opt)
         network_name = opt['tsk_set']['network_name']
         self.network_name = network_name
         self.affine_on = False
@@ -96,6 +96,7 @@ class ToolkitBase(BaseModel):
     def save_fig(self,phase):
         """
         save 2d center slice from x,y, z axis, for moving, target, warped, l_moving (optional), l_target(optional), (l_warped)
+
         :param phase:
         :return:
         """
@@ -127,13 +128,14 @@ class ToolkitBase(BaseModel):
     def get_evaluation(self):
         """
         evaluate the transformation by compute overlap on label map and folding in transformation
+
         :return:
         """
         self.output, _,_= self.forward(input=None)
         if self.l_moving is not None:
             warped_label_map_np= self.warped_label_map
-            self.l_target_np= self.l_target.detach().cpu().numpy()
-            self.val_res_dic = get_multi_metric(warped_label_map_np, self.l_target_np,rm_bg=False)
+            l_target_np= self.l_target.detach().cpu().numpy()
+            self.val_res_dic = get_multi_metric(warped_label_map_np, l_target_np,rm_bg=False)
         self.jacobi_val= None
         self.jacobi_val = self.compute_jacobi_map(self.jacobian)
         print(" the current jcobi value of the phi is {}".format(self.jacobi_val))
@@ -141,6 +143,7 @@ class ToolkitBase(BaseModel):
     def save_image_into_original_sz_with_given_reference(self):
         """
          not implemented yet for Ants/ Demons/Niftyreg
+
         :return:
         """
         try:

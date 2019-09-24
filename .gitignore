@@ -16,4 +16,5 @@
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 ./demo/demo_saved_models
-toremove/llf
+backup/llf
+/doc/build/

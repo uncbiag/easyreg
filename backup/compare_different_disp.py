@@ -14,7 +14,7 @@ import mermaid.multiscale_optimizer as MO
 import mermaid.smoother_factory as SF
 from model_pool.nifty_reg_utils import performRegistration
 import ants
-from model_pool.ants_reg_utils import performAntsRegistration
+from model_pool.ants_utils import performAntsRegistration
 #from model_pool.demo_for_demons import multiscale_demons
 params = pars.ParameterDict()
 params.load_JSON('../mermaid/test/json/svf_momentum_base_config.json')

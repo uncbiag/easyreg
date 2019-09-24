@@ -4,10 +4,7 @@ from model_pool.utils import *
 import mermaid.utils as py_utils
 from mermaid.data_wrapper import MyTensor
 
-def factor_tuple(input,factor):
-    input_np = np.array(list(input))
-    input_np = input_np*factor
-    return tuple(list(input_np))
+
 
 def __read_and_clean_itk_info(input):
     if isinstance(input,str):

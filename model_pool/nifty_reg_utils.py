@@ -8,6 +8,7 @@ import nibabel as nib
 def nifty_reg_bspline(nifty_bin, nifty_reg_cmd, ref, flo, res=None, cpp=None, rmask=None, fmask=None, levels=None,aff= None):
     """
     call bspline registration in niftyreg
+
     :param nifty_bin: the path of niftyreg bin
     :param nifty_reg_cmd: nifty reg bspline command
     :param ref:
@@ -37,6 +38,7 @@ def nifty_reg_bspline(nifty_bin, nifty_reg_cmd, ref, flo, res=None, cpp=None, rm
 def nifty_reg_affine(nifty_bin, ref, flo, res=None, aff=None, rmask=None, fmask=None, symmetric=True, init='center'):
     """
     call affine registration in niftyreg
+
     :param nifty_bin: the path of niftyreg bin
     :param ref:
     :param flo:
@@ -64,6 +66,7 @@ def nifty_reg_transform(nifty_bin, ref=None, ref2=None, invAff1=None, invAff2=No
                         comp3=None):
     """
     call niftyreg transform, see niftyreg doc, http://cmictig.cs.ucl.ac.uk/wiki/index.php/Reg_transform
+
     :param nifty_bin: the path of nifityreg bin
     :return:
     """
@@ -90,6 +93,7 @@ def nifty_reg_transform(nifty_bin, ref=None, ref2=None, invAff1=None, invAff2=No
 def nifty_reg_resample(nifty_bin, ref, flo, trans=None, res=None, inter=None, pad=0):
     """
     call niftyreg resample http://cmictig.cs.ucl.ac.uk/wiki/index.php/Reg_resample
+
     :param nifty_bin:  the path of nifityreg bin
     :param ref:
     :param flo:
@@ -112,6 +116,7 @@ def nifty_reg_resample(nifty_bin, ref, flo, trans=None, res=None, inter=None, pa
 def nifty_reg_jacobian(nifty_bin, ref, trans=None, res=None):
     """
     call nifty reg compute jacobian
+
     :param nifty_bin: the path of niftyreg bin
     :param ref: path of reference image
     :param trans: path of transformation
@@ -127,6 +132,7 @@ def nifty_reg_jacobian(nifty_bin, ref, trans=None, res=None):
 def nifty_read(path):
     """
     read image
+
     :param path:
     :return:
     """
@@ -136,6 +142,7 @@ def nifty_read(path):
 def expand_batch_ch_dim(input):
     """
     expand dimension [1,1] +[x,y,z]
+
     :param input: numpy array
     :return:
     """
@@ -151,6 +158,7 @@ def expand_batch_ch_dim(input):
 def performRegistration(param, mv_path, target_path, registration_type='bspline', record_path = None, ml_path=None,fname = ''):
     """
     call niftyreg image registration
+
     :param param: ParameterDict, settings for niftyreg
     :param mv_path: path of moving image
     :param target_path: path of target image

@@ -44,6 +44,7 @@ class NiftyRegIter(ToolkitBase):
     def bspline_optimization(self):
         """
         call bspline optimization registration from niftyreg (include nifty affine)
+
         :return: warped image, transformation map (disabled), affine image(disabled)
         """
         output, loutput, phi,jacobian = performRegistration(self.nifty_reg_param,self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
@@ -69,6 +70,7 @@ class NiftyRegIter(ToolkitBase):
     def compute_jacobi_map(self,jacobian):
         """
         compute the  negative determinant jaocbi of the transformation map
+
         :param jacobian: the determinant jacobi compute by the niftyreg toolkit
         :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
         """

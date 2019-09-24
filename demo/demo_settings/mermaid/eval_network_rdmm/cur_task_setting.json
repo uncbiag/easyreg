@@ -23,7 +23,7 @@
         "train": false,
         "model": "reg_net",
         "model_folder_path": "",
-        "model_path": "./demo_saved_models/mermaid/network_rdmm/model",
+        "model_path": "./demo_saved_models/mermaid/eval_network_rdmm/model",
         "n_in_channel": 1,
         "network_name": "mermaid",
         "optim": {
@@ -62,7 +62,7 @@
             "compute_inverse_map": false,
             "mermaid_net": {
                 "affine_init_path": "",
-                "mermaid_net_json_pth": "./demo_settings/mermaid/network_rdmm/mermaid_nonp_settings.json",
+                "mermaid_net_json_pth": "./demo_settings/mermaid/eval_network_rdmm/mermaid_nonp_settings.json",
                 "num_step": 2,
                 "optimize_momentum_network": false,
                 "sym_factor": 500,

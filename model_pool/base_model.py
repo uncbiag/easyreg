@@ -1,17 +1,16 @@
 
 from model_pool.utils import *
-import torch.optim.lr_scheduler as lr_scheduler
 import SimpleITK as sitk
 
 
 
 
-class BaseModel():
+class ModelBase():
     """
     the base class for image registration
     """
     def name(self):
-        return 'BaseModel'
+        return 'ModelBase'
 
     def initialize(self, opt):
         """
@@ -120,44 +119,7 @@ class BaseModel():
         """
         pass
 
-    def init_optim(self, opt,network, warmming_up = False):
-        """
-        set optimizers and scheduler
-        :param opt: settings on optimizer
-        :param network: model with learnable parameters
-        :param warmming_up: if set as warmming up
-        :return: optimizer, custom scheduler, plateau scheduler
-        """
-        optimize_name = opt['optim_type']
-        if not warmming_up:
-            lr = opt['lr']
-            print(" no warming up the learning rate is {}".format(lr))
-        else:
-            lr = 5e-4
-            print(" warming up on the learning rate is {}".format(lr))
-        beta = opt['adam']['beta']
-        lr_sched_opt = opt['lr_scheduler']
-        self.lr_sched_type = lr_sched_opt['type']
-        if optimize_name == 'adam':
-            re_optimizer = torch.optim.Adam(network.parameters(), lr=lr, betas=(beta, 0.999))
-        else:
-            re_optimizer = torch.optim.SGD(network.parameters(), lr=lr)
-        re_optimizer.zero_grad()
-        re_lr_scheduler = None
-        re_exp_lr_scheduler = None
-        if self.lr_sched_type == 'custom':
-            step_size = lr_sched_opt['custom']['step_size']
-            gamma = lr_sched_opt['custom']['gamma']
-            re_lr_scheduler = torch.optim.lr_scheduler.StepLR(re_optimizer, step_size=step_size, gamma=gamma)
-        elif self.lr_sched_type == 'plateau':
-            patience = lr_sched_opt['plateau']['patience']
-            factor = lr_sched_opt['plateau']['factor']
-            threshold = lr_sched_opt['plateau']['threshold']
-            min_lr = lr_sched_opt['plateau']['min_lr']
-            re_exp_lr_scheduler = lr_scheduler.ReduceLROnPlateau(re_optimizer, mode='min', patience=patience,
-                                                                   factor=factor, verbose=True,
-                                                                   threshold=threshold, min_lr=min_lr)
-        return re_optimizer,re_lr_scheduler,re_exp_lr_scheduler
+
 
 
     def get_debug_info(self):

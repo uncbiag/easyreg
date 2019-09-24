@@ -2,7 +2,7 @@ import os
 import nibabel as nib
 import SimpleITK as sitk
 import torch
-from toremove.visualize_registration_results import show_current_images
+from backup.visualize_registration_results import show_current_images
 
 
 def read_img(path,is_sitk=True,is_viz=False):

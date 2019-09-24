@@ -4,7 +4,7 @@ from __future__ import print_function
 
 
 from model_pool.net_utils import *
-from toremove.global_variable import is_oai,is_oasis
+from backup.global_variable import is_oai,is_oasis
 #from mermaid.forward_models import RHSLibrary
 
 
@@ -174,7 +174,6 @@ class MomentumGen_im(nn.Module):
             self.up_path_2_3 = conv_bn_rel(16, 3, 3, stride=1, active_unit='None', same_padding=True)
 
     def forward(self, x):
-        output = None
         d1 = self.down_path_1(x)
         d2_1 = self.down_path_2_1(d1)
         d2_2 = self.down_path_2_2(d2_1)

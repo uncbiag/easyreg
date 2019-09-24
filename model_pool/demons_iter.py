@@ -22,6 +22,7 @@ class DemonsRegIter(ToolkitBase):
         initialize the demons registration
         mehtod support: "demons"
         * the "demons" include niftyreg affine as preproccessing
+
         :param opt: task opt settings
         :return: None
         """
@@ -41,6 +42,7 @@ class DemonsRegIter(ToolkitBase):
         """
         run the demons optimization
         the results, including warped image, warped label, transformation map, etc. take the demons format and saved in record path
+
         :return: warped image, warped label(None), transformation map(None)
         """
         output, loutput, phi,jacobian = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
@@ -69,6 +71,7 @@ class DemonsRegIter(ToolkitBase):
     def compute_jacobi_map(self,jacobian):
         """
         compute the jacobi statistics
+
         :param jacobian: jacob determinant  map of the transformation map
         :return:the abs sum of the negative determinate, the num of negative determinate voxel
         """

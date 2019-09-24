@@ -28,7 +28,7 @@ class Test_Networks(unittest.TestCase):
 
     def test_vsvf_network(self):
         output_path = os.path.join(self.output_folder,'test_vsvf_net')
-        cmd = '{} demo_for_easyreg_eval.py --run_demo --demo_name=network_vsvf -txt={} -o={} -g={}'.\
+        cmd = '{} demo_for_easyreg_eval.py --run_demo --demo_name=eval_network_vsvf -txt={} -o={} -g={}'.\
             format(self.python_executable, self.input_pair_txt_path, output_path, self.gpu_id)
         process = subprocess.Popen(cmd, cwd=self.demo_dir, shell=True)
         process.wait()
@@ -39,7 +39,7 @@ class Test_Networks(unittest.TestCase):
 
     def test_rdmm_network(self):
         output_path = os.path.join(self.output_folder,'test_rdmm_net')
-        cmd = '{} demo_for_easyreg_eval.py --run_demo --demo_name=network_rdmm -txt={} -o={} -g={}'. \
+        cmd = '{} demo_for_easyreg_eval.py --run_demo --demo_name=eval_network_rdmm -txt={} -o={} -g={}'. \
             format(self.python_executable, self.input_pair_txt_path, output_path, self.gpu_id)
         process = subprocess.Popen(cmd, cwd=self.demo_dir, shell=True)
         process.wait()

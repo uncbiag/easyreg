@@ -6,13 +6,12 @@ sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
 print(sys.path)
-from toremove.global_variable import *
+from backup.global_variable import *
 import data_pre.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name
+from data_pre.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
 import numpy as np
-from data_pre.reg_data_utils import loading_img_list_from_files
 
 class BaseTask():
     __metaclass__ = ABCMeta
@@ -120,7 +119,7 @@ parser.add_argument('--gpu', required=False, type=int, default=0,
                     help='give the id to run the gpu')
 parser.add_argument('--llf', required=False, type=bool, default=False,
                     help='run on long leaf')
-parser.add_argument('--task_name', required=False, default='non_name',
+parser.add_argument('--task_name', required=False, default='affine_7step_visual',
                     help='run on long leaf')
 parser.add_argument('--mermaid_net_json_pth', required=False,default='mermaid_settings/cur_settings_adpt_lddmm_for_oai_opt.json',
                     help='run on long leaf')
@@ -196,10 +195,11 @@ if optional_setting_on:
     """ the following settings are optional, if you want do something different than the loaded setting"""
     ############################### general settings ##########################
 
-    tsm.task_par['tsk_set']['network_name'] ='svf'
-    tsm.task_par['tsk_set']['model'] = 'mermaid_iter'
+    tsm.task_par['tsk_set']['network_name'] ='affine_cycle'
+    tsm.task_par['tsk_set']['model'] = 'reg_net'
     tsm.task_par['tsk_set']['batch_sz'] = 2  # multi sample registration is only for mermaid based methods, for other methods should always be 1
-    tsm.task_par['tsk_set']['model_path'] =''# '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_adpt_lddamm_wkw_formul_025_1_omt_2step_500sym_allinterp_prew_new/checkpoints/epoch_145_'
+    tsm.task_par['tsk_set']['model_path'] =os.path.join(train_path,'train_affine_net_sym_lncc/checkpoints/epoch_1070_')
+        # '/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_adpt_lddamm_wkw_formul_025_1_omt_2step_500sym_allinterp_prew_new/checkpoints/epoch_145_'
         #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_reg10_old_2step/checkpoints/epoch_130_'
         #'/playpen/zyshen/data/reg_debug_3000_pair_oai_reg_inter/train_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/checkpoints/epoch_110_'
         #'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_svf_baseline_continue_rk4_old/checkpoints/epoch_100_'

@@ -7,12 +7,10 @@ from model_pool.nifty_reg_utils import expand_batch_ch_dim, nifty_reg_affine
 
 def smooth_and_resample(image, shrink_factor, smoothing_sigma):
     """
-    Args:
-        image: The image we want to resample.
-        shrink_factor: A number greater than one, such that the new image's size is original_size/shrink_factor.
-        smoothing_sigma: Sigma for Gaussian smoothing, this is in physical (image spacing) units, not pixels.
-    Return:
-        Image which is a result of smoothing the input and then resampling it using the given sigma and shrink factor.
+    :param image: The image we want to resample.
+    :param shrink_factor: A number greater than one, such that the new image's size is original_size/shrink_factor.
+    :param smoothing_sigma: Sigma for Gaussian smoothing, this is in physical (image spacing) units, not pixels.
+    :return: Image which is a result of smoothing the input and then resampling it using the given sigma and shrink factor.
     """
     smoothed_image = sitk.SmoothingRecursiveGaussian(image, smoothing_sigma)
 
@@ -31,6 +29,7 @@ def smooth_and_resample(image, shrink_factor, smoothing_sigma):
 def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = None):
     """
     call the niftyreg affine transform, and set it in sitk form
+
     :param nifty_bin: tniftyreg execuable path
     :param fixed_image_pth: fixed/target image path
     :param moving_image_path: moving/source image path
@@ -49,6 +48,7 @@ def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = 
 def get_affine_transform(af_pth):
     """
     read the niftyreg affine txt to initialize the sitk object
+
     :param af_pth: path of affine txt
     :return: affine object
     """
@@ -62,6 +62,7 @@ def get_affine_transform(af_pth):
 def read_nifty_reg_affine(affine_txt):
     """
     read the nifti affine results(RAS) form to sitk form(LPS)
+
     :param affine_txt:
     :return: affine matrix (3x3), translation (3x1)
     """
@@ -87,19 +88,18 @@ def multiscale_demons(registration_algorithm,
                       fixed_image_pth, moving_image_pth, initial_transform=None,
                       shrink_factors=None, smoothing_sigmas=None,record_path=None,fname=None):
     """
-    Run the given registration algorithm in a multiscale fashion. The original scale should not be given as input as the
+        Run the given registration algorithm in a multiscale fashion. The original scale should not be given as input as the
     original images are implicitly incorporated as the base of the pyramid.
-    Args:
-        registration_algorithm: Any registration algorithm that has an Execute(fixed_image, moving_image, displacement_field_image)
-                                method.
-        fixed_image: Resulting transformation maps points from this image's spatial domain to the moving image spatial domain.
-        moving_image: Resulting transformation maps points from the fixed_image's spatial domain to this image's spatial domain.
-        initial_transform: Any SimpleITK transform, used to initialize the displacement field.
-        shrink_factors: Shrink factors relative to the original image's size.
-        smoothing_sigmas: Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These
-                          are in physical (image spacing) units.
-    Returns:
-        SimpleITK.DisplacementFieldTransform, jacobi of the transform
+
+    :param registration_algorithm:  Any registration algorithm that has an Execute(fixed_image, moving_image, displacement_field_image) method.
+    :param fixed_image_pth: Resulting transformation maps points from this image's spatial domain to the moving image spatial domain.
+    :param moving_image_pth:  Resulting transformation maps points from the fixed_image's spatial domain to this image's spatial domain.
+    :param initial_transform:  Any SimpleITK transform, used to initialize the displacement field.
+    :param shrink_factors:  Shrink factors relative to the original image's size.
+    :param smoothing_sigmas: Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in physical (image spacing) units.
+    :param record_path: Saving path
+    :param fname: pair name
+    :return: SimpleITK.DisplacementFieldTransform, jacobi of the transform
     """
     # Create image pyramid.
     fixed_image = sitk.ReadImage(fixed_image_pth)
@@ -148,6 +148,7 @@ def multiscale_demons(registration_algorithm,
 def sitk_grid_sampling(fixed, moving, transform,is_label=False):
     """
     resample the fixed image though transformation map
+
     :param fixed: fixed or the target image
     :param moving: the moving or the source image
     :param transform: the transformation map

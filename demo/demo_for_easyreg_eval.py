@@ -134,7 +134,7 @@ def do_registration_eval(args, registration_pair_list):
             setting_folder_path = os.path.join('./demo_settings/mermaid',demo_name)
         else:
             setting_folder_path = os.path.join('./demo_settings', demo_name)
-        assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg"
+        assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg"
         #task_output_path = os.path.join('./demo_output/mermaid',demo_name)
     else:
         setting_folder_path = args.setting_folder_path
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
     The method support list :  mermaid-related ( optimizing/pretrained) methods, ants, demons, niftyreg
     The demos supported by category are : 
-        mermaid: network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined
+        mermaid: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined
         ants: ants
         demons: demons
         niftyreg: niftyreg
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     Arguments:
         demo related:
              --run_demo: run the demo
-             --demo_name: network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg
+             --demo_name: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg
         input related:two input styles are supported,
             1. given txt
              --pair_txt_path/-txt: the txt file recording the pairs to registration
@@ -188,7 +188,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
     parser.add_argument("--run_demo",required=False,action='store_true',help='run demo')
-    parser.add_argument('--demo_name',required=False, type=str, default='opt_vsvf',help='if run_demo, network_rdmm/network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg')
+    parser.add_argument('--demo_name',required=False, type=str, default='opt_vsvf',help='if run_demo, eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg')
     #---------------------------------------------------------------------------------------------------------------------------
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
                         default=None,help='path to load settings')
@@ -239,5 +239,5 @@ if __name__ == '__main__':
     #python demo_for_easyreg_eval.py  --run_demo --demo_name=ants -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_ants
     #python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_opt_vsvf
     #python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_rdmm_predefined -txt=/playpen/zyshen/data/reg_lung_160/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_lung_160/new_interface/test_opt_rdmm_predefined
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=network_vsvf -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf_net
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=network_rdmm -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_rdmm_net
+    #python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_vsvf -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf_net
+    #python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_rdmm -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_rdmm_net
