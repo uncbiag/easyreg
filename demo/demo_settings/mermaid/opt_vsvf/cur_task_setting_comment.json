@@ -1,0 +1,39 @@
+{
+    "dataset": {
+        "img_after_resize": "image size after resample",
+        "load_init_weight": "load init weight for adaptive weighting model",
+        "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden"
+    },
+    "tsk_opt": {
+        "save_extra_3d_img": "save extra image"
+    },
+    "tsk_set": {
+        "batch_sz": "batch sz (only for mermaid related method, otherwise set to 1)",
+        "continue_train": "for network training method, continue training the model loaded from model_path",
+        "criticUpdates": "for network training method, the num determines gradient update every # iter",
+        "evaluate_label_list": "evaluate_label_list",
+        "gpu_ids": "the gpu id used for network methods",
+        "model_path": "if continue_train, the model path should be given here",
+        "n_in_channel": "for network training method, the color channel typically set to 1",
+        "optim": {},
+        "output_orginal_img_type": "output in form of original image",
+        "path": {
+            "__doc__": "record paths"
+        },
+        "reg": {
+            "compute_inverse_map": "compute the inverse transformation map",
+            "mermaid_iter": {
+                "affine": {},
+                "mermaid_affine_json": "the json path for the setting for mermaid affine",
+                "mermaid_nonp_json": "the json path for the setting for mermaid non-parametric",
+                "use_init_weight": "whether to use init weight for RDMM registration",
+                "weights_for_bg": "regularizer weight for the background area",
+                "weights_for_fg": "regularizer weight for the foregound area, this should be got from the mermaid_json file"
+            }
+        },
+        "save_3d_img_on": "saving fig",
+        "save_fig_on": "saving fig",
+        "train": "True, take the train mode",
+        "use_physical_coord": "Keep physical spacing"
+    }
+}

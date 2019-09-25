@@ -62,36 +62,5 @@
                 "use_velocity_mask_on_boundary":false
             }
         }
-    },
-    "optimizer": {
-        "lbfgs": {
-            "history_size": 5,
-            "line_search_fn": "backtracking",
-            "max_eval": 5,
-            "max_iter": 1
-        },
-        "multi_scale": {
-            "scale_factors": [
-                1.0,
-                0.5,
-                0.25
-            ],
-            "scale_iterations": [
-                20,
-                20,
-                20
-            ]
-        },
-        "name": "lbfgs_ls",
-        "scheduler": {
-            "factor": 0.5,
-            "patience": 10,
-            "verbose": true
-        },
-        "single_scale": {
-            "nr_of_iterations": 100,
-            "rel_ftol": 1e-09
-        },
-        "use_step_size_scheduler": true
     }
 }

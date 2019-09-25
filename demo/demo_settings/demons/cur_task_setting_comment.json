@@ -1,0 +1,26 @@
+{
+    "dataset": {
+        "img_after_resize": "image size after resample",
+        "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden"
+    },
+    "tsk_set": {
+        "batch_sz": "batch sz (only for mermaid related method, otherwise set to 1)",
+        "n_in_channel": "for network training method, the color channel typically set to 1",
+        "path": {
+            "__doc__": "record paths"
+        },
+        "reg": {
+            "demons": {
+                "iter": "num of the iteration",
+                "nifty_bin": "the path of the nifty reg binary file",
+                "shrink_factors": "the multi-scale shrink factor in demons",
+                "shrink_sigma": "amount of smoothing which is done prior to resmapling the image using the given shrink factor",
+                "std": "the standard deviation in demon registration"
+            }
+        },
+        "save_3d_img_on": "saving fig",
+        "save_fig_on": "saving fig",
+        "train": "True, take the train mode",
+        "use_physical_coord": "Keep physical spacing"
+    }
+}

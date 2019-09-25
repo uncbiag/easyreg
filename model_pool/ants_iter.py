@@ -6,7 +6,8 @@ from model_pool.ants_utils import *
 class AntsRegIter(ToolkitBase):
     """
     The AntsRegIter provides an interface to [AntsPy](https://github.com/ANTsX/ANTsPy),
-    AntsPy is not fully functioned, a support on ants package is plan to release.
+    the version we work on is 0.1.4, though the newest version is 0.2.0
+    AntsPy is not fully functioned, a support on ants package is plan to replace the AntsPy.
     """
     def name(self):
         return 'ants_reg iter'

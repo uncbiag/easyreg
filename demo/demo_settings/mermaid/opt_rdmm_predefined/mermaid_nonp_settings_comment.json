@@ -1,0 +1,124 @@
+{
+    "model": {
+        "deformation": {
+            "compute_similarity_measure_at_low_res": "If set to true map is not upsampled and the entire computations proceeds at low res",
+            "map_low_res_factor": "Set to a value in (0,1) if a map-based solution should be computed at a lower internal resolution (image matching is still at full resolution",
+            "use_map": "[True|False] either do computations via a map or directly using the image"
+        },
+        "registration_model": {
+            "env": {
+                "__doc__": "env settings, typically are specificed by the external package, including the mode for solver or for smoother",
+                "addition_smoother": "using torchdiffeq package as the ode solver",
+                "get_momentum_from_external_network": "use external network to predict momentum, notice that the momentum network is not built in this package",
+                "get_preweight_from_network": "deploy network to predict preweights of the smoothers",
+                "reg_factor": "regularzation factor",
+                "use_ode_tuple": "once use torchdiffeq package, take the tuple input or tensor input",
+                "use_odeint": "using torchdiffeq package as the ode solver"
+            },
+            "forward_model": {
+                "__doc__": "settings for the forward model",
+                "adjoin_on": "use adjoint optimization",
+                "atol": "absolute error torlance for dopri5",
+                "number_of_time_steps": "Number of time-steps to per unit time-interval integrate the PDE",
+                "rtol": "relative error torlance for dopri5",
+                "smoother": {
+                    "deep_smoother": {
+                        "deep_network_local_weight_smoothing": "0.02 prefered,How much to smooth the local weights (implemented by smoothing the resulting velocity field) to assure sufficient regularity",
+                        "diffusion_weight_penalty": "Penalized the squared gradient of the weights",
+                        "edge_penalty_filename": "Edge penalty image",
+                        "edge_penalty_gamma": "Constant for edge penalty: 1.0/(1.0+gamma*||\\nabla I||*min(spacing)",
+                        "edge_penalty_terminate_after_writing": "Terminates the program after the edge file has been written; otherwise file may be constantly overwritten",
+                        "edge_penalty_write_to_file": "If set to True the edge penalty is written into a file so it can be debugged",
+                        "estimate_around_global_weights": "If true, a weighted softmax is used so the default output (for input zero) are the global weights",
+                        "network_penalty": "factor by which the L2 norm of network weights is penalized",
+                        "smooth_image_for_edge_detection": "Smooth image for edge detection",
+                        "smooth_image_for_edge_detection_std": "Standard deviation for edge detection",
+                        "total_variation_weight_penalty": "Penalize the total variation of the weights if desired",
+                        "weight_range_factor": "the factor control the change of the penality ",
+                        "weight_range_init_weight_penalty": "Penalize to the range of the weights",
+                        "weighting_type": "Type of weighting: w_K|w_K_w|sqrt_w_K_sqrt_w"
+                    },
+                    "gaussian_weight_min": "minimal allowed weight for the Gaussians",
+                    "multi_gaussian_stds": "std deviations for the Gaussians",
+                    "multi_gaussian_weights": "weights for the Gaussians std",
+                    "omt_power": "Power for the optimal mass transport (i.e., to which power distances are penalized",
+                    "omt_use_log_transformed_std": "If set to true the standard deviations are log transformed for the computation of OMT",
+                    "omt_weight_penalty": "Penalty for the optimal mass transport",
+                    "preweight_input_range_weight_penalty": "Penalty for the input to the preweight computation; weights should be between 0 and 1. If they are not they get quadratically penalized; use this with weighted_linear_softmax only.",
+                    "type": "type of smoother (diffusion|gaussian|adaptive_gaussian|multiGaussian|adaptive_multiGaussian|gaussianSpatial|adaptiveNet)",
+                    "use_weighted_linear_softmax": "If set to ture use the use_weighted_linear_softmax to compute the pre-weights, otherwise use stable softmax"
+                },
+                "solver": "ode solver"
+            },
+            "load_velocity_from_forward_model": "load_velocity_from_forward_model",
+            "loss": {
+                "__doc__": "settings for the loss function",
+                "display_max_displacement": "displays the current maximal displacement",
+                "limit_displacement": "[True/False] if set to true limits the maximal displacement based on the max_displacement_setting",
+                "max_displacement": "Max displacement penalty added to loss function of limit_displacement set to True"
+            },
+            "shooting_vector_momentum": {
+                "__doc__": "settings for shooting vector momentum methods",
+                "adapt_model": {
+                    "__doc__": "settings for adaptive smoothers",
+                    "clamp_local_weight": "true:clamp the local weight",
+                    "compute_on_initial_map": "true:  compute the map based on initial map, false: compute the map based on id map first, then interp with the initial map",
+                    "local_pre_weight_max": "clamp the value from -value to value",
+                    "update_sm_by_advect": "true: advect smoother parameter for each time step  false: deploy network to predict smoother params at each time step",
+                    "update_sm_with_interpolation": "true: during advection, interpolate the smoother params with current map  false: compute the smoother params by advection equation",
+                    "use_predefined_weight": "use predefined weight for adapt smoother"
+                },
+                "use_velocity_mask_on_boundary": "a mask to force boundary velocity be zero, the value of the mask is from 0-1"
+            },
+            "similarity_measure": {
+                "__doc__": "settings for the similarity measure",
+                "lncc": {
+                    "dilation": "dilation param, responded with ratio of kernel size",
+                    "kernel_size_ratio": "kernel size, ratio of input size",
+                    "kernel_weight_ratio": "kernel size, ratio of input size",
+                    "resol_bound": "resolution bound for using different strategy",
+                    "stride": "step size, responded with ratio of kernel size"
+                },
+                "sigma": "1/sigma^2 is the weight in front of the similarity measure",
+                "type": "type of similarity measure (ssd/ncc)"
+            },
+            "spline_order": "Spline interpolation order; 1 is linear interpolation (default); 3 is cubic spline",
+            "type": "Name of the registration model",
+            "use_CFL_clamping": "If the model uses time integration, CFL clamping is used"
+        }
+    },
+    "optimizer": {
+        "gradient_clipping": {
+            "__doc__": "clipping settings for the gradient for optimization",
+            "clip_display": "If set to True displays if clipping occurred",
+            "clip_individual_gradient": "If set to True, the gradient for the individual parameters will be clipped",
+            "clip_individual_gradient_value": "Value to which the gradient for the individual parameters is clipped",
+            "clip_shared_gradient": "If set to True, the gradient for the shared parameters will be clipped",
+            "clip_shared_gradient_value": "Value to which the gradient for the shared parameters is clipped"
+        },
+        "lbfgs": {
+            "history_size": "Size of the optimizer history",
+            "line_search_fn": "Type of line search function",
+            "max_eval": "maximum number of evaluation",
+            "max_iter": "maximum number of iterations"
+        },
+        "multi_scale": {
+            "__doc__": "multi scale settings",
+            "scale_factors": "how images are scaled",
+            "scale_iterations": "number of iterations per scale"
+        },
+        "name": "Optimizer (lbfgs|adam|sgd)",
+        "scheduler": {
+            "__doc__": "parameters for the ReduceLROnPlateau scheduler",
+            "factor": "reduction factor",
+            "patience": "how many steps without reduction before LR is changed",
+            "verbose": "if True prints out changes in learning rate"
+        },
+        "single_scale": {
+            "rel_ftol": "relative termination tolerance for optimizer"
+        },
+        "use_step_size_scheduler": "If set to True the step sizes are reduced if no progress is made",
+        "weight_clipping_type": "Type of weight clipping that should be used [l1|l2|l1_individual|l2_individual|l1_shared|l2_shared|None]",
+        "weight_clipping_value": "Value to which the norm is being clipped"
+    }
+}

@@ -141,8 +141,8 @@ class Initializer():
         """
         get task related setttings for data manager
         """
-        batch_size = self.task_opt['tsk_set']['batch_sz']
-        is_train = self.task_opt['tsk_set']['train']
+        batch_size = self.task_opt['tsk_set'][('batch_sz', 1,'batch sz (only for mermaid related method, otherwise set to 1)')]
+        is_train = self.task_opt['tsk_set'][('train',False,'train the model')]
 
         return self.data_manager.data_loaders(batch_size=batch_size,is_train=is_train)
 
@@ -170,7 +170,7 @@ class Initializer():
         logdir =os.path.join(self.cur_task_path,'log')
         check_point_path =os.path.join(self.cur_task_path,'checkpoints')
         record_path = os.path.join(self.cur_task_path,'records')
-        model_path = self.task_opt['tsk_set'][('model_path', '', 'if continue_train, given the model path')]
+        model_path = self.task_opt['tsk_set'][('model_path', '', 'if continue_train, the model path should be given here')]
         self.task_opt['tsk_set'][('path',{},'record paths')]
         self.task_opt['tsk_set']['path']['expr_path'] =self.cur_task_path
         self.task_opt['tsk_set']['path']['logdir'] =logdir

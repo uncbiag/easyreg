@@ -1,0 +1,19 @@
+{
+    "dataset": {
+        "img_after_resize": "image size after resample",
+        "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden"
+    },
+    "tsk_set": {
+        "n_in_channel": "for network training method, the color channel typically set to 1",
+        "path": {
+            "__doc__": "record paths"
+        },
+        "reg": {
+            "ants": {}
+        },
+        "save_3d_img_on": "saving fig",
+        "save_fig_on": "saving fig",
+        "train": "True, take the train mode",
+        "use_physical_coord": "Keep physical spacing"
+    }
+}

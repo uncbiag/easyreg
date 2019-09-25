@@ -130,6 +130,7 @@ class MermaidNet(nn.Module):
         self.inverse_map = None
 
 
+
     def check_if_update_lr(self):
         """
         check if the learning rate need to be updated,  in mermaid net, it is implemented for adjusting the lr in the multi-step training
@@ -195,6 +196,7 @@ class MermaidNet(nn.Module):
         """
         saving_path = os.path.join(self.record_path,'nonp_setting.json')
         params.write_JSON(saving_path, save_int=False)
+        params.write_JSON_comments(saving_path.replace('.json','_comment.json'))
 
 
     def init_mermaid_env(self):
@@ -207,7 +209,6 @@ class MermaidNet(nn.Module):
         spacing = self.spacing
         params = pars.ParameterDict()
         params.load_JSON( self.mermaid_net_json_pth) #''../model_pool/cur_settings_svf.json')
-        self.save_cur_mermaid_settings(params)
         print(" The mermaid setting from {} included:".format(self.mermaid_net_json_pth))
         print(params)
         model_name = params['model']['registration_model']['type']
@@ -260,6 +261,10 @@ class MermaidNet(nn.Module):
         self.mermaid_unit_st = model.cuda()
         self.criterion = criterion
         self.mermaid_unit_st.associate_parameters_with_module()
+        self.save_cur_mermaid_settings(params)
+
+
+
 
     def get_loss(self):
         """

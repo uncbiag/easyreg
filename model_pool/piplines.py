@@ -27,6 +27,7 @@ class Pipline():
         """
         initializer = Initializer()
         initializer.initialize_data_manager(data_setting_pth)
+        self.task_setting_pth = task_setting_pth
         self.tsk_opt = initializer.init_task_option(task_setting_pth)
         self.writer = initializer.initialize_log_env()
         self.tsk_opt = initializer.get_task_option()
@@ -54,6 +55,8 @@ class Pipline():
             from model_pool.compare_sym import cal_sym
             test_model(self.tsk_opt, self.model, self.data_loaders)
             #cal_sym(self.tsk_opt,self.data_loaders)
+        saving_comment_path = self.task_setting_pth.replace('.json','_comment.json')
+        self.tsk_opt.write_JSON_comments(saving_comment_path)
 
 
 

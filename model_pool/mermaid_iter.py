@@ -67,7 +67,7 @@ class MermaidIter(MermaidBase):
     def affine_optimization(self):
         """
         call affine optimization registration in mermaid
-        :return: warped image, transformation map, affine parameter
+        :return: warped image, transformation map, affine parameter, loss(None)
         """
         self.si = SI.RegisterImagePair()
         extra_info = pars.ParameterDict()
@@ -78,14 +78,15 @@ class MermaidIter(MermaidBase):
         if self.saved_affine_setting_path is None:
             self.saved_affine_setting_path = self.save_setting(self.setting_for_mermaid_affine,self.record_path,'affine_setting.json')
 
-
+        cur_affine_json_saving_path =(os.path.join(self.record_path,'cur_settings_affine.json'),os.path.join(self.record_path,'cur_settings_affine_comment.json'))
         self.si.register_images(self.moving, self.target, self.spacing,extra_info=extra_info,LSource=self.l_moving,LTarget=self.l_target,
                                 visualize_step=None,
                                 use_multi_scale=True,
                                 rel_ftol=0,
                                 similarity_measure_sigma=af_sigma,
-                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_affine_output.json'),  #########################################
+                                json_config_out_filename=cur_affine_json_saving_path,  #########################################
                                 params =self.saved_affine_setting_path) #'../model_pool/cur_settings_affine_tmp.json'
+
         self.output = self.si.get_warped_image()
         self.phi = self.si.opt.optimizer.ssOpt.get_map()
         self.phi = self.phi.detach().clone()
@@ -99,7 +100,7 @@ class MermaidIter(MermaidBase):
             self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
         self.afimg_or_afparam = Ab
-        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_()
+        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
 
 
     def nonp_optimization(self):
@@ -108,7 +109,7 @@ class MermaidIter(MermaidBase):
         if the affine registration is performed first, the affine transformation map would be taken as the initial map
         if the init weight on mutli-gaussian regularizer are set, the initial weight map would be computed from the label map, make sure the model called support spatial variant regularizer
 
-        :return: warped image, transformation map, affined image
+        :return: warped image, transformation map, affined image, loss(None)
         """
         affine_map = self.si.opt.optimizer.ssOpt.get_map()
 
@@ -126,14 +127,14 @@ class MermaidIter(MermaidBase):
 
         if self.saved_mermaid_setting_path is None:
             self.saved_mermaid_setting_path = self.save_setting(self.setting_for_mermaid_nonp,self.record_path,"nonp_setting.json")
-
+        cur_mermaid_json_saving_path =(os.path.join(self.record_path,'cur_settings_nonp.json'),os.path.join(self.record_path,'cur_settings_nonp_comment.json'))
         self.si.register_images(self.moving, self.target, self.spacing, extra_info=extra_info, LSource=self.l_moving,
                                 LTarget=self.l_target,
                                 visualize_step=None,
                                 use_multi_scale=True,
                                 rel_ftol=0,
                                 compute_inverse_map=self.compute_inverse_map,
-                                json_config_out_filename=os.path.join(self.record_path,'cur_settings_mermaid_output.json'),
+                                json_config_out_filename=cur_mermaid_json_saving_path,
                                 params=self.saved_mermaid_setting_path) #'../mermaid_settings/cur_settings_svf_dipr.json'
         self.afimg_or_afparam = self.output # here return the affine image
         self.output = self.si.get_warped_image()
@@ -143,7 +144,7 @@ class MermaidIter(MermaidBase):
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
-        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_()
+        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
 
 
     def save_setting(self,path, output_path,fname='mermaid_setting.json'):
