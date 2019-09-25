@@ -122,7 +122,7 @@ class MermaidNet(nn.Module):
             print("Attention, the affine net is not used")
 
 
-        self.mermaid_unit = None
+        self.mermaid_unit_st = None
         self.init_mermaid_env()
         self.print_count = 0
         self.print_every_epoch_flag = True
@@ -257,9 +257,9 @@ class MermaidNet(nn.Module):
                 self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
                 print(torch.min(self.lowResIdentityMap))
         self.lowRes_fn = partial(get_resampled_image, spacing=spacing, desiredSize=lowResSize, zero_boundary=False,identity_map=self.lowResIdentityMap)
-        self.mermaid_unit = model.cuda()
+        self.mermaid_unit_st = model.cuda()
         self.criterion = criterion
-        self.mermaid_unit.associate_parameters_with_module()
+        self.mermaid_unit_st.associate_parameters_with_module()
 
     def get_loss(self):
         """
@@ -301,7 +301,7 @@ class MermaidNet(nn.Module):
 
         loss_overall_energy, sim_energy, reg_energy = self.criterion(self.identityMap, self.rec_phiWarped, ISource,
                                                                      ITarget, self.low_moving,
-                                                                     self.mermaid_unit.get_variables_to_transfer_to_loss_function(),
+                                                                     self.mermaid_unit_st.get_variables_to_transfer_to_loss_function(),
                                                                      None)
         if not self.using_sym_on:
             if self.print_count % self.print_loss_every_n_iter == 0 and cur_epoch>=0:
@@ -389,10 +389,10 @@ class MermaidNet(nn.Module):
         """
         if self.use_adaptive_smoother:
             if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-                #self.mermaid_unit.smoother._enable_force_nn_gradients_to_zero_hooks()
-                self.__freeze_param(self.mermaid_unit.smoother.ws.parameters())
+                #self.mermaid_unit_st.smoother._enable_force_nn_gradients_to_zero_hooks()
+                self.__freeze_param(self.mermaid_unit_st.smoother.ws.parameters())
             else:
-                self.__active_param(self.mermaid_unit.smoother.ws.parameters())
+                self.__active_param(self.mermaid_unit_st.smoother.ws.parameters())
 
 
         if self.mermaid_low_res_factor is not None:
@@ -457,16 +457,16 @@ class MermaidNet(nn.Module):
 
         :return: adapative smoother weight map `\sigma`
         """
-        adaptive_smoother_map = self.mermaid_unit.smoother.get_deep_smoother_weights()
-        weighting_type = self.mermaid_unit.smoother.weighting_type
+        adaptive_smoother_map = self.mermaid_unit_st.smoother.get_deep_smoother_weights()
+        weighting_type = self.mermaid_unit_st.smoother.weighting_type
         if not self.using_sym_on:
             adaptive_smoother_map = adaptive_smoother_map.detach()
         else:
             adaptive_smoother_map = adaptive_smoother_map[:self.n_batch].detach()
-        gaussian_weights = self.mermaid_unit.smoother.get_gaussian_weights()
+        gaussian_weights = self.mermaid_unit_st.smoother.get_gaussian_weights()
         gaussian_weights = gaussian_weights.detach()
         print(" the current global gaussian weight is {}".format(gaussian_weights))
-        gaussian_stds = self.mermaid_unit.smoother.get_gaussian_stds()
+        gaussian_stds = self.mermaid_unit_st.smoother.get_gaussian_stds()
         gaussian_stds = gaussian_stds.detach()
         print(" the current global gaussian stds is {}".format(gaussian_stds))
         view_sz = [1] + [len(gaussian_stds)] + [1] * dim
@@ -576,7 +576,7 @@ class MermaidNet(nn.Module):
         self.low_moving = self.init_mermaid_param(moving)
         self.low_target = self.init_mermaid_param(target)
         torch.set_grad_enabled(record_is_grad_enabled)
-        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit,self.criterion,moving, target, m, affine_map,self.low_moving, self.low_target,self.inverse_map)
+        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion,moving, target, m, affine_map,self.low_moving, self.low_target,self.inverse_map)
         self.rec_phiWarped = rec_phiWarped
         if self.using_physical_coord:
             rec_phiWarped_tmp = rec_phiWarped.detach().clone()
@@ -667,7 +667,7 @@ class MermaidNet(nn.Module):
             if self.clamp_momentum:
                 m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
             torch.set_grad_enabled(record_is_grad_enabled)
-            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit,self.criterion,moving_n, target_n, m, init_map,self.low_moving, self.low_target, self.inverse_map)
+            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion,moving_n, target_n, m, init_map,self.low_moving, self.low_target, self.inverse_map)
             warped_img = rec_IWarped * 2 - 1  # [0,1] -> [-1,1]
             init_map = rec_phiWarped  # [0,1]
             self.rec_phiWarped = rec_phiWarped

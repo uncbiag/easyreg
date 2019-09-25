@@ -291,24 +291,28 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
             iTL_a = 6
             iWL_a = 7
         else:
-            if is_lung:
-                fig, ax = plt.subplots(9, 3,figsize=(6,15))
-            else:
-                fig, ax = plt.subplots(9, 3)
+            # if is_lung:
+            #     fig, ax = plt.subplots(9, 3,figsize=(6,15))
+            # else:
+            #     fig, ax = plt.subplots(9, 3)
+            fig, ax = plt.subplots(9, 3)
             vizi_a = 4
             ext_a = 5
             iSL_a = 6
             iTL_a = 7
             iWL_a = 8
     elif (phiWarped is not None) and (vizImage is not None):
-        fig, ax = plt.subplots(5,3)
+        ext_a = 5 if extraImage is not None else 4
+        fig, ax = plt.subplots(ext_a+1,3)
         phiw_a = 3
         vizi_a = 4
     elif (phiWarped is not None):
-        fig, ax = plt.subplots(4,3)
+        ext_a = 4 if extraImage is not None else 3
+        fig, ax = plt.subplots(ext_a+1,3)
         phiw_a = 3
     elif (vizImage is not None):
-        fig, ax = plt.subplots(4,3)
+        ext_a = 4 if extraImage is not None else 3
+        fig, ax = plt.subplots(ext_a+1,3)
         vizi_a = 3
     else:
         fig, ax = plt.subplots(3,3)
