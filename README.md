@@ -11,14 +11,14 @@ conda create -n easyreg python=3.6
 source activate easyreg
 git clone https://github.com/uncbiag/easyreg.git
 cd easyreg
+git clone https://github.com/uncbiag/mermaid.git
+pip install -r requirements.txt
 
 # ################download demo (optional) 
-gdown https://drive.google.com/open?id=1RjFV0lht4uQFc2jYmBYxmXtRrdYAzk8S
+https://drive.google.com/uc?id=1gjzApAZMSVraMSU-iKkEHNCL3iV7xyZC
 unzip demo.zip -d . 
 # #######################################
 
-git clone https://github.com/uncbiag/mermaid.git
-pip install -r requirements.txt
 cd mermaid
 python setup.py
 ```
@@ -35,9 +35,9 @@ pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1
 Next step, the tutorial and documents can be built from sphinx.
 
 ```
-cd EASYREG_PATH
+cd EASYREG_REPOSITORY_PATH
 cd doc
-build html
+make html
 ```
 
 

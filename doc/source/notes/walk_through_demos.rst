@@ -17,8 +17,8 @@ To run the demo, we first need to download examples and pretrained model for lea
 
 .. code::
 
-    gdown https://drive.google.com/open?id=1RjFV0lht4uQFc2jYmBYxmXtRrdYAzk8S
-    unzip demo.zip -d EASYREG_PATH
+    gdown https://drive.google.com/uc?id=1gjzApAZMSVraMSU-iKkEHNCL3iV7xyZC
+    unzip demo.zip -d EASYREG_REPOSITORY_PATH
 
 Now we are ready to play with demos. The script for demos are in *demo*.
 
