@@ -2,7 +2,7 @@
 The purpose of this package is to provide an easy interface for Mermaid and other popluar registration
 package.\
 The current support methods include Mermaid-optimization and Mermaid-network. 
-We add supports on [AntsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend the usage of official source.
+We add supports on [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend the usage of official source.
 
 
 # Installation
@@ -22,7 +22,15 @@ pip install -r requirements.txt
 cd mermaid
 python setup.py
 ```
+ Addtionally, we currently test on ANTsPy 0.1.4 version. Since AntsPy is not fully functioned,
+ it will be replaced with custom Ants Package in the next release. The following command installs ANTsPy 0.1.4.
  
+ ```
+
+pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1.4-cp36-cp36m-linux_x86_64.whl
+```
+
+
 # Build Document
 Next step, the tutorial and documents can be built from sphinx.
 
