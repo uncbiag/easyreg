@@ -3,7 +3,7 @@ import numpy as np
 import sys,os
 import SimpleITK as sitk
 
-from functions.bilinear import Bilinear
+from model_pool.net_utils import Bilinear
 
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
@@ -56,8 +56,9 @@ def __inverse_name(name):
     inverse_name = n_parts[1] + '_' + n_parts[0] + '_image'
     return inverse_name
 
-def compute_sym_metric(refer, output):
-    return np.mean((refer[10:-10,20:-20,20:-20]-output[10:-10,20:-20,20:-20])**2)
+def compute_sym_metric(refer, output, shrink_margin=(10,20,20)):
+    return np.mean((refer[shrink_margin[0]:-shrink_margin[0],shrink_margin[1]:-shrink_margin[1],shrink_margin[2]:-shrink_margin[2]]
+                    -output[shrink_margin[0]:-shrink_margin[0],shrink_margin[1]:-shrink_margin[1],shrink_margin[2]:-shrink_margin[2]])**2)
 
 def sitk_grid_sampling(fixed,moving, displacement,is_label=False):
     resampler = sitk.ResampleImageFilter()

@@ -5,7 +5,6 @@ import time
 import SimpleITK as sitk
 from model_pool.nifty_reg_utils import expand_batch_ch_dim
 import subprocess
-import nibabel as nib
 
 
 

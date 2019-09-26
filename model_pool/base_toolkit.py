@@ -100,7 +100,7 @@ class ToolkitBase(ModelBase):
         :param phase:
         :return:
         """
-        from model_pool.visualize_registration_results import show_current_images
+        from tools.visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True

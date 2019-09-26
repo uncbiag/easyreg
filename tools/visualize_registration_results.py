@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import absolute_import
-from backup.global_variable import is_lung
 from data_pre.reg_data_utils import make_dir
 
 
@@ -11,8 +10,8 @@ Some utility functions to display the registration results
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from . import utils
-from . import viewers
+from model_pool import utils
+from tools import viewers
 
 dpi=500
 extension= '.png'
@@ -340,13 +339,13 @@ def _show_current_images_3d(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName, ph
         ivwzc = viewers.ImageViewer3D_Sliced_Contour(ax[phiw_a][2], utils.t2np(iW), utils.t2np(phiWarped), 2, 'warped Z', True)
 
     if vizImage is not None:
-        ivvxc = viewers.ImageViewer3D_Sliced(ax[vizi_a][0], utils.lift_to_dimension(utils.t2np(vizImage),3), 0, vizName + ' X', True)
-        ivvyc = viewers.ImageViewer3D_Sliced(ax[vizi_a][1], utils.lift_to_dimension(utils.t2np(vizImage),3), 1, vizName + ' Y', True)
-        ivvzc = viewers.ImageViewer3D_Sliced(ax[vizi_a][2], utils.lift_to_dimension(utils.t2np(vizImage),3), 2, vizName + ' Z', True)
+        ivvxc = viewers.ImageViewer3D_Sliced(ax[vizi_a][0], utils.lift_to_dimension(utils.t2np(vizImage), 3), 0, vizName + ' X', True)
+        ivvyc = viewers.ImageViewer3D_Sliced(ax[vizi_a][1], utils.lift_to_dimension(utils.t2np(vizImage), 3), 1, vizName + ' Y', True)
+        ivvzc = viewers.ImageViewer3D_Sliced(ax[vizi_a][2], utils.lift_to_dimension(utils.t2np(vizImage), 3), 2, vizName + ' Z', True)
     if extraImage is not None:
-        ivexc = viewers.ImageViewer3D_Sliced(ax[ext_a][0], utils.lift_to_dimension(utils.t2np(extraImage),3), 0, extraName + ' X', True)
-        iveyc = viewers.ImageViewer3D_Sliced(ax[ext_a][1], utils.lift_to_dimension(utils.t2np(extraImage),3), 1, extraName + ' Y', True)
-        ivezc = viewers.ImageViewer3D_Sliced(ax[ext_a][2], utils.lift_to_dimension(utils.t2np(extraImage),3), 2, extraName + ' Z', True)
+        ivexc = viewers.ImageViewer3D_Sliced(ax[ext_a][0], utils.lift_to_dimension(utils.t2np(extraImage), 3), 0, extraName + ' X', True)
+        iveyc = viewers.ImageViewer3D_Sliced(ax[ext_a][1], utils.lift_to_dimension(utils.t2np(extraImage), 3), 1, extraName + ' Y', True)
+        ivezc = viewers.ImageViewer3D_Sliced(ax[ext_a][2], utils.lift_to_dimension(utils.t2np(extraImage), 3), 2, extraName + ' Z', True)
 
     if iSL is not None and iTL is not None:
         ivslxc = viewers.ImageViewer3D_Sliced(ax[iSL_a][0], utils.lift_to_dimension(utils.t2np(iSL), 3), 0,
@@ -485,10 +484,10 @@ def _show_current_images_3d_cp(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName,
             iTL_a = 6
             iWL_a = 7
         else:
-            if is_lung:
-                fig, ax = plt.subplots(9, 3,figsize=(6,15))
-            else:
-                fig, ax = plt.subplots(3,9, figsize=(14,5))
+            # if is_lung:
+            #     fig, ax = plt.subplots(9, 3,figsize=(6,15))
+            # else:
+            fig, ax = plt.subplots(3,9, figsize=(14,5))
             vizi_a = 4
             ext_a = 5
             iSL_a = 6
@@ -530,13 +529,13 @@ def _show_current_images_3d_cp(iS, iT, iW,iSL, iTL,iWL, iter, vizImage, vizName,
         ivwzc = viewers.ImageViewer3D_Sliced_Contour(ax[2][phiw_a], utils.t2np(iW), utils.t2np(phiWarped), 2, 'warped Z', True)
 
     if vizImage is not None:
-        ivvxc = viewers.ImageViewer3D_Sliced(ax[0][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage),3), 0, vizName + ' X', True)
-        ivvyc = viewers.ImageViewer3D_Sliced(ax[1][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage),3), 1, vizName + ' Y', True)
-        ivvzc = viewers.ImageViewer3D_Sliced(ax[2][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage),3), 2, vizName + ' Z', True)
+        ivvxc = viewers.ImageViewer3D_Sliced(ax[0][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage), 3), 0, vizName + ' X', True)
+        ivvyc = viewers.ImageViewer3D_Sliced(ax[1][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage), 3), 1, vizName + ' Y', True)
+        ivvzc = viewers.ImageViewer3D_Sliced(ax[2][vizi_a], utils.lift_to_dimension(utils.t2np(vizImage), 3), 2, vizName + ' Z', True)
     if extraImage is not None:
-        ivexc = viewers.ImageViewer3D_Sliced(ax[0][ext_a], utils.lift_to_dimension(utils.t2np(extraImage),3), 0, extraName + ' X', True)
-        iveyc = viewers.ImageViewer3D_Sliced(ax[1][ext_a], utils.lift_to_dimension(utils.t2np(extraImage),3), 1, extraName + ' Y', True)
-        ivezc = viewers.ImageViewer3D_Sliced(ax[2][ext_a], utils.lift_to_dimension(utils.t2np(extraImage),3), 2, extraName + ' Z', True)
+        ivexc = viewers.ImageViewer3D_Sliced(ax[0][ext_a], utils.lift_to_dimension(utils.t2np(extraImage), 3), 0, extraName + ' X', True)
+        iveyc = viewers.ImageViewer3D_Sliced(ax[1][ext_a], utils.lift_to_dimension(utils.t2np(extraImage), 3), 1, extraName + ' Y', True)
+        ivezc = viewers.ImageViewer3D_Sliced(ax[2][ext_a], utils.lift_to_dimension(utils.t2np(extraImage), 3), 2, extraName + ' Z', True)
 
     if iSL is not None and iTL is not None:
         ivslxc = viewers.ImageViewer3D_Sliced(ax[0][iSL_a], utils.lift_to_dimension(utils.t2np(iSL), 3), 0,

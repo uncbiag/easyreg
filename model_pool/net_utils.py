@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
+from torch.nn import Module
 import numpy as np
 import torch.nn.init as init
 import os
@@ -68,6 +68,57 @@ class FcRel(nn.Module):
         if self.active_unit is not None:
             x = self.active_unit(x)
         return x
+
+
+
+class Bilinear(Module):
+    """
+   Spatial transform function for 1D, 2D, and 3D. In BCXYZ format (this IS the format used in the current toolbox).
+   """
+
+    def __init__(self, zero_boundary=False, using_scale=True):
+        """
+        Constructor
+
+        :param ndim: (int) spatial transformation of the transform
+        """
+        super(Bilinear, self).__init__()
+        self.zero_boundary = 'zeros' if zero_boundary else 'border'
+        self.using_scale = using_scale
+        """ scale [-1,1] image intensity into [0,1], this is due to the zero boundary condition we may use here """
+
+    def forward_stn(self, input1, input2):
+        input2_ordered = torch.zeros_like(input2)
+        input2_ordered[:, 0, ...] = input2[:, 2, ...]
+        input2_ordered[:, 1, ...] = input2[:, 1, ...]
+        input2_ordered[:, 2, ...] = input2[:, 0, ...]
+
+        output = torch.nn.functional.grid_sample(input1, input2_ordered.permute([0, 2, 3, 4, 1]),
+                                                     padding_mode=self.zero_boundary)
+        return output
+
+    def forward(self, input1, input2):
+        """
+        Perform the actual spatial transform
+
+        :param input1: image in BCXYZ format
+        :param input2: spatial transform in BdimXYZ format
+        :return: spatially transformed image in BCXYZ format
+        """
+        if self.using_scale:
+
+            output = self.forward_stn((input1 + 1) / 2, input2)
+            # print(STNVal(output, ini=-1).sum())
+            return output * 2 - 1
+        else:
+            output = self.forward_stn(input1, input2)
+            # print(STNVal(output, ini=-1).sum())
+            return output
+
+
+
+
+
 
 
 def identity_map_for_reproduce(sz):
@@ -170,7 +221,7 @@ class AffineConstrain(object):
     """
     def __init__(self):
         if dim == 3:
-            self.affine_identity = Variable(torch.zeros(12)).cuda()
+            self.affine_identity = torch.zeros(12).cuda()
             self.affine_identity[0] = 1.
             self.affine_identity[4] = 1.
             self.affine_identity[8] = 1.
@@ -213,7 +264,7 @@ def space_normal(tensors, std=0.1):
     :param std:
     :return:
     """
-    if isinstance(tensors, Variable):
+    if isinstance(tensors, torch.Tensor):
         space_normal(tensors.data, std=std)
         return tensors
     for n in range(tensors.size()[0]):

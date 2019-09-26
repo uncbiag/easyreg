@@ -1,11 +1,9 @@
 from __future__ import print_function
 import progressbar as pb
 
-from torch.utils.data import Dataset
-
 from data_pre.reg_data_utils import *
 
-from data_pre.oasis_longitude_reg import *
+from data_pre.examples.oasis_longitude_reg import *
 import copy
 
 sesses = ['train', 'val', 'test', 'debug']

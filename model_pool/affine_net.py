@@ -5,7 +5,7 @@ from __future__ import print_function
 
 
 from model_pool.modules import *
-from functions.bilinear import *
+from model_pool.net_utils import Bilinear
 from torch.utils.checkpoint import checkpoint
 from model_pool.utils import sigmoid_decay
 from model_pool.losses import NCCLoss
@@ -273,7 +273,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """
         cur_af = cur_af.view(cur_af.shape[0], 4, 3)
         last_af = last_af.view(last_af.shape[0],4,3)
-        updated_af = Variable(torch.zeros_like(cur_af.data)).cuda()
+        updated_af = torch.zeros_like(cur_af.data).cuda()
         if self.dim==3:
             updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
             updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
@@ -323,7 +323,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
         :return:
         """
-        self.affine_identity = Variable(torch.zeros(12)).cuda()
+        self.affine_identity = torch.zeros(12).cuda()
         self.affine_identity[0] = 1.
         self.affine_identity[4] = 1.
         self.affine_identity[8] = 1.

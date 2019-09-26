@@ -21,11 +21,12 @@ sys.path.insert(0,os.path.abspath('..'))
 from model_pool.net_utils import gen_identity_map
 import mermaid.finite_differences as fdt
 import numpy as np
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functions.bilinear import *
+from model_pool.net_utils import Bilinear
 from mermaid.libraries.modules import stn_nd
-from backup.global_variable import *
+from model_pool.affine_net import AffineNetSym
 
 class convBlock(nn.Module):
     """
@@ -124,7 +125,9 @@ class VoxelMorphCVPR2018(nn.Module):
         # identity transform for computing displacement
 
     def init_affine_net(self,opt):
-        self.affine_net = AffineNetCycle(self.img_sz,opt)
+        self.affine_net = AffineNetSym(self.img_sz, opt)
+        self.affine_net.compute_loss = False
+        self.affine_net.epoch_activate_sym = 1e7
 
         if self.load_external_model:
             model_path = self.affine_init_path
@@ -222,8 +225,8 @@ class VoxelMorphMICCAI2019(nn.Module):
     """
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphMICCAI2019, self).__init__()
-        self.load_external_model = use_affine_in_vmr
-        self.using_affine_init = use_affine_in_vmr
+        self.load_external_model = opt['tsk_set']['reg']['morph_miccai'][('use_affine_in_vmr',False,'use_affine_in_vmr')]
+        self.using_affine_init = opt['tsk_set']['reg']['morph_miccai'][('use_affine_in_vmr',False,'use_affine_in_vmr')]
         if self.using_affine_init:
             self.affine_init_path = opt['tsk_set']['reg']['mermaid_net']['affine_init_path']
         else:
@@ -242,9 +245,9 @@ class VoxelMorphMICCAI2019(nn.Module):
         self.spacing = 1. / ( np.array(img_sz) - 1)
         self.int_steps = 7
 
-        self.image_sigma = sigma_factor_in_vmr # opt['tsk_set']['reg']['morph_miccai'][('image_sigma',0.01,'')]
-        self.prior_lambda = lambda_factor_in_vmr#opt['tsk_set']['reg']['morph_miccai'][('prior_lambda',25,'')]
-        self.prior_lambda_mean = lambda_mean_factor_in_vmr
+        self.image_sigma = opt['tsk_set']['reg']['morph_miccai'][('image_sigma',0.02,'image_sigma')]
+        self.prior_lambda = opt['tsk_set']['reg']['morph_miccai'][('lambda_factor_in_vmr',50,'lambda_factor_in_vmr')]
+        self.prior_lambda_mean = opt['tsk_set']['reg']['morph_miccai'][('lambda_mean_factor_in_vmr',50,'lambda_mean_factor_in_vmr')]
         self.flow_vol_shape = self.low_res_img_sz
         self.D = self._degree_matrix(self.flow_vol_shape)
         self.D = (self.D).cuda()# 1, 96, 40,40 3
@@ -309,7 +312,7 @@ class VoxelMorphMICCAI2019(nn.Module):
         return map_scaled
 
     def init_affine_net(self,opt):
-        self.affine_net = AffineNetCycle(self.img_sz,opt)
+        self.affine_net = AffineNetSym(self.img_sz,opt)
 
         if self.load_external_model:
             model_path = self.affine_init_path

@@ -4,8 +4,6 @@ from __future__ import print_function
 
 
 from model_pool.net_utils import *
-from backup.global_variable import is_oai,is_oasis
-#from mermaid.forward_models import RHSLibrary
 
 
 
@@ -69,7 +67,8 @@ class Affine_unet_im(nn.Module):
         self.down_path_32   = conv_bn_rel(16, 4, 3, stride=2, active_unit='relu', same_padding=True, bn=False)
         self.down_path_4_t_32 = nn.Sequential(self.down_path_8_1,self.down_path_8_2,self.down_path_16_1,self.down_path_16_2,
                                               self.down_path_32)
-
+        is_oai = True
+        is_oasis = not is_oai
         if is_oai:
             self.fc_1 = FcRel(4 * 3 * 6 * 6, 32, active_unit='relu')
             #self.fc_1 = FcRel(4 * 3 * 3 * 4, 32, active_unit='relu')

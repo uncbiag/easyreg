@@ -1,14 +1,13 @@
 import torch
 import numpy as np
 import skimage
-import torch.nn as nn
 import os
 import torchvision.utils as utils
 from skimage import color
 import mermaid.image_sampling as py_is
 from mermaid.data_wrapper import AdaptVal,MyTensor
 from model_pool.net_utils import gen_identity_map
-from functions.bilinear import Bilinear
+from model_pool.net_utils import Bilinear
 import mermaid.utils as py_utils
 import mermaid.module_parameters as pars
 import mermaid.smoother_factory as sf
@@ -274,7 +273,7 @@ def show_current_pair_by_3d_slice(iS,iT):
     :return:
     """
     import matplotlib.pyplot as plt
-    import model_pool.viewers as viewers
+    import tools.viewers as viewers
     fig, ax = plt.subplots(2,3)
     plt.setp(plt.gcf(), 'facecolor', 'white')
     plt.style.use('bmh')

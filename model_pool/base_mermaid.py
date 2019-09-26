@@ -5,6 +5,7 @@ import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
 import tools.image_rescale as  ires
 from .metrics import get_multi_metric
+import SimpleITK as sitk
 
 
 class MermaidBase(ModelBase):
@@ -73,7 +74,7 @@ class MermaidBase(ModelBase):
                                                   use_01=self.use_01)
         print("current batch jacobi is {}".format(self.jacobi_val))
 
-    def compute_jacobi_map(self, map, crop_boundary=True, use_01=False):
+    def compute_jacobi_map(self, map, crop_boundary=True, use_01=False,save_jacobi_map=False):
         """
         compute determinant jacobi on transformatiomm map,  the coordinate should be canonical.
 
@@ -82,8 +83,6 @@ class MermaidBase(ModelBase):
         :param use_01: infer the input map is in[0,1]  else is in [-1,1]
         :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
         """
-        from backup.global_variable import save_jacobi_map
-        import SimpleITK as sitk
         if type(map) == torch.Tensor:
             map = map.detach().cpu().numpy()
         span = 1.0 if use_01 else 2.0
@@ -142,7 +141,7 @@ class MermaidBase(ModelBase):
         :param phase: train|val|test|debug
         :return:
         """
-        from model_pool.visualize_registration_results import show_current_images
+        from tools.visualize_registration_results import show_current_images
         visual_param = {}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True
