@@ -213,9 +213,10 @@ class RegistrationDataset(Dataset):
 
 
 
+
     def resize_img(self, img, is_label=False):
         """
-        :param img: sitk input, factor is the outputsize/patched_sized
+        :param img: sitk input, factor is the outputs_ize/patched_sized
         :return:
         """
         img_sz = img.GetSize()
@@ -247,6 +248,24 @@ class RegistrationDataset(Dataset):
         else:
             img_resampled = img
         return img_resampled, resize_factor
+
+    def normalize_intensity(self, img, linear_clip=False):
+        """
+        a numpy image, normalize into intensity [-1,1]
+        (img-img.min())/(img.max() - img.min())
+        :param img: image
+        :param linear_clip:  Linearly normalized image intensities so that the 95-th percentile gets mapped to 0.95; 0 stays 0
+        :return:
+        """
+        if linear_clip:
+            img = img - img.min()
+            normalized_img =img / np.percentile(img, 95) * 0.95
+        else:
+            min_intensity = img.min()
+            max_intensity = img.max()
+            normalized_img = (img-img.min())/(max_intensity - min_intensity)
+        normalized_img = normalized_img*2 - 1
+        return normalized_img
 
 
     def __read_and_clean_itk_info(self,path):
@@ -322,7 +341,7 @@ class RegistrationDataset(Dataset):
             original_sz = self.original_sz_list[idx]
             pair_list = [blosc.unpack_array(item) for item in zipnp_pair_list]
 
-        sample = {'image': np.asarray([pair_list[0]*2.-1.,pair_list[1]*2.-1.])}
+        sample = {'image': np.asarray([self.normalize_intensity(pair_list[0]),self.normalize_intensity(pair_list[1])])}
         sample['pair_path'] = pair_path
         if self.load_init_weight:
             sample['init_weight']=self.init_weight_list[idx]
@@ -357,3 +376,5 @@ class ToTensor(object):
         except:
             i=1
         return n_tensor
+
+

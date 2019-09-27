@@ -3,9 +3,11 @@ Walk through Demos
 
 EasyReg is developed for research propose, providing interfaces for various registration methods, including `AntsPy <https://github.com/ANTsX/ANTsPy>`_ , `NiftyReg <http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg>`_ and Demons (embedded in `SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_).
 
-In this tutorial, we would step by step showing how to run following demos:
+*NiftyReg is not included in installation and requires users to install themselves. Once installed, please set the **nifty_bin** in 'cur_task_setting.json' as the path to the NiftyReg binary file.*
 
-1. Demos on toolkit methods (NiftyReg, AntsPy, Demons)
+In this tutorial, we would show how to run the following demos:
+
+1. Demos on toolkit methods (NiftyReg, ANTsPy, Demons)
 2. Demos on optimization-based mermaid model (vSVF in CVPR paper and RDMM in NeurIPS paper)
 3. Demos on evaluating pretrained learning-based mermaid model (vSVF in CVPR paper and RDMM in NeurIPS paper)
 4. Demos on training learning-based mermaid model(vSVF in CVPR paper and RDMM in NeurIPS paper)
@@ -17,7 +19,7 @@ To run the demo, we first need to download examples and pretrained model for lea
 
 .. code::
 
-    gdown https://drive.google.com/uc?id=1gjzApAZMSVraMSU-iKkEHNCL3iV7xyZC
+    gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
     unzip demo.zip -d EASYREG_REPOSITORY_PATH
 
 Now we are ready to play with demos. The script for demos are in *demo*.
@@ -26,7 +28,7 @@ The script *demo_for_easyreg_eval* is for optimization-based or pretrained metho
 
 .. code::
 
-    A evaluation interface for optimization methods or learning methods with pre-trained models.
+    An evaluation interface for optimization methods or learning methods with pre-trained models.
     Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
     The method support list :  mermaid-related ( optimizing/pretrained) methods, ants, demons, niftyreg
     The demos supported by category are :
@@ -46,12 +48,12 @@ The script *demo_for_easyreg_eval* is for optimization-based or pretrained metho
             2. given image
             --source_list/ -s: the source path list,  s1 s2 s3..sn
             --target_list/ -t: the target path list,  t1 t2 t3..tn
-            --lsource_list/ -ls: optional, the source label path list,  ls1,ls2,ls3..lsn
-            --ltarget_list/ -lt: optional, the target label path list,  lt1,lt2,lt3..ltn
+            --lsource_list/ -ls: optional, the source label path list,  ls1 ls2 ls3..lsn
+            --ltarget_list/ -lt: optional, the target label path list,  lt1 lt2 lt3..ltn
         other arguments:
-             --setting_folder_path/ -ts :path of the folder where settings are saved
+             --setting_folder_path/ -ts :path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
              --task_output_path/ -o: the path of output folder
-             --gpu_id/ -g: gpu_id to use
+             --gpu_id/ -g: on which gpu to run
 
 
 
@@ -61,19 +63,19 @@ Demos on toolkit methods
 
 .. code::
 
-    python demo_for_easyreg_eval.py  --run_demo --demo_name=nifty_reg  -o=OUTPUT_PATH
+    python demo_for_easyreg_eval.py  --run_demo --demo_name=nifty_reg  -txt=./oai_examples.txt -o=OUTPUT_PATH
 
 2. For Demons
 
 .. code::
 
-    python demo_for_easyreg_eval.py  --run_demo --demo_name=demons  -o=OUTPUT_PATH
+    python demo_for_easyreg_eval.py  --run_demo --demo_name=demons -txt=./oai_examples.txt -o=OUTPUT_PATH
 
 3. For AntsPy
 
 .. code::
 
-    python demo_for_easyreg_eval.py  --run_demo --demo_name=ants  -o=OUTPUT_PATH
+    python demo_for_easyreg_eval.py  --run_demo --demo_name=ants -txt=./oai_examples.txt -o=OUTPUT_PATH
 
 
 
@@ -83,7 +85,7 @@ Demos on optimization-based mermaid model
 
 .. code::
 
-    python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -g=0 -o=OUTPUT_PATH
+    python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
 2. For Region-specific Diffeomorphic Metric Mapping (RDMM) with pre-defined regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
@@ -101,14 +103,14 @@ Demos on evaluating pretrained learning-based mermaid model
 
 .. code::
 
-    python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_vsvf -g=0 -o=OUTPUT_PATH
+    python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_vsvf -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
 2. For RDMM network with a learnt regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
 
 .. code::
 
-    python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_rdmm -txt=./lung_examples.txt -g=0 -o=OUTPUT_PATH
+    python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_rdmm -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
 

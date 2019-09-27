@@ -19,7 +19,7 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
             --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task
             --task_name / -tn: task name i.e. run_training_vsvf_task, run_training_rdmm_task
             --train_affine_first: train affine network first, then train non-parametric network
-            --gpu_id/ -g: gpu_id to use
+            --gpu_id/ -g: on which gpu to run
 
 An example
 

@@ -5,7 +5,6 @@ sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('../model_pool'))
 sys.path.insert(0,os.path.abspath('../mermaid'))
-print(sys.path)
 import data_pre.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from model_pool.piplines import run_one_task
@@ -191,13 +190,13 @@ if __name__ == '__main__':
     parser.add_argument('--demo_name',required=False, type=str, default='opt_vsvf',help='if run_demo, eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg')
     #---------------------------------------------------------------------------------------------------------------------------
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
-                        default=None,help='path to load settings')
-    parser.add_argument('-txt','--pair_txt_path', required=False, default='./oai_examples_debug.txt', type=str,
+                        default=None,help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)')
+    parser.add_argument('-txt','--pair_txt_path', required=False, default=None, type=str,
                         help='the txt file recording the pairs to registration')  # 2
     parser.add_argument('-s','--source_list',nargs='+', required=False, default=None,
                         help='the source list,  s1 s2 s3..sn')
     parser.add_argument('-t','--target_list',nargs='+', required=False, default=None,
-                        help='the target list,  t1 t2 t3..tn')
+                        help='the target list, should be one-to-one corresponded with the source list,  t1 t2 t3..tn')
     parser.add_argument('-ls','--lsource_list',nargs='+', required=False, default=None,
                         help='the source label list,  ls1,ls2,ls3..lsn')
     parser.add_argument('-lt','--ltarget_list',nargs='+', required=False, default=None,

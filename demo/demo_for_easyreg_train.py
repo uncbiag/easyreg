@@ -201,7 +201,7 @@ if __name__ == '__main__':
     parser.add_argument('-tn','--task_name', required=False, type=str,
                         default=None,help='the name of the task')
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
-                        default=None,help='path to load settings')
+                        default=None,help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)')
     parser.add_argument('--train_affine_first',required=False,action='store_true',
                         help='train affine network first, then train non-parametric network')
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')

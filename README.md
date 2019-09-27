@@ -15,7 +15,7 @@ git clone https://github.com/uncbiag/mermaid.git
 pip install -r requirements.txt
 
 # ################download demo (optional) 
-https://drive.google.com/uc?id=1gjzApAZMSVraMSU-iKkEHNCL3iV7xyZC
+gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
 unzip demo.zip -d . 
 # #######################################
 
