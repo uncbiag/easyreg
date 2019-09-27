@@ -3,7 +3,7 @@ Walk through Demos
 
 EasyReg is developed for research propose, providing interfaces for various registration methods, including `AntsPy <https://github.com/ANTsX/ANTsPy>`_ , `NiftyReg <http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg>`_ and Demons (embedded in `SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_).
 
-*NiftyReg is not included in installation and requires users to install themselves. Once installed, please set the **nifty_bin** in 'cur_task_setting.json' as the path to the NiftyReg binary file.*
+*NiftyReg requires users to install themselves. Once installed, please set the **nifty_bin** in 'cur_task_setting.json' to the path of the NiftyReg binary file.*
 
 In this tutorial, we would show how to run the following demos:
 
@@ -12,31 +12,34 @@ In this tutorial, we would show how to run the following demos:
 3. Demos on evaluating pretrained learning-based mermaid model (vSVF in CVPR paper and RDMM in NeurIPS paper)
 4. Demos on training learning-based mermaid model(vSVF in CVPR paper and RDMM in NeurIPS paper)
 
+*Demos for RDMM on synthesis data is put in mermaid repository. if you are interested in that, please refer to mermaid tutorial.*
+
 
 Download Examples and Pretrained Model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-To run the demo, we first need to download examples and pretrained model for learning based methdods.
+To run the demo, we first need to download examples and pretrained model for learning based methods.
 
 .. code::
 
     gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
     unzip demo.zip -d EASYREG_REPOSITORY_PATH
 
-Now we are ready to play with demos. The script for demos are in *demo*.
+Now we are ready to play with demos. The repository *demo* lists the scripts and settings for demos.
 
-The script *demo_for_easyreg_eval* is for optimization-based or pretrained methods.
+In this section, the script *demo_for_easyreg_eval.py* will be introduced which is for optimization-based or pretrained methods.
 
+Let's first go through the document of the *demo_for_easyreg_eval.py*.
 .. code::
 
     An evaluation interface for optimization methods or learning methods with pre-trained models.
     Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
     The method support list :  mermaid-related ( optimizing/pretrained) methods, ants, demons, niftyreg
-    The demos supported by category are :
+    The demo names supported by category are :
         mermaid: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined
         ants: ants
         demons: demons
         niftyreg: niftyreg
-    * network_* refers to learning methods with pre-trained models
+    * eval_network_* refers to learning methods with pre-trained models
     * opt_* : refers to optimization based methods
     Arguments:
         demo related:
@@ -44,7 +47,7 @@ The script *demo_for_easyreg_eval* is for optimization-based or pretrained metho
              --demo_name: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg
         input related:two input styles are supported. For both cases, images should be first normalized into [0,1].
             1. given txt
-             --pair_txt_path/-txt: the txt file recording the pairs to registration
+             --pair_txt_path/-txt: the txt file list the pairs to be registered
             2. given image
             --source_list/ -s: the source path list,  s1 s2 s3..sn
             --target_list/ -t: the target path list,  t1 t2 t3..tn

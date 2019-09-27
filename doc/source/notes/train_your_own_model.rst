@@ -1,7 +1,7 @@
 Train your own model
 ========================================
 
-In this tutorial, we would step by step showing how to train your own model.
+In this tutorial, we would show how to train your own model.
 
 
 The data part refers to prepare_data section.
@@ -32,3 +32,6 @@ An example
 In the 'task_name' folder, three folder will be auto created, **log** for tensorboard, **checkpoints** for saving models,
 **records** for saving running time results. Besides, two files will also be created. **task_settings.json** for recording settings of current tasks.
 **logfile.log** for terminal output ( only flushed when task finished).
+
+
+One thing to mention is that the affine-network involves the fully connection layer,  whose input channel number needs to be adjusted by the input image size.
