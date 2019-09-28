@@ -57,6 +57,8 @@
             "affine_net": {
                "affine_net_iter": 3,
                 "using_complex_net": true,
+                "initial_reg_factor": 10,
+                "min_reg_factor": 1e-3,
                 "epoch_activate_multi_step": 300,
                 "epoch_activate_sym": 200,
                 "epoch_activate_sym_loss": 200,

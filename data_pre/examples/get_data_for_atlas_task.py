@@ -32,7 +32,7 @@ output_path = '/playpen/zyshen/data/reg_test_for_atlas'
 
 
 
-original_txt_path_dict={'test':'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt'}
+original_txt_path_dict={phase:'/playpen/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/{}/pair_path_list.txt'.format(phase) for phase in ['train','val','debug']}
 atlas_path = '/playpen/zyshen/oai_data/atlas/atlas.nii.gz'
 l_atlas_path = '/playpen/zyshen/oai_data/atlas/atlas_label.nii.gz'
 

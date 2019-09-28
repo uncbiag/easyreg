@@ -20,7 +20,7 @@ unzip demo.zip -d .
 # #######################################
 
 cd mermaid
-python setup.py
+python setup.py develop
 ```
  Addtionally, we currently test on ANTsPy 0.1.4 version. Since AntsPy is not fully functioned,
  it will be replaced with custom Ants Package in the next release. The following command installs ANTsPy 0.1.4.

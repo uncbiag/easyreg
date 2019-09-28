@@ -179,6 +179,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """if true, use complex version of affine net"""
         self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'accumulate loss from each step')]
         """accumulate loss from each step"""
+        self.initial_reg_factor = opt['tsk_set']['reg']['affine_net'][('initial_reg_factor', 10, 'initial regularization factor')]
+        """initial regularization factor"""
+        self.min_reg_factor = opt['tsk_set']['reg']['affine_net'][('min_reg_factor', 1e-3, 'minimum regularization factor')]
+        """minimum regularization factor"""
         self.epoch_activate_multi_step = opt['tsk_set']['reg']['affine_net'][('epoch_activate_multi_step',-1,'epoch to activate multi-step affine')]
         """epoch to activate multi-step affine"""
         self.reset_lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('reset_lr_for_multi_step',False,'if True, reset learning rate when multi-step begins')]
@@ -386,7 +390,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :param sched: 'l2' , 'det'
         :return: the regularization loss on batch
         """
-        loss = self.scale_multi_step_reg_loss(affine_param[0],sched) + self.scale_multi_step_reg_loss((affine_param[1],sched))
+        loss = self.scale_multi_step_reg_loss(affine_param[0],sched) + self.scale_multi_step_reg_loss(affine_param[1],sched)
         return loss
 
     def scale_multi_step_reg_loss(self,affine_param, sched='l2'):
@@ -415,7 +419,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :return:
         """
         epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
-        factor_scale = 10 if self.epoch < self.epoch_activate_multi_step else 1e-3
+        factor_scale = self.initial_reg_factor if self.epoch < self.epoch_activate_multi_step else self.min_reg_factor
         static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 10
         min_threshold = 1e-3
         decay_factor = 3
@@ -439,7 +443,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sym_on = self.epoch>= self.epoch_activate_sym
         self.affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
         sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if  sym_on else 0.
-        scale_reg_loss = self.scale_sym_reg_loss(self.affineparam, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(self.affine_param, sched='l2')
+        scale_reg_loss = self.scale_sym_reg_loss(self.affine_param, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(self.affine_param, sched='l2')
         factor_scale = self.get_factor_reg_scale()
         factor_sym =10. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.

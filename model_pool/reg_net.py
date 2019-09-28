@@ -115,7 +115,7 @@ class RegNet(MermaidBase):
             lr = opt['lr']
             print(" no warming up the learning rate is {}".format(lr))
         else:
-            lr = 5e-4
+            lr = opt['lr']/10
             print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
         lr_sched_opt = opt['lr_scheduler']
