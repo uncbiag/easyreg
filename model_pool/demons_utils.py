@@ -26,7 +26,7 @@ def smooth_and_resample(image, shrink_factor, smoothing_sigma):
 
 
 
-def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = None):
+def get_initial_transform_nifty(nifty_bin, fixed_image_pth, moving_image_path,fname = None):
     """
     call the niftyreg affine transform, and set it in sitk form
 
@@ -34,7 +34,7 @@ def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = 
     :param fixed_image_pth: fixed/target image path
     :param moving_image_path: moving/source image path
     :param fname: name of image pair
-    :return:
+    :return: sitk transform object
     """
     affine_path = moving_image_path.replace('moving.nii.gz', 'affine.nii.gz')
     affine_txt = moving_image_path.replace('moving.nii.gz', fname + '_af.txt')
@@ -43,6 +43,169 @@ def get_initial_transform(nifty_bin, fixed_image_pth, moving_image_path,fname = 
     process.wait()
     affine_trans = get_affine_transform(affine_txt)
     return affine_trans
+
+def get_initial_transform_sitk( fixed_image_pth, moving_image_pth):
+    """
+    call the SimpleITK affine transform
+
+    :param fixed_image_pth: fixed/target image path
+    :param moving_image_path: moving/source image path
+    :return: sitk transform object
+    """
+    fixed_image = sitk.ReadImage(fixed_image_pth)
+    moving_image = sitk.ReadImage(moving_image_pth)
+    initial_transform = sitk.CenteredTransformInitializer(fixed_image, moving_image,
+                                                          sitk.AffineTransform(3),
+                                                         )
+    registration_method = sitk.ImageRegistrationMethod()
+
+    # Similarity metric settings.
+    registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=50)
+    registration_method.SetMetricSamplingStrategy(registration_method.RANDOM)
+    registration_method.SetMetricSamplingPercentage(0.1)
+
+    registration_method.SetInterpolator(sitk.sitkLinear)
+
+    # Optimizer settings.
+    registration_method.SetOptimizerAsGradientDescent(learningRate=0.01, numberOfIterations=100000,
+                                                      convergenceMinimumValue=1e-9, convergenceWindowSize=10)
+    registration_method.SetOptimizerScalesFromPhysicalShift()
+
+    # Setup for the multi-resolution framework.
+    registration_method.SetShrinkFactorsPerLevel(shrinkFactors=[4, 2, 1])
+    registration_method.SetSmoothingSigmasPerLevel(smoothingSigmas=[2, 1, 0])
+    registration_method.SmoothingSigmasAreSpecifiedInPhysicalUnitsOn()
+
+    # Don't optimize in-place, we would possibly like to run this cell multiple times.
+    registration_method.SetInitialTransform(initial_transform, inPlace=False)
+
+    #######################3
+
+    # Connect all of the observers so that we can perform plotting during registration.
+    registration_method.AddCommand(sitk.sitkStartEvent, start_plot)
+    registration_method.AddCommand(sitk.sitkEndEvent, end_plot)
+    registration_method.AddCommand(sitk.sitkMultiResolutionIterationEvent, update_multires_iterations)
+    registration_method.AddCommand(sitk.sitkIterationEvent, lambda: plot_values(registration_method))
+
+    ###############
+
+
+    final_transform = registration_method.Execute(sitk.Cast(fixed_image, sitk.sitkFloat32),
+                                                  sitk.Cast(moving_image, sitk.sitkFloat32))
+    moving_resampled = sitk.Resample(moving_image, fixed_image, final_transform, sitk.sitkLinear, 0.0,
+                                     moving_image.GetPixelID())
+    affine_path = moving_image_pth.replace('moving.nii.gz', 'affine.nii.gz')
+    sitk.WriteImage(moving_resampled,affine_path)
+    # debug_saving_path = '/playpen/zyshen/debugs/affine_itk/warped.nii.gz'
+    # sitk.WriteImage(moving_resampled,debug_saving_path)
+    # sitk.WriteImage(moving_image,debug_saving_path.replace("warped",'moving'))
+    # sitk.WriteImage(fixed_image,debug_saving_path.replace("warped",'target'))
+
+    return final_transform
+
+#####################################TO DELETE######################################################
+
+import matplotlib.pyplot as plt
+global i
+i=0
+
+# Callback invoked by the interact IPython method for scrolling through the image stacks of
+# the two images (moving and fixed).
+def display_images(fixed_image_z, moving_image_z, fixed_npa, moving_npa):
+    # Create a figure with two subplots and the specified size.
+    plt.subplots(1, 2, figsize=(10, 8))
+
+    # Draw the fixed image in the first subplot.
+    plt.subplot(1, 2, 1)
+    plt.imshow(fixed_npa[fixed_image_z, :, :], cmap=plt.cm.Greys_r);
+    plt.title('fixed image')
+    plt.axis('off')
+
+    # Draw the moving image in the second subplot.
+    plt.subplot(1, 2, 2)
+    plt.imshow(moving_npa[moving_image_z, :, :], cmap=plt.cm.Greys_r);
+    plt.title('moving image')
+    plt.axis('off')
+
+    plt.show()
+
+
+# Callback invoked by the IPython interact method for scrolling and modifying the alpha blending
+# of an image stack of two images that occupy the same physical space.
+def display_images_with_alpha(image_z, alpha, fixed, moving):
+    img = (1.0 - alpha) * fixed[:, :, image_z] + alpha * moving[:, :, image_z]
+    plt.imshow(sitk.GetArrayViewFromImage(img), cmap=plt.cm.Greys_r);
+    plt.axis('off')
+    plt.show()
+
+
+# Callback invoked when the StartEvent happens, sets up our new data.
+def start_plot():
+    global metric_values, multires_iterations
+
+    metric_values = []
+    multires_iterations = []
+
+
+# Callback invoked when the EndEvent happens, do cleanup of data and figure.
+def end_plot():
+    global metric_values, multires_iterations
+
+    del metric_values
+    del multires_iterations
+    # Close figure, we don't want to get a duplicate of the plot latter on.
+    plt.close()
+
+
+# Callback invoked when the IterationEvent happens, update our data and display new figure.
+def plot_values(registration_method):
+    global metric_values, multires_iterations
+    global i
+
+    metric_values.append(registration_method.GetMetricValue())
+    # Plot the similarity metric values
+    plt.plot(metric_values, 'r')
+    plt.plot(multires_iterations, [metric_values[index] for index in multires_iterations], 'b*')
+    plt.xlabel('Iteration Number', fontsize=12)
+    plt.ylabel('Metric Value', fontsize=12)
+    i = i+1
+    if i%200==0:
+        plt.show()
+
+
+# Callback invoked when the sitkMultiResolutionIterationEvent happens, update the index into the
+# metric_values list.
+def update_multires_iterations():
+    global metric_values, multires_iterations
+    multires_iterations.append(len(metric_values))
+
+
+#############################################################################################
+
+
+
+
+
+
+def get_initial_transform(fixed_image_pth, moving_image_pth, fname=None,nifty_bin_pth=None):
+    """
+
+    :param fixed_image_pth:
+    :param moving_image_pth:
+    :param fname:
+    :param nifty_bin_pth:
+    :return:
+    """
+    if 0:#os.path.exists(nifty_bin_pth):
+        print("the niftyreg is detected, by default, the niftyreg will be called to get initial affine transformation")
+        transform = get_initial_transform_nifty(nifty_bin_pth, fixed_image_pth,moving_image_pth,fname)
+    else:
+        print("the niftyreg is not detected, the simpleitk will be called to get initial affine transformation")
+        transform = get_initial_transform_sitk( fixed_image_pth,moving_image_pth)
+    return transform
+
+
+
 
 
 def get_affine_transform(af_pth):
@@ -195,7 +358,7 @@ def performDemonsRegistration(param, mv_path, target_path, registration_type='de
     loutput = None
 
     #mv_path, ml_path = get_affined_moving_image(target_path, mv_path, ml_path=ml_path,fname=fname)
-    initial_transform = get_initial_transform(nifty_bin, target_path, mv_path, fname=fname)
+    initial_transform = get_initial_transform(target_path, mv_path, fname=fname,nifty_bin_pth=nifty_bin)
 
     demons_filter = sitk.FastSymmetricForcesDemonsRegistrationFilter()
     demons_filter.SetNumberOfIterations(iter_num)

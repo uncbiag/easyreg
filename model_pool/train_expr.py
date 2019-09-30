@@ -8,7 +8,7 @@ def train_model(opt,model, dataloaders,writer):
     since = time()
     print_step = opt['tsk_set'][('print_step', [10,4,4], 'num of steps to print')]
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
-    resume_training = opt['tsk_set'][('continue_train', False, 'continue to train')]
+    continue_train = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
     load_model_but_train_from_begin = opt['tsk_set'][('load_model_but_train_from_begin',False,'load_model_but_train_from_begin')]
     load_model_but_train_from_epoch =opt['tsk_set'][('load_model_but_train_from_epoch',0,'load_model_but_train_from_epoch')]
@@ -33,9 +33,10 @@ def train_model(opt,model, dataloaders,writer):
     save_fig_on = opt['tsk_set'][('save_fig_on',True,'saving fig')]
     warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
     continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'continue to train')]
+    opt['tsk_set']['optim']['lr'] =opt ['tsk_set']['optim']['lr'] if not continue_train else continue_train_lr
 
 
-    if resume_training:
+    if continue_train:
         start_epoch, best_prec1, global_step=resume_train(model_path, model.network,model.optimizer)
         if continue_train_lr > 0:
             model.update_learning_rate(continue_train_lr)
@@ -72,6 +73,7 @@ def train_model(opt,model, dataloaders,writer):
             if not max_batch_num_per_epoch[phase]:
                 break
             if phase == 'train':
+                model.update_scheduler(epoch)
                 model.set_train()
             elif phase == 'val':
                 model.set_val()
@@ -185,7 +187,8 @@ def train_model(opt,model, dataloaders,writer):
             if phase == 'debug':
                 epoch_debug_score = running_debug_score / min(max_batch_num_per_epoch['debug'], dataloaders['data_size']['debug'])
                 print('{} epoch_debug_score: {:.4f}'.format(epoch, epoch_debug_score))
-        print()
+
+
 
 
     # optional,  at end of the training, lets save the last model and optimizer

@@ -26,26 +26,6 @@
         "model_path": "",
         "n_in_channel": 1,
         "network_name": "nonp",
-        "optim": {
-            "adam": {
-                "beta": 0.9
-            },
-            "lr": 5e-05,
-            "lr_scheduler": {
-                "custom": {
-                    "gamma": 0.5,
-                    "step_size": 12000
-                },
-                "plateau": {
-                    "factor": 0.2,
-                    "min_lr": 1e-06,
-                    "patience": 5,
-                    "threshold": 0.001
-                },
-                "type": "custom"
-            },
-            "optim_type": "adam"
-        },
         "output_path": "./demo_output/mermaid/opt_vsvf/reg",
         "print_step": [
             10,

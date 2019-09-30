@@ -402,8 +402,12 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :param sched: 'l2' , 'det'
         :return: the regularization loss on batch
         """
+        weight_mask = torch.ones(4,3).cuda()
+        bias_factor = 1.0
+        weight_mask[3,:]=bias_factor
+        weight_mask = weight_mask.view(-1)
         if sched == 'l2':
-            return torch.sum((self.affine_identity - affine_param) ** 2)\
+            return torch.sum((self.affine_identity - affine_param) ** 2 *weight_mask)\
                    / (affine_param.shape[0])
         elif sched == 'det':
             mean_det = 0.
@@ -414,7 +418,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def get_factor_reg_scale(self):
         """
-        get the regularizer factor according to training strategy
+        get the regularizer factor according to training strategy 
 
         :return:
         """
@@ -434,7 +438,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         compute the overall loss for affine tranning
         overall loss = multi-step similarity loss + symmetry loss + regularization loss
 
-        :param loss_fn: loss function to compute the similarity
+        :param loss_fn: loss function to compute the similaritysym_reg_loss
         :param output: warped image
         :param target:target image
         :return:overall loss
@@ -445,10 +449,11 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if  sym_on else 0.
         scale_reg_loss = self.scale_sym_reg_loss(self.affine_param, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(self.affine_param, sched='l2')
         factor_scale = self.get_factor_reg_scale()
-        factor_sym =10. if self.epoch>= self.epoch_activate_sym_loss else 0.
+        factor_sym =1. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
-        if self.iter_count%10==0:
+        print_out_every_iter = 10* self.step if self.epoch> self.epoch_activate_multi_step else self.step
+        if self.iter_count%print_out_every_iter==0:
             if self.epoch >= self.epoch_activate_sym:
                 print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
                     sim_loss.item(),factor_sym,sym_reg_loss.item(),factor_scale,scale_reg_loss.item())

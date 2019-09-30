@@ -166,6 +166,13 @@ class RegNet(MermaidBase):
 
         return output, phi, afimg_or_afparam, loss
 
+    def update_scheduler(self,epoch):
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step(epoch)
+
+        for param_group in self.optimizer.param_groups:
+            print("the current epoch is {} with learining rate set at {}".format(epoch,param_group['lr']))
+
     def optimize_parameters(self, input=None):
         """
         forward and backward the model, optimize parameters and manage the learning rate
@@ -173,10 +180,8 @@ class RegNet(MermaidBase):
         :param input: input(not used
         :return:
         """
-        self.iter_count += 1
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
-
+        if self.is_train:
+            self.iter_count += 1
         self.output, self.phi, self.afimg_or_afparam, loss = self.forward()
 
         self.backward_net(loss / self.criticUpdates)

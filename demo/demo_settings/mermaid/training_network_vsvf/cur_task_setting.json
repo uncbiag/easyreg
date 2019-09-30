@@ -34,7 +34,7 @@
             "lr_scheduler": {
                 "custom": {
                     "gamma": 0.5,
-                    "step_size": 12000
+                    "step_size": 60
                 },
                 "plateau": {
                     "factor": 0.5,
