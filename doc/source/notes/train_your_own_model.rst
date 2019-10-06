@@ -28,7 +28,6 @@ An example
     python demo_for_easyreg_train.py -o=/playpen/zyshen/data -data_task_name=croped_for_reg_debug_3000_pair_oai_reg_inter -task_name=interface_rdmm -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_rdmm -g=0
 
 
-
 In the 'task_name' folder, three folder will be auto created, **log** for tensorboard, **checkpoints** for saving models,
 **records** for saving running time results. Besides, two files will also be created. **task_settings.json** for recording settings of current tasks.
 **logfile.log** for terminal output ( only flushed when task finished).

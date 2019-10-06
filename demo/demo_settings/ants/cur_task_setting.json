@@ -1,28 +1,20 @@
 {
-    "tsk_set": {
-        "batch_sz": 1,
-        "use_physical_coord":false,
-        "train": false,
-        "model": "ants",
-        "network_name": "syn",
-        "output_path": "",
-        "reg": {
-            "ants": {
-            }
-        },
-        "save_by_standard_label": true,
-        "save_fig_on": true,
-        "save_3d_img_on": false,
-        "task_name": "res"
-    },
     "dataset": {
-        "load_training_data_into_memory": false,
-        "img_after_resize": [80,192,192],
-        "max_pair_for_loading": [
-            1,
-            1,
-            -1,
-            1
+        "img_after_resize": [
+            80,
+            192,
+            192
         ]
+    },
+    "tsk_set": {
+        "model": "ants",
+        "method_name": "syn",
+        "reg": {
+            "ants": {}
+        },
+        "save_3d_img_on": false,
+        "save_fig_on": true,
+        "train": false,
+        "use_physical_coord": false
     }
 }

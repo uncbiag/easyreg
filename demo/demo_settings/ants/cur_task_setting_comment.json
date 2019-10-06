@@ -1,13 +1,8 @@
 {
     "dataset": {
-        "img_after_resize": "image size after resample",
-        "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden"
+        "img_after_resize": "image size after resampling"
     },
     "tsk_set": {
-        "n_in_channel": "for network training method, the color channel typically set to 1",
-        "path": {
-            "__doc__": "record paths"
-        },
         "reg": {
             "ants": {}
         },

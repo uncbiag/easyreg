@@ -22,10 +22,10 @@ class AntsRegIter(ToolkitBase):
         :return: None
         """
         ToolkitBase.initialize(self, opt)
-        if self.network_name =='affine':
+        if self.method_name =='affine':
             self.affine_on = True
             self.warp_on = False
-        elif self.network_name =='syn':
+        elif self.method_name =='syn':
             self.affine_on = False
             self.warp_on = True
         self.ants_param = opt['tsk_set']['reg']['ants']
@@ -39,7 +39,7 @@ class AntsRegIter(ToolkitBase):
 
         :return: warped image, warped label(None), transformation map(None)
         """
-        output, loutput, phi,_ = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, phi,_ = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.method_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -55,7 +55,7 @@ class AntsRegIter(ToolkitBase):
 
         :return: warped image, warped label(None), transformation map(None)
         """
-        output, loutput, disp,jacobian = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, disp,jacobian = performAntsRegistration(self.ants_param, self.resized_moving_path,self.resized_target_path,self.method_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
 
         #self.afimg_or_afparam = None
         self.output = output

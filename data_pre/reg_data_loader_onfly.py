@@ -30,8 +30,9 @@ class RegistrationDataset(Dataset):
         self.data_type = '*.nii.gz'
         self.turn_on_pair_regis = False
         ind = ['train', 'val', 'test', 'debug'].index(phase)
-        self.max_num_pair_to_load = reg_option['max_pair_for_loading'][ind]
-        """ the max number of pairs to be loaded into the memory"""
+        max_pair_for_loading=reg_option['max_pair_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
+        self.max_pair_for_loading = max_pair_for_loading[ind]
+        """ the max number of pairs to be loaded into the memory,[max_train, max_val, max_test, max_debug]"""
         self.load_init_weight=reg_option[('load_init_weight',False,'load init weight for adaptive weighting model')]
 
 
@@ -42,10 +43,10 @@ class RegistrationDataset(Dataset):
         #     self.is_intra_reg = True if 'intra' in data_path else False
         #
         # if self.is_intra_reg:
-        #     self.max_num_pair_to_load = -1 if phase != 'test' else 300  # 300 when test intra    150     ###################TODO ###################################3
+        #     self.max_pair_for_loading = -1 if phase != 'test' else 300  # 300 when test intra    150     ###################TODO ###################################3
         #     self.turn_on_pair_regis = True if phase != 'test' else False  # True when test inter   ##########TODO ########################
         # else:
-        #     self.max_num_pair_to_load = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
+        #     self.max_pair_for_loading = -1 if phase != 'test' else 150  # 300 when test intra    150     ###################TODO ###################################3
         #     self.turn_on_pair_regis = True  # if ph
         #
         # ######################################################################################3
@@ -82,8 +83,8 @@ class RegistrationDataset(Dataset):
             self.has_label=True
 
 
-        if self.max_num_pair_to_load>0:
-            read_num = min(self.max_num_pair_to_load, len(self.path_list))
+        if self.max_pair_for_loading>0:
+            read_num = min(self.max_pair_for_loading, len(self.path_list))
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
             if self.load_init_weight:

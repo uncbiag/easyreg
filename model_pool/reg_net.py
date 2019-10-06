@@ -29,21 +29,19 @@ class RegNet(MermaidBase):
         :return:
         """
         MermaidBase.initialize(self, opt)
-        self.print_val_detail = opt['tsk_set']['print_val_detail']
-        """ if true, print performance of each structure; false: print average performance of structures"""
         input_img_sz = opt['dataset']['img_after_resize']
         self.input_img_sz = input_img_sz
         """ the input image sz of the network"""
-        self.spacing = normalize_spacing(opt['dataset']['spacing_to_refer'],
-                                         self.input_img_sz) if self.use_physical_coord else 1. / (
+        spacing_to_refer = opt['dataset'][('spacing_to_refer',[1, 1, 1],'the physical spacing in numpy coordinate')]
+        self.spacing = normalize_spacing(spacing_to_refer, self.input_img_sz) if self.use_physical_coord else 1. / (
                     np.array(input_img_sz) - 1)
         """ image spacing"""
-        network_name = opt['tsk_set']['network_name']
-        self.affine_on = True if 'affine' in network_name else False
+        method_name = opt['tsk_set']['method_name']
+        self.affine_on = True if 'affine' in method_name else False
         """ perform affine registrtion, if affine is in the network name"""
         self.nonp_on = not self.affine_on
         """ perform affine and nonparametric registration, if mermaid is in the network name"""
-        self.network = model_pool[network_name](input_img_sz, opt)
+        self.network = model_pool[method_name](input_img_sz, opt)
         """create network model"""
         # self.network.apply(weights_init)
         self.criticUpdates = opt['tsk_set']['criticUpdates']
@@ -118,7 +116,7 @@ class RegNet(MermaidBase):
             lr = opt['lr']/10
             print(" warming up on the learning rate is {}".format(lr))
         beta = opt['adam']['beta']
-        lr_sched_opt = opt['lr_scheduler']
+        lr_sched_opt = opt[('lr_scheduler',{},"settings for learning scheduler")]
         self.lr_sched_type = lr_sched_opt['type']
         if optimize_name == 'adam':
             re_optimizer = torch.optim.Adam(network.parameters(), lr=lr, betas=(beta, 0.999))
@@ -128,8 +126,8 @@ class RegNet(MermaidBase):
         re_lr_scheduler = None
         re_exp_lr_scheduler = None
         if self.lr_sched_type == 'custom':
-            step_size = lr_sched_opt['custom']['step_size']
-            gamma = lr_sched_opt['custom']['gamma']
+            step_size = lr_sched_opt['custom'][('step_size',50,"update the learning rate every # epoch")]
+            gamma = lr_sched_opt['custom'][('gamma',0.5,"the factor for updateing the learning rate")]
             re_lr_scheduler = torch.optim.lr_scheduler.StepLR(re_optimizer, step_size=step_size, gamma=gamma)
         elif self.lr_sched_type == 'plateau':
             patience = lr_sched_opt['plateau']['patience']

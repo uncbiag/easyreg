@@ -64,9 +64,7 @@ def force_test_setting(dm, tsm,output_path):
     else:
         tsm.task_par['dataset']['max_pair_for_loading'] = [1, 1, -1, 1]
     tsm.task_par['tsk_set']['train'] = False
-    tsm.task_par['tsk_set']['save_by_standard_label'] = True
     tsm.task_par['tsk_set']['continue_train'] = False
-    tsm.task_par['tsk_set']['reg']['mermaid_net']['using_sym'] = False
     tsk_json_path = os.path.join(output_path, 'cur_task_setting.json')
     tsm.save(tsk_json_path)
 

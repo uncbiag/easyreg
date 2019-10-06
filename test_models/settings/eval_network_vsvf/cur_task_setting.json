@@ -52,7 +52,7 @@
             },
             "optim_type": "adam"
         },
-        "output_orginal_img_type": true,
+        "output_orginal_img_type": false,
         "print_step": [
             10,
             4,
@@ -93,8 +93,8 @@
             }
         },
         "save_3d_img_on": false,
-        "save_extra_3d_img": true,
-        "save_fig_on": true,
+        "save_extra_3d_img": false,
+        "save_fig_on": false,
         "train": false,
         "use_physical_coord": false,
         "val_period": 10,

@@ -13,7 +13,7 @@ class MomentumNet(nn.Module):
         super(MomentumNet,self).__init__()
         self.low_res_factor = low_res_factor
         """ the low_res_factor control the momentum sz, which should be consistent with the map sz in mermaid unit"""
-        using_complex_net = opt['using_complex_net']
+        using_complex_net = opt[('using_complex_net',True,"using complex version of momentum generation network")]
 
         if using_complex_net:
             self.mom_gen = MomentumGen_resid(low_res_factor,bn=False)

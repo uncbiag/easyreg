@@ -13,10 +13,10 @@ class NiftyRegIter(ToolkitBase):
 
     def initialize(self,opt):
         ToolkitBase.initialize(self, opt)
-        if self.network_name =='affine':
+        if self.method_name =='affine':
             self.affine_on = True
             self.warp_on = False
-        elif self.network_name =='bspline':
+        elif self.method_name =='bspline':
             self.affine_on = False
             self.warp_on = True
         self.nifty_reg_param = opt['tsk_set']['reg']['nifty_reg']
@@ -31,7 +31,7 @@ class NiftyRegIter(ToolkitBase):
 
         :return: warped image, transformation map (disabled), affine parameter(disabled)
         """
-        output, loutput, phi,_ = performRegistration(self.nifty_reg_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
+        output, loutput, phi,_ = performRegistration(self.nifty_reg_param, self.resized_moving_path,self.resized_target_path,self.method_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
 
         self.output = output
         self.warped_label_map = loutput
@@ -47,7 +47,7 @@ class NiftyRegIter(ToolkitBase):
 
         :return: warped image, transformation map (disabled), affine image(disabled)
         """
-        output, loutput, phi,jacobian = performRegistration(self.nifty_reg_param,self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
+        output, loutput, phi,jacobian = performRegistration(self.nifty_reg_param,self.resized_moving_path,self.resized_target_path,self.method_name,self.record_path,self.resized_l_moving_path,fname = self.fname_list[0])
 
 
         self.afimg_or_afparam = None

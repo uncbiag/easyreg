@@ -1,22 +1,21 @@
 {
     "dataset": {
         "img_after_resize": "image size after resampling",
-        "max_pair_for_loading": "the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]",
-        "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden",
-        "spacing_to_refer": "the physical spacing in numpy coordinate, only activate when using_physical_coord is true"
+        "load_init_weight": "load init weight for adaptive weighting model",
+        "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden"
+    },
+    "tsk_opt": {
+        "save_extra_3d_img": "save extra image"
     },
     "tsk_set": {
         "batch_sz": "batch sz (only for mermaid related method, otherwise set to 1)",
-        "check_best_model_period":"save best performed model every # epoch",
         "continue_train": "for network training method, continue training the model loaded from model_path",
-        "continue_train_lr": "learning rate for continuing to train",
         "criticUpdates": "for network training method, the num determines gradient update every # iter",
-        "epoch": "num of training epoch",
+        "evaluate_label_list": "evaluate_label_list",
         "gpu_ids": "the gpu id used for network methods",
         "loss": {
             "type": "the similarity measure type"
         },
-        "max_batch_num_per_epoch": "max batch number per epoch for train|val|test|debug",
         "model_path": "if continue_train, the model path should be given here",
         "n_in_channel": "for network training method, the color channel typically set to 1",
         "optim": {
@@ -38,8 +37,6 @@
                 "epoch_activate_sym": "epoch to activate symmetric forward",
                 "epoch_activate_sym_loss": "the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss",
                 "lr_for_multi_step": "if reset_lr_for_multi_step, reset learning rate into # when multi-step begins",
-                "initial_reg_factor": "initial regularization factor",
-                "min_reg_factor": "minimum regularization factor",
                 "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                 "using_complex_net": "use complex version of affine net"
             },
@@ -47,6 +44,7 @@
             "low_res_factor": "factor of low-resolution map",
             "mermaid_net": {
                 "affine_init_path": "the path of trained affined network",
+                "affine_refine_step": "the multi-step num in affine refinement",
                 "clamp_momentum": "clamp_momentum",
                 "clamp_thre": "clamp momentum into [-clamp_thre, clamp_thre]",
                 "epoch_activate_multi_step": "epoch activate the multi-step",
@@ -61,16 +59,12 @@
                 "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                 "sym_factor": "factor on symmetric loss",
                 "using_affine_init": "if ture, deploy an affine network before mermaid-net",
-                "using_physical_coord": "use physical coordinate system",
-                "using_complex_net": "using complex version of momentum generation network"
+                "using_physical_coord": "use physical coordinate system"
             }
         },
         "save_3d_img_on": "saving fig",
-        "save_extra_3d_img": "save extra image",
         "save_fig_on": "saving fig",
         "train": "if is in train mode",
-        "use_physical_coord": "Keep physical spacing",
-        "val_period": "do validation every num epoch",
-        "warmming_up_epoch": "warming up the model in the first # epoch"
+        "use_physical_coord": "Keep physical spacing"
     }
 }

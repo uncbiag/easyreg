@@ -27,11 +27,10 @@ class ModelBase():
         self.continue_train = opt['tsk_set'][('continue_train',False,"for network training method, continue training the model loaded from model_path")]
         self.criticUpdates = opt['tsk_set'][('criticUpdates',1,"for network training method, the num determines gradient update every # iter")]
         self.n_in_channel = opt['tsk_set'][('n_in_channel',1,"for network training method, the color channel typically set to 1")]
-        self.input_img_sz = self.opt['dataset'][('img_after_resize',None,"image size after resample")]
+        self.input_img_sz = self.opt['dataset'][('img_after_resize',None,"image size after resampling")]
         self.original_im_sz = None
         self.original_spacing = None
         #self.input_resize_factor = opt['dataset']['input_resize_factor'] # todo remove this
-        self.evaluate_label_list = opt['tsk_set']['evaluate_label_list',[-100],'evaluate_label_list']
         self.optimizer= None
         self.lr_scheduler = None
         self.exp_lr_scheduler= None

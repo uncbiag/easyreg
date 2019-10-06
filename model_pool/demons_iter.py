@@ -27,11 +27,11 @@ class DemonsRegIter(ToolkitBase):
         :return: None
         """
         ToolkitBase.initialize(self, opt)
-        if self.network_name =='affine':
+        if self.method_name =='affine':
             self.affine_on = True
             self.warp_on = False
             raise ValueError("affine is not separately used in demons")
-        elif self.network_name =='demons':
+        elif self.method_name =='demons':
             """ In this case, the nifty affine would be first called"""
             self.affine_on = False
             self.warp_on = True
@@ -45,7 +45,7 @@ class DemonsRegIter(ToolkitBase):
 
         :return: warped image, warped label(None), transformation map(None)
         """
-        output, loutput, phi,jacobian = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.network_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
+        output, loutput, phi,jacobian = performDemonsRegistration(self.demons_param, self.resized_moving_path,self.resized_target_path,self.method_name,self.record_path,self.resized_l_moving_path,self.resized_l_target_path,self.fname_list[0])
         self.afimg_or_afparam = None
         self.output = output
         self.warped_label_map = loutput

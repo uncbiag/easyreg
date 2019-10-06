@@ -67,7 +67,7 @@ class MermaidNet(nn.Module):
         """compute the inverse transformation map"""
         self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','../mermaid/demos/cur_settings_lbfgs.json',"the path for mermaid settings json")]
         """the path for mermaid settings json"""
-        self.sym_factor = opt_mermaid[('sym_factor',1,'factor on symmetric loss')]
+        self.sym_factor = opt_mermaid[('sym_factor',500,'factor on symmetric loss')]
         """factor on symmetric loss"""
         self.epoch_activate_sym = opt_mermaid[('epoch_activate_sym',-1,'epoch activate the symmetric loss')]
         """epoch activate the symmetric loss"""
@@ -81,10 +81,12 @@ class MermaidNet(nn.Module):
         """compute multi-step loss"""
         self.using_affine_init = opt_mermaid[('using_affine_init',True,'if ture, deploy an affine network before mermaid-net')]
         """if ture, deploy an affine network before mermaid-net"""
-        self.load_trained_affine_net = opt_mermaid[('load_trained_affine_net',True,'load the trained affine network')]
-        """load the trained affine network"""
+        self.load_trained_affine_net = opt_mermaid[('load_trained_affine_net',True,'if true load_trained_affine_net; if false, the affine network is not initialized')]
+        """if true load_trained_affine_net; if false, the affine network is not initialized"""
         self.affine_init_path = opt_mermaid[('affine_init_path','',"the path of trained affined network")]
         """the path of trained affined network"""
+        self.affine_refine_step = opt_mermaid[('affine_refine_step', 5, "the multi-step num in affine refinement")]
+        """the multi-step num in affine refinement"""
         self.optimize_momentum_network = opt_mermaid[('optimize_momentum_network',True,'if true, optimize the momentum network')]
         """if true optimize the momentum network"""
         self.epoch_list_fixed_momentum_network = opt_mermaid[('epoch_list_fixed_momentum_network',[-1],'list of epoch, fix the momentum network')]
@@ -97,7 +99,7 @@ class MermaidNet(nn.Module):
         """clamp momentum into [-clamp_thre, clamp_thre]"""
         self.use_adaptive_smoother = False
         self.print_loss_every_n_iter = 10 if self.is_train else 1
-        self.using_sym_on = True
+        self.using_sym_on = True if self.is_train else False
 
         if self.clamp_momentum:
             print("Attention, the clamp momentum is on")
@@ -110,7 +112,8 @@ class MermaidNet(nn.Module):
         self.dim = len(img_sz)
         self.standard_spacing = 1. / (np.array(img_sz) - 1)
         """ here we define the standard spacing measures the image coord from 0 to 1"""
-        self.spacing = np.asarray(opt['dataset']['spacing_to_refer']) if self.using_physical_coord else 1. / (
+        spacing_to_refer = opt['dataset'][('spacing_to_refer',[1, 1, 1],'the physical spacing in numpy coordinate, only activate when using_physical_coord is true')]
+        self.spacing = normalize_spacing(spacing_to_refer, img_sz) if self.using_physical_coord else 1. / (
                     np.array(img_sz) - 1)
         self.spacing = normalize_spacing(self.spacing, self.input_img_sz) if self.using_physical_coord else self.spacing
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
@@ -155,6 +158,7 @@ class MermaidNet(nn.Module):
         self.affine_net = AffineNetSym(self.img_sz[2:],opt)
         self.affine_net.compute_loss = False
         self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
+        self.affine_net.set_step(self.affine_refine_step)
         model_path = self.affine_init_path
         if self.load_trained_affine_net and self.is_train:
             checkpoint = torch.load(model_path,  map_location='cpu')
@@ -162,7 +166,7 @@ class MermaidNet(nn.Module):
             self.affine_net.cuda()
             print("Affine model is initialized!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         else:
-            print("The Affine model is added, but not initialized")
+            print("The Affine model is added, but not initialized, this should only take place when a complete checkpoint (including affine model) will be loaded")
         self.affine_net.eval()
 
     def set_cur_epoch(self,epoch=-1):

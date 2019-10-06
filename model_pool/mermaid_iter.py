@@ -12,11 +12,11 @@ class MermaidIter(MermaidBase):
         :return:
         """
         MermaidBase.initialize(self,opt)
-        network_name =opt['tsk_set']['network_name']
-        if network_name =='affine':
+        method_name =opt['tsk_set']['method_name']
+        if method_name =='affine':
             self.affine_on = True
             self.nonp_on = False
-        elif network_name =='nonp':
+        elif method_name =='nonp':
             self.affine_on = True
             self.nonp_on = True
         self.si = SI.RegisterImagePair()

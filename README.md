@@ -14,15 +14,19 @@ cd easyreg
 git clone https://github.com/uncbiag/mermaid.git
 pip install -r requirements.txt
 
-# ################download demo (optional) 
+# ################download demo (optional)######
 gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
 unzip demo.zip -d . 
-# #######################################
+# #############################################
 
 cd mermaid
 python setup.py develop
 ```
- Addtionally, we currently test on ANTsPy 0.1.4 version. Since AntsPy is not fully functioned,
+For third-party toolkits:
+
+**ANTsPy**
+
+We currently test on ANTsPy 0.1.4 version. Since AntsPy is not fully functioned,
  it will be replaced with custom Ants Package in the next release. The following command installs ANTsPy 0.1.4.
  
  ```
@@ -30,6 +34,9 @@ python setup.py develop
 pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1.4-cp36-cp36m-linux_x86_64.whl
 ```
 
+**NiftyReg**
+
+The installation of NiftyReg please refer to [NiftyReg Installation](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
 
 # Build Document
 Next step, the tutorial and documents can be built from sphinx.

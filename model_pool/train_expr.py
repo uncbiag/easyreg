@@ -7,13 +7,13 @@ from model_pool.net_utils import *
 def train_model(opt,model, dataloaders,writer):
     since = time()
     print_step = opt['tsk_set'][('print_step', [10,4,4], 'num of steps to print')]
-    num_epochs = opt['tsk_set'][('epoch', 100, 'num of epoch')]
+    num_epochs = opt['tsk_set'][('epoch', 100, 'num of training epoch')]
     continue_train = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
     load_model_but_train_from_begin = opt['tsk_set'][('load_model_but_train_from_begin',False,'load_model_but_train_from_begin')]
     load_model_but_train_from_epoch =opt['tsk_set'][('load_model_but_train_from_epoch',0,'load_model_but_train_from_epoch')]
     check_point_path = opt['tsk_set']['path']['check_point_path']
-    max_batch_num_per_epoch_list = opt['tsk_set']['max_batch_num_per_epoch']
+    max_batch_num_per_epoch_list = opt['tsk_set'][('max_batch_num_per_epoch',(-1,-1,-1,-1),"max batch number per epoch for train|val|test|debug")]
     gpu_id = opt['tsk_set']['gpu_ids']
     best_score = 0
     is_best = False
@@ -25,14 +25,14 @@ def train_model(opt,model, dataloaders,writer):
     period_detailed_scores = {x: 0. for x in phases}
     max_batch_num_per_epoch ={x: max_batch_num_per_epoch_list[i] for i, x in enumerate(phases)}
     period ={x: print_step[i] for i, x in enumerate(phases)}
-    check_best_model_period =opt['tsk_set'][('check_best_model_period',5,'save best performanced model every # epoch')]
+    check_best_model_period =opt['tsk_set'][('check_best_model_period',5,'save best performed model every # epoch')]
     tensorboard_print_period = { phase: min(max_batch_num_per_epoch[phase],period[phase]) for phase in phases}
     save_fig_epoch = opt['tsk_set'][('save_val_fig_epoch',2,'saving every num epoch')]
     save_3d_img_on = opt['tsk_set'][('save_3d_img_on', False, 'saving fig')]
-    val_period = opt['tsk_set'][('val_period',10,'saving every num epoch')]
+    val_period = opt['tsk_set'][('val_period',10,'do validation every num epoch')]
     save_fig_on = opt['tsk_set'][('save_fig_on',True,'saving fig')]
-    warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warmming_up_epoch')]
-    continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'continue to train')]
+    warmming_up_epoch = opt['tsk_set'][('warmming_up_epoch',2,'warming up the model in the first # epoch')]
+    continue_train_lr = opt['tsk_set'][('continue_train_lr', -1, 'learning rate for continuing to train')]
     opt['tsk_set']['optim']['lr'] =opt ['tsk_set']['optim']['lr'] if not continue_train else continue_train_lr
 
 

@@ -1,8 +1,10 @@
 Walk through Demos
 ========================================
 
-EasyReg is developed for research propose, providing interfaces for various registration methods, including `AntsPy <https://github.com/ANTsX/ANTsPy>`_ , `NiftyReg <http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg>`_ and Demons (embedded in `SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_).
+Introduction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+EasyReg is developed for research propose, providing interfaces for various registration methods, including `AntsPy <https://github.com/ANTsX/ANTsPy>`_ , `NiftyReg <http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg>`_ and Demons (embedded in `SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_).
 *NiftyReg requires users to install themselves. Once installed, please set the **nifty_bin** in 'cur_task_setting.json' to the path of the NiftyReg binary file.*
 
 In this tutorial, we would show how to run the following demos:

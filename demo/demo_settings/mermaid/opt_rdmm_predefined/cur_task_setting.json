@@ -1,73 +1,48 @@
 {
+    "dataset": {
+        "img_after_resize": [
+            80,
+            192,
+            192
+        ]
+    },
     "tsk_set": {
         "batch_sz": 1,
-        "use_physical_coord":false,
-        "check_best_model_period": 5,
-        "continue_train": false,
-        "continue_train_lr": 5e-05,
-        "criticUpdates": 1,
-        "epoch": 300,
         "gpu_ids": 3,
         "loss": {
-            "ce": {
-                "no_bg": false,
-                "weighted": false
-            },
             "type": "lncc"
         },
-        "max_batch_num_per_epoch": [
-            200,
-            8,
-            4
-        ],
-        "train": false,
         "model": "mermaid_iter",
-        "model_folder_path": "",
-        "model_path": "",
         "n_in_channel": 1,
-        "network_name": "nonp",
-        "output_path": "./demo_output/mermaid/opt_vsvf/reg",
-        "print_step": [
-            10,
-            4,
-            4
-        ],
-        "print_val_detail": true,
+        "method_name": "nonp",
+        "output_orginal_img_type": true,
         "reg": {
-            "affine_net": {
-                "affine_net_iter": 7,
-                "using_complex_net": true
-            },
-            "low_res_factor": 0.5,
             "compute_inverse_map": false,
             "mermaid_iter": {
-                "use_init_weight": true,
-                "mermaid_affine_json": "./demo_settings/mermaid/opt_rdmm_predefined/mermaid_affine_settings.json",
-                "mermaid_nonp_json": "./demo_settings/mermaid/opt_rdmm_predefined/mermaid_nonp_settings.json",
                 "affine": {
                     "sigma": 0.7
                 },
-              "weights_for_fg": [0.1,0.4,0.5,0],
-              "weights_for_bg": [0, 0, 0, 1.0]
+                "mermaid_affine_json": "./demo_settings/mermaid/opt_rdmm_predefined/mermaid_affine_settings.json",
+                "mermaid_nonp_json": "./demo_settings/mermaid/opt_rdmm_predefined/mermaid_nonp_settings.json",
+                "use_init_weight": true,
+                "weights_for_bg": [
+                    0,
+                    0,
+                    0,
+                    1.0
+                ],
+                "weights_for_fg": [
+                    0.1,
+                    0.4,
+                    0.5,
+                    0
+                ]
             }
         },
-        "save_by_standard_label": true,
-        "save_fig_on": true,
-        "save_val_fig_epoch": 2,
         "save_3d_img_on": false,
-        "output_orginal_img_type": true,
-        "task_name": "res",
-        "val_period": 10,
-        "warmming_up_epoch": 2
-    },
-    "dataset": {
-        "load_training_data_into_memory": false,
-        "img_after_resize": [-1,-1,-1],
-        "max_pair_for_loading": [
-            1,
-            1,
-            -1,
-            1
-        ]
+        "save_extra_3d_img": true,
+        "save_fig_on": true,
+        "train": false,
+        "use_physical_coord": false
     }
 }

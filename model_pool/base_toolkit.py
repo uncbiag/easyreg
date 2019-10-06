@@ -14,8 +14,8 @@ class ToolkitBase(ModelBase):
     """
     def initialize(self, opt):
         ModelBase.initialize(self, opt)
-        network_name = opt['tsk_set']['network_name']
-        self.network_name = network_name
+        method_name = opt['tsk_set']['method_name']
+        self.method_name = method_name
         self.affine_on = False
         self.warp_on = False
 

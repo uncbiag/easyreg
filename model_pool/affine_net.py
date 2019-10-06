@@ -177,7 +177,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """ a copy on step"""
         self.using_complex_net = opt['tsk_set']['reg']['affine_net'][('using_complex_net',True,'use complex version of affine net')]
         """if true, use complex version of affine net"""
-        self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'accumulate loss from each step')]
+        self.acc_multi_step_loss = opt['tsk_set']['reg']['affine_net'][('acc_multi_step_loss',False,'accumulate loss at each step')]
         """accumulate loss from each step"""
         self.initial_reg_factor = opt['tsk_set']['reg']['affine_net'][('initial_reg_factor', 10, 'initial regularization factor')]
         """initial regularization factor"""
@@ -193,8 +193,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """epoch to activate symmetric forward"""
         self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym_loss',-1,'the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss')]
         """ the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss"""
-        self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate lncc loss')]
-        """epoch to activate lncc loss"""
+        self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate the external loss which will replace the default ncc loss')]
+        """epoch to activate the external loss which will replace the default ncc loss"""
         self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
         """ the affine network output the affine parameter"""
         self.affine_cons= AffineConstrain()
@@ -213,14 +213,12 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """ zero boundary is used for interpolated images"""
         self.epoch = -1
         """ the current epoch"""
-        self.reset_lr = False
-        """ reset learning rate"""
         self.ncc = NCCLoss()
         """ normalized cross correlation loss"""
         self.extern_loss = None
         """ external loss used during training"""
         self.compute_loss = True
-        """ compute loss, set true during affine netowrk training"""
+        """ compute loss, set true during affine network's training"""
 
 
 
@@ -233,6 +231,12 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
     def set_cur_epoch(self, cur_epoch):
         """ set current epoch"""
         self.epoch = cur_epoch
+
+
+    def set_step(self,step):
+        """set num of step"""
+        self.step = step
+        print("the step in affine network is set to {}".format(step))
 
     def check_if_update_lr(self):
         """
@@ -418,7 +422,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
 
     def get_factor_reg_scale(self):
         """
-        get the regularizer factor according to training strategy 
+        get the regularizer factor according to training strategy
 
         :return:
         """

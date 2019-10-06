@@ -24,7 +24,7 @@ class MermaidBase(ModelBase):
         self.affine_on = False
         self.nonp_on = False
         self.afimg_or_afparam = None
-        self.save_extra_3d_img = opt['tsk_opt'][('save_extra_3d_img', False, 'save extra image')]
+        self.save_extra_3d_img = opt['tsk_set'][('save_extra_3d_img', False, 'save extra image')]
         self.use_01 = True
 
     def get_warped_label_map(self, label_map, phi, sched='nn', use_01=False):
