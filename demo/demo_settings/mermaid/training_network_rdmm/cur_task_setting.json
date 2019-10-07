@@ -7,10 +7,10 @@
         ],
         "load_training_data_into_memory": false,
         "max_pair_for_loading": [
-            1,
-            1,
             -1,
-            1
+            -1,
+            -1,
+            -1
         ],
         "spacing_to_refer": [
             0.7,

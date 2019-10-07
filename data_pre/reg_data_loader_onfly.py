@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from data_pre.reg_data_utils import *
 from multiprocessing import *
-num_of_workers = 12
 blosc.set_nthreads(1)
 import progressbar as pb
 
@@ -29,6 +28,7 @@ class RegistrationDataset(Dataset):
         self.transform = transform
         self.data_type = '*.nii.gz'
         self.turn_on_pair_regis = False
+        """ inverse the registration order, i.e the original set is A->B, the new set would be A->B and B->A """
         ind = ['train', 'val', 'test', 'debug'].index(phase)
         max_pair_for_loading=reg_option['max_pair_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
         self.max_pair_for_loading = max_pair_for_loading[ind]
@@ -182,7 +182,8 @@ class RegistrationDataset(Dataset):
                     else:
                         img_label_path_dic[fn] = {'img':fps[i]}
             pair_name_list.append([get_file_name(fps[0]), get_file_name(fps[1])])
-
+        num_of_workers = 12
+        num_of_workers = num_of_workers if len(self.name_list)>12 else 2
         split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
         procs =[]
         for i in range(num_of_workers):
@@ -283,7 +284,7 @@ class RegistrationDataset(Dataset):
 
     def __split_dict(self,dict_to_split,split_num):
         index_list = list(range(len(dict_to_split)))
-        index_split = np.array_split(np.array(index_list),num_of_workers)
+        index_split = np.array_split(np.array(index_list),split_num)
         split_dict=[]
         dict_to_split_items = list(dict_to_split.items())
         for i in range(split_num):
@@ -292,19 +293,21 @@ class RegistrationDataset(Dataset):
         return split_dict
 
     def __inverse_name(self,name):
-        try:
-            n_parts= name.split('_image_')
-            inverse_name = n_parts[1]+'_'+n_parts[0]+'_image'
-            return inverse_name
-        except:
-            n_parts = name.split('_brain_')
-            inverse_name = n_parts[1] + '_' + n_parts[0] + '_brain'
-            return inverse_name
+        name = name+'_inverse'
+        return name
+        # try:
+        #     n_parts= name.split('_image_')
+        #     inverse_name = n_parts[1]+'_'+n_parts[0]+'_image'
+        #     return inverse_name
+        # except:
+        #     n_parts = name.split('_brain_')
+        #     inverse_name = n_parts[1] + '_' + n_parts[0] + '_brain'
+        #     return inverse_name
 
 
 
     def __len__(self):
-        return len(self.name_list) #############################3
+        return len(self.name_list) if len(self.name_list)>1000 else len(self.name_list)*100 #############################3
 
 
 
@@ -316,6 +319,7 @@ class RegistrationDataset(Dataset):
 
         """
         #idx=0
+        idx = idx %len(self.name_list)
 
         pair_path = self.path_list[idx]
         filename = self.name_list[idx]

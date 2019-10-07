@@ -5,12 +5,12 @@
             192,
             192
         ],
-        "load_training_data_into_memory": false,
+        "load_training_data_into_memory": true,
         "max_pair_for_loading": [
-            1,
-            1,
             -1,
-            1
+            -1,
+            -1,
+            -1
         ],
         "spacing_to_refer": [
             0.7,
@@ -68,7 +68,7 @@
                 "epoch_activate_sym": 200,
                 "epoch_activate_sym_loss": 200,
                 "initial_reg_factor": 10,
-                "min_reg_factor": 1e-4,
+                "min_reg_factor": 1e-3,
                 "reset_lr_for_multi_step": true,
                 "using_complex_net": true
             },

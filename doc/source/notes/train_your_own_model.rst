@@ -26,12 +26,15 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
             --train_affine_first: train affine network first, then train non-parametric network
             --gpu_id/ -g: on which gpu to run
 
-An example
+**An example**
 
 ..  code::
 
-    python demo_for_easyreg_train.py -o=/playpen/zyshen/data -data_task_name=croped_for_reg_debug_3000_pair_oai_reg_inter -task_name=interface_rdmm -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_rdmm -g=0
+    python demo_for_easyreg_train.py -o=./training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf --train_affine_first -g=3
 
+* Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
+
+**Outputs**
 
 In the 'task_name' folder, three folder will be auto created, **log** for tensorboard, **checkpoints** for saving models,
 **records** for saving running time results. Besides, two files will also be created. **task_settings.json** for recording settings of current tasks.

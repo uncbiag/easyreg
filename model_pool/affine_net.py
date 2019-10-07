@@ -456,7 +456,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         factor_sym =1. if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
-        print_out_every_iter = 10* self.step if self.epoch> self.epoch_activate_multi_step else self.step
+        print_out_every_iter = (10* self.step) if self.epoch> self.epoch_activate_multi_step else 10
         if self.iter_count%print_out_every_iter==0:
             if self.epoch >= self.epoch_activate_sym:
                 print('sim_loss:{}, factor_sym: {}, sym_reg_loss: {}, factor_scale {}, scale_reg_loss: {}'.format(
