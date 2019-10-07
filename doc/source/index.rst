@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-mermaid: iMagE Registration via autoMAtIc Differentiation [*]_
+EasyReg
 ==============================================================
 
-*easyreg* is a registration toolbox, which supports various image registration methods.
+*EasyReg* is a registration toolbox, which supports various image registration methods.
 Author: Zhengyang Shen, zyshen@cs.unc.edu
 
 .. toctree::
@@ -32,5 +32,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 
-.. [*] OK, we just liked the acronym.
 

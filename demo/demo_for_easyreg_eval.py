@@ -1,5 +1,5 @@
 import matplotlib as matplt
-#matplt.use('Agg')
+matplt.use('Agg')
 import sys,os
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))

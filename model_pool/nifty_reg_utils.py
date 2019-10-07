@@ -172,7 +172,7 @@ def performRegistration(param, mv_path, target_path, registration_type='bspline'
         record_path = './'
     nifty_bin = param[('nifty_bin','','path of the niftyreg bin file')]
     nifty_reg_cmd = param[('nifty_reg_cmd','','command line for nifityreg registration')]
-    assert os.path.isfile(nifty_bin), "The niftyreg is not detected, please set the niftyreg binary path"
+    assert os.path.exists(nifty_bin), "The niftyreg is not detected, please set the niftyreg binary path"
     deformation_path = os.path.join(record_path,fname+ '_deformation.nii.gz')
     affine_path = os.path.join(record_path, fname+ '_affine_image.nii.gz')
     bspline_path = os.path.join(record_path, fname+ '_bspline_image.nii.gz')

@@ -188,6 +188,7 @@ if __name__ == '__main__':
             --output_root_path/ -o: the path of output folder
             --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task
             --task_name / -tn: task name i.e. run_training_vsvf_task, run_training_rdmm_task
+            --setting_folder_path/ -ts: path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
             --train_affine_first: train affine network first, then train non-parametric network
             --gpu_id/ -g: gpu_id to use
     """

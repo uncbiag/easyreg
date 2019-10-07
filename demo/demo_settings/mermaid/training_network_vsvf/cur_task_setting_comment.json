@@ -47,6 +47,7 @@
             "low_res_factor": "factor of low-resolution map",
             "mermaid_net": {
                 "affine_init_path": "the path of trained affined network",
+                "affine_refine_step": "the multi-step num in affine refinement",
                 "clamp_momentum": "clamp_momentum",
                 "clamp_thre": "clamp momentum into [-clamp_thre, clamp_thre]",
                 "epoch_activate_multi_step": "epoch activate the multi-step",
