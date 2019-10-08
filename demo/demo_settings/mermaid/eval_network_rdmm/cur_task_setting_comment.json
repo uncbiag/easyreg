@@ -17,8 +17,10 @@
             "type": "the similarity measure type"
         },
         "max_batch_num_per_epoch": "max batch number per epoch for train|val|test|debug",
+        "model": "the model type, mermaid_iter|reg_net|ants|demons|niftyreg",
         "model_path": "if continue_train, the model path should be given here",
         "n_in_channel": "for network training method, the color channel typically set to 1",
+        "method_name": "MODEL: METHOD_NAME; mermaid_iter: affine, nonp; reg_net: affine_sym, mermaid; ants: affine, syn; niftyreg: affine, bspline; demons: demons",
         "optim": {
             "adam": {},
             "lr_scheduler": {

@@ -79,8 +79,10 @@ The detailed training settings can be found in ``cur_task_setting_comment.json``
                 "type": "the similarity measure type"
             },
             "max_batch_num_per_epoch": "max batch number per epoch for train|val|test|debug",
+            "model": "the model type, mermaid_iter|reg_net|ants|demons|niftyreg",
             "model_path": "if continue_train, the model path should be given here",
             "n_in_channel": "for network training method, the color channel typically set to 1",
+            "method_name": "MODEL: METHOD_NAME; mermaid_iter: affine, nonp; reg_net: affine_sym, mermaid; ants: affine, syn; niftyreg: affine, bspline; demons: demons",
             "optim": {
                 "adam": {},
                 "lr_scheduler": {
@@ -135,9 +137,8 @@ The detailed training settings can be found in ``cur_task_setting_comment.json``
             "use_physical_coord": "Keep physical spacing",
             "val_period": "do validation every num epoch",
             "warmming_up_epoch": "warming up the model in the first # epoch"
-          }
+        }
     }
-
 
 
 Settings for Mermaid
