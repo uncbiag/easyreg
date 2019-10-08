@@ -47,9 +47,9 @@ In the 'task_name' folder, three folder will be auto created, **log** for tensor
 Training Settings
 __________________
 
-Because this projects involves two repositories, the EasyReg and the Mermaid.
-There are two json files needs to be set: ``cur_task_setting.json`` for EasyReg and  ``mermaid_nonp_settings.json`` for Mermaid.
-Here we would provide document on both json files and corresponding demos (can be found in **demo** directory).
+Because this project involves two repositories, the EasyReg and the Mermaid.
+There are two json files needed to be set: ``cur_task_setting.json`` for EasyReg and  ``mermaid_nonp_settings.json`` for Mermaid.
+Here we would provide documents on both json files. The corresponding demos can be found in **demo** directory.
 
 
 Settings for EasyReg

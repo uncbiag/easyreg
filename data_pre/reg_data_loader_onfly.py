@@ -307,7 +307,7 @@ class RegistrationDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.name_list) if len(self.name_list)>1000 else len(self.name_list)*100 #############################3
+        return len(self.name_list)*100 if len(self.name_list)<100 and self.phase=='train' else len(self.name_list)  #############################3
 
 
 
@@ -379,7 +379,7 @@ class ToTensor(object):
         try:
             n_tensor = torch.from_numpy(sample)
         except:
-            i=1
+            pass
         return n_tensor
 
 
