@@ -61,7 +61,7 @@ class MermaidNet(nn.Module):
         """the current epoch"""
         self.using_physical_coord = opt_mermaid[('using_physical_coord',False,'use physical coordinate system')]
         """'use physical coordinate system"""
-        self.loss_type = opt['tsk_set']['loss'][('type','lncc','the similarity measure type')]
+        self.loss_type = opt['tsk_set']['loss'][('type','lncc',"the similarity measure type, support list: 'l1','mse','ncc','lncc'")]
         """the similarity measure supported by the mermaid:  'ssd','ncc','ncc_positive','ncc_negative', 'lncc', 'omt'"""
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         """compute the inverse transformation map"""

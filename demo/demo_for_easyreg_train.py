@@ -85,16 +85,18 @@ def addition_settings_for_two_stage_training(dm, tsm):
     :param tsm: ParameterDict, task setting
     :return: tuple of ParameterDict,  datapro (optional) and tsk_set
     """
-    data_task_path = tsm.task_par['tsk_set']['output_root_path']
-    task_name = tsm.task_par['tsk_set']['task_name']
-    task_output_path = os.path.join(data_task_path, task_name)
+
     if args.affine_stage_in_two_stage_training:
         tsm.task_par['tsk_set']['method_name'] = 'affine_sym'
+
+    if args.next_stage_in_two_stage_training:
+        data_task_path = tsm.task_par['tsk_set']['output_root_path']
+        task_name = tsm.task_par['tsk_set']['task_name'].replace('_stage2_nonp','_stage1_affine')
+        task_output_path = os.path.join(data_task_path, task_name)
+        tsm.task_par['tsk_set']['continue_train'] = False
         tsm.task_par['tsk_set']['reg']['mermaid_net']['using_affine_init'] = True
         tsm.task_par['tsk_set']['reg']['mermaid_net']['affine_init_path'] = os.path.join(task_output_path,
                                                                                          'checkpoints/model_best.pth.tar')
-    if args.next_stage_in_two_stage_training:
-        tsm.task_par['tsk_set']['continue_train'] = False
 
 
     return dm, tsm

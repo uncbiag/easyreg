@@ -8,7 +8,7 @@ ____________
 In this tutorial, we would show how to train your own model.
 
 
-About how to prepare the data, please refer to the **Prepare Data** section.
+About how to prepare the data, please refer to **prepare data** for :ref:`prepare-data-training-label`
 
 
 The script *demo_for_easyreg_train.py* is for training new learning-based registration model.
@@ -30,9 +30,14 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 ..  code::
 
-    python demo_for_easyreg_train.py -o=./training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf --train_affine_first -g=3
+    python demo_for_easyreg_train.py -o=./demo_output/training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf --train_affine_first -g=0
 
 * Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
+
+**IMPORTANT**:
+*the current network structure is specific to the OAI dataset, so for input with different image sizes (other than 80 * 192 *192), the network structure needs to be adjusted; especially for the affine network, the final layer is a fully-connected layer which is sensitive to input size; We recommend the combination usage of resampling parameter ''img_after_resize'' in task setting json and adjusting the network structure.
+
+
 
 **Outputs**
 
@@ -42,6 +47,206 @@ In the 'task_name' folder, three folder will be auto created, **log** for tensor
 
 
 * One thing to mention is that the affine-network involves the fully connection layer,  whose input channel number needs to be adjusted by the input image size.
+
+
+
+Train a model step by step
+__________________________
+
+Here, we provide an step-by-step tutorial on how to train a vSVF model on OAI dataset.
+A "training_on_3_cases" demo is provided here for demonstration purpose.
+
+The demo trains a affine network first and then ,with the affine part fixed, trains a momentum network (for vSVF).
+
+To run the demo,
+
+..  code::
+
+    python demo_for_easyreg_train.py -o=./demo_output/training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf --train_affine_first -g=0
+
+
+
+1. Organize the the data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The detailed instruction please refer to **prepare data** for :ref:`prepare-data-training-label`.
+Let's take a glance at what's the repository looks like.
+
+..  code::
+
+    demo/demo_output/training/oai$ ls -l
+    total 0
+    drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 debug
+    drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 test
+    drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 train
+    drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 val
+    drwxr-xr-x 5 zyshen compsci 194 Oct  8 16:40 training_on_3_cases_stage1_affine (not necessary to be pre-created)
+    drwxr-xr-x 5 zyshen compsci 153 Oct  8 16:40 training_on_3_cases_stage2_nonp (not necessary to be pre-created)
+
+
+
+The train|val|debug|test folder looks like this
+
+..  code::
+
+    /demo/demo_output/training/oai/train$ ls
+    pair_name_list.txt  pair_path_list.txt
+
+
+The pair_name_list.txt reads like:
+
+.. code::
+
+    pair_1_2
+    pair_3_4
+    pair_5_6
+
+The pair_path_list.txt reads like:
+
+.. code::
+
+    ./examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz     ./examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz     ./examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_label_all.nii.gz     ./examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_label_all.nii.gz
+    ./examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_image.nii.gz     ./examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_image.nii.gz     ./examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_label_all.nii.gz     ./examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_label_all.nii.gz
+    ./examples/9352437_20050411_SAG_3D_DESS_LEFT_016610106806_image.nii.gz     ./examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_image.nii.gz     ./examples/9352437_20050411_SAG_3D_DESS_LEFT_016610106806_label_all.nii.gz     ./examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_label_all.nii.gz
+
+
+
+
+
+
+
+2. Set the task
+^^^^^^^^
+
+Now, let's move to the next step, set the task.
+
+There are two settings files involved for vSVF task, ``cur_task_setting.json`` for EasyReg and  ``mermaid_nonp_settings.json`` for Mermaid.
+*For the settings on other tasks, please refer to **demo** repository*
+
+Let's first take a look at  ``cur_task_setting.json``, which list all necessary settings for the vSVF training.
+
+**An important notice** is:
+
+* the current network structure is specific to the OAI dataset, so for input with different image sizes (other than 80 * 192 *192), the network structure needs to be adjusted; especially for the affine network, the final layer is a fully-connected layer which is sensitive to input size; We recommend the combination usage of resampling parameter ''img_after_resize'' and adjusting the network structure.
+
+
+
+Here is an example from **training_on_3_cases**, which can be found in *./demo/demo_settins/training_on_3_cases*.
+
+The detailed settings should can be referred from the next section.
+
+Here, we list some of the most important parameters in ``cur_task_setting.json``.
+
+* "model": "the model type, only 'reg_net' is for training".
+* "method_name": "MODEL: METHOD_NAME; affine_sym, mermaid(can optionally including affine)".
+* "mermaid_net_json_pth": the path for mermaid settings json.
+* "loss": the similarity measure type, support list: l1, mse, ncc, lncc.
+* "train": if is in train mode.
+
+.. code::
+
+    {
+        "dataset": {
+            "img_after_resize": [
+                80,
+                192,
+                192
+            ],
+            "load_training_data_into_memory": true,
+            "max_pair_for_loading": [
+                -1,
+                -1,
+                -1,
+                -1
+            ],
+            "spacing_to_refer": [
+                0.7,
+                0.3646,
+                0.3646
+            ]
+        },
+        "tsk_set": {
+            "batch_sz": 1,
+            "check_best_model_period": 5,
+            "continue_train": false,
+            "continue_train_lr": 5e-05,
+            "criticUpdates": 2,
+            "epoch": 50,
+            "gpu_ids": 0,
+            "loss": {
+                "type": "lncc"
+            },
+            "max_batch_num_per_epoch": [
+                400,
+                3,
+                3
+            ],
+            "model": "reg_net",
+            "model_path": "",
+            "n_in_channel": 1,
+            "method_name": "mermaid",
+            "optim": {
+                "adam": {
+                    "beta": 0.9
+                },
+                "lr": 0.0001,
+                "lr_scheduler": {
+                    "custom": {
+                        "gamma": 0.5,
+                        "step_size": 20
+                    },
+                    "type": "custom"
+                },
+                "optim_type": "adam"
+            },
+            "output_orginal_img_type": true,
+            "print_step": [
+                10,
+                3,
+                3
+            ],
+            "print_val_detail": true,
+            "reg": {
+                "affine_net": {
+                    "acc_multi_step_loss": false,
+                    "affine_net_iter": 3,
+                    "epoch_activate_extern_loss": 20,
+                    "epoch_activate_multi_step": 30,
+                    "epoch_activate_sym": 40,
+                    "epoch_activate_sym_loss": 40,
+                    "initial_reg_factor": 10,
+                    "min_reg_factor": 1e-3,
+                    "reset_lr_for_multi_step": true,
+                    "using_complex_net": true
+                },
+                "compute_inverse_map": false,
+                "low_res_factor": 0.5,
+                "mermaid_net": {
+                    "affine_init_path": "",
+                    "affine_refine_step": 5,
+                    "clamp_momentum": false,
+                    "clamp_thre": 1,
+                    "epoch_activate_multi_step": 30,
+                    "epoch_activate_sym": 40,
+                    "load_trained_affine_net": true,
+                    "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json",
+                    "num_step": 2,
+                    "optimize_momentum_network": true,
+                    "reset_lr_for_multi_step": true,
+                    "sym_factor": 500,
+                    "using_affine_init": true,
+                    "using_physical_coord": false,
+                    "using_complex_net": true
+                }
+            },
+            "save_3d_img_on": false,
+            "save_extra_3d_img": true,
+            "save_fig_on": true,
+            "train": true,
+            "use_physical_coord": false,
+            "val_period": 10,
+            "warmming_up_epoch": 2
+        }
+    }
 
 
 Training Settings
@@ -76,7 +281,7 @@ The detailed training settings can be found in ``cur_task_setting_comment.json``
             "epoch": "num of training epoch",
             "gpu_ids": "the gpu id used for network methods",
             "loss": {
-                "type": "the similarity measure type"
+                "type": "the similarity measure type, support list: 'l1','mse','ncc','lncc'"
             },
             "max_batch_num_per_epoch": "max batch number per epoch for train|val|test|debug",
             "model": "the model type, mermaid_iter|reg_net|ants|demons|niftyreg",
@@ -143,7 +348,7 @@ The detailed training settings can be found in ``cur_task_setting_comment.json``
 
 Settings for Mermaid
 ^^^^^^^^^^^^^^^^^^^^^^
-The corresponding comments for Meramid part are in ``mermaid_nonp_settins_comment.json``.
+The corresponding comments for Mermaid part are in ``mermaid_nonp_settins_comment.json``.
 Depends on model and similarity measure, the **comments** may differ.
 
 Here we list setting typical setting documents on vSVF model and RDMM model.

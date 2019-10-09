@@ -5,7 +5,7 @@
             192,
             192
         ],
-        "load_training_data_into_memory": false,
+        "load_training_data_into_memory": true,
         "max_pair_for_loading": [
             -1,
             -1,
@@ -24,15 +24,15 @@
         "continue_train": false,
         "continue_train_lr": 5e-05,
         "criticUpdates": 2,
-        "epoch": 500,
+        "epoch": 50,
         "gpu_ids": 0,
         "loss": {
             "type": "lncc"
         },
         "max_batch_num_per_epoch": [
             400,
-            8,
-            4
+            3,
+            3
         ],
         "model": "reg_net",
         "model_path": "",
@@ -42,31 +42,31 @@
             "adam": {
                 "beta": 0.9
             },
-            "lr": 1e-4,
+            "lr": 0.0001,
             "lr_scheduler": {
                 "custom": {
-                    "gamma": 0.5,
-                    "step_size": 60
+                    "gamma": 0.1,
+                    "step_size": 20
                 },
                 "type": "custom"
             },
             "optim_type": "adam"
         },
-        "output_orginal_img_type": false,
+        "output_orginal_img_type": true,
         "print_step": [
             10,
-            4,
-            4
+            3,
+            3
         ],
         "print_val_detail": true,
         "reg": {
             "affine_net": {
                 "acc_multi_step_loss": false,
                 "affine_net_iter": 3,
-                "epoch_activate_extern_loss": 100,
-                "epoch_activate_multi_step": 300,
-                "epoch_activate_sym": 200,
-                "epoch_activate_sym_loss": 200,
+                "epoch_activate_extern_loss": 20,
+                "epoch_activate_multi_step": 30,
+                "epoch_activate_sym": 40,
+                "epoch_activate_sym_loss": 40,
                 "initial_reg_factor": 10,
                 "min_reg_factor": 1e-3,
                 "reset_lr_for_multi_step": false,
@@ -76,19 +76,13 @@
             "low_res_factor": 0.5,
             "mermaid_net": {
                 "affine_init_path": "",
-                "affine_refine_step": 7,
-                "clamp_momentum": true,
+                "affine_refine_step": 5,
+                "clamp_momentum": false,
                 "clamp_thre": 1,
-                "epoch_activate_multi_step": 100,
-                "epoch_activate_sym": 200,
-                "epoch_list_fixed_deep_smoother_network": [
-                    -1
-                ],
-                "epoch_list_fixed_momentum_network": [
-                    -1
-                ],
+                "epoch_activate_multi_step": 30,
+                "epoch_activate_sym": 40,
                 "load_trained_affine_net": true,
-                "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_rdmm/mermaid_nonp_settings.json",
+                "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json",
                 "num_step": 2,
                 "optimize_momentum_network": true,
                 "reset_lr_for_multi_step": true,

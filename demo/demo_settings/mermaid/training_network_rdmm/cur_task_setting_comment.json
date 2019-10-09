@@ -14,7 +14,7 @@
         "epoch": "num of training epoch",
         "gpu_ids": "the gpu id used for network methods",
         "loss": {
-            "type": "the similarity measure type"
+            "type": "the similarity measure type, support list: 'l1','mse','ncc','lncc'"
         },
         "max_batch_num_per_epoch": "max batch number per epoch for train|val|test|debug",
         "model": "the model type, mermaid_iter|reg_net|ants|demons|niftyreg",

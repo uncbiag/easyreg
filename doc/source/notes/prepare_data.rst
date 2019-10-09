@@ -30,6 +30,7 @@ Example:
     python demo_for_easyreg_eval.py --setting_folder_path ./demo_settings/mermaid/opt_vsvf --gpu_id 0  --task_output_path ./demo_output/mermaid/opt_vsvf --pair_txt_path ./oai_examples.txt
 
 
+.. _prepare-data-training-label:
 
 Training Tasks
 ^^^^^^^^^^^^^^

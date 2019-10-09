@@ -13,7 +13,7 @@ def train_model(opt,model, dataloaders,writer):
     load_model_but_train_from_begin = opt['tsk_set'][('load_model_but_train_from_begin',False,'load_model_but_train_from_begin')]
     load_model_but_train_from_epoch =opt['tsk_set'][('load_model_but_train_from_epoch',0,'load_model_but_train_from_epoch')]
     check_point_path = opt['tsk_set']['path']['check_point_path']
-    max_batch_num_per_epoch_list = opt['tsk_set'][('max_batch_num_per_epoch',(-1,-1,-1,-1),"max batch number per epoch for train|val|test|debug")]
+    max_batch_num_per_epoch_list = opt['tsk_set'][('max_batch_num_per_epoch',(-1,-1,-1),"max batch number per epoch for train|val|debug")]
     gpu_id = opt['tsk_set']['gpu_ids']
     best_score = 0
     is_best = False
@@ -86,7 +86,7 @@ def train_model(opt,model, dataloaders,writer):
             for data in dataloaders[phase]:
 
                 global_step[phase] += 1
-                end_of_epoch = global_step[phase] % max_batch_num_per_epoch[phase] == 0
+                end_of_epoch = global_step[phase] % min(max_batch_num_per_epoch[phase], len(dataloaders[phase])) == 0
                 is_train = True if phase == 'train' else False
                 model.set_input(data,is_train)
                 loss = 0.

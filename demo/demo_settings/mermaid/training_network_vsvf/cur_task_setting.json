@@ -84,7 +84,7 @@
                 "load_trained_affine_net": true,
                 "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json",
                 "num_step": 2,
-                "optimize_momentum_network": false,
+                "optimize_momentum_network": true,
                 "reset_lr_for_multi_step": true,
                 "sym_factor": 500,
                 "using_affine_init": true,
