@@ -10,11 +10,13 @@
         "check_best_model_period":"save best performed model every # epoch",
         "continue_train": "for network training method, continue training the model loaded from model_path",
         "continue_train_lr": "learning rate for continuing to train",
+        "reset_train_epoch": "allow the training epoch to be reset or not",
+        "load_model_but_train_from_epoch": "if reset_train_epoch is true, the epoch will be set as the given number",
         "criticUpdates": "for network training method, the num determines gradient update every # iter",
         "epoch": "num of training epoch",
         "gpu_ids": "the gpu id used for network methods",
         "loss": {
-            "type": "the similarity measure type"
+            "type": "the similarity measure type, support list: 'l1','mse','ncc','lncc'"
         },
         "max_batch_num_per_epoch": "max batch number per epoch for train|val|test|debug",
         "model": "the model type, mermaid_iter|reg_net|ants|demons|niftyreg",

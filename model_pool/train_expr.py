@@ -10,8 +10,8 @@ def train_model(opt,model, dataloaders,writer):
     num_epochs = opt['tsk_set'][('epoch', 100, 'num of training epoch')]
     continue_train = opt['tsk_set'][('continue_train', False, 'continue to train')]
     model_path = opt['tsk_set']['path']['model_load_path']
-    load_model_but_train_from_begin = opt['tsk_set'][('load_model_but_train_from_begin',False,'load_model_but_train_from_begin')]
-    load_model_but_train_from_epoch =opt['tsk_set'][('load_model_but_train_from_epoch',0,'load_model_but_train_from_epoch')]
+    reset_train_epoch = opt['tsk_set'][('reset_train_epoch',False,'allow the training epoch to be reset of not')]
+    load_model_but_train_from_epoch =opt['tsk_set'][('load_model_but_train_from_epoch',0,'if reset_train_epoch is true, the epoch will be set as the given number')]
     check_point_path = opt['tsk_set']['path']['check_point_path']
     max_batch_num_per_epoch_list = opt['tsk_set'][('max_batch_num_per_epoch',(-1,-1,-1),"max batch number per epoch for train|val|debug")]
     gpu_id = opt['tsk_set']['gpu_ids']
@@ -41,7 +41,7 @@ def train_model(opt,model, dataloaders,writer):
         if continue_train_lr > 0:
             model.update_learning_rate(continue_train_lr)
             print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
-        if load_model_but_train_from_begin:
+        if reset_train_epoch:
             start_epoch=load_model_but_train_from_epoch
             global_step = {x: load_model_but_train_from_epoch*max_batch_num_per_epoch[x] for x in phases}
             print("the model has been initialized from extern, but will train from the epoch {}".format(start_epoch))

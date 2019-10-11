@@ -427,8 +427,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :return:
         """
         epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
-        factor_scale = self.initial_reg_factor if self.epoch < self.epoch_activate_multi_step else self.min_reg_factor
-        static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 10
+        factor_scale = self.initial_reg_factor if self.epoch < self.epoch_activate_multi_step else self.initial_reg_factor/100
+        static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 1
         min_threshold = 1e-3
         decay_factor = 3
         factor_scale = float(

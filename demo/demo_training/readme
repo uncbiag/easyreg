@@ -1,0 +1,3 @@
+This simple training demo is used to illustrate how data should be organized.
+In this demo, the training, validation, test and debug (the subset of training set, for checking the overfitting) set are exactly the same.
+

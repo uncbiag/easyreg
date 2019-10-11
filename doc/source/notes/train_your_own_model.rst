@@ -30,7 +30,7 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 ..  code::
 
-    python demo_for_easyreg_train.py -o=./demo_output/training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf --train_affine_first -g=0
+    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
 
 * Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
 
@@ -58,17 +58,15 @@ A "training_on_3_cases" demo is provided here for demonstration purpose.
 
 The demo trains a affine network first and then ,with the affine part fixed, trains a momentum network (for vSVF).
 
-To run the demo,
-
-..  code::
-
-    python demo_for_easyreg_train.py -o=./demo_output/training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf --train_affine_first -g=0
 
 
 
 1. Organize the the data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The detailed instruction please refer to **prepare data** for :ref:`prepare-data-training-label`.
+
+In this specific case, we set ''output_root_path=./demo_output/training'' ``data_task_name=oai$``.
+
 Let's take a glance at what's the repository looks like.
 
 ..  code::
@@ -115,7 +113,7 @@ The pair_path_list.txt reads like:
 
 
 2. Set the task
-^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 Now, let's move to the next step, set the task.
 
@@ -130,7 +128,7 @@ Let's first take a look at  ``cur_task_setting.json``, which list all necessary 
 
 
 
-Here is an example from **training_on_3_cases**, which can be found in *./demo/demo_settins/training_on_3_cases*.
+Here is an example from **training_on_3_cases**, which can be found in ``./demo/demo_settins/training_on_3_cases``.
 
 The detailed settings should can be referred from the next section.
 
@@ -249,6 +247,61 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
     }
 
 
+
+3. Train the model
+^^^^^^^^^^^^^^^^^^^^^^
+
+**End-to-end training**
+
+In demo repository, we include a training demo. The demo trains the affine-network first then the momentum generation network for the vSVF model.
+
+..  code::
+
+    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
+
+
+**Two steps training**
+
+The above training involves both affine and non-parametric parts. In practice, we sometimes need to fine tune each part. If we only train affine network,
+we need following steps
+
+* set "method_name": "affine_sym",
+* set affine network settings in "affine_net"
+* remove **--train_affine_first** from command line above.
+
+..  code::
+
+    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+
+
+After we complete the affine part, the next step is training non-parametric part. we need following steps
+
+* set "method_name": "mermaid",
+* set param *"using_affine_init":true* and set *"affine_init_path"* as the affine-network checkpoint path (can be found in *checkpoints* repository).
+* set non-parametric (mermaid) network settings in "mermaid_net"
+
+..  code::
+
+    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+
+4. Resume the train
+^^^^^^^^^^^^^^^^^^^
+
+Sometimes we need to refine the model, i.e adjusting different learning rate or taking different regularization factors.
+
+To resume the training, we can need following steps
+
+* set "method_name", make it consistent with the model to load
+* set "continue_train": true  and set "continue_train_lr"
+* optional, if the epoch number needs to be reset into a given number, set "reset_train_epoch" and "load_model_but_train_from_epoch"
+* set "model_path" as the path of the checkpoint
+
+..  code::
+
+    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+
+
+
 Training Settings
 __________________
 
@@ -277,6 +330,8 @@ The detailed training settings can be found in ``cur_task_setting_comment.json``
             "check_best_model_period":"save best performed model every # epoch",
             "continue_train": "for network training method, continue training the model loaded from model_path",
             "continue_train_lr": "learning rate for continuing to train",
+        "reset_train_epoch": "allow the training epoch to be reset or not",
+        "load_model_but_train_from_epoch": "if reset_train_epoch is true, the epoch will be set as the given number",
             "criticUpdates": "for network training method, the num determines gradient update every # iter",
             "epoch": "num of training epoch",
             "gpu_ids": "the gpu id used for network methods",
