@@ -1,5 +1,5 @@
 # An Extension Package on Mermaid
-The purpose of this package is to provide an easy interface for Mermaid and other popluar registration
+The purpose of this package is to provide an simple interface for Mermaid and other popluar registration
 package.\
 The current support methods include Mermaid-optimization and Mermaid-network. 
 We add supports on [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend the usage of official source.
@@ -47,11 +47,17 @@ cd doc
 make html
 ```
 
+Now you are ready to explore various of optimization-based as well as learning-based demos provided by EasyReg.
 
 # Paper related
-Networks for Joint Affine and Non-parametric Image Registration [[link]](https://arxiv.org/pdf/1903.08811.pdf)\
-Region-specific Diffeomorphic Metric Mapping [[link]](https://arxiv.org/pdf/1906.00139.pdf)
 
+If you EasyReg is helpful, please cite (see [bibtex](citations.bib)):
+Networks for Joint Affine and Non-parametric Image Registration [[link]](https://arxiv.org/pdf/1903.08811.pdf)\
+Zhengyang Shen, François-Xavier Vialard, Marc Niethammer. NeurIPS 2019.
+
+
+Region-specific Diffeomorphic Metric Mapping [[link]](https://arxiv.org/pdf/1906.00139.pdf)
+Zhengyang Shen, Xu Han, Zhenlin Xu, Marc Niethammer. CVPR 2019.
 
 
 

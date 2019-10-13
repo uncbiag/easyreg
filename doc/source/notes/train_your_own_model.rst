@@ -8,7 +8,7 @@ ____________
 In this tutorial, we would show how to train your own model.
 
 
-About how to prepare the data, please refer to **prepare data** for :ref:`prepare-data-training-label`
+About how to prepare the data, please refer to *prepare data* part  for :ref:`prepare-data-training-label`
 
 
 The script *demo_for_easyreg_train.py* is for training new learning-based registration model.
@@ -41,12 +41,10 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 **Outputs**
 
-In the 'task_name' folder, three folder will be auto created, **log** for tensorboard, **checkpoints** for saving models,
-**records** for saving running time results. Besides, two files will also be created. **task_settings.json** for recording settings of current tasks.
-**logfile.log** for terminal output ( only flushed when task finished).
+In the 'task_name' folder, three folders will be auto created, **log** for tensorboard, **checkpoints** for saving models,
+**records** for saving running time results. Besides, two files will also be created: **task_settings.json** for recording settings of current tasks and **logfile.log** for terminal output.
 
 
-* One thing to mention is that the affine-network involves the fully connection layer,  whose input channel number needs to be adjusted by the input image size.
 
 
 
@@ -65,13 +63,13 @@ The demo trains a affine network first and then ,with the affine part fixed, tra
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The detailed instruction please refer to **prepare data** for :ref:`prepare-data-training-label`.
 
-In this specific case, we set ''output_root_path=./demo_output/training'' ``data_task_name=oai$``.
+In this specific case, we set *output_root_path=./demo_output/training* and *data_task_name=oai*.
 
 Let's take a glance at what's the repository looks like.
 
 ..  code::
 
-    demo/demo_output/training/oai$ ls -l
+    demo/demo_training/oai$ ls -l
     total 0
     drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 debug
     drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 test
@@ -86,7 +84,7 @@ The train|val|debug|test folder looks like this
 
 ..  code::
 
-    /demo/demo_output/training/oai/train$ ls
+    demo/demo_training/oai/train$ ls
     pair_name_list.txt  pair_path_list.txt
 
 
@@ -102,9 +100,9 @@ The pair_path_list.txt reads like:
 
 .. code::
 
-    ./examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz     ./examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz     ./examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_label_all.nii.gz     ./examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_label_all.nii.gz
-    ./examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_image.nii.gz     ./examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_image.nii.gz     ./examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_label_all.nii.gz     ./examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_label_all.nii.gz
-    ./examples/9352437_20050411_SAG_3D_DESS_LEFT_016610106806_image.nii.gz     ./examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_image.nii.gz     ./examples/9352437_20050411_SAG_3D_DESS_LEFT_016610106806_label_all.nii.gz     ./examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_label_all.nii.gz
+    ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz     ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz     ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_label_all.nii.gz     ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_label_all.nii.gz
+    ./oai_examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_image.nii.gz     ./oai_examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_image.nii.gz     ./oai_examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_label_all.nii.gz     ./oai_examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_label_all.nii.gz
+    ./oai_examples/9352437_20050411_SAG_3D_DESS_LEFT_016610106806_image.nii.gz     ./oai_examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_image.nii.gz     ./oai_examples/9352437_20050411_SAG_3D_DESS_LEFT_016610106806_label_all.nii.gz     ./oai_examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_label_all.nii.gz
 
 
 
@@ -115,22 +113,20 @@ The pair_path_list.txt reads like:
 2. Set the task
 ^^^^^^^^^^^^^^^^
 
-Now, let's move to the next step, set the task.
+There are two settings files involved for mermaid-related task, ``cur_task_setting.json`` for EasyReg and  ``mermaid_nonp_settings.json`` for Mermaid.
+And for the settings on other tasks, please refer to **demo** repository.
 
-There are two settings files involved for vSVF task, ``cur_task_setting.json`` for EasyReg and  ``mermaid_nonp_settings.json`` for Mermaid.
-*For the settings on other tasks, please refer to **demo** repository*
-
-Let's first take a look at  ``cur_task_setting.json``, which list all necessary settings for the vSVF training.
+Since Mermaid has its own tutorial on setting, we would focus on ``cur_task_setting.json``.
 
 **An important notice** is:
 
-* the current network structure is specific to the OAI dataset, so for input with different image sizes (other than 80 * 192 *192), the network structure needs to be adjusted; especially for the affine network, the final layer is a fully-connected layer which is sensitive to input size; We recommend the combination usage of resampling parameter ''img_after_resize'' and adjusting the network structure.
+* the current network structure is specific to the OAI dataset, so for input with different image sizes (other than 80 * 192 *192), the network structure needs to be adjusted; especially for the affine network, the final layer is a fully-connected layer which is sensitive to input size; We recommend the combination usage of parameter ''img_after_resize'' for resampling input with adjusting the network structures in "modules.py".
 
 
 
 Here is an example from **training_on_3_cases**, which can be found in ``./demo/demo_settins/training_on_3_cases``.
 
-The detailed settings should can be referred from the next section.
+The detailed settings should can be referred from :ref:`training-settings-label`.
 
 Here, we list some of the most important parameters in ``cur_task_setting.json``.
 
@@ -262,7 +258,7 @@ In demo repository, we include a training demo. The demo trains the affine-netwo
 
 **Two steps training**
 
-The above training involves both affine and non-parametric parts. In practice, we sometimes need to fine tune each part. If we only train affine network,
+The above training involves both affine and non-parametric parts. In practice, we sometimes need to fine tune them separately. Let's only train the affine part,
 we need following steps
 
 * set "method_name": "affine_sym",
@@ -274,7 +270,7 @@ we need following steps
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 
-After we complete the affine part, the next step is training non-parametric part. we need following steps
+After we complete training the affine part, the next step is calling mermaid-net to train the non-parametric part. Simiarly, we need following steps
 
 * set "method_name": "mermaid",
 * set param *"using_affine_init":true* and set *"affine_init_path"* as the affine-network checkpoint path (can be found in *checkpoints* repository).
@@ -284,8 +280,8 @@ After we complete the affine part, the next step is training non-parametric part
 
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
-4. Resume the train
-^^^^^^^^^^^^^^^^^^^
+4. Resume the training
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes we need to refine the model, i.e adjusting different learning rate or taking different regularization factors.
 
@@ -301,19 +297,18 @@ To resume the training, we can need following steps
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 
+.. _training-settings-label:
 
 Training Settings
 __________________
 
-Because this project involves two repositories, the EasyReg and the Mermaid.
-There are two json files needed to be set: ``cur_task_setting.json`` for EasyReg and  ``mermaid_nonp_settings.json`` for Mermaid.
-Here we would provide documents on both json files. The corresponding demos can be found in **demo** directory.
+In this section, we would provide comment files for EasyReg json setting file and Mermaid json setting files.
 
 
 Settings for EasyReg
 ^^^^^^^^^^^^^^^^^^^^^
 
-The detailed training settings can be found in ``cur_task_setting_comment.json``, which is shared by all mermaid-based models.
+The detailed comments on EasyReg settings can be found in ``cur_task_setting_comment.json``, which is shared by all mermaid-based models.
 
 
 .. code::

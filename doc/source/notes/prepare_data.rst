@@ -6,6 +6,7 @@ For either optimization- or learning- based methods, SimpleITK is used as the im
 \*TODO, SimpleITK will be replaced by ITK in the future release.\*
 
 
+.. _prepare-data-non-training-label:
 
 Non-Training Tasks
 ^^^^^^^^^^^^^^^^^^
