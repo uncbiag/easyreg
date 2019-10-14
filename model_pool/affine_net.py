@@ -298,9 +298,9 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         affine_param = affine_param.view(affine_param.shape[0], 4, 3)
         inverse_param = torch.zeros_like(affine_param.data).cuda()
         for n in range(affine_param.shape[0]):
-            tm_inv = torch.inverse(affine_param[n, :3,:])
+            tm_inv = torch.inverse(affine_param[n, :3, :])
             inverse_param[n, :3, :] = tm_inv
-            inverse_param[n, :, 3] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+            inverse_param[n, 3, :] = - torch.matmul(tm_inv, affine_param[n, 3, :])
         inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
         return inverse_param
 
@@ -319,7 +319,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :return: the inverse map
         """
         inverse_map = self.__get_inverse_map()
-        if self.inverse_map is None:
+        if inverse_map is not None:
             if use_01:
                 return (inverse_map+1)/2
             else:
