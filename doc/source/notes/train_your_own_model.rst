@@ -192,7 +192,7 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
                 },
                 "optim_type": "adam"
             },
-            "output_orginal_img_type": true,
+            "output_taking_original_image_format": true,
             "print_step": [
                 10,
                 3,
@@ -344,7 +344,8 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                     "custom": {}
                 }
             },
-            "output_orginal_img_type": "output follows the same sz and physical property of the original image (input by command line or txt)",
+            "output_taking_original_image_format": "output follows the same sz and physical format of the original image (input by command line or txt)",
+            "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to source, target, warped, phi, inv_warped, inv_phi",
             "path": {
                 "__doc__": "record paths"
             },

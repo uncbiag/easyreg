@@ -52,7 +52,8 @@
             },
             "optim_type": "adam"
         },
-        "output_orginal_img_type": true,
+        "output_taking_original_image_format": false,
+        "save_original_image_by_type": [true, true, true, true, true,true],
         "print_step": [
             10,
             3,
@@ -69,7 +70,7 @@
                 "epoch_activate_sym_loss": 40,
                 "initial_reg_factor": 10,
                 "min_reg_factor": 1e-3,
-                "sym_factor": 0.1,
+                "sym_factor": 0.01,
                 "reset_lr_for_multi_step": false,
                 "using_complex_net": true
             },
@@ -94,7 +95,7 @@
             }
         },
         "save_3d_img_on": false,
-        "save_extra_3d_img": true,
+        "save_extra_3d_img": false,
         "save_fig_on": true,
         "train": true,
         "use_physical_coord": false,

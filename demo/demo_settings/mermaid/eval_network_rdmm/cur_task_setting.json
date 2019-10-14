@@ -52,7 +52,7 @@
             },
             "optim_type": "adam"
         },
-        "output_orginal_img_type": true,
+        "output_taking_original_image_format": true,
         "print_step": [
             10,
             4,

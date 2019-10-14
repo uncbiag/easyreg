@@ -6,7 +6,8 @@
         "batch_sz": "batch sz (only for mermaid related method, otherwise set to 1)",
         "gpu_ids": "the gpu id used for network methods",
         "n_in_channel": "for network training method, the color channel typically set to 1",
-        "output_orginal_img_type": "output follows the same sz and physical property of the original image (input by command line or txt)",
+        "output_taking_original_image_format": "output follows the same sz and physical format of the original image (input by command line or txt)",
+        "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to source, target, warped, phi, inv_warped, inv_phi",
         "path": {
             "__doc__": "record paths"
         },
