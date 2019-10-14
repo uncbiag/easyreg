@@ -319,7 +319,7 @@ class RegistrationDataset(Dataset):
         :return: the processed data, return as type of dic
 
         """
-        #idx=0
+        # print(idx)
         idx = idx %len(self.name_list)
 
         pair_path = self.path_list[idx]

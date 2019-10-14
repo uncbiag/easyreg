@@ -109,6 +109,11 @@ def init_test_env(setting_path,output_path, source_path_list, target_path_list, 
         dm.data_par['datapro']['dataset']['task_name'] = data_task_name
     tsm.task_par['tsk_set']['task_name'] = cur_task_name
     tsm.task_par['tsk_set']['output_root_path'] = os.path.join(output_path,data_task_name)
+    if tsm.task_par['tsk_set']['model']=='reg_net':
+        tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = os.path.join(setting_path,'mermaid_nonp_settings.json')
+    if tsm.task_par['tsk_set']['model']=='mermaid_iter':
+        tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_affine_json'] = os.path.join(setting_path,'mermaid_affine_settings.json')
+        tsm.task_par['tsk_set']['reg']['mermaid_iter']['mermaid_nonp_json'] = os.path.join(setting_path,'mermaid_nonp_settings.json')
     return dm, tsm
 
 

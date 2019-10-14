@@ -88,7 +88,7 @@
                     -1
                 ],
                 "load_trained_affine_net": true,
-                "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_rdmm/mermaid_nonp_settings.json",
+                "mermaid_net_json_pth": "",
                 "num_step": 2,
                 "optimize_momentum_network": true,
                 "reset_lr_for_multi_step": true,

@@ -69,6 +69,7 @@
                 "epoch_activate_sym_loss": 40,
                 "initial_reg_factor": 10,
                 "min_reg_factor": 1e-3,
+                "sym_factor": 0.1,
                 "reset_lr_for_multi_step": false,
                 "using_complex_net": true
             },
@@ -82,7 +83,7 @@
                 "epoch_activate_multi_step": 30,
                 "epoch_activate_sym": 40,
                 "load_trained_affine_net": true,
-                "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json",
+                "mermaid_net_json_pth": "",
                 "num_step": 2,
                 "optimize_momentum_network": true,
                 "reset_lr_for_multi_step": true,

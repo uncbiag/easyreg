@@ -39,6 +39,7 @@ pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1
 The installation of NiftyReg please refer to [NiftyReg Installation](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
 
 # Build Document
+
 Next step, the tutorial and documents can be built from sphinx.
 
 ```
@@ -51,12 +52,13 @@ Now you are ready to explore various of optimization-based as well as learning-b
 
 # Paper related
 
-If you EasyReg is helpful, please cite (see [bibtex](citations.bib)):
+If you find EasyReg is helpful, please cite (see [bibtex](citations.bib)):
+
 Networks for Joint Affine and Non-parametric Image Registration [[link]](https://arxiv.org/pdf/1903.08811.pdf)\
 Zhengyang Shen, François-Xavier Vialard, Marc Niethammer. NeurIPS 2019.
 
 
-Region-specific Diffeomorphic Metric Mapping [[link]](https://arxiv.org/pdf/1906.00139.pdf)
+Region-specific Diffeomorphic Metric Mapping [[link]](https://arxiv.org/pdf/1906.00139.pdf)\
 Zhengyang Shen, Xu Han, Zhenlin Xu, Marc Niethammer. CVPR 2019.
 
 

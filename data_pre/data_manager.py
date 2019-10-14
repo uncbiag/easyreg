@@ -156,10 +156,13 @@ class DataManager(object):
         :param batch_size: the batch size of each iteration
         :return: dict of dataloaders for train|val|test|debug
         """
+
+        def _init_fn(worker_id):
+            np.random.seed(12 + worker_id)
         num_workers_reg ={'train':8,'val':4,'test':4,'debug':4}#{'train':0,'val':0,'test':0,'debug':0}#{'train':8,'val':4,'test':4,'debug':4}
         shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
         dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
-                                                  shuffle=shuffle_list[x], num_workers=num_workers_reg[x]) for x in self.phases}
+                                                  shuffle=shuffle_list[x], num_workers=num_workers_reg[x],worker_init_fn=_init_fn) for x in self.phases}
         return dataloaders
 
 

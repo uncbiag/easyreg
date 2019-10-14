@@ -44,6 +44,7 @@
                 "lr_for_multi_step": "if reset_lr_for_multi_step, reset learning rate into # when multi-step begins",
                 "initial_reg_factor": "initial regularization factor",
                 "min_reg_factor": "minimum regularization factor",
+                "sym_factor": "factor of symmetric loss",
                 "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                 "using_complex_net": "use complex version of affine net"
             },

@@ -1,7 +1,9 @@
 import matplotlib as matplt
 matplt.use('Agg')
 import sys,os
+import numpy as np
 import torch
+import random
 torch.backends.cudnn.benchmark=True
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
@@ -73,6 +75,8 @@ def init_train_env(setting_path,output_root_path, task_name, data_task_name=None
         dm.data_par['datapro']['dataset']['task_name'] = data_task_name
     tsm.task_par['tsk_set']['task_name'] = task_name
     tsm.task_par['tsk_set']['output_root_path'] = data_task_path
+    if tsm.task_par['tsk_set']['model']=='reg_net':
+        tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = os.path.join(setting_path,'mermaid_nonp_settings.json')
 
     return dm, tsm
 
@@ -151,6 +155,20 @@ def __do_registration_train(args,pipeline=None):
     pipeline = run_one_task(tsm_json_path, dm_json_path,data_loaders)
     return pipeline
 
+
+def set_seed_for_demo(args):
+    """ reproduce the training demo"""
+    seed = 2018
+    if args.is_demo:
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+
+
+
+
 def do_registration_train(args):
     """
     a interface for setting one-stage training or two stage training (include affine)
@@ -158,6 +176,7 @@ def do_registration_train(args):
     :param args: the parsed arguments
     :return: None
     """
+    set_seed_for_demo(args)
     task_name = args.task_name
     args.task_name_record = task_name
     pipeline = None
@@ -193,6 +212,7 @@ if __name__ == '__main__':
             --setting_folder_path/ -ts: path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
             --train_affine_first: train affine network first, then train non-parametric network
             --gpu_id/ -g: gpu_id to use
+            --is_demo: reproduce the tutorial result
     """
     import argparse
 
@@ -208,6 +228,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_affine_first',required=False,action='store_true',
                         help='train affine network first, then train non-parametric network')
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')
+    parser.add_argument('--is_demo', required=False,action='store_true', help="reproduce the tutorial result")
     args = parser.parse_args()
     print(args)
     do_registration_train(args)

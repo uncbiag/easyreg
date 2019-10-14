@@ -30,7 +30,7 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 ..  code::
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
+    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
 
 * Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
 
@@ -358,7 +358,8 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                     "epoch_activate_sym_loss": "the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss",
                     "lr_for_multi_step": "if reset_lr_for_multi_step, reset learning rate into # when multi-step begins",
                     "initial_reg_factor": "initial regularization factor",
-                    "min_reg_factor": "minimum regularization factor",
+                "min_reg_factor": "minimum regularization factor",
+                "sym_factor": "factor of symmetric loss",
                     "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                     "using_complex_net": "use complex version of affine net"
                 },

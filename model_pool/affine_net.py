@@ -191,6 +191,8 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """if reset_lr_for_multi_step, reset learning rate into # when multi-step begins"""
         self.epoch_activate_sym = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric forward')]
         """epoch to activate symmetric forward"""
+        self.sym_factor = opt['tsk_set']['reg']['affine_net'][('sym_factor', 1., 'the factor of symmetric loss')]
+        """ the factor of symmetric loss"""
         self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym_loss',-1,'the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss')]
         """ the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss"""
         self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate the external loss which will replace the default ncc loss')]
@@ -336,7 +338,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.affine_identity[4] = 1.
         self.affine_identity[8] = 1.
 
-    def sym_reg_loss(self, bias_factor=1.):
+    def compute_symmetric_reg_loss(self, bias_factor=1.):
         """
         compute the symmetry loss
         s-t transform (a,b), t-s transform (c,d), then assume transform from t-s-t
@@ -450,10 +452,10 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
         sym_on = self.epoch>= self.epoch_activate_sym
         self.affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
-        sym_reg_loss = self.sym_reg_loss(bias_factor=1.) if  sym_on else 0.
+        sym_reg_loss = self.compute_symmetric_reg_loss(bias_factor=1.) if  sym_on else 0.
         scale_reg_loss = self.scale_sym_reg_loss(self.affine_param, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(self.affine_param, sched='l2')
         factor_scale = self.get_factor_reg_scale()
-        factor_sym =1. if self.epoch>= self.epoch_activate_sym_loss else 0.
+        factor_sym =self.sym_factor if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.
         loss = sim_factor*sim_loss + factor_sym * sym_reg_loss + factor_scale * scale_reg_loss
         print_out_every_iter = (10* self.step) if self.epoch> self.epoch_activate_multi_step else 10

@@ -22,8 +22,8 @@
                 "affine": {
                     "sigma": 0.7
                 },
-                "mermaid_affine_json": "./demo_settings/mermaid/opt_vsvf/mermaid_affine_settings.json",
-                "mermaid_nonp_json": "./demo_settings/mermaid/opt_vsvf/mermaid_nonp_settings.json"
+                "mermaid_affine_json": "",
+                "mermaid_nonp_json": ""
             }
         },
         "save_3d_img_on": false,
