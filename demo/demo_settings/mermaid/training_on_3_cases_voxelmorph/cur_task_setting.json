@@ -1,0 +1,103 @@
+{
+    "dataset": {
+        "img_after_resize": [
+            80,
+            192,
+            192
+        ],
+        "load_training_data_into_memory": true,
+        "max_pair_for_loading": [
+            -1,
+            -1,
+            -1,
+            -1
+        ],
+        "spacing_to_refer": [
+            0.7,
+            0.3646,
+            0.3646
+        ]
+    },
+    "tsk_set": {
+        "batch_sz": 1,
+        "check_best_model_period": 5,
+        "continue_train": false,
+        "continue_train_lr": 5e-05,
+        "criticUpdates": 2,
+        "epoch": 50,
+        "gpu_ids": 0,
+        "loss": {
+            "type": "lncc"
+        },
+        "max_batch_num_per_epoch": [
+            400,
+            3,
+            3
+        ],
+        "model": "reg_net",
+        "model_path": "",
+        "n_in_channel": 1,
+        "method_name": "vm_miccai",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 0.0001,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.1,
+                    "step_size": 20
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_taking_original_image_format": false,
+        "save_original_image_by_type": [true, true, true, true, true,true],
+        "print_step": [
+            10,
+            3,
+            3
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "acc_multi_step_loss": false,
+                "affine_net_iter": 3,
+                "epoch_activate_extern_loss": 20,
+                "epoch_activate_multi_step": 30,
+                "epoch_activate_sym": 40,
+                "epoch_activate_sym_loss": 40,
+                "initial_reg_factor": 10,
+                "min_reg_factor": 1e-3,
+                "sym_factor": 0.01,
+                "reset_lr_for_multi_step": false,
+                "using_complex_net": true
+            },
+            "compute_inverse_map": false,
+            "low_res_factor": 0.5,
+            "morph_cvpr": {
+                "affine_init_path": "/playpen/zyshen/reg_clean/demo/demo_output/training/oai/training_on_3_cases_seed2019_sym01_stage1_affine/checkpoints/model_best.pth.tar",
+                "affine_refine_step": 5,
+                "using_affine_init": true,
+                "load_trained_affine_net": true
+            },
+            "morph_miccai": {
+                "affine_init_path": "/playpen/zyshen/reg_clean/demo/demo_output/training/oai/training_on_3_cases_seed2019_sym01_stage1_affine/checkpoints/model_best.pth.tar",
+                "using_affine_init": true,
+                "affine_refine_step": 5,
+                "load_trained_affine_net": true,
+                "image_sigma": 0.02,
+                "lambda_factor_in_vmr": 50,
+                "lambda_mean_factor_in_vmr": 50
+            }
+        },
+        "save_3d_img_on": false,
+        "save_extra_3d_img": false,
+        "save_fig_on": true,
+        "train": true,
+        "use_physical_coord": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    }
+}

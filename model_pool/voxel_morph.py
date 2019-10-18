@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 registration network described in voxelmorph
-An experimental pytorch implemetation refers to https://github.com/voxelmorph/voxelmorph
+An experimental pytorch implemetation, the official tensorflow please refers to https://github.com/voxelmorph/voxelmorph
 
 An Unsupervised Learning Model for Deformable Medical Image Registration
 Guha Balakrishnan, Amy Zhao, Mert R. Sabuncu, John Guttag, Adrian V. Dalca
@@ -27,6 +27,8 @@ import torch.nn.functional as F
 from model_pool.net_utils import Bilinear
 from mermaid.libraries.modules import stn_nd
 from model_pool.affine_net import AffineNetSym
+from model_pool.losses import NCCLoss
+from model_pool.utils import sigmoid_decay
 
 class convBlock(nn.Module):
     """
@@ -78,9 +80,14 @@ class VoxelMorphCVPR2018(nn.Module):
     """
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphCVPR2018, self).__init__()
-        self.load_external_model = True
-        self.using_affine_init = True
-        self.affine_init_path = opt['tsk_set']['reg']['mermaid_net']['affine_init_path']
+        self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
+        opt_voxelmorph = opt['tsk_set']['reg']['morph_cvpr']
+        self.load_trained_affine_net = opt_voxelmorph[('load_trained_affine_net',False,'if true load_trained_affine_net; if false, the affine network is not initialized')]
+        self.using_affine_init = opt_voxelmorph[("using_affine_init",False,"deploy pretrained affine network")]
+        self.affine_init_path = opt_voxelmorph[('affine_init_path','',"the path of pretrained affine model")]
+        self.affine_refine_step = opt_voxelmorph[('affine_refine_step', 5, "the multi-step num in affine refinement")]
+        self.initial_reg_factor = opt_voxelmorph[('initial_reg_factor', 1., 'initial regularization factor')]
+        self.min_reg_factor = opt_voxelmorph[('min_reg_factor', 1., 'minimum regularization factor')]
         enc_filters = [16, 32, 32, 32, 32]
         #dec_filters = [32, 32, 32, 8, 8]
         dec_filters = [32, 32, 32, 32, 32, 16, 16]
@@ -92,7 +99,13 @@ class VoxelMorphCVPR2018(nn.Module):
         self.output_channel = 3
         self.img_sz = img_sz
         self.spacing = 1. / ( np.array(img_sz) - 1)
+        self.loss_fn = None #NCCLoss()
+        self.epoch = -1
+        self.print_count = 0
 
+        def set_cur_epoch(self, cur_epoch=-1):
+            """ set current epoch"""
+            self.epoch = cur_epoch
 
         if self.using_affine_init:
             self.init_affine_net(opt)
@@ -124,17 +137,24 @@ class VoxelMorphCVPR2018(nn.Module):
 
         # identity transform for computing displacement
 
+    def set_loss_fn(self, loss_fn):
+        """ set loss function"""
+        self.loss_fn = loss_fn
+
     def init_affine_net(self,opt):
         self.affine_net = AffineNetSym(self.img_sz, opt)
         self.affine_net.compute_loss = False
-        self.affine_net.epoch_activate_sym = 1e7
-
-        if self.load_external_model:
-            model_path = self.affine_init_path
-            checkpoint = torch.load(model_path,  map_location='cpu')
+        self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
+        self.affine_net.set_step(self.affine_refine_step)
+        model_path = self.affine_init_path
+        if self.load_trained_affine_net and self.is_train:
+            checkpoint = torch.load(model_path, map_location='cpu')
             self.affine_net.load_state_dict(checkpoint['state_dict'])
             self.affine_net.cuda()
             print("Affine model is initialized!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        else:
+            print(
+                "The Affine model is added, but not initialized, this should only take place when a complete checkpoint (including affine model) will be loaded")
         self.affine_net.eval()
 
     def forward(self, source, target):
@@ -174,12 +194,21 @@ class VoxelMorphCVPR2018(nn.Module):
 
         deform_field = disp_field + affine_map
         warped_source = self.bilinear(source, deform_field)
+        self.warped = warped_source
+        self.target = target
+        self.disp_field = disp_field
+        if self.train:
+            self.print_count += 1
         return warped_source, deform_field, disp_field
 
     def get_extra_to_plot(self):
         return None, None
 
-    def scale_reg_loss(self,disp=None,sched='l2'):
+    def check_if_update_lr(self):
+        return False, None
+
+    def scale_reg_loss(self,sched='l2'):
+        disp = self.disp_field
         fd = fdt.FD_torch(self.spacing*2)
         dfx = fd.dXc(disp[:, 0, ...])
         dfy = fd.dYc(disp[:, 1, ...])
@@ -187,6 +216,12 @@ class VoxelMorphCVPR2018(nn.Module):
         l2 = dfx**2+dfy**2+dfz**2
         reg = l2.mean()
         return reg
+
+
+    def get_sim_loss(self):
+        sim_loss = self.loss_fn.get_loss(self.warped,self.target)
+        sim_loss =  sim_loss / self.warped.shape[0]
+        return sim_loss
 
     def weights_init(self):
         for m in self.modules():
@@ -196,6 +231,23 @@ class VoxelMorphCVPR2018(nn.Module):
                     nn.init.xavier_normal_(m.weight.data)
                 if not m.bias is None:
                     m.bias.data.zero_()
+
+
+    def get_reg_factor(self):
+        factor = self.initial_reg_factor # 1e-7
+        factor = float(max(sigmoid_decay(self.epoch, static=5, k=4) * factor, self.min_reg_factor))
+        return factor
+
+
+    def get_loss(self):
+        reg_factor = self.get_reg_factor()
+        sim_loss = self.get_sim_loss()
+        reg_loss = self.scale_reg_loss()
+        if self.print_count % 10 == 0:
+            print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(),
+                                                                                                reg_loss.item(),
+                                                                                                reg_factor))
+        return sim_loss+ reg_factor*reg_loss
 
     # def cal_affine_loss(self,output=None,afimg_or_afparam=None,using_decay_factor=False):
     #     factor = 1.0
@@ -214,7 +266,7 @@ class VoxelMorphCVPR2018(nn.Module):
 
 class VoxelMorphMICCAI2019(nn.Module):
     """
-    unet architecture for voxelmorph models presented in the CVPR 2018 paper.
+    unet architecture for voxelmorph models presented in the MICCAI 2019 paper.
     You may need to modify this code (e.g., number of layers) to suit your project needs.
 
     :param vol_size: volume size. e.g. (256, 256, 256)
@@ -225,12 +277,14 @@ class VoxelMorphMICCAI2019(nn.Module):
     """
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphMICCAI2019, self).__init__()
-        self.load_external_model = opt['tsk_set']['reg']['morph_miccai'][('use_affine_in_vmr',False,'use_affine_in_vmr')]
-        self.using_affine_init = opt['tsk_set']['reg']['morph_miccai'][('use_affine_in_vmr',False,'use_affine_in_vmr')]
-        if self.using_affine_init:
-            self.affine_init_path = opt['tsk_set']['reg']['mermaid_net']['affine_init_path']
-        else:
-            self.affine_init_path = None
+        self.is_train = opt['tsk_set'][('train', False, 'if is in train mode')]
+        opt_voxelmorph = opt['tsk_set']['reg']['morph_miccai']
+        self.load_trained_affine_net = opt_voxelmorph[('load_trained_affine_net', False,
+                                                       'if true load_trained_affine_net; if false, the affine network is not initialized')]
+        self.affine_refine_step = opt_voxelmorph[('affine_refine_step', 5, "the multi-step num in affine refinement")]
+
+        self.using_affine_init = opt_voxelmorph[("using_affine_init", False, "deploy pretrained affine network")]
+        self.affine_init_path = opt_voxelmorph[('affine_init_path', '', "the path of pretrained affine model")]
         enc_filters = [16, 32, 32, 32, 32]
         #dec_filters = [32, 32, 32, 8, 8]
         dec_filters = [32, 32, 32, 32, 16]
@@ -245,12 +299,13 @@ class VoxelMorphMICCAI2019(nn.Module):
         self.spacing = 1. / ( np.array(img_sz) - 1)
         self.int_steps = 7
 
-        self.image_sigma = opt['tsk_set']['reg']['morph_miccai'][('image_sigma',0.02,'image_sigma')]
-        self.prior_lambda = opt['tsk_set']['reg']['morph_miccai'][('lambda_factor_in_vmr',50,'lambda_factor_in_vmr')]
-        self.prior_lambda_mean = opt['tsk_set']['reg']['morph_miccai'][('lambda_mean_factor_in_vmr',50,'lambda_mean_factor_in_vmr')]
+        self.image_sigma = opt_voxelmorph[('image_sigma',0.02,'image_sigma')]
+        self.prior_lambda =opt_voxelmorph[('lambda_factor_in_vmr',50,'lambda_factor_in_vmr')]
+        self.prior_lambda_mean =opt_voxelmorph[('lambda_mean_factor_in_vmr',50,'lambda_mean_factor_in_vmr')]
         self.flow_vol_shape = self.low_res_img_sz
         self.D = self._degree_matrix(self.flow_vol_shape)
-        self.D = (self.D).cuda()# 1, 96, 40,40 3
+        self.D = (self.D).cuda()# 1, 96, 40,40 3'
+        self.loss_fn =  None
 
 
         if self.using_affine_init:
@@ -311,15 +366,24 @@ class VoxelMorphMICCAI2019(nn.Module):
 
         return map_scaled
 
-    def init_affine_net(self,opt):
-        self.affine_net = AffineNetSym(self.img_sz,opt)
+    def set_loss_fn(self, loss_fn):
+        """ set loss function"""
+        pass
 
-        if self.load_external_model:
-            model_path = self.affine_init_path
-            checkpoint = torch.load(model_path,  map_location='cpu')
+    def init_affine_net(self,opt):
+        self.affine_net = AffineNetSym(self.img_sz, opt)
+        self.affine_net.compute_loss = False
+        self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
+        self.affine_net.set_step(self.affine_refine_step)
+        model_path = self.affine_init_path
+        if self.load_trained_affine_net and self.is_train:
+            checkpoint = torch.load(model_path, map_location='cpu')
             self.affine_net.load_state_dict(checkpoint['state_dict'])
             self.affine_net.cuda()
             print("Affine model is initialized!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        else:
+            print(
+                "The Affine model is added, but not initialized, this should only take place when a complete checkpoint (including affine model) will be loaded")
         self.affine_net.eval()
 
     def forward(self, source, target):
@@ -375,10 +439,14 @@ class VoxelMorphMICCAI2019(nn.Module):
         self.res_log_sigma = log_sigma
         self.warped = warped_source
         self.target = target
-        self.print_count +=1
+        if self.train:
+            self.print_count += 1
 
         return warped_source, deform_field, disp_field
 
+
+    def check_if_update_lr(self):
+        return False, None
 
     def get_extra_to_plot(self):
         return None, None
@@ -494,6 +562,12 @@ class VoxelMorphMICCAI2019(nn.Module):
         return 1. / (self.image_sigma ** 2) * torch.mean((y_true - y_pred)**2)  ##!!!!!!!!
 
 
+    def get_loss(self):
+        sim_loss = self.get_sim_loss()
+        reg_loss = self.scale_reg_loss()
+        return sim_loss+ reg_loss
+
+
 
 
 
@@ -525,21 +599,22 @@ class VoxelMorphMICCAI2019(nn.Module):
 
 
 def test():
+    from mermaid.module_parameters import ParameterDict
     cuda = torch.device('cuda:0')
-    test_cvpr = False
+    test_cvpr = True
+    opt = ParameterDict()
     if test_cvpr:
         # unet = UNet_light2(2,3).to(cuda)
-        net = VoxelMorphCVPR2018([80, 192, 192]).to(cuda)
+        net = VoxelMorphCVPR2018([80, 192, 192],opt).to(cuda)
     else:
-        net = VoxelMorphMICCAI2019([80,192,192]).to(cuda)
+        net = VoxelMorphMICCAI2019([80,192,192],opt).to(cuda)
     print(net)
     with torch.enable_grad():
         input1 = torch.randn(1, 1, 80, 192, 192).to(cuda)
         input2 = torch.randn(1, 1, 80, 192, 192).to(cuda)
         disp_field, warped_input1, deform_field = net(input1, input2)
-        sim_loss = net.get_sim_loss()
-        reg_loss = net.scale_reg_loss()
-        loss = sim_loss+ reg_loss
+        loss = net.get_loss()
+        print("The loss is {}".format(loss))
 
     pass
 

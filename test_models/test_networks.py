@@ -37,7 +37,7 @@ class Test_Networks(unittest.TestCase):
         res_np_path = os.path.join(output_path, 'reg/res/records/records_detail.npy')
         dice_score_np = self.get_experiment_data_from_record_detail(res_np_path)
         dice_score_avg = np.mean(dice_score_np)
-        npt.assert_almost_equal(dice_score_avg, 0.6637740976354091, decimal=4)
+        npt.assert_almost_equal(dice_score_avg, 0.6631099637937586, decimal=4)
 
     def test_rdmm_network(self):
         output_path = os.path.join(self.output_folder,'test_rdmm_net')
@@ -49,7 +49,7 @@ class Test_Networks(unittest.TestCase):
         res_np_path = os.path.join(output_path, 'reg/res/records/records_detail.npy')
         dice_score_np = self.get_experiment_data_from_record_detail(res_np_path)
         dice_score_avg = np.mean(dice_score_np)
-        npt.assert_almost_equal(dice_score_avg, 0.6688862834930219, decimal=4)
+        npt.assert_almost_equal(dice_score_avg, 0.6695689292780935, decimal=4)
 
 
 

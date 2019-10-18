@@ -65,7 +65,7 @@ class MermaidNet(nn.Module):
         """the similarity measure supported by the mermaid:  'ssd','ncc','ncc_positive','ncc_negative', 'lncc', 'omt'"""
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
         """compute the inverse transformation map"""
-        self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','../mermaid/demos/cur_settings_lbfgs.json',"the path for mermaid settings json")]
+        self.mermaid_net_json_pth = opt_mermaid[('mermaid_net_json_pth','',"the path for mermaid settings json")]
         """the path for mermaid settings json"""
         self.sym_factor = opt_mermaid[('sym_factor',500,'factor on symmetric loss')]
         """factor on symmetric loss"""
