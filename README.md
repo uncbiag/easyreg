@@ -40,8 +40,9 @@ pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1
 For NiftyReg installation instructions please refer to [NiftyReg Installation](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
 
 # Build Documentation
+The lastest doc can be found [here](www.cs.unc.edu/~zyshen/package/easyreg/html/index.html)
 
-Source code documentation and tutorials can be built using sphinx.
+Source code documentation and tutorials can be built on local using sphinx.
 
 ```
 cd EASYREG_REPOSITORY_PATH
