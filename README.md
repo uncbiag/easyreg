@@ -1,8 +1,9 @@
-# An Extension Package on Mermaid
-The purpose of this package is to provide an simple interface for Mermaid and other popluar registration
-package.\
-The current support methods include Mermaid-optimization and Mermaid-network. 
-We add supports on [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend the usage of official source.
+# An Extension Package for Mermaid
+The purpose of this package is to provide a simple interface to Mermaid and other popluar registration
+packages.\
+
+The currently supported methods include Mermaid-optimization (i.e., optimization-based registration) and Mermaid-network (i.e., deep network-based registration methods using the mermaid deformation models).
+We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend using the official source.
 
 
 # Installation
@@ -26,8 +27,8 @@ For third-party toolkits:
 
 **ANTsPy**
 
-We currently test on ANTsPy 0.1.4 version. Since AntsPy is not fully functioned,
- it will be replaced with custom Ants Package in the next release. The following command installs ANTsPy 0.1.4.
+We currently test using ANTsPy version 0.1.4. Since AntsPy is not fully functioned,
+ it will be replaced with a custom Ants Package in the next release. The following command installs ANTsPy 0.1.4.
  
  ```
 
@@ -36,11 +37,11 @@ pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1
 
 **NiftyReg**
 
-The installation of NiftyReg please refer to [NiftyReg Installation](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
+For NiftyReg installation instructions please refer to [NiftyReg Installation](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
 
-# Build Document
+# Build Documentation
 
-Next step, the tutorial and documents can be built from sphinx.
+Source code documentation and tutorials can be built using sphinx.
 
 ```
 cd EASYREG_REPOSITORY_PATH
@@ -48,9 +49,9 @@ cd doc
 make html
 ```
 
-Now you are ready to explore various of optimization-based as well as learning-based demos provided by EasyReg.
+Now you are ready to explore various optimization-based as well as learning-based demos provided by EasyReg.
 
-# Paper related
+# Related papers
 
 If you find EasyReg is helpful, please cite (see [bibtex](citations.bib)):
 
