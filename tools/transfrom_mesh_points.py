@@ -2,7 +2,6 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ''
 import pickle
 import nibabel as nib
-import SimpleITK as sitk
 from mermaid.utils import compute_warped_image_multiNC
 from mermaid.data_wrapper import AdaptVal, MyTensor
 import numpy as np

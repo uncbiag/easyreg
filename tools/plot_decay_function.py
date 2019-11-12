@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from model_pool.utils import sigmoid_decay, sigmoid_explode
+from easyreg.utils import sigmoid_decay, sigmoid_explode
 
 x = list(range(200))
 y = [ sigmoid_decay(iterm,static=5, k=10)*10 for iterm in x]

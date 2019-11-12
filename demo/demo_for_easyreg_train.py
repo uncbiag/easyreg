@@ -1,17 +1,17 @@
 import matplotlib as matplt
 matplt.use('Agg')
-import sys,os
+import os, sys
+sys.path.insert(0,os.path.abspath('..'))
+sys.path.insert(0,os.path.abspath('.'))
+sys.path.insert(0,os.path.abspath('../easy_reg'))
+#sys.path.insert(0,os.path.abspath('../mermaid'))
 import numpy as np
 import torch
 import random
 torch.backends.cudnn.benchmark=True
-sys.path.insert(0,os.path.abspath('..'))
-sys.path.insert(0,os.path.abspath('.'))
-sys.path.insert(0,os.path.abspath('../model_pool'))
-sys.path.insert(0,os.path.abspath('../mermaid'))
-import data_pre.module_parameters as pars
+import tools.module_parameters as pars
 from abc import ABCMeta, abstractmethod
-from model_pool.piplines import run_one_task
+from easyreg.piplines import run_one_task
 
 
 
@@ -76,7 +76,9 @@ def init_train_env(setting_path,output_root_path, task_name, data_task_name=None
     tsm.task_par['tsk_set']['task_name'] = task_name
     tsm.task_par['tsk_set']['output_root_path'] = data_task_path
     if tsm.task_par['tsk_set']['model']=='reg_net':
-        tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = os.path.join(setting_path,'mermaid_nonp_settings.json')
+        mermaid_setting_json = tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']
+        if len(mermaid_setting_json) == 0:
+            tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = os.path.join(setting_path,'mermaid_nonp_settings.json')
 
     return dm, tsm
 
@@ -105,24 +107,37 @@ def addition_settings_for_two_stage_training(dm, tsm):
 
     return dm, tsm
 
-def backup_settings(args,dm,tsm):
+def backup_settings(args):
     """
     The settings saved in setting_folder_path/task_name/cur_data_setting.json and setting_folder_path/task_name/cur_task_setting.json
 
     :param args:
-    :param dm: arameterDict, data processing setting (not used for now)
-    :param tsm: ParameterDict, task setting
+    :param dm_json_path: path of json file for data processing setting (not used for now)
+    :param tsm_json_path: path of json file for task setting
     :return: Bibe
     """
     setting_folder_path = args.setting_folder_path
+    dm_json_path = os.path.join(setting_folder_path, 'cur_data_setting.json')
+    tsm_json_path = os.path.join(setting_folder_path, 'cur_task_setting.json')
+    dm = DataTask('task_reg', dm_json_path) if os.path.isfile(dm_json_path) else None
+    tsm = ModelTask('task_reg', tsm_json_path)
     task_name = args.task_name_record
-    setting_backup = os.path.join(setting_folder_path, task_name)
+    setting_backup = os.path.join(setting_folder_path, task_name+'_backup')
     os.makedirs(setting_backup, exist_ok=True)
     dm_backup_json_path = os.path.join(setting_backup, 'cur_data_setting.json')
     tsm_backup_json_path =os.path.join(setting_backup,'cur_task_setting.json')
+    if tsm.task_par['tsk_set']['model']=='reg_net':
+        mermaid_backup_json_path = os.path.join(setting_backup, 'mermaid_nonp_settings.json')
+        mermaid_setting_json = tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']
+        if len(mermaid_setting_json)==0:
+            mermaid_setting_json = os.path.join(setting_folder_path,'mermaid_nonp_settings.json')
+        mermaid_setting =pars.ParameterDict()
+        mermaid_setting.load_JSON(mermaid_setting_json)
+        mermaid_setting.write_ext_JSON(mermaid_backup_json_path)
     tsm.save(tsm_backup_json_path)
     if dm is not None:
         dm.save(dm_backup_json_path)
+
 
 
 
@@ -143,7 +158,6 @@ def __do_registration_train(args,pipeline=None):
     task_output_path = os.path.join(data_task_path,task_name)
     os.makedirs(task_output_path, exist_ok=True)
     dm, tsm = init_train_env(setting_folder_path,output_root_path,task_name,data_task_name)
-    backup_settings(args,dm, tsm)
     dm, tsm = addition_settings_for_two_stage_training(dm, tsm)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
     dm_json_path = os.path.join(task_output_path, 'cur_data_setting.json') if dm is not None else None
@@ -179,6 +193,7 @@ def do_registration_train(args):
     set_seed_for_demo(args)
     task_name = args.task_name
     args.task_name_record = task_name
+    backup_settings(args)
     pipeline = None
     args.affine_stage_in_two_stage_training = False
     args.next_stage_in_two_stage_training = False
@@ -190,7 +205,7 @@ def do_registration_train(args):
         #torch.cuda.empty_cache()
         args.affine_stage_in_two_stage_training  = False
         args.next_stage_in_two_stage_training =True
-        args.setting_folder_path = os.path.join(args.setting_folder_path, task_name)
+        args.setting_folder_path = os.path.join(args.setting_folder_path, task_name+'_backup')
         args.task_name = task_name+'_stage2_nonp'
     __do_registration_train(args,pipeline)
 

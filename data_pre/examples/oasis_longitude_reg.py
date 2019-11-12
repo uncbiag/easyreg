@@ -3,12 +3,11 @@ import sys
 import os
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
-sys.path.insert(0,os.path.abspath('../model_pool'))
+sys.path.insert(0,os.path.abspath('../easyreg'))
 
 import numpy as np
 from functools import reduce
-import torch
-from data_pre.reg_data_utils import make_dir
+from easyreg.reg_data_utils import make_dir
 import random
 import SimpleITK as sitk
 from multiprocessing import Pool

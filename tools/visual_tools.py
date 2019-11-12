@@ -1,7 +1,6 @@
 
 import matplotlib.pyplot as plt
-import numpy as np
-from model_pool import utils
+from easyreg import utils
 import SimpleITK as sitk
 import torch
 import numpy as np

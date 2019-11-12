@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
-from data_pre.reg_data_utils import make_dir
+from easyreg.reg_data_utils import make_dir
 
 
 """
@@ -10,7 +10,7 @@ Some utility functions to display the registration results
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from model_pool import utils
+from easyreg import utils
 from tools import viewers
 
 dpi=500

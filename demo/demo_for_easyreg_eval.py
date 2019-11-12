@@ -1,14 +1,14 @@
 import matplotlib as matplt
 matplt.use('Agg')
-import sys,os
+import os, sys
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
-sys.path.insert(0,os.path.abspath('../model_pool'))
-sys.path.insert(0,os.path.abspath('../mermaid'))
-import data_pre.module_parameters as pars
+sys.path.insert(0,os.path.abspath('../easy_reg'))
+#sys.path.insert(0,os.path.abspath('../mermaid'))
+import tools.module_parameters as pars
 from abc import ABCMeta, abstractmethod
-from model_pool.piplines import run_one_task
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
+from easyreg.piplines import run_one_task
+from easyreg.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
 
 class BaseTask():
     __metaclass__ = ABCMeta
@@ -226,20 +226,3 @@ if __name__ == '__main__':
         assert len(lsource_list)== len(ltarget_list), " the lsource and ltarget list should be the same length"
     registration_pair_list= [source_list, target_list, lsource_list, ltarget_list]
     do_registration_eval(args, registration_pair_list)
-
-
-    #python demo_for_easyreg_eval.py --run_demo --demo_name=demons -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface_dev2/test_demons
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=nifty_reg  -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface_dev2/test_nifty_reg
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=ants  -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface_dev2/test_ants
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_rdmm_predefined -txt=./lung_examples.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface_dev2/test_opt_rdmm_predefined
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -g=2 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface_dev2/test_opt_vsvf
-
-
-
-    #python demo_for_easyreg_eval.py --run_demo --demo_name=demons -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_demons
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=nifty_reg -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_nifty_reg
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=ants -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_ants
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -txt=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_opt_vsvf
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_rdmm_predefined -txt=/playpen/zyshen/data/reg_lung_160/test/pair_path_list.txt -g=3 -o=/playpen/zyshen/data/reg_lung_160/new_interface/test_opt_rdmm_predefined
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_vsvf -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_vsvf_net
-    #python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_rdmm -txt=/playpen/zyshen/debugs/get_val_and_debug_res/test.txt -g=3 -o=/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/new_interface/test_rdmm_net

@@ -2,21 +2,19 @@ import sys
 import os
 sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
-sys.path.insert(0,os.path.abspath('../model_pool'))
-import SimpleITK as sitk
+sys.path.insert(0,os.path.abspath('../easyreg'))
 import numpy as np
 import glob
 from multiprocessing import Pool
 import os
-from scipy.ndimage.interpolation import shift
 from tools.image_rescale import resize_input_img_and_save_it_as_tmp
 from tools.visual_tools import save_3D_img_from_numpy
-from mermaid.data_wrapper import MyTensor, AdaptVal
+from mermaid.data_wrapper import MyTensor
 import mermaid.smoother_factory  as sf
 import mermaid.module_parameters as pars
 import mermaid.fileio as fileio
 from functools import partial
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name
+from easyreg.reg_data_utils import write_list_into_txt, get_file_name
 
 def set_path_env(s_list, t_list, ls_list, lt_list,intermid_path, output_path):
     raw_path_list = []

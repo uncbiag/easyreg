@@ -10,9 +10,9 @@ EasyReg is developed for research propose, providing interfaces for various regi
 In this tutorial, we would show how to run the following demos:
 
 1. Demos on toolkit methods (NiftyReg, ANTsPy, Demons)
-2. Demos on optimization-based mermaid model (vSVF in CVPR paper and RDMM in NeurIPS paper)
-3. Demos on evaluating pretrained learning-based mermaid model (vSVF in CVPR paper and RDMM in NeurIPS paper)
-4. Demos on training learning-based mermaid model(vSVF in CVPR paper and RDMM in NeurIPS paper)
+2. Demos on optimization-based mermaid model (vSVF and RDMM)
+3. Demos on evaluating pretrained learning-based mermaid model (vSVF and RDMM)
+4. Demos on training learning-based mermaid model(vSVF and RDMM)
 
 *Demos for RDMM on synthesis data is put in mermaid repository. if you are interested in that, please refer to mermaid tutorial.*
 

@@ -1,5 +1,5 @@
 import os
-from data_pre.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
+from easyreg.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
 
 
 def generate_atlas_set(original_txt_path,atlas_path,l_atlas_path, output_path,phase='train'):

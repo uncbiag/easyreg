@@ -1,5 +1,4 @@
 import numpy as np
-import os
 from mermaid.data_wrapper import MyTensor, AdaptVal
 import mermaid.smoother_factory  as sf
 import mermaid.module_parameters as pars
@@ -7,7 +6,6 @@ import mermaid.fileio as fileio
 import mermaid.multiscale_optimizer as MO
 
 from tools.image_rescale import resize_input_img_and_save_it_as_tmp
-from tools.visual_tools import save_3D_img_from_numpy
 
 def file_io_read_img(path, is_label, normalize_spacing=True, normalize_intensities=True, squeeze_image=True, adaptive_padding=4):
     normalize_intensities = False if is_label else normalize_intensities
