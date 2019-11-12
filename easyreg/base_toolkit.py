@@ -100,7 +100,7 @@ class ToolkitBase(ModelBase):
         :param phase:
         :return:
         """
-        from tools.visualize_registration_results import show_current_images
+        from .visualize_registration_results import show_current_images
         visual_param={}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True
@@ -108,7 +108,7 @@ class ToolkitBase(ModelBase):
         visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
         visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
         visual_param['save_fig_num'] = 8
-        visual_param['pair_path'] = self.fname_list
+        visual_param['pair_name'] = self.fname_list
         visual_param['iter'] = phase+"_iter_" + str(self.iter_count)
         disp=None
         extra_title = 'disp'

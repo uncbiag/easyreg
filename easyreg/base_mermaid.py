@@ -141,7 +141,7 @@ class MermaidBase(ModelBase):
         :param phase: train|val|test|debug
         :return:
         """
-        from tools.visualize_registration_results import show_current_images
+        from .visualize_registration_results import show_current_images
         visual_param = {}
         visual_param['visualize'] = False
         visual_param['save_fig'] = True
@@ -149,7 +149,7 @@ class MermaidBase(ModelBase):
         visual_param['save_fig_path_byname'] = os.path.join(self.record_path, 'byname')
         visual_param['save_fig_path_byiter'] = os.path.join(self.record_path, 'byiter')
         visual_param['save_fig_num'] = 4
-        visual_param['pair_path'] = self.fname_list
+        visual_param['pair_name'] = self.fname_list
         visual_param['iter'] = phase + "_iter_" + str(self.iter_count)
         disp = None
         extra_title = 'disp'
@@ -166,7 +166,7 @@ class MermaidBase(ModelBase):
             disp = self.afimg_or_afparam[:, 0, ...]
             extra_title = 'affine'
 
-        if self.jacobi_map is not None:
+        if self.jacobi_map is not None and self.nonp_on:
             disp = self.jacobi_map
             extra_title = 'jacobi det'
         show_current_images(self.iter_count, iS=self.moving, iT=self.target, iW=self.output,

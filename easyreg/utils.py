@@ -273,7 +273,7 @@ def show_current_pair_by_3d_slice(iS,iT):
     :return:
     """
     import matplotlib.pyplot as plt
-    import tools.viewers as viewers
+    import easyreg.viewers as viewers
     fig, ax = plt.subplots(2,3)
     plt.setp(plt.gcf(), 'facecolor', 'white')
     plt.style.use('bmh')

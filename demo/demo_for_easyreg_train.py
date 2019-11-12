@@ -112,9 +112,7 @@ def backup_settings(args):
     The settings saved in setting_folder_path/task_name/cur_data_setting.json and setting_folder_path/task_name/cur_task_setting.json
 
     :param args:
-    :param dm_json_path: path of json file for data processing setting (not used for now)
-    :param tsm_json_path: path of json file for task setting
-    :return: Bibe
+    :return: None
     """
     setting_folder_path = args.setting_folder_path
     dm_json_path = os.path.join(setting_folder_path, 'cur_data_setting.json')
