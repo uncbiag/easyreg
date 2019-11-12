@@ -1,0 +1,26 @@
+-f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+# pip requirements file
+numpy
+scipy
+matplotlib
+cffi
+itk
+sphinx
+pynrrd
+progressbar2
+h5py
+scikit-image
+SimpleITK
+tensorboardX
+future
+pandas
+openpyxl
+blosc
+ants
+nibabel
+webcolors
+torch_nightly
+torchvision
+sklearn
+gdown
+
