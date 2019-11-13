@@ -37,6 +37,8 @@ REQUIRED = [
     "scipy",
     "openpyxl",
     "sphinx",
+    "sphinx-gallery==0.3.1",
+    "nbsphinx",
     "progressbar2",
     "h5py",
     "tensorboardX",

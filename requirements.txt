@@ -4,7 +4,9 @@ scipy
 matplotlib
 cffi
 itk
+sphinx-gallery==0.3.1
 sphinx
+nbsphinx
 pynrrd
 progressbar2
 h5py

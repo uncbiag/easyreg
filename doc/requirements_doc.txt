@@ -1,11 +1,13 @@
 -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 # pip requirements file
-numpy
+numpy>=1.17
 scipy
 matplotlib
 cffi
 itk
+sphinx-gallery==0.3.1
 sphinx
+nbsphinx
 pynrrd
 progressbar2
 h5py
