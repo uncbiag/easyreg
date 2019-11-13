@@ -31,13 +31,13 @@ For the learning part, the easyreg provides a two-stage learning framework inclu
 
 An illustration of learning architecture 
 
-<img src="figs/framework_rdmm.png" alt="framewrk_rdmm" width="700"/><br>
+<img src="figs/learning_framework.png" alt="learning_framework" width="800"/><br>
 
 
 
 Registration results from Region-spec Region-specific Diffeomorphic Metric Mapping (RDMM)
 
-<img src="figs/rdmm_oai_learn_opt.png" alt="rdmm_oai_learn_opt" width="700"/><br>
+<img src="figs/rdmm_oai_learn_opt.png" alt="rdmm_oai_learn_opt" width="800"/><br>
 
 <br/><br/>
 
