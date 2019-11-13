@@ -77,7 +77,7 @@ For NiftyReg installation instructions please refer to [NiftyReg Installation](h
 
 
 # Build Documentation
-The latest doc can be found [here](http://wwwx.cs.unc.edu/~zyshen/package/easyreg/html/index.html)
+The latest doc can be found [here](https://easyreg-unc-biag.readthedocs.io/en/latest/)
 
 Source code documentation and tutorials can be built on local using sphinx.
 
