@@ -10,7 +10,7 @@ We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](
 <br/>
 
 We provide abundant of demos for both learning and optimization methods :)<br/>
-demo_list (for more details, please refer to the doc<sup>*</sup>)
+Demo list (for more details, please refer to the doc<sup>*</sup>)
 1) ANTsPy on OAI (knee MRI of the Osteoarthritis Initiative dataset)
 2) NiftyReg on OAI
 3) Demons on OAI
@@ -39,6 +39,7 @@ Registration results from Region-spec Region-specific Diffeomorphic Metric Mappi
 
 <img src="figs/rdmm_oai_learn_opt.png" alt="rdmm_oai_learn_opt" width="700"/><br>
 
+<br/><br/>
 
 # Installation
 ```
@@ -72,6 +73,8 @@ pip install  https://github.com/ANTsX/ANTsPy/releases/download/v0.1.4/antspy-0.1
 **NiftyReg**
 
 For NiftyReg installation instructions please refer to [NiftyReg Installation](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
+<br/><br/>
+
 
 # Build Documentation
 The latest doc can be found [here](http://wwwx.cs.unc.edu/~zyshen/package/easyreg/html/index.html)
@@ -85,6 +88,8 @@ make html
 ```
 
 Now you are ready to explore various optimization-based as well as learning-based demos provided by EasyReg.
+
+<br/><br/>
 
 # Related papers
 
