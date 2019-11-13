@@ -21,3 +21,4 @@ backup/llf
 */__pycache__/*
 /training_atlas_ll3/
 /training_atlas/
+./RELEASE-VERSION
