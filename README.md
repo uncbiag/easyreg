@@ -9,7 +9,7 @@ We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](
 
 <br/>
 
-We provide abundant of demos for both learning and optimization methods :)
+We provide abundant of demos for both learning and optimization methods :)<br/>
 demo_list (for more details, please refer to the doc<sup>*</sup>)
 1) ANTsPy on OAI (knee MRI of the Osteoarthritis Initiative dataset)
 2) NiftyReg on OAI
@@ -31,13 +31,13 @@ For the learning part, the easyreg provides a two-stage learning framework inclu
 
 An illustration of learning architecture 
 
-<img src="figs/framewrk_rdmm.png" alt="framewrk_rdmm" width="700"/><br>
+<img src="figs/framework_rdmm.png" alt="framewrk_rdmm" width="700"/><br>
 
 
 
 Registration results from Region-spec Region-specific Diffeomorphic Metric Mapping (RDMM)
 
-<img src="images/rdmm_oai_learn_opt.png" alt="rdmm_oai_learn_opt" width="700"/><br>
+<img src="figs/rdmm_oai_learn_opt.png" alt="rdmm_oai_learn_opt" width="700"/><br>
 
 
 # Installation
