@@ -21,12 +21,12 @@ For non-training tasks, we support two kind of input format.
 Example:
 
 - command line:
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py --setting_folder_path ./demo_settings/mermaid/opt_vsvf --gpu_id 0  --task_output_path ./demo_output/mermaid/opt_vsvf -s ./examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz ./examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_image.nii.gz -t ./examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz ./examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_image.nii.gz
 
 - txt file:
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py --setting_folder_path ./demo_settings/mermaid/opt_vsvf --gpu_id 0  --task_output_path ./demo_output/mermaid/opt_vsvf --pair_txt_path ./oai_examples.txt
 

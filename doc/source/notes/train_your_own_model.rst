@@ -13,7 +13,7 @@ About how to prepare the data, please refer to *prepare data* part  for :ref:`pr
 
 The script *demo_for_easyreg_train.py* is for training new learning-based registration model.
 
-::
+.. code:: shell
 
         A training interface for learning methods.
         The method support list :  mermaid-related methods
@@ -28,7 +28,7 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 **An example**
 
-..  code::
+.. code:: shell
 
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
 
@@ -67,7 +67,7 @@ In this specific case, we set *output_root_path=./demo_output/training* and *dat
 
 Let's take a glance at what's the repository looks like.
 
-..  code::
+.. code:: shell
 
     demo/demo_training/oai$ ls -l
     total 0
@@ -82,7 +82,7 @@ Let's take a glance at what's the repository looks like.
 
 The train|val|debug|test folder looks like this
 
-..  code::
+.. code:: shell
 
     demo/demo_training/oai/train$ ls
     pair_name_list.txt  pair_path_list.txt
@@ -90,7 +90,7 @@ The train|val|debug|test folder looks like this
 
 The pair_name_list.txt reads like:
 
-.. code::
+.. code:: shell
 
     pair_1_2
     pair_3_4
@@ -98,7 +98,7 @@ The pair_name_list.txt reads like:
 
 The pair_path_list.txt reads like:
 
-.. code::
+.. code:: shell
 
     ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz     ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz     ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_label_all.nii.gz     ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_label_all.nii.gz
     ./oai_examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_image.nii.gz     ./oai_examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_image.nii.gz     ./oai_examples/9761431_20051103_SAG_3D_DESS_RIGHT_016610945809_label_all.nii.gz     ./oai_examples/9211869_20050131_SAG_3D_DESS_RIGHT_016610167512_label_all.nii.gz
@@ -136,7 +136,7 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
 * "loss": the similarity measure type, support list: l1, mse, ncc, lncc.
 * "train": if is in train mode.
 
-.. code::
+.. code:: python
 
     {
         "dataset": {
@@ -251,7 +251,7 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
 
 In demo repository, we include a training demo. The demo trains the affine-network first then the momentum generation network for the vSVF model.
 
-..  code::
+..  code:: shell
 
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
 
@@ -265,7 +265,7 @@ we need following steps
 * set affine network settings in "affine_net"
 * remove **--train_affine_first** from command line above.
 
-..  code::
+..  code:: shell
 
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
@@ -276,7 +276,7 @@ After we complete training the affine part, the next step is calling mermaid-net
 * set param *"using_affine_init":true* and set *"affine_init_path"* as the affine-network checkpoint path (can be found in *checkpoints* repository).
 * set non-parametric (mermaid) network settings in "mermaid_net"
 
-..  code::
+..  code:: shell
 
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
@@ -292,7 +292,7 @@ To resume the training, we can need following steps
 * optional, if the epoch number needs to be reset into a given number, set "reset_train_epoch" and "load_model_but_train_from_epoch"
 * set "model_path" as the path of the checkpoint
 
-..  code::
+..  code:: shell
 
     python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
@@ -311,7 +311,7 @@ Settings for EasyReg
 The detailed comments on EasyReg settings can be found in ``cur_task_setting_comment.json``, which is shared by all mermaid-based models.
 
 
-.. code::
+..  code:: python
 
     {
         "dataset": {
@@ -407,7 +407,7 @@ Here we list setting typical setting documents on vSVF model and RDMM model.
 
 **Mermaid settings on vSVF**
 
-..   code::
+..  code:: python
 
     {
         "model": {
@@ -453,7 +453,7 @@ Here we list setting typical setting documents on vSVF model and RDMM model.
 
 **Mermaid settings on RDMM**
 
-..   code::
+..  code:: python
 
     {
         "model": {

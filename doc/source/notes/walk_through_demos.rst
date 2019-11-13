@@ -21,7 +21,7 @@ Download Examples and Pretrained Model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To run the demo, we first need to download examples and pretrained model for learning based methods.
 
-.. code::
+.. code:: shell
 
     gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
     unzip demo.zip -d EASYREG_REPOSITORY_PATH
@@ -31,7 +31,7 @@ Now we are ready to play with demos. The repository *demo* lists the scripts and
 In this section, the script *demo_for_easyreg_eval.py* will be introduced which is for optimization-based or pretrained methods.
 
 Let's first go through the document of the *demo_for_easyreg_eval.py*.
-.. code::
+.. code:: shell
 
     An evaluation interface for optimization methods or learning methods with pre-trained models.
     Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
@@ -66,19 +66,19 @@ Demos on toolkit methods
 ^^^^^^^^^^^^^^^^^^^^^^^^
 1. For NiftyReg
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=nifty_reg  -txt=./oai_examples.txt -o=OUTPUT_PATH
 
 2. For Demons
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=demons -txt=./oai_examples.txt -o=OUTPUT_PATH
 
 3. For AntsPy
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=ants -txt=./oai_examples.txt -o=OUTPUT_PATH
 
@@ -88,14 +88,14 @@ Demos on optimization-based mermaid model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 1. For Vector momentum-parameterized Stationary Velocity Field (vSVF) [`link <https://arxiv.org/pdf/1903.08811.pdf>`_]
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
 2. For Region-specific Diffeomorphic Metric Mapping (RDMM) with pre-defined regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_rdmm_predefined -txt=./lung_examples.txt -g=0 -o=OUTPUT_PATH
 
@@ -106,14 +106,14 @@ Demos on evaluating pretrained learning-based mermaid model
 
 1. For Affine-vSVF-Mapping [`link <https://arxiv.org/pdf/1903.08811.pdf>`_]
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_vsvf -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
 2. For RDMM network with a learnt regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
 
-.. code::
+.. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_rdmm -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
