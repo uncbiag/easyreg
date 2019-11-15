@@ -74,8 +74,8 @@ install:
   - conda config --add channels conda-forge
   - conda config --add channels anaconda
   - conda config --add channels uncbiag
-  - conda install mermaid
-
+  - conda install easyreg
+  
   # Build the conda recipe for this package
   - conda build . --python=$TRAVIS_PYTHON_VERSION --output-folder bld-dir
   # Add the built package as a channel with highest priority
