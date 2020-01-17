@@ -7,6 +7,8 @@
         },
         "registration_model": {
             "forward_model": {
+                "tFrom": 0.0,
+                "tTo": 1.0,
                 "number_of_time_steps": 10,
                 "solver": "rk4",
                 "adjoin_on": true,
