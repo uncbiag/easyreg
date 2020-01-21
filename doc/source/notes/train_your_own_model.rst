@@ -146,7 +146,7 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
                 192
             ],
             "load_training_data_into_memory": true,
-            "max_pair_for_loading": [
+            "max_num_for_loading": [
                 -1,
                 -1,
                 -1,
@@ -316,7 +316,7 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
     {
         "dataset": {
             "img_after_resize": "image size after resampling",
-            "max_pair_for_loading": "the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]",
+            "max_num_for_loading": "the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]",
             "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden",
             "spacing_to_refer": "the physical spacing in numpy coordinate, only activate when using_physical_coord is true"
         },

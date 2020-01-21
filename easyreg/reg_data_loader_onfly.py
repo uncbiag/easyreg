@@ -18,19 +18,19 @@ class RegistrationDataset(Dataset):
             the data should be preprocessed and saved into txt
         :param phase:  string, 'train'/'val'/ 'test'/ 'debug' ,    debug here means a subset of train data, to check if model is overfitting
         :param transform: function,  apply transform on data
-        : seg_option: pars,  settings for segmentation task,  None for registration task
-        : reg_option:  pars, settings for registration task, None for segmentation task
+        : seg_option: pars,  settings for segmentation task,  None for segmentation task
+        : reg_option:  pars, settings for registration task, None for registration task
 
         """
         self.data_path = data_path
         self.phase = phase
         self.transform = transform
-        self.data_type = '*.nii.gz'
+        #self.data_type = '*.nii.gz'
         self.turn_on_pair_regis = False
         """ inverse the registration order, i.e the original set is A->B, the new set would be A->B and B->A """
         ind = ['train', 'val', 'test', 'debug'].index(phase)
-        max_pair_for_loading=reg_option['max_pair_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
-        self.max_pair_for_loading = max_pair_for_loading[ind]
+        max_num_for_loading=reg_option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
+        self.max_num_for_loading = max_num_for_loading[ind]
         """ the max number of pairs to be loaded into the memory,[max_train, max_val, max_test, max_debug]"""
         self.load_init_weight=reg_option[('load_init_weight',False,'load init weight for adaptive weighting model')]
         self.has_label = False
@@ -65,8 +65,8 @@ class RegistrationDataset(Dataset):
             self.has_label=True
 
 
-        if self.max_pair_for_loading>0:
-            read_num = min(self.max_pair_for_loading, len(self.path_list))
+        if self.max_num_for_loading>0:
+            read_num = min(self.max_num_for_loading, len(self.path_list))
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
             if self.load_init_weight:

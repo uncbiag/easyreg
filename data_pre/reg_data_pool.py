@@ -3,7 +3,7 @@ import progressbar as pb
 
 from easyreg.reg_data_utils import *
 
-from data_pre.examples.oasis_longitude_reg import *
+from data_pre.reg_preprocess_example.oasis_longitude_reg import *
 import copy
 
 sesses = ['train', 'val', 'test', 'debug']

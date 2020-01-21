@@ -2,6 +2,7 @@ from .reg_data_utils import *
 from torchvision import transforms
 import torch
 from . import reg_data_loader_onfly as reg_loader_of
+from . import seg_data_loader_onfly as seg_loader_of
 from .reg_data_loader_onfly import ToTensor
 
 class DataManager(object):
@@ -130,6 +131,7 @@ class DataManager(object):
 
 
 
+
     def init_reg_dataset(self):
         """ preprocess the registration dataset"""
         import data_pre.reg_data_pool as reg_pool
@@ -147,7 +149,7 @@ class DataManager(object):
         self.dataset.prepare_data()
 
     def init_dataset_type(self):
-        self.cur_dataset = reg_loader_of.RegistrationDataset
+        self.cur_dataset = reg_loader_of.RegistrationDataset if self.task_type=='reg' else seg_loader_of.SegmentationDataset
 
     def init_dataset_loader(self,transformed_dataset,batch_size):
         """

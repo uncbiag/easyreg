@@ -59,10 +59,10 @@ def force_test_setting(dm, tsm,output_path):
     if dm is not None:
         data_json_path = os.path.join(output_path, 'cur_data_setting.json')
         dm.data_par['datapro']['dataset']['prepare_data'] = False
-        dm.data_par['datapro']['reg']['max_pair_for_loading'] = [1, 1, -1, 1]
+        dm.data_par['datapro']['reg']['max_num_for_loading'] = [1, 1, -1, 1]
         dm.save(data_json_path)
     else:
-        tsm.task_par['dataset']['max_pair_for_loading'] = [1, 1, -1, 1]
+        tsm.task_par['dataset']['max_num_for_loading'] = [1, 1, -1, 1]
     tsm.task_par['tsk_set']['train'] = False
     tsm.task_par['tsk_set']['continue_train'] = False
     tsk_json_path = os.path.join(output_path, 'cur_task_setting.json')
