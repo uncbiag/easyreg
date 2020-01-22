@@ -78,25 +78,30 @@ class SegDatasetPool(object):
         return dataset
 
 if __name__ == "__main__":
-    # lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*.nii'])
-    # data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
-    # label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    #
-    # output_path = '/playpen-raid/zyshen/data/lpba_seg'
-    # divided_ratio = (0.6, 0.2, 0.2)
-    # lpba.set_data_path(data_path)
-    # lpba.set_label_path(label_path)
-    # lpba.set_output_path(output_path)
-    # lpba.set_divided_ratio(divided_ratio)
-    # lpba.prepare_data()
+    pass
+    lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*.nii'])
+    #data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
+    #label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
+    #output_path = '/playpen-raid/zyshen/data/lpba_seg'
 
-    oai =SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'],label_switch=('image', 'label_all'))
-    data_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
-    label_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
-    output_path = '/playpen-raid/zyshen/data/oai_seg'
+    data_path = "/home/zyshen/proj/remote_data/LPBA40_affine_hist"
+    label_path = '/home/zyshen/proj/remote_data/LPBA40_label_affine'
+    output_path = '/home/zyshen/proj/local_debug/brain_seg'
+
     divided_ratio = (0.6, 0.2, 0.2)
-    oai.set_data_path(data_path)
-    oai.set_label_path(data_path)
-    oai.set_output_path(output_path)
-    oai.set_divided_ratio(divided_ratio)
-    oai.prepare_data()
+    lpba.set_data_path(data_path)
+    lpba.set_label_path(label_path)
+    lpba.set_output_path(output_path)
+    lpba.set_divided_ratio(divided_ratio)
+    lpba.prepare_data()
+    #
+    # oai =SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'],label_switch=('image', 'label_all'))
+    # data_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
+    # label_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
+    # output_path = '/playpen-raid/zyshen/data/oai_seg'
+    # divided_ratio = (0.6, 0.2, 0.2)
+    # oai.set_data_path(data_path)
+    # oai.set_label_path(data_path)
+    # oai.set_output_path(output_path)
+    # oai.set_divided_ratio(divided_ratio)
+    # oai.prepare_data()

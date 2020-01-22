@@ -1,10 +1,10 @@
-from .reg_data_utils import *
+from easyreg.reg_data_utils import *
 from torchvision import transforms
 import torch
-from . import reg_data_loader_onfly as reg_loader_of
-from . import seg_data_loader_onfly as seg_loader_of
-from .reg_data_loader_onfly import ToTensor
-
+from easyreg import reg_data_loader_onfly as reg_loader_of
+from easyreg import seg_data_loader_onfly as seg_loader_of
+from easyreg.reg_data_loader_onfly import ToTensor
+# todo reformat the import style
 class DataManager(object):
     def __init__(self, task_name, dataset_name):
         """
@@ -189,51 +189,25 @@ class DataManager(object):
 
         return dataloaders
 
-# TODO: support generic path names here
-#
-# if __name__ == "__main__":
-#
-#     prepare_data = True
-#
-#     task_path = '/playpen/zyshen/data/lpba__slicing90'
-#     task_type = 'seg'
-#
-#     dataset_name = 'lpba'
-#     task_name = 'debugging'
-#     full_comb = False
-#     output_path = '/playpen/zyshen/data/'
-#     divided_ratio = (0.6, 0.2, 0.2)
-#     slicing = -1
-#     sched ='patched'
-#     axis = 1
-#     switch_to_exist_task = False
-#     prepare_data = True
-#
-#     if switch_to_exist_task:
-#         data_manager = DataManager(task_name=task_name, dataset_name=dataset_name)
-#         data_manager.set_task_type(task_type)
-#         data_manager.manual_set_task_root_path(task_path)
-#     else:
-#
-#         data_manager = DataManager(task_name=task_name, dataset_name=dataset_name)
-#         data_manager.set_task_type(task_type)
-#         data_manager.set_sched(sched)
-#         data_manager.set_output_path(output_path)
-#         data_manager.set_full_comb(full_comb)
-#         data_manager.set_slicing(slicing, axis)
-#         data_manager.set_divided_ratio(divided_ratio)
-#         data_manager.generate_saving_path()
-#         data_manager.generate_task_path()
-#
-#         data_manager.init_dataset()
-#         if prepare_data:
-#             data_manager.prepare_data()
-#
-#
-#
-#     dataloaders = data_manager.data_loaders(batch_size=3)
-#     for data in dataloaders['test']:
-#         pass
+
+if __name__ == "__main__":
+    from tools.module_parameters import ParameterDict
+    prepare_data = True
+
+    task_root_path = '/home/zyshen/proj/local_debug/brain_seg'
+    task_type = 'seg'
+    dataset_name = 'lpba'
+    task_name = 'debugging'
+    settings = ParameterDict()
+    settings.load_JSON('/home/zyshen/proj/easyreg/debug/settings/data_setting.json')
+    seg_option = settings["datapro"]["seg"]
+    data_manager = DataManager(task_name, dataset_name)
+    data_manager.manual_set_task_root_path(task_root_path)
+    data_manager.generate_task_path()
+    data_manager.seg_option = seg_option
+    dataloaders = data_manager.data_loaders(batch_size=3)
+    for data in dataloaders['test']:
+        pass
 
 
 
