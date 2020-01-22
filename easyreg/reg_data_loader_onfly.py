@@ -99,8 +99,9 @@ class RegistrationDataset(Dataset):
                 resized_label,_ = self.resize_img(label_sitk,is_label=True)
                 label_np = sitk.GetArrayFromImage(resized_label)
                 img_label_np_dic['label'] = blosc.pack_array(label_np.astype(np.float32))
-            new_spacing=  original_spacing*(original_sz-1)/(np.array(self.img_after_resize)-1)
-            normalized_spacing = self._normalize_spacing(new_spacing,self.img_after_resize, silent_mode=True)
+            img_after_resize = self.img_after_resize if self.img_after_resize is not None else original_sz
+            new_spacing= original_spacing*(original_sz-1)/(np.array(img_after_resize)-1)
+            normalized_spacing = self._normalize_spacing(new_spacing,img_after_resize, silent_mode=True)
             img_label_np_dic['original_sz'] =original_sz
             img_label_np_dic['original_spacing'] = original_spacing
             img_label_np_dic['spacing'] = normalized_spacing
