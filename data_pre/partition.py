@@ -32,9 +32,8 @@ class Partition(object):
     """
 
     def __init__(self, tile_size, overlap_size, padding_mode='reflect', mode="pred",flicker_on=False,flicker_range=0,flicker_mode='rand'):
-        self.tile_size = np.flipud(
-            np.asarray(tile_size))  # flip the size order to match the numpy array(check the note)
-        self.overlap_size = np.flipud(np.asarray(overlap_size))
+        self.tile_size = np.flipud(np.asarray(tile_size))  # in itkcoord, flip the size order to match the numpy array(check the note)
+        self.overlap_size = np.flipud(np.asarray(overlap_size)) # in itkcoord, flip the size order to match the numpy array(check the note)
         self.padding_mode = padding_mode
         self.mode = mode
         self.flicker_on=flicker_on
@@ -48,12 +47,12 @@ class Partition(object):
         :param image: (simpleITK image) 3D Image to be partitioned
         :param seg: (simpleITK image) 3D segmentation label mask to be partitioned
         :return: N partitioned image and label patches
-            {'img':  Nx1xDxHxW, 'label':  Nx1xDxHxW }
+            {'image':  Nx1xDxHxW, 'label':  Nx1xDxHxW }
         """
         # get numpy array from simpleITK images
-        images_t = sample['img']
+        images_t = sample['image']
 
-        #self.image = sample['img']
+        #self.image = sample['image']
         is_numpy = False
         if not isinstance(images_t,list):
             # is not list, then it should be itk image
@@ -64,11 +63,11 @@ class Partition(object):
             else:
                 is_numpy = True
                 images = images_t
-        if 'seg' in sample:
+        if 'label' in sample:
             if not is_numpy:
-                seg_np = sitk.GetArrayFromImage(sample['seg'])
+                seg_np = sitk.GetArrayFromImage(sample['label'])
             else:
-                seg_np = sample['seg']
+                seg_np = sample['label']
 
         self.image_size = np.array(images[0].shape)
         self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
@@ -121,16 +120,16 @@ class Partition(object):
                                         k * self.effective_size[2]+rk+pp:k * self.effective_size[2] + self.tile_size[2]+rk+pp]
                         seg_tile_list.append(np.expand_dims(seg_tile_temp))
 
-        # sample['img'] = np.stack(image_tile_list, 0)
+        # sample['image'] = np.stack(image_tile_list, 0)
         # sample['segmentation'] = np.stack(seg_tile_list, 0)
         trans_sample ={}
 
-        trans_sample['img'] = np.stack(image_tile_list, 0) # N*C*xyz
-        if 'seg'in sample:
+        trans_sample['image'] = np.stack(image_tile_list, 0) # N*C*xyz
+        if 'label'in sample:
             if self.mode == 'pred':
-                trans_sample['seg'] = np.expand_dims(seg_np, axis=0)  #1*XYZ
+                trans_sample['label'] = np.expand_dims(seg_np, axis=0)  #1*XYZ
             else:
-                trans_sample['seg'] = np.stack(seg_tile_list, 0)  # N*1*xyz
+                trans_sample['label'] = np.stack(seg_tile_list, 0)  # N*1*xyz
         trans_sample['tile_size'] = self.tile_size
         trans_sample['overlap_size'] = self.overlap_size
         trans_sample['padding_mode'] = self.padding_mode

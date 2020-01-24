@@ -11,7 +11,7 @@ import progressbar as pb
 class RegistrationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,phase=None, transform=None, seg_option=None, reg_option=None):
+    def __init__(self, data_path,phase=None, transform=None, option=None):
         """
         the dataloader for registration task, to avoid frequent disk communication, all pairs are compressed into memory
         :param data_path:  string, path to the data
@@ -29,16 +29,16 @@ class RegistrationDataset(Dataset):
         self.turn_on_pair_regis = False
         """ inverse the registration order, i.e the original set is A->B, the new set would be A->B and B->A """
         ind = ['train', 'val', 'test', 'debug'].index(phase)
-        max_num_for_loading=reg_option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
+        max_num_for_loading=option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
         self.max_num_for_loading = max_num_for_loading[ind]
         """ the max number of pairs to be loaded into the memory,[max_train, max_val, max_test, max_debug]"""
-        self.load_init_weight=reg_option[('load_init_weight',False,'load init weight for adaptive weighting model')]
+        self.load_init_weight=option[('load_init_weight',False,'load init weight for adaptive weighting model')]
         self.has_label = False
         self.get_file_list()
-        self.reg_option = reg_option
-        self.img_after_resize = reg_option[('img_after_resize',[-1,-1,-1],"resample the image into desired size")]
+        self.reg_option = option
+        self.img_after_resize = option[('img_after_resize',[-1,-1,-1],"resample the image into desired size")]
         self.img_after_resize = None if any([sz == -1 for sz in self.img_after_resize]) else self.img_after_resize
-        load_training_data_into_memory = reg_option[('load_training_data_into_memory',False,"when train network, load all training sample into memory can relieve disk burden")]
+        load_training_data_into_memory = option[('load_training_data_into_memory',False,"when train network, load all training sample into memory can relieve disk burden")]
         self.load_into_memory = load_training_data_into_memory if phase == 'train' else False
         self.pair_list = []
         self.original_spacing_list = []

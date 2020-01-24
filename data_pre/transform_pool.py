@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import math
 import random
+import time
 from math import floor
 
 
@@ -109,6 +110,7 @@ class RandomBSplineTransform(object):
         self.random_mode = random_mode
 
     def __call__(self, sample):
+        random_state = np.random.RandomState(int(time.time()))
 
         if np.random.rand(1)[0] < self.ratio:
             img, seg = sample['image'], sample['label']
@@ -118,9 +120,9 @@ class RandomBSplineTransform(object):
 
             # generate random displacement for control points, the deformation is scaled by deform_scale
             if self.random_mode == 'Normal':
-                control_point_displacements = np.random.normal(0, self.deform_scale/2, len(bspline.GetParameters()))
+                control_point_displacements = random_state.normal(0, self.deform_scale/2, len(bspline.GetParameters()))
             elif self.random_mode == 'Uniform':
-                control_point_displacements = np.random.random(len(bspline.GetParameters())) * self.deform_scale
+                control_point_displacements = random_state.random(len(bspline.GetParameters())) * self.deform_scale
 
             control_point_displacements[0:int(len(control_point_displacements) / 3)] = 0  # remove z displacement
             bspline.SetParameters(control_point_displacements)
@@ -149,8 +151,10 @@ class RandomRigidTransform(object):
         self.mode = mode
 
     def __call__(self, sample):
+        random_state = np.random.RandomState(int(time.time()))
 
-        if np.random.rand(1)[0] < self.ratio:
+
+        if random_state.rand(1)[0] < self.ratio:
             img, seg = sample['image'], sample['label']
             image_size = img.GetSize()
             image_spacing = img.GetSpacing()
@@ -162,13 +166,13 @@ class RandomRigidTransform(object):
 
             rotation_center = img.TransformIndexToPhysicalPoint(rotation_center)
 
-            rotation_radians_x = np.random.normal(0, self.rotation_angles[0]/2) * np.pi/180
-            rotation_radians_y = np.random.normal(0, self.rotation_angles[1]/2) * np.pi/180
-            rotation_radians_z = np.random.normal(0, self.rotation_angles[2]/2) * np.pi/180
+            rotation_radians_x = random_state.normal(0, self.rotation_angles[0]/2) * np.pi/180
+            rotation_radians_y = random_state.normal(0, self.rotation_angles[1]/2) * np.pi/180
+            rotation_radians_z = random_state.normal(0, self.rotation_angles[2]/2) * np.pi/180
 
-            random_trans_x = np.random.normal(0, self.translation[0] / 2) * image_spacing[0]
-            random_trans_y = np.random.normal(0, self.translation[1] / 2) * image_spacing[1]
-            random_trans_z = np.random.normal(0, self.translation[2] / 2) * image_spacing[2]
+            random_trans_x = random_state.normal(0, self.translation[0] / 2) * image_spacing[0]
+            random_trans_y = random_state.normal(0, self.translation[1] / 2) * image_spacing[1]
+            random_trans_z = random_state.normal(0, self.translation[2] / 2) * image_spacing[2]
 
             # initialize a bspline transform
             rigid_transform = sitk.Euler3DTransform(rotation_center, rotation_radians_x, rotation_radians_y, rotation_radians_z,
@@ -215,7 +219,8 @@ class GaussianBlur(object):
         self.maximumError = maximumError
 
     def __call__(self, sample):
-        if np.random.rand() < self.ratio:
+        random_state = np.random.RandomState(int(time.time()))
+        if random_state.rand() < self.ratio:
             img, seg = sample['image'], sample['label']
             sample['image'] = sitk.DiscreteGaussian(
                 img, variance=self.variance, maximumKernelWidth=self.maximumKernelWidth, maximumError=self.maximumError,
@@ -230,7 +235,8 @@ class BilateralFilter(object):
         self.ratio = ratio
 
     def __call__(self, sample):
-        if np.random.rand(1)[0] < self.ratio:
+        random_state = np.random.RandomState(int(time.time()))
+        if random_state.rand(1)[0] < self.ratio:
             img, _ = sample['image'], sample['label']
             sample['image'] = sitk.Bilateral(img, domainSigma=self.domainSigma, rangeSigma=self.rangeSigma,
                                              numberOfRangeGaussianSamples=self.numberOfRangeGaussianSamples)
@@ -258,9 +264,16 @@ class RandomCrop(object):
             self.random_state = np.random.RandomState()
 
     def __call__(self, sample):
+        """
+                the input patch sz and output_size is defined in itk coord
+
+        :param sample:
+        :return:
+        """
         img, seg = sample['image'], sample['label']
         size_old = img.GetSize()
         size_new = self.output_size
+        self.random_state = np.random.RandomState(int(time.time()))
 
         contain_label = False
 
@@ -337,9 +350,16 @@ class BalancedRandomCrop(object):
 
 
     def __call__(self, sample):
+        """
+                the input patch sz and output_size is defined in itk coord
+
+        :param sample:
+        :return:
+        """
         img, seg = sample['image'], sample['label']
         size_old = img.GetSize()
         size_new = self.output_size
+        self.random_state = np.random.RandomState(int(time.time()))
 
         contain_label = False
 
@@ -438,6 +458,11 @@ class MyRandomCrop(object):
 
 
     def __call__(self, sample):
+        """
+                the input patch sz and output_size is defined in itk coord
+        :param sample:
+        :return:
+        """
         img, seg = sample['image'], sample['label']
         size_old = img.GetSize()
         size_new = self.output_size
@@ -445,6 +470,7 @@ class MyRandomCrop(object):
         roiFilter.SetSize(size_new)
         size_new = np.flipud(size_new)
         size_old = np.flipud(size_old)
+        self.random_state = np.random.RandomState(int(time.time()))
 
         crop_once =  self.random_state.rand()< self.crop_bg_ratio
         seg_np = sitk.GetArrayViewFromImage(seg)
@@ -517,12 +543,18 @@ class FlickerCrop(object):
 
 
     def __call__(self, sample):
+        """
+                the input patch sz and output_size is defined in itk coord
+
+        :param sample:
+        :return:
+        """
         img, seg = sample['image'], sample['label']
         if not isinstance(img,list):
             size_old = img.GetSize()
         else:
             size_old = img[0].GetSize()
-
+        self.random_state = np.random.RandomState(int(time.time()))
         size_new = self.output_size
         roiFilter = sitk.RegionOfInterestImageFilter()
         roiFilter.SetSize(size_new)
@@ -576,7 +608,7 @@ class MyBalancedRandomCrop(object):
 
 
 
-        assert max_crop_num==-1, "dataloader bugs, not fixed now"
+        #assert max_crop_num==-1, "dataloader bugs, not fixed now"
         self.num_label=  len(label_list)
         self.label_list = label_list
         self.max_crop_on = max_crop_num>0
@@ -586,7 +618,7 @@ class MyBalancedRandomCrop(object):
             self.output_size = (output_size, output_size, output_size)
         else:
             assert len(output_size) >1
-            self.output_size = output_size
+            self.output_size = output_size # the given outputsize is in numpy cord
 
         assert isinstance(threshold, (float, tuple,list))
         if isinstance(threshold, float):
@@ -608,7 +640,7 @@ class MyBalancedRandomCrop(object):
 
     def __call__(self, sample, rand_id=-1):
         """
-
+        the input patch sz and output_size is defined in itk coord
         :param sample:if the img in sample is a list, then return a list of img list otherwise return single image
         :return:
         """
@@ -618,7 +650,8 @@ class MyBalancedRandomCrop(object):
             raise ValueError("should not happen in this case")
         #print("id(self): {}  , cur_label_id:{}".format(id(self),cur_label_id))
         is_numpy = False
-
+        #self.random_state =np.random.RandomState(rand_id)
+        self.random_state = np.random.RandomState(int(time.time()))
         # the size coordinate system here is according to the itk coordinate
 
         img, seg = sample['image'], sample['label']
@@ -631,14 +664,14 @@ class MyBalancedRandomCrop(object):
                 is_numpy = True
                 #cur_label = cur_label_id
 
-                size_old = np.flipud(list(img[0].shape))
+                size_old = np.flipud(list(img[0].shape)) #itkcoord
         else:
             if not isinstance(img,np.ndarray):
-                size_old = img.GetSize()
+                size_old = img.GetSize() # itkcoord
             else:
                 is_numpy = True
 
-        size_new = self.output_size
+        size_new = self.output_size #itk coord
 
 
         #cur_label_id = self.random_state.randint(self.num_label)
@@ -718,7 +751,7 @@ class MyBalancedRandomCrop(object):
         trans_sample['image'] = img_crop
         trans_sample['label'] = seg_crop
         trans_sample['label_selected'] = cur_label
-        trans_sample['start_coord']= tuple(start_coord)
+        trans_sample['start_coord']= tuple(start_coord) # is always given in itk coord
         trans_sample['threshold'] = label_ratio
 
         if rand_id<0:
@@ -740,7 +773,7 @@ def random_nd_coordinates(range_nd, random_state=None):
     # if not random_state:
     #     random_state = np.random.RandomState()
     dim = len(range_nd)
-    return [random.randint(0, range_nd[i]) for i in range(dim)]
+    return [random_state.randint(0, range_nd[i]) for i in range(dim)]
 
 
 

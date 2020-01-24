@@ -1,5 +1,5 @@
 from time import time
-from .base_model import ModelBase
+from .base_reg_model import RegModelBase
 from .utils import *
 import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
@@ -8,7 +8,7 @@ from .metrics import get_multi_metric
 import SimpleITK as sitk
 
 
-class MermaidBase(ModelBase):
+class MermaidBase(RegModelBase):
     """
     the base class of mermaid
     """
@@ -20,7 +20,7 @@ class MermaidBase(ModelBase):
         :param opt: ParameterDict, task setting
         :return:
         """
-        ModelBase.initialize(self, opt)
+        RegModelBase.initialize(self, opt)
         self.affine_on = False
         self.nonp_on = False
         self.afimg_or_afparam = None

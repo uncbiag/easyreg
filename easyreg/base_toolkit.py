@@ -1,4 +1,4 @@
-from .base_model import ModelBase
+from .base_reg_model import RegModelBase
 from .utils import *
 import SimpleITK as sitk
 from .metrics import get_multi_metric
@@ -8,12 +8,12 @@ from .metrics import get_multi_metric
 
 
 
-class ToolkitBase(ModelBase):
+class ToolkitBase(RegModelBase):
     """
     generalize toolkit class  i.e. ants, demons and niftyreg
     """
     def initialize(self, opt):
-        ModelBase.initialize(self, opt)
+        RegModelBase.initialize(self, opt)
         method_name = opt['tsk_set']['method_name']
         self.method_name = method_name
         self.affine_on = False

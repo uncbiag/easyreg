@@ -9,12 +9,14 @@ from multiprocessing import *
 blosc.set_nthreads(1)
 import progressbar as pb
 from copy import deepcopy
-
-
+import random
 class SegmentationDataset(Dataset):
-    """registration dataset."""
+    """registration dataset.
+    if the data are loaded into memory, we provide data processing option like image resampling and label filtering
+    if not, for efficiency, we assume the data are preprocessed and the image resampling still works but the label filtering are disabled
+    """
 
-    def __init__(self, data_path,phase, transform=None, seg_option = None,reg_option=None):
+    def __init__(self, data_path,phase, transform=None, option = None):
         """
         :param data_path:  string, path to processed data
         :param transform: function,   apply transform on data
@@ -23,18 +25,20 @@ class SegmentationDataset(Dataset):
         self.phase = phase
         self.transform = transform
         ind = ['train', 'val', 'test', 'debug'].index(phase)
-        max_num_for_loading=seg_option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
+        max_num_for_loading=option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
         self.max_num_for_loading = max_num_for_loading[ind]
         self.has_label = False
         self.get_file_list()
-        self.seg_option = seg_option
-        self.img_after_resize = seg_option[('img_after_resize', [-1, -1, -1], "resample the image into desired size")]
+        self.seg_option = option['seg']
+        self.img_after_resize = option[('img_after_resize', [-1, -1, -1], "resample the image into desired size")]
         self.img_after_resize = None if any([sz == -1 for sz in self.img_after_resize]) else self.img_after_resize
-        self.patch_size =  seg_option['patch_size']
-        self.transform_name_seq = seg_option['transform']['transform_seq']
-        self.option_p = seg_option[('partition', {}, "settings for the partition")]
-        self.use_full_img = seg_option['use_full_img']
-        self.option_p['patch_size'] = seg_option['patch_size']
+        self.patch_size =  self.seg_option['patch_size']
+        self.interested_label_list = self.seg_option['interested_label_list',[-1],"the label to be evaluated, the label not in list will be turned into 0 (background)"]
+        self.interested_label_list = None if any([label == -1 for label in self.interested_label_list]) else self.interested_label_list
+        self.transform_name_seq = self.seg_option['transform']['transform_seq']
+        self.option_p = self.seg_option[('partition', {}, "settings for the partition")]
+        self.use_whole_img_as_input = self.seg_option[('use_whole_img_as_input',False,"use whole image as the input")]
+        self.option_p['patch_size'] = self.seg_option['patch_size']
         self.load_into_memory = True
         self.img_list = []
         self.img_sz_list = []
@@ -44,17 +48,15 @@ class SegmentationDataset(Dataset):
         self.label_org_index_list = []
         self.label_converted_index_list = []
         self.label_density_list = []
-        self.num_img  = 0
-        if self.phase=='train':
+        if self.load_into_memory:
             self.init_img_pool()
             print('img pool initialized complete')
-            self.init_corr_transform_pool()
-            print('transforms initialized complete')
-        else:
-            self.init_img_pool()
-            print('img pool initialized complete')
-            self.init_corr_partition_pool()
-            print("partition pool initialized complete")
+            if self.phase=='train':
+                self.init_corr_transform_pool()
+                print('transforms initialized complete')
+            else:
+                self.init_corr_partition_pool()
+                print("partition pool initialized complete")
         blosc.set_nthreads(1)
 
     def get_file_list(self):
@@ -144,17 +146,20 @@ class SegmentationDataset(Dataset):
         return normalized_spacing
 
 
-    def __convert_to_standard_label_map(self, label_map, shared_label_list):
+    def __convert_to_standard_label_map(self, label_map, interested_label_list):
+        label_map =blosc.unpack_array(label_map)
 
         cur_label_list = list(np.unique(label_map)) # unique func orders the elements
+        if set(cur_label_list) == set(interested_label_list):
+            return label_map
 
         for l_id in cur_label_list:
-            if l_id in shared_label_list:
-                st_index = shared_label_list.index(l_id)
+            if l_id in interested_label_list:
+                st_index = interested_label_list.index(l_id)
             else:
                 # assume background label is 0
                 st_index = 0
-                print("warning label: is not in standard label index, and would be convert to 0".format(l_id))
+                print("warning label: is not in interested label index, and would be convert to 0".format(l_id))
             label_map[np.where(label_map == l_id)] = st_index
         return label_map
     def __get_clean_label(self,img_label_dict, img_name_list):
@@ -165,23 +170,27 @@ class SegmentationDataset(Dataset):
         :return:
         """
         print(" Attention, the annotation for background is assume to be 0 ! ")
-        shared_label_set = set()
-        for i, fname in enumerate(img_name_list):
-            label_set = img_label_dict[fname]['label_index']
-            if i ==0:
-                shared_label_set = set(label_set)
-            else:
-                shared_label_set = shared_label_set.intersection(label_set)
-        shared_label_list = list(shared_label_set)
-        #self.standard_label_index = tuple([int(item) for item in shared_label_list])
+        if self.interested_label_list is None:
+            interested_label_set = set()
+            for i, fname in enumerate(img_name_list):
+                label_set = img_label_dict[fname]['label_index']
+                if i ==0:
+                    interested_label_set = set(label_set)
+                else:
+                    interested_label_set = interested_label_set.intersection(label_set)
+            interested_label_list = list(interested_label_set)
+        else:
+            interested_label_list = self.interested_label_list
+
+        #self.standard_label_index = tuple([int(item) for item in interested_label_list])
         for fname in img_name_list:
             label = img_label_dict[fname]['label']
-            label = self.__convert_to_standard_label_map(label, shared_label_list)
+            label = self.__convert_to_standard_label_map(label, interested_label_list)
             label_density = list(np.bincount(label.reshape(-1).astype(np.int32)) / len(label.reshape(-1)))
-            img_label_dict[fname]['label'] = label
+            img_label_dict[fname]['label'] = blosc.pack_array(label)
             img_label_dict[fname]['label_density']=label_density
-            img_label_dict[fname]['label_org_index'] = shared_label_list
-            img_label_dict[fname]['label_converted_index'] = list(range(len(shared_label_list)))
+            img_label_dict[fname]['label_org_index'] = interested_label_list
+            img_label_dict[fname]['label_converted_index'] = list(range(len(interested_label_list)))
         return img_label_dict
 
     def init_img_pool(self):
@@ -192,8 +201,9 @@ class SegmentationDataset(Dataset):
         pair_list [[s_np,t_np,sl_np,tl_np],....]
         only the pair_list need to be used by get_item method
         """
-        manager = Manager()
-        img_label_dic = manager.dict()
+        # manager = Manager()
+        # img_label_dic = manager.dict()
+        img_label_dic=dict()
         img_label_path_dic = {}
         img_name_list = []
         for fps in self.path_list:
@@ -205,22 +215,23 @@ class SegmentationDataset(Dataset):
                 else:
                     img_label_path_dic[fn] = {'image':fps[0]}
             img_name_list.append(get_file_name(fps[0]))
-        num_of_workers = 12
-        num_of_workers = num_of_workers if len(self.name_list)>12 else 2
-        split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
-        procs =[]
-        for i in range(num_of_workers):
-            p = Process(target=self.__read_img_label_into_zipnp,args=(split_dict[i], img_label_dic,))
-            p.start()
-            print("pid:{} start:".format(p.pid))
+        # num_of_workers = 4
+        # num_of_workers = num_of_workers if len(self.name_list)>12 else 2
+        # split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
+        # procs =[]
+        # for i in range(num_of_workers):
+        #     p = Process(target=self.__read_img_label_into_zipnp,args=(split_dict[i], img_label_dic,))
+        #     p.start()
+        #     print("pid:{} start:".format(p.pid))
+        #
+        #     procs.append(p)
+        #
+        # for p in procs:
+        #     p.join()
+        # print("the loading phase finished, total {} img and labels have been loaded".format(len(img_label_dic)))
+        # img_label_dic=dict(img_label_dic) # todo uncomment manager.dict
+        self.__read_img_label_into_zipnp(img_label_path_dic, img_label_dic) #todo dels
 
-            procs.append(p)
-
-        for p in procs:
-            p.join()
-
-        print("the loading phase finished, total {} img and labels have been loaded".format(len(img_label_dic)))
-        img_label_dic=dict(img_label_dic)
         self.get_organize_structure(img_label_dic,img_name_list)
 
 
@@ -318,19 +329,23 @@ class SegmentationDataset(Dataset):
             split_dict.append(dj)
         return split_dict
 
+    def __convert_np_to_itk_coord(self,coord_list):
+        return list(np.flipud(np.array(coord_list)))
+
 
 
     def get_transform_seq(self,i):
         option_trans = deepcopy(self.seg_option['transform'])
         option_trans['shared_info']['label_list'] = self.label_converted_index_list[i]
         option_trans['shared_info']['label_density'] = self.label_density_list[i]
-        option_trans['shared_info']['img_size'] = self.img_sz_list[i]
+        option_trans['shared_info']['img_size'] = self.__convert_np_to_itk_coord(self.img_sz_list[i])
         option_trans['shared_info']['num_crop_per_class_per_train_img'] = self.seg_option['num_crop_per_class_per_train_img']
         option_trans['my_bal_rand_crop']['scale_ratio'] = self.seg_option['transform']['my_bal_rand_crop']['scale_ratio']
-        option_trans['patch_size'] = self.seg_option['patch_size']
-
+        option_trans['patch_size'] = self.__convert_np_to_itk_coord(self.seg_option['patch_size'])
         transform = Transform(option_trans)
         return transform.get_transform_seq(self.transform_name_seq)
+
+
 
 
     def apply_transform(self,sample, transform_seq, rand_label_id=-1):
@@ -342,9 +357,11 @@ class SegmentationDataset(Dataset):
 
     def init_corr_transform_pool(self):
         self.corr_transform_pool = [self.get_transform_seq(i) for i in range(self.num_img)]
+
     def init_corr_partition_pool(self):
         from data_pre.partition import partition
-        if not self.phase=="teset":
+        self.option_p['patch_size'] =self.__convert_np_to_itk_coord(self.option_p['patch_size'])
+        if self.has_label:
             self.corr_partition_pool = [deepcopy(partition(self.option_p)) for i in range(self.num_img)]
         else:
             self.corr_partition_pool = [deepcopy(partition(self.option_p, mode='pred')) for i in range(self.num_img)]
@@ -353,17 +370,12 @@ class SegmentationDataset(Dataset):
 
     def __len__(self):
         if self.phase == "train":
-            if not self.use_full_img:
+            if not self.use_whole_img_as_input:
                 return len(self.name_list)*100
             else:
                 return len(self.name_list)
         else:
             return len(self.name_list)
-    def gen_coord_map(self, img_sz):
-        map = np.mgrid[0.:1.:1./img_sz[0],0.:1.:1./img_sz[1],0.:1.:1./img_sz[2]]
-        map = np.array(map.astype('float32'))
-
-        return map
 
 
     def __getitem__(self, idx):
@@ -371,17 +383,15 @@ class SegmentationDataset(Dataset):
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
-        rand_label_id =random.randint(0,1000)
+        rand_label_id =random.randint(0,1000)+idx
         idx = idx%self.num_img
 
         filename = self.name_list[idx]
-        fpath = self.path_list[idx]
         zipnp_list = self.img_list[idx]
         spacing = self.spacing_list[idx]
         original_spacing = self.original_spacing_list[idx]
         original_sz = self.original_sz_list[idx]
         img_np, label_np = [blosc.unpack_array(item) for item in zipnp_list]
-
 
         if self.phase=="train":
             sample = {'image': [img_np],  'label': [label_np]}
@@ -391,9 +401,10 @@ class SegmentationDataset(Dataset):
                 sample = {'image':  [img_np]}
             else:
                 sample = {'image':  [img_np], 'label':[label_np]}
-            if not self.use_full_img:
+            if not self.use_whole_img_as_input:
                 sample = self.corr_partition_pool[idx](sample)
             else:
+                sample['image'] = np.stack(sample['image'], 0)
                 sample['image'] = np.stack(sample['image'], 0)
 
         if self.transform:

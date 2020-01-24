@@ -91,6 +91,10 @@ class DataManager(object):
         """ set the registrion settings"""
         self.reg_option = option
 
+    def set_seg_option(self,option):
+        """ set the registrion settings"""
+        self.seg_option = option
+
     def get_data_path(self):
         """ return the data path"""
         return self.data_path
@@ -163,7 +167,9 @@ class DataManager(object):
             np.random.seed(12 + worker_id)
         num_workers_reg ={'train':8,'val':4,'test':4,'debug':4}#{'train':0,'val':0,'test':0,'debug':0}#{'train':8,'val':4,'test':4,'debug':4}
         shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
-        dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size,
+        batch_size = [batch_size]*4 if not isinstance(batch_size, list) else batch_size
+        batch_size = {'train': batch_size[0],'val':batch_size[1],'test':batch_size[2],'debug':batch_size[3]}
+        dataloaders = {x: torch.utils.data.DataLoader(transformed_dataset[x], batch_size=batch_size[x],
                                                   shuffle=shuffle_list[x], num_workers=num_workers_reg[x],worker_init_fn=_init_fn) for x in self.phases}
         return dataloaders
 
@@ -181,7 +187,8 @@ class DataManager(object):
             self.phases = ['val','test']
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
-        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,seg_option=self.seg_option, reg_option =self.reg_option) for x in self.phases}
+        option = self.seg_option if self.task_type=="seg" else self.reg_option
+        transformed_dataset = {x: self.cur_dataset(data_path=self.task_path[x],phase=x,transform=composed,option=option) for x in self.phases}
         dataloaders = self.init_dataset_loader(transformed_dataset, batch_size)
         dataloaders['data_size'] = {x: len(dataloaders[x]) for x in self.phases}
         dataloaders['info'] = {x: transformed_dataset[x].name_list for x in self.phases}
@@ -200,13 +207,14 @@ if __name__ == "__main__":
     task_name = 'debugging'
     settings = ParameterDict()
     settings.load_JSON('/home/zyshen/proj/easyreg/debug/settings/data_setting.json')
-    seg_option = settings["datapro"]["seg"]
+    seg_option = settings["datapro"]
     data_manager = DataManager(task_name, dataset_name)
+    data_manager.set_task_type('seg')
     data_manager.manual_set_task_root_path(task_root_path)
     data_manager.generate_task_path()
     data_manager.seg_option = seg_option
     dataloaders = data_manager.data_loaders(batch_size=3)
-    for data in dataloaders['test']:
+    for data in dataloaders['train']:
         pass
 
 

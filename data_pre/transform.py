@@ -111,7 +111,7 @@ class Transform(object):
         from functools import reduce
         scale_dim = [img_size[i]/self.patch_size[i] for i in range(self.dim)]
         scale = reduce(lambda x,y:x*y, scale_dim)
-        sample_threshold = label_density * scale * scale_ratio
+        sample_threshold = np.array(label_density) * scale * scale_ratio
         #np.clip(sample_threshold,0,0.06,out=sample_threshold)
         sample_threshold[0] = bg_th_ratio
 
