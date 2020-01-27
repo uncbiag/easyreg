@@ -392,10 +392,14 @@ class SegmentationDataset(Dataset):
         original_spacing = self.original_spacing_list[idx]
         original_sz = self.original_sz_list[idx]
         img_np, label_np = [blosc.unpack_array(item) for item in zipnp_list]
+        img_path = self.path_list[idx]
+
+
 
         if self.phase=="train":
             sample = {'image': [img_np],  'label': [label_np]}
             sample = self.apply_transform(sample,self.corr_transform_pool[idx],rand_label_id)
+
         else:
             if not self.has_label:
                 sample = {'image':  [img_np]}
@@ -406,6 +410,8 @@ class SegmentationDataset(Dataset):
             else:
                 sample['image'] = np.stack(sample['image'], 0)
                 sample['image'] = np.stack(sample['image'], 0)
+
+        sample['img_path'] = img_path
 
         if self.transform:
             sample['image'] = self.transform(sample['image'])

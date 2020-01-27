@@ -131,17 +131,6 @@ def __do_registration_train(args,pipeline=None):
     return pipeline
 
 
-def set_seed_for_demo(args):
-    """ reproduce the training demo"""
-    seed = 2018
-    if args.is_demo:
-        torch.manual_seed(seed)
-        np.random.seed(seed)
-        random.seed(seed)
-        torch.cuda.manual_seed(seed)
-        torch.backends.cudnn.deterministic = True
-
-
 
 
 def do_registration_train(args):
@@ -151,7 +140,6 @@ def do_registration_train(args):
     :param args: the parsed arguments
     :return: None
     """
-    set_seed_for_demo(args)
     task_name = args.task_name
     args.task_name_record = task_name
     backup_settings(args)

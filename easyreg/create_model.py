@@ -37,10 +37,9 @@ def create_model(opt):
     elif model_name == 'demons':
         from .demons_iter import DemonsRegIter
         model = DemonsRegIter()
-    elif opt.model == 'test':
-        # from .test_model import TestModel
-        # model = TestModel()
-        pass
+    elif model_name == 'seg_net':
+        from .seg_net import SegNet
+        model = SegNet()
     else:
         raise ValueError("Model [%s] not recognized." % model_name)
     model.initialize(opt)

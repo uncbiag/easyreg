@@ -92,7 +92,7 @@ class RegNet(MermaidBase):
         img_and_label['image'] = img_and_label['image'].cuda()
         if 'label' in img_and_label:
             img_and_label['label'] = img_and_label['label'].cuda()
-        moving, target, l_moving, l_target = get_pair(img_and_label)
+        moving, target, l_moving, l_target = get_reg_pair(img_and_label)
         self.moving = moving
         self.target = target
         self.l_moving = l_moving

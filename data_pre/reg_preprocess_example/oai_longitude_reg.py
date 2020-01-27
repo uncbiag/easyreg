@@ -413,8 +413,8 @@ class OAIDataPrepare():
 
     """
     def __init__(self):
-        using_unlabeled_data = True
-        if using_unlabeled_data:
+        using_machine_annotating_data = True
+        if using_machine_annotating_data:
             self.raw_data_path_list = ["/playpen/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled"]
             self.raw_label_path_list =[ "/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038",
                                         "/playpen/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038"]
@@ -432,7 +432,7 @@ class OAIDataPrepare():
         self.raw_file_label_path_list= []
         self.patient_info_dic= {}
         self.image_file_end = '*image.nii.gz'
-        if using_unlabeled_data:
+        if using_machine_annotating_data:
             self.label_file_end = '*reflect.nii.gz'
         else:
             self.label_file_end = '*label_all.nii.gz'

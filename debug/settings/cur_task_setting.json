@@ -1,16 +1,8 @@
 {
     "dataset": {
-        "img_after_resize": [
-            80,
-            192,
-            192
-        ],
-        "load_training_data_into_memory": true,
+        "task_type": "seg",
         "max_num_for_loading": [
-            -1,
-            -1,
-            -1,
-            -1
+            2,2,2,2
         ],
         "spacing_to_refer": [
             0.7,
@@ -23,25 +15,24 @@
             "use_whole_img_as_input": false,
             "num_crop_per_class_per_train_img": 20,
             "partition": {
-                "mode": "pred",
-                "overlap_size": [
-                    16,
-                    16,
-                    16
-                ],
-                "padding_mode": "reflect",
-                "transform": {
-
-                    "my_bal_rand_crop": {
-                        "bg_th_ratio": 0.0,
-                        "scale_ratio": 0.1
-                        }
-                    },
-                    "transform_seq": [
-                        "my_balanced_random_crop"
-                    ]
-                }
+              "mode": "eval",
+              "overlap_size": [
+                16,
+                16,
+                16
+              ]
+            },
+              "padding_mode": "reflect",
+              "transform": {
+                "my_bal_rand_crop": {
+                  "bg_th_ratio": 0.0,
+                  "scale_ratio": 0.1
+                },
+                "transform_seq": [
+                  "my_balanced_random_crop"
+                ]
             }
+        }
     },
     "tsk_set": {
         "batch_sz": 1,
@@ -59,10 +50,10 @@
             8,
             4
         ],
-        "model": "reg_net",
+        "model": "seg_net",
         "model_path": "",
         "n_in_channel": 1,
-        "method_name": "mermaid",
+        "method_name": "seg_unet",
         "optim": {
             "adam": {
                 "beta": 0.9
@@ -84,38 +75,9 @@
             4
         ],
         "print_val_detail": true,
-        "reg": {
-            "affine_net": {
-                "acc_multi_step_loss": false,
-                "affine_net_iter": 3,
-                "epoch_activate_extern_loss": 100,
-                "epoch_activate_multi_step": 300,
-                "epoch_activate_sym": 200,
-                "epoch_activate_sym_loss": 200,
-                "initial_reg_factor": 10,
-                "min_reg_factor": 1e-3,
-                "reset_lr_for_multi_step": true,
-                "using_complex_net": true
-            },
-            "compute_inverse_map": false,
-            "low_res_factor": 0.5,
-            "mermaid_net": {
-                "affine_init_path": "",
-                "affine_refine_step": 7,
-                "clamp_momentum": false,
-                "clamp_thre": 1,
-                "epoch_activate_multi_step": 100,
-                "epoch_activate_sym": 200,
-                "load_trained_affine_net": true,
-                "mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json",
-                "num_step": 2,
-                "optimize_momentum_network": true,
-                "reset_lr_for_multi_step": true,
-                "sym_factor": 500,
-                "using_affine_init": true,
-                "using_physical_coord": false,
-                "using_complex_net": true
-            }
+        "seg": {
+          "num_class": 57,
+          "use_bn": true
         },
         "save_3d_img_on": false,
         "save_extra_3d_img": true,

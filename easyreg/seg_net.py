@@ -23,7 +23,7 @@ class SegNet(SegModelBase):
         :param opt: ParameterDict, task settings
         :return:
         """
-        SegNet.initialize(self, opt)
+        SegModelBase.initialize(self, opt)
         input_img_sz = opt['dataset']['img_after_resize']
         self.input_img_sz = input_img_sz
         """ the input image sz of the network"""
@@ -71,15 +71,14 @@ class SegNet(SegModelBase):
         :return:
         """
         img_and_label, self.fname_list = data
-        self.pair_path = data[0]['pair_path']
-        img_and_label['image'] = img_and_label['image'].cuda()
+        self.pair_path = data[0]['img_path']
+        if self.gpu_ids is not None and self.gpu_ids>0:
+            img_and_label['image'] = img_and_label['image'].cuda()
         if 'label' in img_and_label:
             img_and_label['label'] = img_and_label['label'].cuda()
-        moving, target, l_moving, l_target = get_pair(img_and_label)
-        self.moving = moving
-        self.target = target
-        self.l_moving = l_moving
-        self.l_target = l_target
+        input, gt = get_seg_pair(img_and_label)
+        self.input = input
+        self.gt = gt
         self.original_spacing = data[0]['original_spacing']
 
     def init_optim(self, opt, network, warmming_up=False):
@@ -122,8 +121,8 @@ class SegNet(SegModelBase):
                                                                  threshold=threshold, min_lr=min_lr)
         return re_optimizer, re_lr_scheduler, re_exp_lr_scheduler
 
-    def cal_loss(self, output=None):
-        loss = self.network.get_loss()
+    def cal_loss(self, output=None, gt=None):
+        loss = self.network.get_loss(output, gt)
         return loss
 
     def backward_net(self, loss):
@@ -142,10 +141,10 @@ class SegNet(SegModelBase):
         """
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
-        output, phi, afimg_or_afparam = self.network.forward(self.moving, self.target)
-        loss = self.cal_loss()
+        output = self.network.forward(self.input)
+        loss = self.cal_loss(output, self.gt)
 
-        return output, phi, afimg_or_afparam, loss
+        return output, loss
 
     def update_scheduler(self,epoch):
         if self.lr_scheduler is not None:
@@ -163,16 +162,19 @@ class SegNet(SegModelBase):
         """
         if self.is_train:
             self.iter_count += 1
-        self.output, self.phi, self.afimg_or_afparam, loss = self.forward()
+        self.output, loss = self.forward()
 
         self.backward_net(loss / self.criticUpdates)
         self.loss = loss.item()
-        if self.iter_count % self.criticUpdates == 0:
-            self.optimizer.step()
-            self.optimizer.zero_grad()
         update_lr, lr = self.network.check_if_update_lr()
         if update_lr:
             self.update_learning_rate(lr)
+        if self.iter_count % self.criticUpdates == 0:
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+
+
+
 
     def get_current_errors(self):
         return self.loss

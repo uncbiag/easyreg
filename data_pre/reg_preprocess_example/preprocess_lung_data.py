@@ -66,7 +66,7 @@ def get_source_init_weight_map(source,spacing, lsource,default_multi_gaussian_we
     sm_weight = local_smoother.smooth(weights)
     return sm_weight
 
-def get_pair(pth):
+def get_pair_and_info(pth):
     source, info = file_io_read_img(pth['source'],is_label=False,normalize_spacing=True,normalize_intensities=True,squeeze_image=True,adaptive_padding=4)
     lsource, _ = file_io_read_img(pth['lsource'],is_label=True,normalize_spacing=True,normalize_intensities=False,squeeze_image=True,adaptive_padding=4)
     target, _ = file_io_read_img(pth['target'],is_label=False,normalize_spacing=True,normalize_intensities=True,squeeze_image=True,adaptive_padding=4)
@@ -87,7 +87,7 @@ def file_io_read_img(path, is_label, normalize_spacing=True, normalize_intensiti
 def subprocess(idxes,file_raw_path,inter_output_path,output_path,fixed_sz=None):
     for idx in idxes:
         resize_and_save_img_pair(file_raw_path[idx],inter_output_path[idx],fixed_sz=fixed_sz)
-        source, lsource, target, ltarget, info = get_pair(inter_output_path[idx])
+        source, lsource, target, ltarget, info = get_pair_and_info(inter_output_path[idx])
         source = np.clip(source,0,None)
         target = np.clip(target,0,None)
         spacing = info['spacing']

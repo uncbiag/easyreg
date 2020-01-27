@@ -7,20 +7,30 @@ class SegUnet(nn.Module):
         super(SegUnet, self).__init__()
         self.img_sz= img_sz
         self.opt = opt
-        seg_opt = opt[('seg',{},"settings for seg task")]
+        self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
+        seg_opt = opt['tsk_set'][('seg',{},"settings for seg task")]
         num_class = seg_opt['num_class',-1,"the num of class"]
         use_bn = seg_opt["use_bn", True, "use the batch normalization"]
         self.unet = Seg_resid(num_class,bn=use_bn)
 
+    def set_loss_fn(self, loss_fn):
+        """ set loss function"""
+        self.loss_fn = loss_fn
+
+    def get_loss(self, output, gt):
+        loss = self.loss_fn(output,gt)
+        if self.print_count % 10 == 0:
+            print('current loss is {} '.format(loss))
+
+    def check_if_update_lr(self):
+        return False, None
 
 
-    def get_loss(self):
-        """
-        get the overall loss
 
-        :return:
-        """
-        return self.overall_loss
 
     def forward(self, input):
-        pass
+        if self.is_train:
+            output = self.unet(input)
+        else:
+            pass
+        return output

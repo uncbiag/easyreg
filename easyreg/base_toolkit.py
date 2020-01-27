@@ -24,7 +24,7 @@ class ToolkitBase(RegModelBase):
         get input from the dataloader
         """
         input = (data[0]['image']+1)/2
-        moving, target, l_moving,l_target = get_pair(data[0])
+        moving, target, l_moving,l_target = get_reg_pair(data[0])
         self.moving = moving
         self.target = target
         self.l_moving = l_moving

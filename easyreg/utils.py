@@ -12,7 +12,7 @@ import mermaid.utils as py_utils
 import mermaid.module_parameters as pars
 import mermaid.smoother_factory as sf
 
-def get_pair(data,ch=1):
+def get_reg_pair(data,ch=1):
     """
     get image pair from data, pair is concatenated by the channel
     :param data: a dict, including {'img':, 'label':}
@@ -25,6 +25,24 @@ def get_pair(data,ch=1):
         return data['image'][:,0:ch], data['image'][:,ch:2*ch],data['label'][:,0:ch],data['label'][:,ch:2*ch]
     else:
         return data['image'][:,0:ch], data['image'][:,ch:2*ch],None, None
+
+
+def get_seg_pair(data, is_train=True):
+    """
+    get image and gt from data, pair is concatenated by the channel
+    :param data: a dict, including {'img':, 'label':}
+    :return: image BxCxXxYxZ, label BxCxXxYxZ
+    """
+    if not is_train:
+        data['image']= data['image'][0]
+        if 'label' in data:
+            data['label'] = data['label'][0]
+
+    if 'label' in data:
+        return data['image'], data['label']
+    else:
+        return data['image'],None
+
 
 
 def sigmoid_explode(ep, static =5, k=5):

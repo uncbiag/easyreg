@@ -47,7 +47,7 @@ class MermaidIter(MermaidBase):
         data[0]['image'] =(data[0]['image'].cuda()+1)/2
         if 'label' in data[0]:
             data[0]['label'] =data[0]['label'].cuda()
-        moving, target, l_moving,l_target = get_pair(data[0])
+        moving, target, l_moving,l_target = get_reg_pair(data[0])
         input = data[0]['image']
         self.input_img_sz  = list(moving.shape)[2:]
         self.original_spacing = data[0]['original_spacing']

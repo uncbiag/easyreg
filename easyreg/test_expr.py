@@ -19,7 +19,8 @@ def test_model(opt,model, dataloaders):
 def __test_model(opt,model,dataloaders, model_path,task_name=''):
     since = time()
     record_path = opt['tsk_set']['path']['record_path']
-    cur_gpu_id = opt['tsk_set']['gpu_ids']
+    cur_gpu_id = opt['tsk_set'][('gpu_ids', -1,"the gpu id")]
+    task_type = opt['dataset'][('task_type','reg',"the task type, either 'reg' or 'seg'")]
     running_range=[-1]#opt['tsk_set']['running_range']  # todo should be [-1]
     running_part_data = running_range[0]>=0
     if running_part_data:
@@ -44,9 +45,10 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
         if running_part_data:
             num_samples = len(running_range)
         records_score_np = np.zeros(num_samples)
-        records_jacobi_val_np = np.zeros(num_samples)
-        records_jacobi_num_np = np.zeros(num_samples)
         records_time_np = np.zeros(num_samples)
+        if task_type == 'reg':
+            records_jacobi_val_np = np.zeros(num_samples)
+            records_jacobi_num_np = np.zeros(num_samples)
         loss_detail_list = []
         jacobi_val_res = 0.
         jacobi_num_res = 0.
@@ -83,27 +85,24 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
 
             loss,loss_detail = model.get_test_res(detail=True)
             running_test_score += loss * batch_size
-            jaocbi_res = model.get_jacobi_val()
-            if jaocbi_res is not None:
-                jacobi_val_res += jaocbi_res[0] * batch_size
-                jacobi_num_res += jaocbi_res[1] * batch_size
-                records_jacobi_val_np[i] = jaocbi_res[0]
-                records_jacobi_num_np[i] = jaocbi_res[1]
             records_score_np[i] = loss
             loss_detail_list += [loss_detail]
             print("id {} and current pair name is : {}".format(i,data[1]))
             print('the current running_score:{}'.format(loss))
             print('the current average running_score:{}'.format(running_test_score/(i+1)/batch_size))
-            print('the current jacobi is {}'.format(jaocbi_res))
-            print('the current averge jocobi val is {}'.format(jacobi_val_res/(i+1)/batch_size))
-            print('the current averge jocobi num is {}'.format(jacobi_num_res/(i+1)/batch_size))
+            if task_type == 'reg':
+                jaocbi_res = model.get_jacobi_val()
+                if jaocbi_res is not None:
+                    jacobi_val_res += jaocbi_res[0] * batch_size
+                    jacobi_num_res += jaocbi_res[1] * batch_size
+                    records_jacobi_val_np[i] = jaocbi_res[0]
+                    records_jacobi_num_np[i] = jaocbi_res[1]
+                    print('the current jacobi is {}'.format(jaocbi_res))
+                    print('the current averge jocobi val is {}'.format(jacobi_val_res/(i+1)/batch_size))
+                    print('the current averge jocobi num is {}'.format(jacobi_num_res/(i+1)/batch_size))
         test_score = running_test_score / len(dataloaders[phase].dataset)
-        jacobi_val_res = jacobi_val_res/len(dataloaders[phase].dataset)
-        jacobi_num_res = jacobi_num_res/len(dataloaders[phase].dataset)
-        time_per_img = time_total/len((dataloaders[phase].dataset))
-        print('the average {}_loss: {:.4f}'.format(phase,test_score))
-        print("the average {}_ jacobi val: {}  :".format(phase, jacobi_val_res))
-        print("the average {}_ jacobi num: {}  :".format(phase, jacobi_num_res))
+        time_per_img = time_total / len((dataloaders[phase].dataset))
+        print('the average {}_loss: {:.4f}'.format(phase, test_score))
         print("the average time for per image is {}".format(time_per_img))
         time_elapsed = time() - since
         print('the size of {} is {}, evaluation complete in {:.0f}m {:.0f}s'.format(len(dataloaders[phase].dataset),phase,
@@ -112,10 +111,14 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
         np.save(os.path.join(record_path,task_name+'records'),records_score_np)
         records_detail_np = extract_interest_loss(loss_detail_list,sample_num=len(dataloaders[phase].dataset))
         np.save(os.path.join(record_path,task_name+'records_detail'),records_detail_np)
-        np.save(os.path.join(record_path,task_name+'records_jacobi'),records_jacobi_val_np)
-        np.save(os.path.join(record_path,task_name+'records_jacobi_num'),records_jacobi_num_np)
         np.save(os.path.join(record_path,task_name+'records_time'),records_time_np)
-
+        if task_type ==  'reg':
+            jacobi_val_res = jacobi_val_res / len(dataloaders[phase].dataset)
+            jacobi_num_res = jacobi_num_res / len(dataloaders[phase].dataset)
+            print("the average {}_ jacobi val: {}  :".format(phase, jacobi_val_res))
+            print("the average {}_ jacobi num: {}  :".format(phase, jacobi_num_res))
+            np.save(os.path.join(record_path, task_name + 'records_jacobi'), records_jacobi_val_np)
+            np.save(os.path.join(record_path, task_name + 'records_jacobi_num'), records_jacobi_num_np)
     return model
 
 
