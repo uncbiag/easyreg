@@ -122,7 +122,7 @@ def save_image_with_given_reference(img=None,reference_list=None,path=None,fname
                 img = img.detach().cpu().numpy()
             spacing_ref = img_ref.GetSpacing()
             direc_ref = img_ref.GetDirection()
-            orig_ref = img_ref.GetDirection()
+            orig_ref = img_ref.GetOrigin()
             img_itk = sitk.GetImageFromArray(img[i,0])
             img_itk.SetSpacing(spacing_ref)
             img_itk.SetDirection(direc_ref)

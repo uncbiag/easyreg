@@ -115,7 +115,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :param Ab: affine parameter
         :return: affine transformation map
         """
-        Ab = Ab.view( Ab.shape[0],4,3) # 3d: (batch,3)
+        Ab = Ab.view( Ab.shape[0],4,3) # 3d: (batch,4,3)
         id_map = self.id_map.view(self.dim, -1)
         affine_map = None
         if self.dim == 3:

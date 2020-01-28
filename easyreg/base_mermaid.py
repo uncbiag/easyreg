@@ -185,7 +185,7 @@ class MermaidBase(ModelBase):
         :return:
         """
         save_original_image_by_type = self.save_original_image_by_type
-        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv = save_original_image_by_type
+        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp = save_original_image_by_type
         spacing = self.spacing
         moving_list = pair_path[0]
         target_list = pair_path[1]
@@ -213,9 +213,15 @@ class MermaidBase(ModelBase):
             if save_phi_inv:
                 fname_list = [fname + '_inv' for fname in self.fname_list]
                 ires.save_transfrom(new_inv_phi, new_spacing, saving_original_sz_path, fname_list)
+            fname_list = [fname + '_inv_warped' for fname in self.fname_list]
             if save_w_inv:
-                fname_list = [fname + '_inv_warped' for fname in self.fname_list]
                 ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
+            fname_list = [fname + '_disp' for fname in self.fname_list]
+            if save_disp:
+                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True)
+                id_map = (id_map[None]+1)/2.
+                disp = new_inv_phi -id_map
+                ires.save_transfrom(disp, new_spacing, saving_original_sz_path, fname_list)
 
     def save_extra_img(self, img, title):
         """

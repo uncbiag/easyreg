@@ -97,7 +97,7 @@ class MermaidIter(MermaidBase):
         if self.compute_inverse_map:
             inv_Ab = py_utils.get_inverse_affine_param(Ab.detach())
             identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
-            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch(identity_map).cuda())  ##########################3
+            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch.Tensor(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
         self.afimg_or_afparam = Ab
         return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
