@@ -62,7 +62,7 @@ about:
   license: Apache 2.0 license
   license_family: BSD
   license_file: LICENSE
-  summary: 'Deep-learning-based image registration. Companion packege to mermaid.'
+  summary: 'Deep-learning-based image registration. Companion package to mermaid.'
   description: 'This image registration toolbox provides approaches to train and run deep-learning-based image registration networks based on the transformation models available within mermaid. It is written in pytorch allowing for easy prototyping of new approaches. To install include the conda-forge and the anaconda channels by executing: conda install -c pytorch -c conda-forge -c anaconda -c uncbiag easyreg'
   doc_url: 'https://easyreg.readthedocs.io/en/latest/'
   dev_url: 'https://github.com/uncbiag/easyreg'
