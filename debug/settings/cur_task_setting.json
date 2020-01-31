@@ -2,7 +2,7 @@
     "dataset": {
         "task_type": "seg",
         "max_num_for_loading": [
-            2,2,2,2
+            -1,2,2,2
         ],
         "spacing_to_refer": [
             0.7,
@@ -10,19 +10,19 @@
             0.3646
         ],
         "seg": {
-            "patch_size": [72,72,72],
+            "patch_size": [64,64,64],
             "interested_label_list": [-1],
             "use_whole_img_as_input": false,
             "num_crop_per_class_per_train_img": 20,
             "partition": {
-              "mode": "eval",
+              "mode": "pred",
               "overlap_size": [
                 16,
                 16,
                 16
-              ]
+              ],
+                "padding_mode": "reflect"
             },
-              "padding_mode": "reflect",
               "transform": {
                 "my_bal_rand_crop": {
                   "bg_th_ratio": 0.0,
@@ -35,7 +35,7 @@
         }
     },
     "tsk_set": {
-        "batch_sz": 1,
+        "batch_sz": [8,1,1,1],
         "check_best_model_period": 5,
         "continue_train": false,
         "continue_train_lr": 5e-05,
@@ -43,12 +43,12 @@
         "epoch": 500,
         "gpu_ids": 0,
         "loss": {
-            "type": "lncc"
+            "type": "ce"
         },
         "max_batch_num_per_epoch": [
             400,
-            8,
-            4
+            1,
+            1
         ],
         "model": "seg_net",
         "model_path": "",
@@ -58,7 +58,7 @@
             "adam": {
                 "beta": 0.9
             },
-            "lr": 0.0001,
+            "lr": 0.001,
             "lr_scheduler": {
                 "custom": {
                     "gamma": 0.5,
@@ -68,7 +68,7 @@
             },
             "optim_type": "adam"
         },
-        "output_taking_original_image_format": true,
+        "output_taking_original_image_format": false,
         "print_step": [
             10,
             4,
@@ -76,7 +76,7 @@
         ],
         "print_val_detail": true,
         "seg": {
-          "num_class": 57,
+          "class_num": 57,
           "use_bn": true
         },
         "save_3d_img_on": false,

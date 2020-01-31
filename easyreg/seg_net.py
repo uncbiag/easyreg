@@ -4,6 +4,7 @@ from .losses import Loss
 import torch.optim.lr_scheduler as lr_scheduler
 from .utils import *
 from .seg_unet import SegUnet
+from .metrics import get_multi_metric
 
 model_pool = {
     'seg_unet': SegUnet,
@@ -24,11 +25,8 @@ class SegNet(SegModelBase):
         :return:
         """
         SegModelBase.initialize(self, opt)
-        input_img_sz = opt['dataset']['img_after_resize']
-        self.input_img_sz = input_img_sz
-        """ the input image sz of the network"""
         method_name = opt['tsk_set']['method_name']
-        self.network = model_pool[method_name](input_img_sz, opt)
+        self.network = model_pool[method_name](opt)
         """create network model"""
         self.criticUpdates = opt['tsk_set']['criticUpdates']
         loss_fn = Loss(opt)
@@ -72,11 +70,11 @@ class SegNet(SegModelBase):
         """
         img_and_label, self.fname_list = data
         self.pair_path = data[0]['img_path']
-        if self.gpu_ids is not None and self.gpu_ids>0:
+        if self.gpu_ids is not None and self.gpu_ids>=0:
             img_and_label['image'] = img_and_label['image'].cuda()
-        if 'label' in img_and_label:
-            img_and_label['label'] = img_and_label['label'].cuda()
-        input, gt = get_seg_pair(img_and_label)
+            if 'label' in img_and_label:
+                img_and_label['label'] = img_and_label['label'].cuda()
+        input, gt = get_seg_pair(img_and_label, is_train)
         self.input = input
         self.gt = gt
         self.original_spacing = data[0]['original_spacing']
@@ -141,7 +139,7 @@ class SegNet(SegModelBase):
         """
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
-        output = self.network.forward(self.input)
+        output = self.network.forward(self.input, self.is_train)
         loss = self.cal_loss(output, self.gt)
 
         return output, loss
@@ -195,6 +193,12 @@ class SegNet(SegModelBase):
         inverse_phi = self.network.get_inverse_map(use_01=self.use_01)
         self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phi=inverse_phi,
                                                                use_01=self.use_01)
+
+
+    def get_evaluation(self):
+        self.network.set_img_sz(list(self.gt.shape[2:]))
+        output_np = self.network.forward(self.input,self.is_train)
+        self.val_res_dic = get_multi_metric(output_np, self.gt, rm_bg=False)
 
     def get_extra_to_plot(self):
         """

@@ -680,7 +680,7 @@ class MyBalancedRandomCrop(object):
             roiFilter.SetSize(size_new)
             seg_np = sitk.GetArrayViewFromImage(seg)
         else:
-            seg_np = seg[0].copy()
+            seg_np = seg.copy()
 
 
         label_ratio =0

@@ -25,7 +25,7 @@ class MermaidBase(RegModelBase):
         self.nonp_on = False
         self.afimg_or_afparam = None
         self.save_extra_3d_img = opt['tsk_set'][('save_extra_3d_img', False, 'save extra image')]
-        self.save_original_image_by_type = opt['tsk_set'][('save_original_image_by_type', [True, True, True, True, True, True], 'save_original_image_by_type, source, target, warped, phi, inv_warped, inv_phi')]
+        self.save_original_image_by_type = opt['tsk_set'][('save_original_image_by_type', [True, True, True, True, True, True, True, True], 'save_original_image_by_type, source, target, warped, phi, inv_warped, inv_phi,disp, extra')]
         self.use_01 = True
 
     def get_warped_label_map(self, label_map, phi, sched='nn', use_01=False):
@@ -185,7 +185,7 @@ class MermaidBase(RegModelBase):
         :return:
         """
         save_original_image_by_type = self.save_original_image_by_type
-        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv = save_original_image_by_type
+        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_extra_not_used_here = save_original_image_by_type
         spacing = self.spacing
         moving_list = pair_path[0]
         target_list = pair_path[1]
@@ -229,18 +229,24 @@ class MermaidBase(RegModelBase):
         :return:
         """
         import SimpleITK as sitk
+        import nibabel as nib
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))
-        input_img_sz = self.input_img_sz  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        input_img_sz = self.input_img_sz if not self.save_original_image_by_type[-1] else self.original_im_sz[0].cpu().numpy().tolist()  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
         img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
-            img_to_save = img_np[i, 0]
-            fpath = os.path.join(self.record_path,
-                                 self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
-            img_to_save = sitk.GetImageFromArray(img_to_save)
-            img_to_save.SetSpacing(np.flipud(self.spacing))
-            sitk.WriteImage(img_to_save, fpath)
+            if img_np.shape[1]==1:
+                img_to_save = img_np[i, 0]
+                fpath = os.path.join(self.record_path,
+                                     self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
+                img_to_save = sitk.GetImageFromArray(img_to_save)
+                img_to_save.SetSpacing(np.flipud(self.spacing))
+                sitk.WriteImage(img_to_save, fpath)
+            else:
+                multi_ch_img = nib.Nifti1Image(img_np[i], np.eye(4))
+                fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
+                nib.save(multi_ch_img, fpath)
 
     def save_deformation(self):
         """

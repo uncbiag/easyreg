@@ -58,7 +58,11 @@ class RegistrationDataset(Dataset):
             self.init_weight_list=[]
             return
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
-        self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+        pair_name_path = os.path.join(self.data_path, 'pair_name_list.txt')
+        if os.path.isfile(pair_name_path):
+            self.name_list = read_txt_into_list(pair_name_path)
+        else:
+            self.name_list = [get_file_name(self.path_list[i][0])+'_'+get_file_name(self.path_list[i][1]) for i in range(len(self.path_list))]
         if self.load_init_weight:
             self.init_weight_list = read_txt_into_list(os.path.join(self.data_path,'pair_weight_path_list.txt'))
         if len(self.path_list[0])==4:
@@ -317,6 +321,7 @@ class RegistrationDataset(Dataset):
                 sitk_pair_list[2],_ = self.resize_img(sitk_pair_list[2], is_label=True)
                 sitk_pair_list[3],_ = self.resize_img(sitk_pair_list[3], is_label=True)
             pair_list = [sitk.GetArrayFromImage(sitk_pair) for sitk_pair in sitk_pair_list]
+            pair_list = [item.astype(np.float32) for item in pair_list]
             img_after_resize = self.img_after_resize if self.img_after_resize is not None else original_sz
             new_spacing=  original_spacing*(original_sz-1)/(np.array(img_after_resize)-1)
             spacing = self._normalize_spacing(new_spacing,img_after_resize, silent_mode=True)

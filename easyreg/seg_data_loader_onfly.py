@@ -38,7 +38,6 @@ class SegmentationDataset(Dataset):
         self.transform_name_seq = self.seg_option['transform']['transform_seq']
         self.option_p = self.seg_option[('partition', {}, "settings for the partition")]
         self.use_whole_img_as_input = self.seg_option[('use_whole_img_as_input',False,"use whole image as the input")]
-        self.option_p['patch_size'] = self.seg_option['patch_size']
         self.load_into_memory = True
         self.img_list = []
         self.img_sz_list = []
@@ -103,7 +102,7 @@ class SegmentationDataset(Dataset):
                 resized_label,_ = self.resize_img(label_sitk,is_label=True)
                 label_np = sitk.GetArrayFromImage(resized_label)
                 label_index = list(np.unique(label_np))
-                img_label_np_dic['label'] = blosc.pack_array(label_np.astype(np.float32))
+                img_label_np_dic['label'] = blosc.pack_array(label_np.astype(np.int64))
                 img_label_np_dic['label_index'] = label_index
             img_after_resize = self.img_after_resize if self.img_after_resize is not None else original_sz
             new_spacing=  original_spacing*(original_sz-1)/(np.array(img_after_resize)-1)
@@ -254,6 +253,15 @@ class SegmentationDataset(Dataset):
             self.label_converted_index_list.append(img_label_dic[fname]['label_converted_index'])
             self.label_density_list.append(img_label_dic[fname]['label_density'])
 
+        self.img_list = np.array(self.img_list)
+        self.img_sz_list = np.array(self.img_sz_list)
+        self.original_spacing_list = np.array(self.original_spacing_list)
+        self.original_sz_list = np.array(self.original_sz_list)
+        self.spacing_list = np.array(self.spacing_list)
+        self.label_org_index_list = np.array(self.label_org_index_list)
+        self.label_converted_index_list = np.array(self.label_converted_index_list)
+        self.label_density_list = np.array(self.label_density_list)
+
     def resize_img(self, img, is_label=False):
         """
         :param img: sitk input, factor is the outputs_ize/patched_sized
@@ -360,11 +368,8 @@ class SegmentationDataset(Dataset):
 
     def init_corr_partition_pool(self):
         from data_pre.partition import partition
-        self.option_p['patch_size'] =self.__convert_np_to_itk_coord(self.option_p['patch_size'])
-        if self.has_label:
-            self.corr_partition_pool = [deepcopy(partition(self.option_p)) for i in range(self.num_img)]
-        else:
-            self.corr_partition_pool = [deepcopy(partition(self.option_p, mode='pred')) for i in range(self.num_img)]
+        patch_sz_itk =self.__convert_np_to_itk_coord(self.seg_option['patch_size'])
+        self.corr_partition_pool = [deepcopy(partition(self.option_p,patch_sz_itk)) for _ in range(self.num_img)]
 
 
 
@@ -397,14 +402,14 @@ class SegmentationDataset(Dataset):
 
 
         if self.phase=="train":
-            sample = {'image': [img_np],  'label': [label_np]}
+            sample = {'image': [img_np],  'label': label_np} # here the list is for multi-modality , each mode is an elem in list
             sample = self.apply_transform(sample,self.corr_transform_pool[idx],rand_label_id)
 
         else:
             if not self.has_label:
                 sample = {'image':  [img_np]}
             else:
-                sample = {'image':  [img_np], 'label':[label_np]}
+                sample = {'image':  [img_np], 'label':label_np}
             if not self.use_whole_img_as_input:
                 sample = self.corr_partition_pool[idx](sample)
             else:

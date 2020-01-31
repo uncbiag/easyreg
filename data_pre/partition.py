@@ -2,13 +2,13 @@ import numpy as np
 import SimpleITK as sitk
 
 
-def partition(option_p,mode=None, flicker_on=False, flicker_mode='rand'):
+def partition(option_p, patch_size, mode=None, img_sz=(-1,-1,-1), flicker_on=False, flicker_mode='rand'):
     overlap_size = option_p[('overlap_size',tuple([16,16,8]), 'overlap_size')]
     padding_mode = option_p[('padding_mode', 'reflect', 'padding_mode')]
     mode = mode if mode is not None else option_p[('mode', 'pred', 'eval or pred')]
-    patch_size = option_p[('patch_size', [128, 128, 32], 'patch size')]
+    patch_size = patch_size
     flicker_range = option_p[('flicker_range', 0, 'flicker range')]
-    partition = Partition(patch_size, overlap_size, padding_mode=padding_mode, mode=mode,flicker_on=flicker_on,flicker_range=flicker_range, flicker_mode=flicker_mode)
+    partition = Partition(patch_size, overlap_size, padding_mode=padding_mode, mode=mode,img_sz=img_sz, flicker_on=flicker_on,flicker_range=flicker_range, flicker_mode=flicker_mode)
     return partition
 
 
@@ -31,9 +31,10 @@ class Partition(object):
     :param mode: "pred": only image is partitioned; "eval": both image and segmentation are partitioned TODO
     """
 
-    def __init__(self, tile_size, overlap_size, padding_mode='reflect', mode="pred",flicker_on=False,flicker_range=0,flicker_mode='rand'):
-        self.tile_size = np.flipud(np.asarray(tile_size))  # in itkcoord, flip the size order to match the numpy array(check the note)
-        self.overlap_size = np.flipud(np.asarray(overlap_size)) # in itkcoord, flip the size order to match the numpy array(check the note)
+    def __init__(self, tile_size, overlap_size, padding_mode='reflect', mode="pred", img_sz=None,flicker_on=False,flicker_range=0,flicker_mode='rand'):
+        self.tile_size = np.flipud(np.asarray(tile_size))  # convert the itk coord to np coord
+        self.overlap_size = np.flipud(np.asarray(overlap_size)) # convert the itk coord to np coord
+        self.image_size = img_sz
         self.padding_mode = padding_mode
         self.mode = mode
         self.flicker_on=flicker_on
@@ -69,7 +70,7 @@ class Partition(object):
             else:
                 seg_np = sample['label']
 
-        self.image_size = np.array(images[0].shape)
+        self.image_size = np.array(images[0].shape) # np coord
         self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
         self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
         self.padded_size = self.effective_size * self.tiles_grid_size + self.overlap_size * 2 - self.image_size  # size difference of padded image with original image
@@ -118,7 +119,7 @@ class Partition(object):
                                         i * self.effective_size[0]+ri+pp:i * self.effective_size[0] + self.tile_size[0]+ri+pp,
                                         j * self.effective_size[1]+rj+pp:j * self.effective_size[1] + self.tile_size[1]+rj+pp,
                                         k * self.effective_size[2]+rk+pp:k * self.effective_size[2] + self.tile_size[2]+rk+pp]
-                        seg_tile_list.append(np.expand_dims(seg_tile_temp))
+                        seg_tile_list.append(np.expand_dims(seg_tile_temp, axis=0))
 
         # sample['image'] = np.stack(image_tile_list, 0)
         # sample['segmentation'] = np.stack(seg_tile_list, 0)
@@ -127,7 +128,7 @@ class Partition(object):
         trans_sample['image'] = np.stack(image_tile_list, 0) # N*C*xyz
         if 'label'in sample:
             if self.mode == 'pred':
-                trans_sample['label'] = np.expand_dims(seg_np, axis=0)  #1*XYZ
+                trans_sample['label'] = np.expand_dims(np.expand_dims(seg_np, axis=0), axis=0)  #1*XYZ
             else:
                 trans_sample['label'] = np.stack(seg_tile_list, 0)  # N*1*xyz
         trans_sample['tile_size'] = self.tile_size
@@ -197,5 +198,5 @@ class Partition(object):
 
         # seg_image = sitk.GetImageFromArray(seg_reassemble)
         # seg_image.CopyInformation(self.image)
-
+        seg_reassemble = np.expand_dims(np.expand_dims(seg_reassemble, axis=0), axis=0)
         return seg_reassemble

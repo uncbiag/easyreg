@@ -89,15 +89,18 @@ class RegNet(MermaidBase):
         """
         img_and_label, self.fname_list = data
         self.pair_path = data[0]['pair_path']
-        img_and_label['image'] = img_and_label['image'].cuda()
-        if 'label' in img_and_label:
-            img_and_label['label'] = img_and_label['label'].cuda()
+        if self.gpu_ids is not None and self.gpu_ids>=0:
+            img_and_label['image'] = img_and_label['image'].cuda()
+            if 'label' in img_and_label:
+                img_and_label['label'] = img_and_label['label'].cuda()
         moving, target, l_moving, l_target = get_reg_pair(img_and_label)
         self.moving = moving
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
         self.original_spacing = data[0]['original_spacing']
+        self.original_im_sz =  data[0]['original_sz']
+
 
     def init_optim(self, opt, network, warmming_up=False):
         """

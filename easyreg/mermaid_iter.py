@@ -51,6 +51,7 @@ class MermaidIter(MermaidBase):
         input = data[0]['image']
         self.input_img_sz  = list(moving.shape)[2:]
         self.original_spacing = data[0]['original_spacing']
+        self.original_im_sz =  data[0]['original_sz']
         self.spacing = data[0]['spacing'][0] if self.use_physical_coord else 1. / (np.array(self.input_img_sz) - 1)
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         self.moving = moving

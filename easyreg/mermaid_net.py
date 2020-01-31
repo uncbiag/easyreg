@@ -455,6 +455,11 @@ class MermaidNet(nn.Module):
 
         return rec_IWarped, rec_phiWarped
 
+
+    def __get_momentum(self):
+        momentum = self.mermaid_unit_st.m
+        return momentum
+
     def __get_adaptive_smoother_map(self):
         """
         get the adaptive smoother weight map from spatial-variant regualrizer model
@@ -518,7 +523,7 @@ class MermaidNet(nn.Module):
             # the last step adaptive smoother is returned, todo add the first stage smoother
             return self.__get_adaptive_smoother_map(), 'Inital_weight'
         else:
-            return None, None
+            return self.__get_momentum(), "Momentum"
 
 
     def __transfer_return_var(self,rec_IWarped,rec_phiWarped,affine_img):
