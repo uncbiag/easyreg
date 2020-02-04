@@ -2,11 +2,9 @@ import numpy as np
 import SimpleITK as sitk
 
 
-def partition(option_p, patch_size, mode=None, img_sz=(-1,-1,-1), flicker_on=False, flicker_mode='rand'):
-    overlap_size = option_p[('overlap_size',tuple([16,16,8]), 'overlap_size')]
+def partition(option_p, patch_size,overlap_size, mode=None, img_sz=(-1,-1,-1), flicker_on=False, flicker_mode='rand'):
     padding_mode = option_p[('padding_mode', 'reflect', 'padding_mode')]
     mode = mode if mode is not None else option_p[('mode', 'pred', 'eval or pred')]
-    patch_size = patch_size
     flicker_range = option_p[('flicker_range', 0, 'flicker range')]
     partition = Partition(patch_size, overlap_size, padding_mode=padding_mode, mode=mode,img_sz=img_sz, flicker_on=flicker_on,flicker_range=flicker_range, flicker_mode=flicker_mode)
     return partition

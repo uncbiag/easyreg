@@ -162,7 +162,7 @@ class MermaidBase(RegModelBase):
             raise ValueError("displacement field is removed from current version")
             # disp = ((self.afimg_or_afparam[:,...]**2).sum(1))**0.5
 
-        if self.nonp_on:
+        if self.nonp_on and self.afimg_or_afparam is not None:
             disp = self.afimg_or_afparam[:, 0, ...]
             extra_title = 'affine'
 
@@ -185,7 +185,7 @@ class MermaidBase(RegModelBase):
         :return:
         """
         save_original_image_by_type = self.save_original_image_by_type
-        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_extra_not_used_here = save_original_image_by_type
+        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra_not_used_here = save_original_image_by_type
         spacing = self.spacing
         moving_list = pair_path[0]
         target_list = pair_path[1]
@@ -213,9 +213,19 @@ class MermaidBase(RegModelBase):
             if save_phi_inv:
                 fname_list = [fname + '_inv' for fname in self.fname_list]
                 ires.save_transfrom(new_inv_phi, new_spacing, saving_original_sz_path, fname_list)
+            fname_list = [fname + '_inv_warped' for fname in self.fname_list]
             if save_w_inv:
-                fname_list = [fname + '_inv_warped' for fname in self.fname_list]
                 ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
+            if save_disp:
+                fname_list = [fname + '_inv_disp' for fname in self.fname_list]
+                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True)
+                id_map = (id_map[None]+1)/2.
+                inv_disp = new_inv_phi -id_map
+                ires.save_transfrom(inv_disp, new_spacing, saving_original_sz_path, fname_list)
+                fname_list = [fname + '_disp' for fname in self.fname_list]
+                disp = new_phi - id_map
+                ires.save_transfrom(disp, new_spacing, saving_original_sz_path, fname_list)
+
 
     def save_extra_img(self, img, title):
         """
@@ -233,7 +243,7 @@ class MermaidBase(RegModelBase):
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))
         input_img_sz = self.input_img_sz if not self.save_original_image_by_type[-1] else self.original_im_sz[0].cpu().numpy().tolist()  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
+        #img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
             if img_np.shape[1]==1:

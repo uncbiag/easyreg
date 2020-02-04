@@ -10,6 +10,7 @@ blosc.set_nthreads(1)
 import progressbar as pb
 from copy import deepcopy
 import random
+import time
 class SegmentationDataset(Dataset):
     """registration dataset.
     if the data are loaded into memory, we provide data processing option like image resampling and label filtering
@@ -69,7 +70,11 @@ class SegmentationDataset(Dataset):
             self.init_weight_list = []
             return
         self.path_list = read_txt_into_list(os.path.join(self.data_path, 'file_path_list.txt'))
-        self.name_list = read_txt_into_list(os.path.join(self.data_path, 'file_name_list.txt'))
+        file_name_path = os.path.join(self.data_path, 'file_name_list.txt')
+        if os.path.isfile(file_name_path):
+            self.name_list = read_txt_into_list(file_name_path)
+        else:
+            self.name_list = [get_file_name(self.path_list[i][0]) for i in range(len(self.path_list))]
         if len(self.path_list[0]) == 2:
             self.has_label = True
         elif self.phase in ["train", "val", "debug"]:
@@ -369,14 +374,15 @@ class SegmentationDataset(Dataset):
     def init_corr_partition_pool(self):
         from data_pre.partition import partition
         patch_sz_itk =self.__convert_np_to_itk_coord(self.seg_option['patch_size'])
-        self.corr_partition_pool = [deepcopy(partition(self.option_p,patch_sz_itk)) for _ in range(self.num_img)]
+        overlap_sz_itk =self.__convert_np_to_itk_coord(self.option_p['overlap_size'])
+        self.corr_partition_pool = [deepcopy(partition(self.option_p,patch_sz_itk,overlap_sz_itk)) for _ in range(self.num_img)]
 
 
 
     def __len__(self):
         if self.phase == "train":
             if not self.use_whole_img_as_input:
-                return len(self.name_list)*100
+                return len(self.name_list)*1000
             else:
                 return len(self.name_list)
         else:
@@ -388,7 +394,8 @@ class SegmentationDataset(Dataset):
         :param idx: id of the items
         :return: the processed data, return as type of dic
         """
-        rand_label_id =random.randint(0,1000)+idx
+        random_state = np.random.RandomState(int(time.time()))
+        rand_label_id =random_state.randint(0,1000)+idx
         idx = idx%self.num_img
 
         filename = self.name_list[idx]

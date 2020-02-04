@@ -123,6 +123,7 @@ class BaseSegDataSet(object):
             fname = get_file_name(file_path_list[i]) + '.nii.gz'
             resize_input_img_and_save_it_as_tmp(file_path_list[i], is_label=False, keep_physical=True, fname=fname,
                                                 saving_path=saving_path_img, fixed_sz=self.img_after_resize)
+            fname = get_file_name(label_path_list[i]) + '.nii.gz'
             resize_input_img_and_save_it_as_tmp(label_path_list[i], is_label=True, keep_physical=True, fname=fname,
                                                 saving_path=saving_path_label, fixed_sz=self.img_after_resize)
 
@@ -152,11 +153,13 @@ class BaseSegDataSet(object):
 
 
 
+
     def data_preprocess(self):
         file_path_list = get_file_path_list(self.data_path, self.file_type_list)
-        random.shuffle(file_path_list)
+        #random.shuffle(file_path_list)
         label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
         self.resize_img_label(file_path_list,label_path_list)
+        file_path_list = get_file_path_list(self.data_path, self.file_type_list)
         label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
         self.get_shared_label_index(label_path_list)
         self.filter_and_save_label(label_path_list)
@@ -196,22 +199,39 @@ class SegDatasetPool(object):
 
 if __name__ == "__main__":
     pass
-    lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*.nii'])
-    data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
-    label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    output_path = '/playpen-raid/zyshen/data/lpba_seg'
+    # lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*.nii','*nii.gz'])
+    # data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
+    # label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
+    # output_path = '/playpen-raid/zyshen/data/lpba_seg_resize'
+    #
+    # # data_path = "/home/zyshen/proj/remote_data/LPBA40_affine_hist"
+    # # label_path = '/home/zyshen/proj/remote_data/LPBA40_label_affine'
+    # # output_path = '/home/zyshen/proj/local_debug/brain_seg'
+    #
+    #
+    # divided_ratio = (0.625, 0.125, 0.25)
+    # lpba.set_data_path(data_path)
+    # lpba.set_label_path(label_path)
+    # lpba.set_output_path(output_path)
+    # lpba.set_divided_ratio(divided_ratio)
+    # lpba.img_after_resize =(196,164,196)
+    # lpba.prepare_data()
 
-    # data_path = "/home/zyshen/proj/remote_data/LPBA40_affine_hist"
-    # label_path = '/home/zyshen/proj/remote_data/LPBA40_label_affine'
-    # output_path = '/home/zyshen/proj/local_debug/brain_seg'
+    oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'])
 
+    label_switch = ('image', 'masks')
 
-    divided_ratio = (0.6, 0.2, 0.2)
-    lpba.set_data_path(data_path)
-    lpba.set_label_path(label_path)
-    lpba.set_output_path(output_path)
-    lpba.set_divided_ratio(divided_ratio)
-    lpba.prepare_data()
+    data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    output_path = '/playpen-raid/zyshen/data/oai_seg'
+    divided_ratio = (0.8, 0.1, 0.1)
+    oai.label_switch = label_switch
+    oai.set_data_path(data_path)
+    oai.set_label_path(label_path)
+    oai.set_output_path(output_path)
+    oai.set_divided_ratio(divided_ratio)
+    oai.img_after_resize = ( 160,200,200)
+    oai.prepare_data()
     #
     # oai =SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'],label_switch=('image', 'label_all'))
     # data_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"

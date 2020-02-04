@@ -1,7 +1,7 @@
 
 from .utils import *
 import SimpleITK as sitk
-
+from tools.visual_tools import save_3D_img_from_numpy
 
 
 
@@ -39,7 +39,9 @@ class SegModelBase():
         self.network =None
         self.val_res_dic = {}
         self.fname_list = None
+        self.input = None
         self.output = None
+        self.gt = None
         self.multi_gpu_on =False # todo for now the distributed computing is not supported
 
 
@@ -219,35 +221,36 @@ class SegModelBase():
         :param phase: train|val|test|debug
         :return:
         """
-        pass
-        #
-        # if type(self.output)==torch.Tensor:
-        #     warped = self.output.detach().cpu().numpy()
-        # else:
-        #     moving = self.moving
-        #     target = self.target
-        #     warped = self.output
-        #
-        #
-        # saving_folder_path = os.path.join(self.record_path, '3D')
-        # make_dir(saving_folder_path)
-        # for i in range(moving.shape[0]):
-        #     appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
-        #     saving_file_path = saving_folder_path + '/' + appendix + "_moving.nii.gz"
-        #     output = sitk.GetImageFromArray(moving[i, 0, ...])
-        #     output.SetSpacing(np.flipud(self.spacing))
-        #     sitk.WriteImage(output, saving_file_path)
-        #     saving_file_path = saving_folder_path + '/' + appendix + "_target.nii.gz"
-        #     output = sitk.GetImageFromArray(target[i, 0, ...])
-        #     output.SetSpacing(np.flipud(self.spacing))
-        #     sitk.WriteImage(output, saving_file_path)
-        #     saving_file_path = saving_folder_path + '/' + appendix + "_warped.nii.gz"
-        #     output = sitk.GetImageFromArray(warped[i, 0, ...])
-        #     output.SetSpacing(np.flipud(self.spacing))
-        #     sitk.WriteImage(output, saving_file_path)
-        #
-        #
-        #
+
+        if type(self.output)==torch.Tensor:
+            output = self.output.detach().cpu().numpy()
+        else:
+            output = self.output
+        if type(self.gt)==torch.Tensor:
+            gt = self.gt.detach().cpu().numpy()
+        else:
+            gt = self.gt
+
+        output = output.astype(np.int32)
+        gt = gt.astype(np.int32)
+
+        spacing = self.spacing.cpu().numpy()
+
+
+        saving_folder_path = os.path.join(self.record_path, '3D')
+        make_dir(saving_folder_path)
+        for i in range(output.shape[0]):
+            appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
+            saving_file_path = saving_folder_path + '/' + appendix + "_output.nii.gz"
+            output = sitk.GetImageFromArray(output[i, 0, ...])
+            output.SetSpacing(np.flipud(spacing[i]))
+            sitk.WriteImage(output, saving_file_path)
+            saving_file_path = saving_folder_path + '/' + appendix + "_gt.nii.gz"
+            output = sitk.GetImageFromArray(gt[i, 0, ...])
+            output.SetSpacing(np.flipud(spacing[i]))
+            sitk.WriteImage(output, saving_file_path)
+
+
 
 
 

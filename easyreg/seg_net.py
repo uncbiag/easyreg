@@ -77,7 +77,7 @@ class SegNet(SegModelBase):
         input, gt = get_seg_pair(img_and_label, is_train)
         self.input = input
         self.gt = gt
-        self.original_spacing = data[0]['original_spacing']
+        self.spacing = data[0]['original_spacing']
 
     def init_optim(self, opt, network, warmming_up=False):
         """
@@ -199,6 +199,7 @@ class SegNet(SegModelBase):
         self.network.set_img_sz(list(self.gt.shape[2:]))
         output_np = self.network.forward(self.input,self.is_train)
         self.val_res_dic = get_multi_metric(output_np, self.gt, rm_bg=False)
+        self.output = output_np
 
     def get_extra_to_plot(self):
         """

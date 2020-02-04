@@ -29,7 +29,7 @@ def get_file_path_list(path, img_type):
     for sub_type in img_type:
         if PYTHON_VERSION == 3:  # python3
             f_path = join(path, '**', sub_type)
-            f_filter = glob(f_path, recursive=True)
+            f_filter += glob(f_path, recursive=True)
         else:
             f_filter = []
             import fnmatch

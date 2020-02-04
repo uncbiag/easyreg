@@ -261,6 +261,64 @@ class Seg_resid(nn.Module):
     def __init__(self, num_class, bn=False):
         super(Seg_resid,self).__init__()
         self.down_path_1 = conv_bn_rel(1, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_1 = conv_bn_rel(32, 64, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_2 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
+        self.down_path_2_3 = conv_bn_rel(64, 64, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_1 = conv_bn_rel(64, 128, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_2 = conv_bn_rel(128,128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_4_3 = conv_bn_rel(128, 128, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_1 = conv_bn_rel(128, 256, 3, stride=2, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_2 = conv_bn_rel(256, 256, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+        self.down_path_8_3 = conv_bn_rel(256, 256, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
+
+        self.up_path_4_1 = conv_bn_rel(256, 128, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_4_2 = conv_bn_rel(128+128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_4_3 = conv_bn_rel(128, 128, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_2_1 = conv_bn_rel(128, 128, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_2_2 = conv_bn_rel(128+64, 96, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_2_3 = conv_bn_rel(96, 96, 3, stride=1, active_unit='leaky_relu', same_padding=True, bn=bn)
+        self.up_path_1_1 = conv_bn_rel(96, 96, 2, stride=2, active_unit='leaky_relu', same_padding=False, bn=bn,reverse=True)
+        self.up_path_1_2 = conv_bn_rel(96+32, 64, 3, stride=1, active_unit='leaky_relu',same_padding=True, bn=bn)
+        self.up_path_1_3 = conv_bn_rel(64, num_class, 3, stride=1, active_unit='leaky_relu', same_padding=True)
+
+
+    def forward(self, x):
+        d1 = self.down_path_1(x)
+        d2_1 = self.down_path_2_1(d1)
+        d2_2 = self.down_path_2_2(d2_1)
+        d2_2 = d2_1 + d2_2
+        d2_3 = self.down_path_2_3(d2_2)
+        d2_3 = d2_1 + d2_3
+        d4_1 = self.down_path_4_1(d2_3)
+        d4_2 = self.down_path_4_2(d4_1)
+        d4_2 = d4_1 + d4_2
+        d4_3 = self.down_path_4_3(d4_2)
+        d4_3 = d4_2 + d4_3
+        d8_1 = self.down_path_8_1(d4_3)
+        d8_2 = self.down_path_8_2(d8_1)
+        d8_2 = d8_1 + d8_2
+        d8_3 = self.down_path_8_3(d8_2)
+        d8_3 = d8_2+ d8_3
+        u4_1 = self.up_path_4_1(d8_3)
+        u4_2 = self.up_path_4_2(torch.cat((d4_3,u4_1),1))
+        u4_3 = self.up_path_4_3(u4_2)
+        u4_3 = u4_2 + u4_3
+        u2_1 = self.up_path_2_1(u4_3)
+        u2_2 = self.up_path_2_2(torch.cat((d2_3, u2_1), 1))
+        u2_3 = self.up_path_2_3(u2_2)
+        u1_1 = self.up_path_1_1(u2_3)
+        u1_2 = self.up_path_1_2(torch.cat((d1, u1_1), 1))
+        u1_3 = self.up_path_1_3(u1_2)
+        output = u1_3
+
+        return output
+
+
+
+class Seg_resid_concise(nn.Module):
+    def __init__(self, num_class, bn=False):
+        super(Seg_resid_concise,self).__init__()
+        self.down_path_1 = conv_bn_rel(1, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_1 = conv_bn_rel(32, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_3 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=bn)
@@ -315,6 +373,7 @@ class Seg_resid(nn.Module):
         u8_3 = self.up_path_8_3(u8_2)
         u8_3 = u8_2 + u8_3
         u4_1 = self.up_path_4_1(u8_3)
+        u4_1 = self.up_path_4_1(d8_3)
         u4_2 = self.up_path_4_2(torch.cat((d4_3,u4_1),1))
         u4_3 = self.up_path_4_3(u4_2)
         u4_3 = u4_2 + u4_3
@@ -327,4 +386,3 @@ class Seg_resid(nn.Module):
         output = u1_3
 
         return output
-

@@ -30,7 +30,7 @@ class conv_bn_rel(nn.Module):
             self.conv = ConvTranspose(in_channels, out_channels, kernel_size, stride, padding=padding, groups=1,
                                       dilation=1)
 
-        self.bn = BatchNorm(out_channels, eps=0.0001, momentum=0, affine=True) if bn else None
+        self.bn = BatchNorm(out_channels) if bn else None #, eps=0.0001, momentum=0, affine=True
         if active_unit == 'relu':
             self.active_unit = nn.ReLU(inplace=True)
         elif active_unit == 'elu':

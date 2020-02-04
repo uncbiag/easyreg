@@ -19,6 +19,9 @@ class MermaidIter(MermaidBase):
         elif method_name =='nonp':
             self.affine_on = True
             self.nonp_on = True
+        elif method_name=='nonp_only':
+            self.affine_on = False
+            self.nonp_on = True
         self.si = SI.RegisterImagePair()
         self.opt_optim = opt['tsk_set']['optim']
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
@@ -112,7 +115,9 @@ class MermaidIter(MermaidBase):
 
         :return: warped image, transformation map, affined image, loss(None)
         """
-        affine_map = self.si.opt.optimizer.ssOpt.get_map()
+        affine_map = None
+        if self.affine_on:
+            affine_map = self.si.opt.optimizer.ssOpt.get_map()
 
         self.si =  SI.RegisterImagePair()
         extra_info = pars.ParameterDict()
@@ -145,7 +150,7 @@ class MermaidIter(MermaidBase):
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
-        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
+        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_() if self.afimg_or_afparam is not None else None, None
 
 
     def save_setting(self,path, output_path,fname='mermaid_setting.json'):
@@ -180,8 +185,11 @@ class MermaidIter(MermaidBase):
     def forward(self,input=None):
         if self.affine_on and not self.nonp_on:
             return self.affine_optimization()
-        else:
+        elif self.affine_on and self.nonp_on:
             self.affine_optimization()
+            return self.nonp_optimization()
+
+        else:
             return self.nonp_optimization()
 
 
@@ -238,6 +246,11 @@ class MermaidIter(MermaidBase):
         self._display_stats(smoother_map.float(),'statistic for weighted smoother map')
         return smoother_map
 
+
+
+    def __get_momentum(self):
+        param =  self.si.get_model_parameters()
+        return param['m'].detach()
     def _display_stats(self, Ia, iname):
         """
         statistic analysis on variable
@@ -261,8 +274,11 @@ class MermaidIter(MermaidBase):
         plot extra image, i.e. the initial weight map of rdmm model
         :return:
         """
-        if self.nonp_model_name=='lddmm_adapt_smoother_map':
-            return self.__get_adaptive_smoother_map(), 'inital_weight'
+        if self.nonp_on:
+            if self.nonp_model_name=='lddmm_adapt_smoother_map':
+                return self.__get_adaptive_smoother_map(), 'inital_weight'
+            else:
+                return self.__get_momentum(), "_Momentum"
         else:
             return None, None
 

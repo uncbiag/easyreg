@@ -11,11 +11,13 @@ class SegUnet(nn.Module):
         num_class = seg_opt['class_num',-1,"the num of class"]
         use_bn = seg_opt["use_bn", True, "use the batch normalization"]
         patch_sz = opt['dataset']['seg']['patch_size',[-1,-1,-1],"the size of input patch"]
+        overlap_sz = opt['dataset']['seg']['partition']['overlap_size',[-1,-1,-1],"the size of input patch"]
         patch_sz_itk = list(np.flipud(np.array(patch_sz)))
+        overlap_sz_itk = list(np.flipud(np.array(overlap_sz)))
         self.img_sz = None
         self.unet = Seg_resid(num_class,bn=use_bn)
         self.print_count = 0
-        self.partition = partition(opt['dataset']['seg']['partition'],patch_sz_itk)
+        self.partition = partition(opt['dataset']['seg']['partition'],patch_sz_itk,overlap_sz_itk)
 
     def set_loss_fn(self, loss_fn):
         """ set loss function"""
@@ -48,8 +50,8 @@ class SegUnet(nn.Module):
     def get_assamble_pred(self, input, split_size=8):
         output = []
         input_split = torch.split(input, split_size)
-        for input in input_split:
-            res = self.forward(input)
+        for input_sub in input_split:
+            res = self.forward(input_sub)
             if isinstance(res, list):
                 res = res[-1]
             output.append(res.detach().cpu())

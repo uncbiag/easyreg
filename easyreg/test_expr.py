@@ -84,6 +84,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
 
 
             loss,loss_detail = model.get_test_res(detail=True)
+            print("the loss_detailed is {}".format(loss_detail))
             running_test_score += loss * batch_size
             records_score_np[i] = loss
             loss_detail_list += [loss_detail]
