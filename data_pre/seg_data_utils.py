@@ -67,11 +67,13 @@ def make_dir(path):
 
 
 
-def get_file_name(file_path,last_ocur=False):
+def get_file_name(file_path,last_ocur=True):
     if not last_ocur:
         name= os.path.split(file_path)[1].split('.')[0]
     else:
         name = os.path.split(file_path)[1].rsplit('.',1)[0]
+    name = name.replace('.nii','')
+    name = name.replace('.','d')
     return name
 
 def divide_data_set(root_path, pair_num,ratio):

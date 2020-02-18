@@ -70,18 +70,25 @@ class SegmentationDataset(Dataset):
             self.init_weight_list = []
             return
         self.path_list = read_txt_into_list(os.path.join(self.data_path, 'file_path_list.txt'))
+        if len(self.path_list[0]) == 2:
+            self.has_label = True
+        elif self.phase in ["train", "val", "debug"]:
+            raise ValueError("the label must be provided during training")
+        if not self.has_label:
+            self.path_list= [[path] for path in self.path_list]
         file_name_path = os.path.join(self.data_path, 'file_name_list.txt')
         if os.path.isfile(file_name_path):
             self.name_list = read_txt_into_list(file_name_path)
         else:
             self.name_list = [get_file_name(self.path_list[i][0]) for i in range(len(self.path_list))]
-        if len(self.path_list[0]) == 2:
-            self.has_label = True
-        elif self.phase in ["train", "val", "debug"]:
-            raise ValueError("the label must be provided during training")
 
         if self.max_num_for_loading>0:
             read_num = min(self.max_num_for_loading, len(self.path_list))
+            if self.phase=='train':
+                index =list(range(len(self.path_list)))
+                random.shuffle(index)
+                self.path_list = [self.path_list[ind] for ind in index ]
+                self.name_list = [self.name_list[ind] for ind in index ]
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
 
@@ -163,7 +170,7 @@ class SegmentationDataset(Dataset):
             else:
                 # assume background label is 0
                 st_index = 0
-                print("warning label: is not in interested label index, and would be convert to 0".format(l_id))
+                print("warning label: {} is not in interested label index, and would be convert to 0".format(l_id))
             label_map[np.where(label_map == l_id)] = st_index
         return label_map
     def __get_clean_label(self,img_label_dict, img_name_list):
@@ -174,6 +181,7 @@ class SegmentationDataset(Dataset):
         :return:
         """
         print(" Attention, the annotation for background is assume to be 0 ! ")
+        print(" Attention, we are using the union set of the label! ")
         if self.interested_label_list is None:
             interested_label_set = set()
             for i, fname in enumerate(img_name_list):
@@ -181,7 +189,7 @@ class SegmentationDataset(Dataset):
                 if i ==0:
                     interested_label_set = set(label_set)
                 else:
-                    interested_label_set = interested_label_set.intersection(label_set)
+                    interested_label_set = interested_label_set.union(label_set)
             interested_label_list = list(interested_label_set)
         else:
             interested_label_list = self.interested_label_list
@@ -205,36 +213,50 @@ class SegmentationDataset(Dataset):
         pair_list [[s_np,t_np,sl_np,tl_np],....]
         only the pair_list need to be used by get_item method
         """
-        # manager = Manager()
-        # img_label_dic = manager.dict()
-        img_label_dic=dict()
-        img_label_path_dic = {}
-        img_name_list = []
-        for fps in self.path_list:
-            fp = fps[0]
-            fn = get_file_name(fp)
-            if fn not in img_label_path_dic:
-                if self.has_label:
-                    img_label_path_dic[fn] = {'image':fps[0], 'label':fps[1]}
-                else:
-                    img_label_path_dic[fn] = {'image':fps[0]}
-            img_name_list.append(get_file_name(fps[0]))
-        # num_of_workers = 4
-        # num_of_workers = num_of_workers if len(self.name_list)>12 else 2
-        # split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
-        # procs =[]
-        # for i in range(num_of_workers):
-        #     p = Process(target=self.__read_img_label_into_zipnp,args=(split_dict[i], img_label_dic,))
-        #     p.start()
-        #     print("pid:{} start:".format(p.pid))
-        #
-        #     procs.append(p)
-        #
-        # for p in procs:
-        #     p.join()
-        # print("the loading phase finished, total {} img and labels have been loaded".format(len(img_label_dic)))
-        # img_label_dic=dict(img_label_dic) # todo uncomment manager.dict
-        self.__read_img_label_into_zipnp(img_label_path_dic, img_label_dic) #todo dels
+        use_parallel = self.phase=='train'
+        if use_parallel:
+            manager = Manager()
+            img_label_dic = manager.dict()
+            img_label_path_dic = {}
+            img_name_list = []
+            for fps in self.path_list:
+                fp = fps[0]
+                fn = get_file_name(fp)
+                if fn not in img_label_path_dic:
+                    if self.has_label:
+                        img_label_path_dic[fn] = {'image':fps[0], 'label':fps[1]}
+                    else:
+                        img_label_path_dic[fn] = {'image':fps[0]}
+                img_name_list.append(get_file_name(fps[0]))
+            num_of_workers = 4
+            num_of_workers = num_of_workers if len(self.name_list)>12 else 2
+            split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
+            procs =[]
+            for i in range(num_of_workers):
+                p = Process(target=self.__read_img_label_into_zipnp,args=(split_dict[i], img_label_dic,))
+                p.start()
+                print("pid:{} start:".format(p.pid))
+
+                procs.append(p)
+
+            for p in procs:
+                p.join()
+            print("the loading phase finished, total {} img and labels have been loaded".format(len(img_label_dic)))
+            img_label_dic=dict(img_label_dic) # todo uncomment manager.dict
+        else:
+            img_label_dic=dict()
+            img_label_path_dic = {}
+            img_name_list = []
+            for fps in self.path_list:
+                fp = fps[0]
+                fn = get_file_name(fp)
+                if fn not in img_label_path_dic:
+                    if self.has_label:
+                        img_label_path_dic[fn] = {'image': fps[0], 'label': fps[1]}
+                    else:
+                        img_label_path_dic[fn] = {'image': fps[0]}
+                img_name_list.append(get_file_name(fps[0]))
+            self.__read_img_label_into_zipnp(img_label_path_dic, img_label_dic) #todo dels
 
         self.get_organize_structure(img_label_dic,img_name_list)
 
@@ -254,18 +276,19 @@ class SegmentationDataset(Dataset):
             self.original_spacing_list.append(img_label_dic[fname]['original_spacing'])
             self.original_sz_list.append(img_label_dic[fname]['original_sz'])
             self.spacing_list.append(img_label_dic[fname]['spacing'])
-            self.label_org_index_list.append(img_label_dic[fname]['label_org_index'])
-            self.label_converted_index_list.append(img_label_dic[fname]['label_converted_index'])
-            self.label_density_list.append(img_label_dic[fname]['label_density'])
+            if self.has_label:
+                self.label_org_index_list.append(img_label_dic[fname]['label_org_index'])
+                self.label_converted_index_list.append(img_label_dic[fname]['label_converted_index'])
+                self.label_density_list.append(img_label_dic[fname]['label_density'])
 
-        self.img_list = np.array(self.img_list)
-        self.img_sz_list = np.array(self.img_sz_list)
-        self.original_spacing_list = np.array(self.original_spacing_list)
-        self.original_sz_list = np.array(self.original_sz_list)
-        self.spacing_list = np.array(self.spacing_list)
-        self.label_org_index_list = np.array(self.label_org_index_list)
-        self.label_converted_index_list = np.array(self.label_converted_index_list)
-        self.label_density_list = np.array(self.label_density_list)
+        # self.img_list = np.array(self.img_list)
+        # self.img_sz_list = np.array(self.img_sz_list)
+        # self.original_spacing_list = np.array(self.original_spacing_list)
+        # self.original_sz_list = np.array(self.original_sz_list)
+        # self.spacing_list = np.array(self.spacing_list)
+        # self.label_org_index_list = np.array(self.label_org_index_list)
+        # self.label_converted_index_list = np.array(self.label_converted_index_list)
+        # self.label_density_list = np.array(self.label_density_list)
 
     def resize_img(self, img, is_label=False):
         """
@@ -403,7 +426,10 @@ class SegmentationDataset(Dataset):
         spacing = self.spacing_list[idx]
         original_spacing = self.original_spacing_list[idx]
         original_sz = self.original_sz_list[idx]
-        img_np, label_np = [blosc.unpack_array(item) for item in zipnp_list]
+        if self.has_label:
+            img_np, label_np = [blosc.unpack_array(item) for item in zipnp_list]
+        else:
+            img_np = blosc.unpack_array(zipnp_list[0])
         img_path = self.path_list[idx]
 
 
@@ -424,7 +450,6 @@ class SegmentationDataset(Dataset):
                 sample['image'] = np.stack(sample['image'], 0)
 
         sample['img_path'] = img_path
-
         if self.transform:
             sample['image'] = self.transform(sample['image'])
             if self.has_label:

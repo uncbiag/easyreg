@@ -196,9 +196,12 @@ class SegNet(SegModelBase):
 
 
     def get_evaluation(self):
-        self.network.set_img_sz(list(self.gt.shape[2:]))
+        sz =self.input_img_sz
+
+        self.network.set_img_sz(sz)
         output_np = self.network.forward(self.input,self.is_train)
-        self.val_res_dic = get_multi_metric(output_np, self.gt, rm_bg=False)
+        if self.gt is not None:
+            self.val_res_dic = get_multi_metric(output_np, self.gt, rm_bg=False)
         self.output = output_np
 
     def get_extra_to_plot(self):

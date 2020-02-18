@@ -232,23 +232,26 @@ class SegModelBase():
             gt = self.gt
 
         output = output.astype(np.int32)
-        gt = gt.astype(np.int32)
+        if gt is not None:
+            gt = gt.astype(np.int32)
 
         spacing = self.spacing.cpu().numpy()
 
 
         saving_folder_path = os.path.join(self.record_path, '3D')
         make_dir(saving_folder_path)
-        for i in range(output.shape[0]):
+        num_output = output.shape[0]
+        for i in range(num_output):
             appendix = self.fname_list[i] + "_"+phase+ "_iter_" + str(self.iter_count)
             saving_file_path = saving_folder_path + '/' + appendix + "_output.nii.gz"
             output = sitk.GetImageFromArray(output[i, 0, ...])
             output.SetSpacing(np.flipud(spacing[i]))
             sitk.WriteImage(output, saving_file_path)
-            saving_file_path = saving_folder_path + '/' + appendix + "_gt.nii.gz"
-            output = sitk.GetImageFromArray(gt[i, 0, ...])
-            output.SetSpacing(np.flipud(spacing[i]))
-            sitk.WriteImage(output, saving_file_path)
+            if gt is not None:
+                saving_file_path = saving_folder_path + '/' + appendix + "_gt.nii.gz"
+                output = sitk.GetImageFromArray(gt[i, 0, ...])
+                output.SetSpacing(np.flipud(spacing[i]))
+                sitk.WriteImage(output, saving_file_path)
 
 
 

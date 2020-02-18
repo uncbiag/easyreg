@@ -336,13 +336,14 @@ def loading_img_list_from_files(path):
     return source_path_list, target_path_list, l_source_path_list, l_target_path_list
 
 
-def get_file_name(file_path):
-    """
-    get the filename given path, i.e. /path/fname.nii.gz
-    :param file_path:
-    :return: the fname
-    """
-    return os.path.split(file_path)[1].split('.')[0]
+def get_file_name(file_path,last_ocur=True):
+    if not last_ocur:
+        name= os.path.split(file_path)[1].split('.')[0]
+    else:
+        name = os.path.split(file_path)[1].rsplit('.',1)[0]
+    name = name.replace('.nii','')
+    name = name.replace('.','d')
+    return name
 
 
 def generate_pair_name(pair_path_list,sched='mixed'):

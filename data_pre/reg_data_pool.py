@@ -28,6 +28,10 @@ class BaseRegDataSet(object):
         self.pair_name_list = []
         self.pair_path_list = []
         self.file_type_list = None
+        self.max_used_train_samples = -1
+        self.max_pairs = -1
+        self.aug_test = False
+        self.sever_switch = None
         self.save_format = 'h5py'
         """currently only support h5py"""
         self.sched = sched
@@ -86,7 +90,6 @@ class BaseRegDataSet(object):
         self.save_pair_to_txt(copy.deepcopy(info))
         print("data preprocessing finished")
 
-num_c=100
 class CustomDataSet(BaseRegDataSet):
     """
     This class only compatible with dataset_type "mixed" and "custom"
@@ -134,17 +137,53 @@ class CustomDataSet(BaseRegDataSet):
         else:
             return img_pair_list
 
+
+
+    def __gen_pair_list_with_coupled_list(self,img_path_list_1, img_path_list_2, pair_num_limit = 1000):
+        img_pair_list = []
+        label_path_list_1 = find_corr_map(img_path_list_1, self.label_path, self.label_switch)
+        label_path_list_2 = find_corr_map(img_path_list_2, self.label_path, self.label_switch)
+        num_img_1 = len(img_path_list_1)
+        num_img_2 = len(img_path_list_2)
+        for i in range(num_img_1):
+            count_max=15 #15
+            img_pair_list_tmp =[]
+            for j in range(num_img_2):
+                if self.label_path is not None:
+                    img_pair_list_tmp.append([img_path_list_1[i],img_path_list_2[j],
+                                        label_path_list_1[i],label_path_list_2[j]])
+                else:
+                    img_pair_list_tmp.append([img_path_list_1[i], img_path_list_2[j]])
+            if len(img_pair_list_tmp)>count_max:
+                img_pair_list_tmp= random.sample(img_pair_list_tmp,count_max)
+            img_pair_list += img_pair_list_tmp
+        if pair_num_limit >= 0:
+            random.shuffle(img_pair_list)
+            return img_pair_list[:pair_num_limit]
+        else:
+            return img_pair_list
+
     def gen_pair_dic(self):
-        num_pair_limit = -1  # -1 used in old code
+        num_pair_limit = self.max_pairs # -1 used in old code
         img_path_list =  get_file_path_list(self.data_path, self.file_type_list)
+        if self.sever_switch is not None:
+            img_path_list = [img_path.replace(self.sever_switch[0], self.sever_switch[1]) for img_path in img_path_list]
         sub_folder_dic, sub_patients_dic = self.__divide_into_train_val_test_set(self.output_path, img_path_list,
                                                                                  self.divided_ratio)
         gen_pair_list_func = self.__gen_pair_list
         max_ratio = {'train': self.divided_ratio[0], 'val': self.divided_ratio[1], 'test': self.divided_ratio[2],
                      'debug': self.divided_ratio[1]}
-        sub_patients_dic['train']=sub_patients_dic['train'][:num_c]
-        pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(num_pair_limit * max_ratio[sess]) if num_pair_limit>0 else -1) for
+        sub_patients_dic['train']=sub_patients_dic['train'][:self.max_used_train_samples]
+        if not self.aug_test:
+            pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(num_pair_limit * max_ratio[sess]) if num_pair_limit>0 else -1) for
                          sess in sesses}
+        else:
+            pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(
+                num_pair_limit * max_ratio[sess]) if num_pair_limit > 0 else -1) for
+                             sess in ['train','val','debug']}
+            pair_list_dic['test'] =  self.__gen_pair_list_with_coupled_list(sub_patients_dic['test'],sub_patients_dic['train'][:10],
+                                                                            int(num_pair_limit * max_ratio["test"]) if num_pair_limit>0 else -1)
+
         divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
         return (sub_folder_dic, divided_path_and_name_dic)
 
@@ -388,83 +427,60 @@ class OaiDataSet(PatientStructureDataSet):
 
 
 
+
 if __name__ == "__main__":
-    print('debugging')
-    # ###########################       LPBA TESTING           ###################################
-    # #path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-    # data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
-    # label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    #
-    # file_type_list = ['*.nii']
-    # name = 'custom'
-    # output_path = '/playpen-raid/zyshen/data/seg_debug/'
-    # divided_ratio = (0.625, 0.125, 0.25)
-    #
-    # lpba = RegDatasetPool().create_dataset(name)
-    # lpba.file_type_list = file_type_list
-    # lpba.set_data_path(data_path)
-    # lpba.set_output_path(output_path)
-    # lpba.set_divided_ratio(divided_ratio)
-    # lpba.set_label_path(label_path)
-    # lpba.prepare_data()
-    #
-    # data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
-    # label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
+    # print('debugging')
+    ###########################       LPBA TESTING           ###################################
+    path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
+    data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/resized_img"
+    label_path = '/playpen-raid/zyshen/data/lpba_seg_resize/label_filtered'
+    divided_ratio = (0.625, 0.125, 0.25)
 
-    # data_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
-    # label_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
-    data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-    label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-    output_path = '/playpen-raid/zyshen/data/oai_reg/train_with_{}'.format(num_c)
-    divided_ratio = (0.8, 0.1, 0.1)
+    file_type_list = ['*.nii.gz']
     name = 'custom'
-    file_type_list =['*image.nii.gz']
-    label_switch = ('image', 'masks')
+    num_c_list = [5, 10, 15, 20, 25]
+    for num_c in num_c_list:
+        output_path = '/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_{}'.format(num_c)
+        #sever_switch = ('/playpen-raid', '/pine/scr/z/y')
+        sever_switch = None
 
-    oai = RegDatasetPool().create_dataset(name)
-    oai.label_switch = label_switch
-    oai.file_type_list = file_type_list
-    oai.set_data_path(data_path)
-    oai.set_output_path(output_path)
-    oai.set_divided_ratio(divided_ratio)
-    oai.set_label_path(label_path)
-    oai.prepare_data()
+        lpba = RegDatasetPool().create_dataset(name)
+        lpba.aug_test = True
 
+        lpba.file_type_list = file_type_list
+        lpba.sever_switch = sever_switch
+        lpba.max_used_train_samples = num_c
+        lpba.set_data_path(data_path)
+        lpba.set_output_path(output_path)
+        lpba.set_divided_ratio(divided_ratio)
+        lpba.set_label_path(label_path)
+        lpba.prepare_data()
 
-    # ###########################       LPBA Slicing TESTING           ###################################
-    # path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-    # label_path = '/playpen/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    # full_comb = False
-    # name = 'lpba'
-    # output_path = '/playpen/zyshen/data/' + name + '_pre_slicing'
-    # divided_ratio = (0.6, 0.2, 0.2)
+    # num_c_list = [10,20,30,40]
+    # for num_c in num_c_list:
+    #     data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    #     label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    #     output_path = '/playpen-raid/zyshen/data/oai_reg/train_with_test_aug_{}'.format(num_c)
+    #     divided_ratio = (0.8, 0.1, 0.1)
+    #     name = 'custom'
+    #     file_type_list =['*image.nii.gz']
+    #     label_switch = ('image', 'masks')
+    #     #sever_switch = ('/playpen-raid/olut', '/pine/scr/z/y/zyshen')
+    #     sever_switch = None
     #
-    # ###################################################
-    # #lpba testing
+    #     oai = RegDatasetPool().create_dataset(name)
+    #     oai.aug_test=True
     #
     #
-    # lpba = VolLabCusDataSet(sched='', full_comb=full_comb)
-    # lpba.set_slicing(90,1)
-    # lpba.set_data_path(path)
-    # lpba.set_output_path(output_path)
-    # lpba.set_divided_ratio(divided_ratio)
-    # lpba.set_label_path(label_path)
-    # lpba.prepare_data()
-
-
-
-    # oasis =  PatientStructureDataSet('reg',['nii.gz'],'inter')
-    # data_root_path = "/playpen/zyshen/summer/oasis_registration/reg_0313/data"
-    # output_path = '/playpen/zyshen/data/' + "reg_debug_3000_pair_reg_224_oasis3_reg_inter"
-    # divided_ratio = [0.7,0.1,0.2]
-    # oasis.set_data_root_path(data_root_path)
-    # oasis.set_output_path(output_path)
-    # oasis.set_divided_ratio(divided_ratio)
-    # oasis.prepare_data()
-
-
-
-
+    #     oai.label_switch = label_switch
+    #     oai.sever_switch = sever_switch
+    #     oai.max_used_train_samples=num_c
+    #     oai.file_type_list = file_type_list
+    #     oai.set_data_path(data_path)
+    #     oai.set_output_path(output_path)
+    #     oai.set_divided_ratio(divided_ratio)
+    #     oai.set_label_path(label_path)
+    #     oai.prepare_data()
 
 
 

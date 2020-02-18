@@ -5,6 +5,9 @@ from multiprocessing import *
 from tools.image_rescale import resize_input_img_and_save_it_as_tmp
 from functools import partial
 
+num_c = 10
+
+
 class BaseSegDataSet(object):
 
     def __init__(self, file_type_list, label_switch=('', ''), dim=3):
@@ -23,11 +26,13 @@ class BaseSegDataSet(object):
         self.file_name_list = []
         self.file_path_list = []
         self.file_type_list = file_type_list
+        self.max_used_train_samples = -1
         """currently only support h5py"""
         self.divided_ratio = (0.7, 0.1, 0.2)
         """divided the data into train, val, test set"""
         self.dim = dim
         self.label_switch = label_switch
+        self.sever_switch = None
         self.standard_label_index = []
         self.img_after_resize = None
 
@@ -95,7 +100,7 @@ class BaseSegDataSet(object):
         for label_path in label_path_list:
             label_sitk = sitk.ReadImage(label_path)
             label_np = sitk.GetArrayFromImage(label_sitk)
-            label_np = label_np.astype(np.float32)
+            label_np = label_np.astype(np.int32)
             label_filtered = self.convert_to_standard_label_map(label_np,label_path)
             label_filtered_sitk = sitk.GetImageFromArray(label_filtered)
             label_filtered_sitk.SetSpacing(label_sitk.GetSpacing())
@@ -153,22 +158,29 @@ class BaseSegDataSet(object):
 
 
 
-
     def data_preprocess(self):
         file_path_list = get_file_path_list(self.data_path, self.file_type_list)
         #random.shuffle(file_path_list)
         label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
-        self.resize_img_label(file_path_list,label_path_list)
-        file_path_list = get_file_path_list(self.data_path, self.file_type_list)
-        label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
-        self.get_shared_label_index(label_path_list)
-        self.filter_and_save_label(label_path_list)
-        label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
-        file_label_path_list = [[file_path_list[idx], label_path_list[idx]] for idx in range(len(label_path_list))]
+        # self.resize_img_label(file_path_list,label_path_list)
+        # file_path_list = get_file_path_list(self.data_path, self.file_type_list)
+        # label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
+        # self.get_shared_label_index(label_path_list)
+        # self.filter_and_save_label(label_path_list)
+        # label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
+        if self.sever_switch is None:
+            file_label_path_list = [[file_path_list[idx], label_path_list[idx]] for idx in range(len(label_path_list))]
+        else:
+            file_label_path_list = [[file_path_list[idx].replace(self.sever_switch[0],self.sever_switch[1])
+                                        , label_path_list[idx].replace(self.sever_switch[0], self.sever_switch[1])] for idx in range(len(label_path_list))]
+
         self.num_pair = len(file_label_path_list)
-        self.pair_name_list = [get_file_name(fpth) for fpth in file_path_list]
+        self.pair_name_list = [get_file_name(fpth,True) for fpth in file_path_list]
         sub_folder_dic, file_id_dic = divide_data_set(self.output_path, self.num_pair, self.divided_ratio)
         divided_path_and_name_dic = get_divided_dic(file_id_dic,file_label_path_list, self.pair_name_list)
+        if self.max_used_train_samples>0:
+            divided_path_and_name_dic['file_path_list']['train']=divided_path_and_name_dic['file_path_list']['train'][:self.max_used_train_samples]#  should be -1 in most cases
+            divided_path_and_name_dic['file_name_list']['train']=divided_path_and_name_dic['file_name_list']['train'][:self.max_used_train_samples]
         saving_pair_info(sub_folder_dic, divided_path_and_name_dic)
 
 
@@ -199,47 +211,149 @@ class SegDatasetPool(object):
 
 if __name__ == "__main__":
     pass
-    # lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*.nii','*nii.gz'])
-    # data_path = "/playpen-raid/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm_hist_oasis"
-    # label_path = '/playpen-raid/data/quicksilver_data/testdata/LPBA40/label_affine_icbm'
-    # output_path = '/playpen-raid/zyshen/data/lpba_seg_resize'
-    #
-    # # data_path = "/home/zyshen/proj/remote_data/LPBA40_affine_hist"
-    # # label_path = '/home/zyshen/proj/remote_data/LPBA40_label_affine'
-    # # output_path = '/home/zyshen/proj/local_debug/brain_seg'
-    #
-    #
-    # divided_ratio = (0.625, 0.125, 0.25)
-    # lpba.set_data_path(data_path)
-    # lpba.set_label_path(label_path)
-    # lpba.set_output_path(output_path)
-    # lpba.set_divided_ratio(divided_ratio)
-    # lpba.img_after_resize =(196,164,196)
-    # lpba.prepare_data()
 
-    oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'])
-
-    label_switch = ('image', 'masks')
-
-    data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-    label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-    output_path = '/playpen-raid/zyshen/data/oai_seg'
-    divided_ratio = (0.8, 0.1, 0.1)
-    oai.label_switch = label_switch
-    oai.set_data_path(data_path)
-    oai.set_label_path(label_path)
-    oai.set_output_path(output_path)
-    oai.set_divided_ratio(divided_ratio)
-    oai.img_after_resize = ( 160,200,200)
-    oai.prepare_data()
+    # num_c_list = [5, 10, 15, 20, 25]
     #
-    # oai =SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'],label_switch=('image', 'label_all'))
-    # data_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
-    # label_path = "/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_rescaled"
+    # for num_c in num_c_list:
+    #     lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*nii.gz'])
+    #
+    #     label_switch = ('_image.nii.gz', '_label.nii.gz')
+    #     sever_switch = ('/playpen-raid', '/pine/scr/z/y')
+    #     #sever_switch = None
+    #     data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/resized_img"
+    #     label_path = '/playpen-raid/zyshen/data/lpba_seg_resize/label_filtered'
+    #
+    #     output_path = "/playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case".format(num_c)
+    #     divided_ratio =  (0.625, 0.125, 0.25)
+    #     lpba.label_switch = label_switch
+    #     lpba.sever_switch = sever_switch
+    #     lpba.max_used_train_samples=num_c
+    #     lpba.set_data_path(data_path)
+    #     lpba.set_label_path(label_path)
+    #     lpba.set_output_path(output_path)
+    #     lpba.set_divided_ratio(divided_ratio)
+    #     lpba.img_after_resize = (196, 164, 196)
+    #     lpba.prepare_data()
+
+
+    num_c_list = [5, 10, 15, 20, 25]
+
+    for num_c in num_c_list:
+        lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*_image.nii.gz'])
+
+        label_switch = ('_image.nii.gz', '_label.nii.gz')
+        sever_switch = ('/playpen-raid', '/pine/scr/z/y')
+        # sever_switch = None
+
+        data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/gen_lresol_bspline/{}case".format(num_c)
+        label_path = data_path
+        output_path = "/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever/gen_lresol_bspline/{}case".format(num_c)
+        divided_ratio = (1, 0, 0)
+        lpba.label_switch = label_switch
+        lpba.sever_switch = sever_switch
+        lpba.set_data_path(data_path)
+        lpba.set_label_path(label_path)
+        lpba.set_output_path(output_path)
+        lpba.set_divided_ratio(divided_ratio)
+        lpba.img_after_resize = (196, 164, 196)
+        lpba.prepare_data()
+        import subprocess
+        cmd = "\n cp -r /playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case/val ".format(num_c) +output_path
+        cmd += "\n cp -r /playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case/test ".format(num_c) +output_path
+        cmd += "\n cp -r /playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case/debug ".format(num_c) +output_path
+        process = subprocess.Popen(cmd, shell=True)
+        process.wait()
+    # num_c_list= [5,10,15,20,25]
+    #
+    # for num_c in num_c_list:
+    #     lpba = SegDatasetPool().create_dataset(dataset_name='lpba', file_type_list=['*_image.nii.gz'])
+    #
+    #     label_switch = ('_image.nii.gz', '_label.nii.gz')
+    #     sever_switch=('/playpen-raid','/pine/scr/z/y')
+    #     #sever_switch = None
+    #
+    #
+    #     data_path = "/playpen-raid/zyshen/data/lpba_reg/train_with_{}/lpba_ncc_reg1/gen_lresol".format(num_c)
+    #     label_path = data_path
+    #     output_path = data_path + '_seg_sever'
+    #     divided_ratio = (1, 0, 0)
+    #     lpba.label_switch = label_switch
+    #     lpba.sever_switch = sever_switch
+    #     lpba.set_data_path(data_path)
+    #     lpba.set_label_path(label_path)
+    #     lpba.set_output_path(output_path)
+    #     lpba.set_divided_ratio(divided_ratio)
+    #     lpba.img_after_resize = (196,164,196)
+    #     lpba.prepare_data()
+
+
+
+
+
+    # oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'])
+    #
+    # label_switch = ('image', 'masks')
+    #
+    # data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    # label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
     # output_path = '/playpen-raid/zyshen/data/oai_seg'
-    # divided_ratio = (0.6, 0.2, 0.2)
+    # divided_ratio = (0.8, 0.1, 0.1)
+    # oai.label_switch = label_switch
     # oai.set_data_path(data_path)
-    # oai.set_label_path(data_path)
+    # oai.set_label_path(label_path)
     # oai.set_output_path(output_path)
     # oai.set_divided_ratio(divided_ratio)
+    # oai.img_after_resize = ( 160,200,200)
     # oai.prepare_data()
+
+    # oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*image.nii.gz'])
+    #
+    # label_switch = ('image', 'masks')
+    # sever_switch = ('/playpen-raid/olut', '/pine/scr/z/y/zyshen/data')
+    #
+    # data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    # label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    # output_path = '/playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case'.format(num_c)
+    # divided_ratio = (0.8, 0.1, 0.1)
+    # oai.label_switch = label_switch
+    # oai.sever_switch = sever_switch
+    # oai.set_data_path(data_path)
+    # oai.set_label_path(label_path)
+    # oai.set_output_path(output_path)
+    # oai.set_divided_ratio(divided_ratio)
+    # oai.img_after_resize = ( 160,200,200)
+    # oai.prepare_data()
+
+
+
+
+    num_c_list = [10, 20, 30, 40,60,80,100]
+    for num_c in num_c_list:
+        oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*_image.nii.gz'])
+
+        label_switch = ('_image.nii.gz', '_label.nii.gz')
+        sever_switch=('/playpen-raid','/pine/scr/z/y')
+        #sever_switch=None
+
+        # data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+        # label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+        data_path = "/playpen-raid/zyshen/data/oai_seg/baseline/aug/gen_lresol_bspline/{}case".format(num_c)
+        label_path = data_path
+        output_path = "/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever/gen_lresol_bspline/{}case".format(num_c)
+        divided_ratio = (1,0,0)
+        oai.label_switch = label_switch
+        oai.sever_switch = sever_switch
+        oai.set_data_path(data_path)
+        oai.set_label_path(label_path)
+        oai.set_output_path(output_path)
+        oai.set_divided_ratio(divided_ratio)
+        oai.img_after_resize = ( 160,200,200)
+        oai.prepare_data()
+        import subprocess
+
+        cmd = "\n cp -r /playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case/val ".format(num_c) + output_path
+        cmd += "\n cp -r /playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case/test ".format(num_c) + output_path
+        cmd += "\n cp -r /playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case/debug ".format(num_c) + output_path
+        process = subprocess.Popen(cmd, shell=True)
+        process.wait()
+

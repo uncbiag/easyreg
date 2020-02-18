@@ -567,9 +567,10 @@ class MermaidNet(nn.Module):
                             inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
                 self.inverse_map = inverse_map
         else:
-            affine_map = self.identityMap.clone()
+            num_b = moving.shape[0]
+            affine_map = self.identityMap[:num_b].clone()
             if self.compute_inverse_map:
-                self.inverse_map = self.identityMap.clone()
+                self.inverse_map = self.identityMap[:num_b].clone()
 
             affine_img = moving
         record_is_grad_enabled = torch.is_grad_enabled()
@@ -652,9 +653,10 @@ class MermaidNet(nn.Module):
                             inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
                 self.inverse_map = inverse_map
         else:
-            affine_map = self.identityMap.clone()
+            num_b = moving.shape[0]
+            affine_map = self.identityMap[:num_b].clone()
             if self.compute_inverse_map:
-                self.inverse_map = self.identityMap.clone()
+                self.inverse_map = self.identityMap[:num_b].clone()
             affine_img = moving
         warped_img = affine_img
         init_map = affine_map
@@ -708,7 +710,6 @@ class MermaidNet(nn.Module):
          :param target: target image with intensity [-1,1]
          :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
          """
-        self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
         rec_IWarped, rec_phiWarped, affine_img = self.mutli_step_forward(moving_sym, target_sym)
@@ -750,6 +751,7 @@ class MermaidNet(nn.Module):
         :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
         """
         self.get_step_config()
+        self.n_batch = moving.shape[0]
         if self.using_sym_on:
             if not self.print_count:
                 print(" The mermaid network is in multi-step and symmetric mode, with step {}".format(self.step))

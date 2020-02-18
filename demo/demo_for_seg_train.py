@@ -103,7 +103,7 @@ def backup_settings(args):
 
 
 
-def __do_registration_train(args,pipeline=None):
+def __do_segmentation_train(args,pipeline=None):
     """
         set running env and run the task
 
@@ -133,7 +133,7 @@ def __do_registration_train(args,pipeline=None):
 
 
 
-def do_registration_train(args):
+def do_segmentation_train(args):
     """
     a interface for setting one-stage training or two stage training (include affine)
 
@@ -144,7 +144,7 @@ def do_registration_train(args):
     args.task_name_record = task_name
     backup_settings(args)
     pipeline = None
-    __do_registration_train(args,pipeline)
+    __do_segmentation_train(args,pipeline)
 
 
 
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="An easy interface for training registration models")
+    parser = argparse.ArgumentParser(description="An easy interface for training segmentation models")
     parser.add_argument('-o','--output_root_path', required=False, type=str,
                         default=None,help='the path of output folder')
     parser.add_argument('-dtn','--data_task_name', required=False, type=str,
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')
     args = parser.parse_args()
     print(args)
-    do_registration_train(args)
+    do_segmentation_train(args)
 
 
     # -o /home/zyshen/proj/local_debug -dtn=brain_seg -tn=debuging -ts=/home/zyshen/proj/easyreg/debug/settings -g=-1

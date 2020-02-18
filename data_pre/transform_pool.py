@@ -688,6 +688,8 @@ class MyBalancedRandomCrop(object):
         if self.max_crop_on and self.np_coord_count[cur_label_id] >= self.max_crop_num:
             ins_id = self.np_coord_count[cur_label_id] % self.max_crop_num
             start_coord = self.np_coord_buffer[cur_label_id, ins_id, :]
+            size_new = np.flipud(size_new)
+            #print("this is signal")
         else:
             # here the coordinate system transfer from the sitk to numpy
             size_new = np.flipud(size_new)

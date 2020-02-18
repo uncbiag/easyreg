@@ -77,7 +77,8 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
                 model.save_fig('debug_model_'+phase)
             if save_3d_img_on:
                 model.save_fig_3D(phase='test')
-                model.save_deformation()
+                if task_type == 'reg':
+                    model.save_deformation()
 
             if output_taking_original_image_format:
                 model.save_image_into_original_sz_with_given_reference()

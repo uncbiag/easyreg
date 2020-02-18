@@ -165,7 +165,7 @@ class DataManager(object):
 
         def _init_fn(worker_id):
             np.random.seed(12 + worker_id)
-        num_workers_reg ={'train':12,'val':0,'test':1,'debug':0}#{'train':0,'val':0,'test':0,'debug':0}#{'train':8,'val':4,'test':4,'debug':4}
+        num_workers_reg ={'train':8,'val':0,'test':0,'debug':0}#{'train':0,'val':0,'test':0,'debug':0}#{'train':8,'val':4,'test':4,'debug':4}
         shuffle_list ={'train':True,'val':False,'test':False,'debug':False}
         batch_size = [batch_size]*4 if not isinstance(batch_size, list) else batch_size
         batch_size = {'train': batch_size[0],'val':batch_size[1],'test':batch_size[2],'debug':batch_size[3]}
@@ -182,9 +182,9 @@ class DataManager(object):
         :return: dict of dataloaders for train phase or the test phase
         """
         if is_train:
-            self.phases = ['train', 'val','test','debug']
+            self.phases = ['train', 'val','debug']
         else:
-            self.phases = ['val','test']
+            self.phases = ['test']
         composed = transforms.Compose([ToTensor()])
         self.init_dataset_type()
         option = self.seg_option if self.task_type=="seg" else self.reg_option
