@@ -62,7 +62,7 @@ def train_model(opt,model, dataloaders,writer):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
         model.set_cur_epoch(epoch)
-        if epoch == warmming_up_epoch:
+        if epoch == warmming_up_epoch and not reset_train_epoch:
             model.update_learning_rate()
 
         for phase in phases:

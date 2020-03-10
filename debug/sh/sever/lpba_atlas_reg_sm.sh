@@ -1,0 +1,2 @@
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_new_sm -txt=/pine/scr/z/y/zyshen/data/lpba_seg_resize/atlas/train.txt   -o=/pine/scr/z/y/zyshen/data/lpba_seg_resize/atlas/train_sm -g=0
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_new_sm -txt=/pine/scr/z/y/zyshen/data/lpba_seg_resize/atlas/test.txt   -o=/pine/scr/z/y/zyshen/data/lpba_seg_resize/atlas/test_sm -g=0

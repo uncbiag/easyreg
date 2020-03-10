@@ -79,193 +79,223 @@ def get_list_from_dic(data_dic,use_log=False,use_perc=False):
 
 
 
-def get_df_from_list(name_list, data_list1,data_list2):
+
+def get_df_from_list(name_list, data_list1,name=''):
     data_combined1 = np.array([])
-    data_combined2 = np.array([])
     group_list = np.array([])
     for i in range(len(name_list)):
         data1 = data_list1[i]
-        data2 = data_list2[i]
-        if len(data1)!= len(data2):
-            print("Warning the data1, data2 not consistant, the expr name is {}, len of data1 is {}, len of data2 is {}".format(name_list[i],len(data1),len(data2)))
-        max_len = max(len(data1),len(data2))
-        tmp_data1 = np.empty(max_len)
-        tmp_data2 = np.empty(max_len)
-        tmp_data1[:]= np.nan
-        tmp_data2[:]= np.nan
-        tmp_data1[:len(data1)] = data1
-        tmp_data2[:len(data2)] = data2
+        tmp_data1 = np.empty(len(data1))
+        tmp_data1[:] = data1[:]
         data_combined1 = np.append(data_combined1,tmp_data1)
-        data_combined2 = np.append(data_combined2, tmp_data2)
-        group_list = np.append(group_list, np.array([name_list[i]]*max_len))
+        group_list = np.append(group_list, np.array([name_list[i]]*len(data1)))
     group_list = list(group_list)
-
-    df = pd.DataFrame({'Group':group_list,'Longitudinal':data_combined1, 'Cross-subject':data_combined2})
+    df = pd.DataFrame({'Group':group_list,name:data_combined1})
     return df
 
 
 
 
-def get_res_dic(draw_aug, draw_trendency):
+def get_brainstorm_res(task_type,file_type='records.npy'):
     data_dic = {}
-    if draw_aug:
-        if not draw_trendency:
-            #data_dic['af_ants'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_affine_bi/records/records.npy')
-            data_dic['affine_NiftyReg'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_affine_jacobi/records/records_detail.npy')
-            data_dic['affine_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_affine_lncc_bi/records/records_detail.npy')
-            #data_dic['affine_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_single_bi/records/records_detail.npy')
-            #data_dic['affine_cycle_step3'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_cycle_step3_bi/records/records_detail.npy')
-            #data_dic['affine_cycle_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_cycle_bi/records/records_detail.npy')
-            #data_dic['affine_sym_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_sym_bi/records/records_detail.npy')
-            data_dic['affine_network'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_sym_lncc_bi/records/records_detail.npy')
 
-            data_dic['Demons'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_en2en1p2_jacobi/records/records_detail.npy')
-            data_dic['SyN'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_ncc/records/records_detail.npy')
-            data_dic['NiftyReg_NMI'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_detail.npy')
-            data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_detail.npy')
-            data_dic['vSVF_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_detail.npy')
-            data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_detail.npy')
-            data_dic['AVSM (2step)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step2_jacobi/records/records_detail.npy')
-            data_dic['AVSM (3step)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step3_jacobi/records/records_detail.npy')
-            #data_dic['VoxelMorph(with aff)_wo_affine'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_withoutaffine_symjacobi/reg/res/records/records_detail.npy')
-            #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
+    data_dic['brainstorm'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_fake_img_disp/res/seg/res/records/' + file_type)
+    data_dic['brainstom_real'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_real_img_disp/res/seg/res/records/' + file_type)
+    data_dic['fluid_aug'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_fake_img_fluid/res/seg/res/records/' + file_type)
+    data_dic['fluid_aug_real'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_real_img_fluid/res/seg/res/records/' + file_type)
+    data_dic['upper_bound'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/upperbound/res/seg/res/records/' + file_type)
+    return data_dic
 
 
+def get_longitudinal_reg_res(task_type, file_type = "records.npy"):
+    data_dic = {}
+    data_dic['affine_network'] = get_experiment_data_from_record_detail(inc(),
+                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_affine_net_sym_lncc_bi/records/records_detail.npy')
 
-    else:
-        if not draw_trendency:
-            #data_dic['af_ants'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_affine_bi/records/records.npy')
-            data_dic['affine_NiftyReg'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_affine_jacobi/records/records_detail.npy')
-            data_dic['affine_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_affine_recbi/records/records_detail.npy')
-            #data_dic['affine_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_single_recbi/records/records_detail.npy')
-            #data_dic['affine_cycle_step3'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_step3_recbi/records/records_detail.npy')
-            #data_dic['affine_cycle_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_recbi/records/records_detail.npy')
-            #data_dic['affine_sym_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_recbi/records/records_detail.npy')
-            data_dic['affine_network'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_from_intra_recbi/records/records_detail.npy')
+    data_dic['non-aug'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid1/zyshen/data/reg_oai_aug/svf_net_scratch_res/reg/res/records/records.npy')
+    data_dic['fluid-aug'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid1/zyshen/data/reg_oai_aug/svf_lld_scratch_res/reg/res/records/records.npy')
 
-            data_dic['Demons'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_en2en1p2_jacobi/records/records_detail.npy')
-            data_dic['SyN'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_ncc/records/records_detail.npy')
-            data_dic['NiftyReg_NMI'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_detail.npy')
-            #data_dic['niftyreg_improve'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv20_bi/records/records.npy')
-            data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_detail.npy')
-            data_dic['vSVF_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_detail.npy')
-            data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_detail.npy')
-            data_dic['AVSM (2step)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_detail.npy')
-            data_dic['AVSM (3step)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_detail.npy')
-            #data_dic['VoxelMorph(w/o aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_withoutaffine_symjacobi/reg/res/records/records_detail.npy')
-            #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_sym_lncc_recbi/records/records_detail.npy')
-            #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
+    data_dic['vSVF-opt'] = get_experiment_data_from_record_detail(inc(),
+                                                                  '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_detail.npy')
+
+    data_dic['vSVF-net'] = get_experiment_data_from_record_detail(inc(),
+                                                                  '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step2_jacobi/records/records_detail.npy')
+
+    return data_dic
+
+
+
+def get_lpba_post_dic(task_type,file_type='records.npy'):
+    data_dic = {}
+
+
+    if task_type=='post_aug_10':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/25case/seg/res/records/' + file_type)
+
+    if task_type=='post_aug_20':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/25case/seg/res/records/' + file_type)
+
+
+    if task_type=='post_aug_30':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/25case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_10_t0':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/25case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_20_t0':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/25case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_30_t0':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/25case/seg/res/records/' + file_type)
+
+    return data_dic
+
+
+def get_oai_post_dic(task_type,file_type='records.npy'):
+    data_dic = {}
+
+
+    if task_type=='post_aug_10':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/60case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_20':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/60case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_30':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/60case/seg/res/records/' + file_type)
+
+    if task_type=='post_aug_10_t0':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/60case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_20_t0':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/60case/seg/res/records/' + file_type)
+
+    if task_type == 'post_aug_30_t0':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/60case/seg/res/records/' + file_type)
 
     return data_dic
 
 
 
 
-def get_jacobi_dic(draw_aug, draw_trendency):
+def get_lpba_dic(task_type,file_type='records.npy'):
     data_dic = {}
-    if draw_aug:
-
-            data_dic['Demons'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_demons_en2en1p2_jacobi/records/records_jacobi.npy')
-            data_dic['SyN'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_ants_ncc/records/records_jacobi.npy')
-            data_dic['NiftyReg_NMI'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi.npy')
-            data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_jacobi.npy')
-            data_dic['vSVF_opt'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_jacobi.npy')
-            data_dic['VoxelMorph(w/o aff)'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_withoutaffine_symjacobi/reg/res/records/records_jacobi.npy')
-            data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_jacobi.npy')
-            data_dic['AVSM (2step)'] = get_experiment_data_from_record(inc(),
-                                                                       '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step2_jacobi/records/records_jacobi.npy')
-            data_dic['AVSM (3step)'] = get_experiment_data_from_record(inc(),
-                                                                       '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step3_jacobi/records/records_jacobi.npy')
-
-    else:
-            data_dic['Demons'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_en2en1p2_jacobi/records/records_jacobi.npy')
-            data_dic['SyN'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_ncc/records/records_jacobi.npy')
-            data_dic['NiftyReg_NMI'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi.npy')
-            data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_jacobi.npy')
-            data_dic['vSVF_opt'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_jacobi.npy')
-            data_dic['VoxelMorph(w/o aff)'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_withoutaffine_symjacobi/reg/res/records/records_jacobi.npy')
-            data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_jacobi.npy')
-            data_dic['AVSM (2step)'] = get_experiment_data_from_record(inc(),
-                                                               '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_jacobi.npy')
-            data_dic['AVSM (3step)'] = get_experiment_data_from_record(inc(),
-                                                               '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_jacobi.npy')
-
-    return data_dic
-
-
-def get_group_jacobi_dic(draw_aug, draw_trendency):
-    data_dic = {}
-    if draw_aug:
-        data_dic['step1'] = get_experiment_data_from_record(inc(),
-                                                            '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step1_jacobi/records/records_jacobi.npy')
-        data_dic['step2'] = get_experiment_data_from_record(inc(),
-                                                            '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step2_jacobi/records/records_jacobi.npy')
-        data_dic['step3'] = get_experiment_data_from_record(inc(),
-                                                            '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step3_jacobi/records/records_jacobi.npy')
-        data_dic['step4'] = get_experiment_data_from_record(inc(),
-                                                            '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step4_jacobi/records/records_jacobi.npy')
-        data_dic['step5'] = get_experiment_data_from_record(inc(),
-                                                            '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step5_jacobi/records/records_jacobi.npy')
-        data_dic['step6'] = get_experiment_data_from_record(inc(),
-                                                            '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/test_intra_mermaid_net_500inst_10reg_double_loss_step6_jacobi/records/records_jacobi.npy')
-
-    else:
-            data_dic['step1'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step1_jacobi/records/records_jacobi.npy')
-            data_dic['step2'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_jacobi.npy')
-            data_dic['step3'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_jacobi.npy')
-            data_dic['step4'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step4_jacobi/records/records_jacobi.npy')
-            data_dic['step5'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step5_jacobi/records/records_jacobi.npy')
-            data_dic['step6'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step6_jacobi/records/records_jacobi.npy')
-
-    return data_dic
-
-
-def get_multi_step_affine_dic(draw_aug):
-    data_dic = {}
-    if draw_aug:
-        data_dic['step1'] = get_experiment_data_from_record_detail(inc(),
-                                                                   '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_1/records/records_detail.npy')
-        data_dic['step2'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_2/records/records_detail.npy')
-        data_dic['step3'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_3/records/records_detail.npy')
-        data_dic['step4'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_4/records/records_detail.npy')
-        data_dic['step5'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_5/records/records_detail.npy')
-        data_dic['step6'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_6/records/records_detail.npy')
-        data_dic['step7'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_7/records/records_detail.npy')
-        data_dic['step8'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_8/records/records_detail.npy')
-
-    else:
-        data_dic['step1'] = get_experiment_data_from_record_detail(inc(),
-                                                                   '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_1/records/records_detail.npy')
-        data_dic['step2'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_2/records/records_detail.npy')
-        data_dic['step3'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_3/records/records_detail.npy')
-        data_dic['step4'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_4/records/records_detail.npy')
-        data_dic['step5'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_5/records/records_detail.npy')
-        data_dic['step6'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_6/records/records_detail.npy')
-        data_dic['step7'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_7/records/records_detail.npy')
-        data_dic['step8'] = get_experiment_data_from_record_detail(inc(),
-                                                                        '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/multi_step_compare_affine/run_affine_net_sym_lncc_multi_step_record_jacobi_8/records/records_detail.npy')
-
-
-    return data_dic
-
-
-
-def get_lpba_dic(draw_aug,file_type='records.npy'):
-    data_dic = {}
-    if draw_aug:
+    if task_type=='aug_2d':
         data_dic['5_case_aug'] = get_experiment_data_from_record(inc(),
                                                                    '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/5case/best2_aug/seg/res/records/'+file_type)
         data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
@@ -278,7 +308,7 @@ def get_lpba_dic(draw_aug,file_type='records.npy'):
                                                                         '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/best2_aug/seg/res/records/'+file_type)
 
 
-    else:
+    if task_type=='base':
         data_dic['5_case'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/5case/best2/seg/res/records/' + file_type)
         data_dic['10_case'] = get_experiment_data_from_record(inc(),
@@ -290,13 +320,75 @@ def get_lpba_dic(draw_aug,file_type='records.npy'):
         data_dic['25_case'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/best2/seg/res/records/' + file_type)
 
+    if task_type=='aug_aug':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                             '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/25case/seg/res/records/' + file_type)
+
+    if task_type=='bspline':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/25case/seg/res/records/' + file_type)
+
+    if task_type=='rand':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/25case/seg/res/records/' + file_type)
+    if task_type=='aug_1d':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/25case/seg/res/records/' + file_type)
+    if task_type=='atlas':
+        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/5case/seg/res/records/' + file_type)
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/10case/seg/res/records/' + file_type)
+        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/15case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/20case/seg/res/records/' + file_type)
+        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/25case/seg/res/records/' + file_type)
+
     return data_dic
 
-def get_oai_dic(draw_aug,file_type='records.npy'):
+
+
+
+
+def get_oai_dic(task_type,file_type='records.npy'):
     data_dic = {}
-    if draw_aug:
+    if task_type=='aug_2d':
         data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best3_aug/seg/res/records/'+file_type)
+                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best4_aug/seg/res/records/'+file_type)
         data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/20case/best3_aug/seg/res/records/' + file_type)
         data_dic['30_case_aug'] = get_experiment_data_from_record(inc(),
@@ -305,13 +397,13 @@ def get_oai_dic(draw_aug,file_type='records.npy'):
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3_aug/seg/res/records/' + file_type)
         data_dic['60_case_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3_aug/seg/res/records/' + file_type)
-        data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug/seg/res/records/' + file_type)
-        data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug/seg/res/records/' + file_type)
+        # data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug/seg/res/records/' + file_type)
+        # data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug/seg/res/records/' + file_type)
 
 
-    else:
+    if task_type=='base':
         data_dic['10_case'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best3/seg/res/records/' + file_type)
         data_dic['20_case'] = get_experiment_data_from_record(inc(),
@@ -322,11 +414,194 @@ def get_oai_dic(draw_aug,file_type='records.npy'):
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3/seg/res/records/' + file_type)
         data_dic['60_case'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
-                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3/seg/res/records/' + file_type)
+        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3/seg/res/records/' + file_type)
+        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3/seg/res/records/' + file_type)
 
+    if task_type == 'aug_aug':
+        data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/10case/seg/res/records/' + file_type)
+        data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/20case/seg/res/records/' + file_type)
+        data_dic['30_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/30case/seg/res/records/' + file_type)
+        data_dic['40_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/40case/seg/res/records/' + file_type)
+        data_dic['60_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/50case/seg/res/records/' + file_type)
+        # data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug3/seg/res/records/' + file_type)
+        # data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug3/seg/res/records/' + file_type)
+
+    if task_type == 'aug_aug_1d':
+        data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best3_aug_1d/seg/res/records/' + file_type)
+        data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/20case/best3_aug_1d/seg/res/records/' + file_type)
+        data_dic['30_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/30case/best3_aug_1d/seg/res/records/' + file_type)
+        data_dic['40_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3_aug_1d/seg/res/records/' + file_type)
+        data_dic['60_case_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3_aug_1d/seg/res/records/' + file_type)
+        # data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug_1d/seg/res/records/' + file_type)
+        # data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug_1d/seg/res/records/' + file_type)
+
+    if task_type=='bspline':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/60case/seg/res/records/' + file_type)
+        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/80case/seg/res/records/' + file_type)
+        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/100case/seg/res/records/' + file_type)
+
+    if task_type=='rand':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/60case/seg/res/records/' + file_type)
+        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/80case/seg/res/records/' + file_type)
+        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/100case/seg/res/records/' + file_type)
+
+    if task_type == 'aug_1d':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/60case/seg/res/records/' + file_type)
+        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/80case/seg/res/records/' + file_type)
+        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/100case/seg/res/records/' + file_type)
+
+    return data_dic
+
+
+
+def get_oai_dic2(task_type,file_type='records.npy'):
+    data_dic = {}
+    if task_type == 'bspline':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/60case/seg/res/records/' + file_type)
+        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/80case/seg/res/records/' + file_type)
+        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/100case/seg/res/records/' + file_type)
+
+    if task_type == 'aug_2d':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/60case/seg/res/records/' + file_type)
+        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/80case/seg/res/records/' + file_type)
+        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/100case/seg/res/records/' + file_type)
+
+    if task_type == 'base':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/60case/seg/res/records/' + file_type)
+        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/80case/seg/res/records/' + file_type)
+        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/100case/seg/res/records/' + file_type)
+
+
+    if task_type == 'aug_1d':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/60case/seg/res/records/' + file_type)
+        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/80case/seg/res/records/' + file_type)
+        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/100case/seg/res/records/' + file_type)
+
+
+    if task_type == 'atlas':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/60case/seg/res/records/' + file_type)
+        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/80case/seg/res/records/' + file_type)
+        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/100case/seg/res/records/' + file_type)
+
+    if task_type == 'rand':
+        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/10case/seg/res/records/' + file_type)
+        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/20case/seg/res/records/' + file_type)
+        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/30case/seg/res/records/' + file_type)
+        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/40case/seg/res/records/' + file_type)
+        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+                                                              '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/60case/seg/res/records/' + file_type)
+        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/80case/seg/res/records/' + file_type)
+        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/100case/seg/res/records/' + file_type)
 
     return data_dic
 
@@ -353,6 +628,31 @@ def draw_histogram(name_list, data_list1, data_list2, label="Jacobi Distribution
         plt.show()
         plt.clf()
 
+
+def draw_single_boxplot(name_list,data_list,label ='Dice Score',titile=None, fpth=None ,data_name= None,title=None):
+    df = get_df_from_list(name_list,data_list,name=data_name)
+    df = df[['Group', data_name]]
+    dd = pd.melt(df, id_vars=['Group'], value_vars=[data_name], var_name='task')
+    fig, ax = plt.subplots(figsize=(12, 7))
+    #fig, ax = plt.subplots(figsize=(12, 12))
+    sn=sns.boxplot(x='Group', y='value', data=dd,ax=ax)
+    sn.set_title(title,fontsize=50)
+    #sns.palplot(sns.color_palette("Set2"))
+    sn.set_xlabel('')
+    sn.set_ylabel(label)
+    # plt.xticks(rotation=45)
+    ax.yaxis.grid(True)
+    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                 ax.get_xticklabels() + ax.get_yticklabels()):
+        item.set_fontsize(20)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(0)
+    if fpth is not None:
+        plt.savefig(fpth,dpi=500, bbox_inches = 'tight')
+        plt.close('all')
+    else:
+        plt.show()
+        plt.clf()
 
 
 def draw_group_boxplot(name_list,data_list1,data_list2, label ='Dice Score',titile=None, fpth=None ):
@@ -404,8 +704,6 @@ def plot_group_trendency(trend_name, trend1, trend2,label='Average Dice', title=
     labs = [l.get_label() for l in lns]
     leg = ax1.legend(lns, labs, loc=0,prop={'size': 20})
 
-
-
     #leg = plt.legend(loc='best')
     #get the individual lines inside legend and set line width
     for line in leg.get_lines():
@@ -433,17 +731,33 @@ def plot_group_trendency(trend_name, trend1, trend2,label='Average Dice', title=
     #fig.tight_layout()  # otherwise the right y-label is slightly clipped
 
 
+def draw_plots(trend_name, name_list, trend_list,label='Average Dice', title=None,rotation_on = True,fpth=None):
+    fig, ax = plt.subplots(figsize=(7, 5))
+    trend_mean_list = [[np.mean(data) for data in trend] for trend in trend_list]
+    trend_std_list = [[np.std(data) for data in trend] for trend in trend_list]
+    max_len = max([len(trend) for trend in trend_list])
+    t = list(range(max_len))
 
 
+    for i in range(len(trend_list)):
+        plt.errorbar(t,trend_mean_list[i], yerr=0, label=name_list[i])
 
+    plt.legend(loc='lower right',fontsize=18)
+    if rotation_on:
+        plt.xticks(t, trend_name, rotation=20)
 
+    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                 ax.get_xticklabels() + ax.get_yticklabels()):
+        item.set_fontsize(18)
 
-
-
-
-
-
-
+    ax.set_ylabel(label, fontsize=20)
+    plt.title(title, fontsize=20)
+    if fpth is not None:
+        plt.savefig(fpth, dpi=500, bbox_inches='tight')
+        plt.close('all')
+    else:
+        plt.show()
+        plt.clf()
 
 order = -1
 
@@ -453,141 +767,178 @@ def inc():
     return order
 
 
-#
-draw_trendency = False
-draw_boxplot = False
-title =None
-label = "Dice Score"
-##################################Get Data ##############################################################
 
 
-#get dice box plot data
-#
-# data_list1, name_list = get_list_from_dic(get_res_dic(draw_aug=True, draw_trendency=False),use_perc=True)
+# data_list1, name_list = get_list_from_dic(get_oai_dic2(task_type='base',file_type = 'records.npy'))
 # order = -1
-# data_list2, _ = get_list_from_dic(get_res_dic(draw_aug=False, draw_trendency=False),use_perc=True)
+# data_list2, _ = get_list_from_dic(get_oai_dic2(task_type='bspline',file_type = 'records.npy'))  #records_jacobi_num
 # order = -1
-# # draw_boxplot = True
-# fpth = '/playpen-raid/zyshen/debugs/res/boxplot.png'
-# draw_group_boxplot(name_list,data_list1,data_list2,label=label,fpth=fpth)
+# data_list3, _ = get_list_from_dic(get_oai_dic2(task_type='aug_2d',file_type = 'records.npy'))  #records_jacobi_num
+# order =-1
+# data_list4, _ = get_list_from_dic(get_oai_dic2(task_type='aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+# data_list5, _ = get_list_from_dic(get_oai_dic2(task_type='rand',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+# data_list6, _ = get_list_from_dic(get_oai_dic2(task_type='atlas',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+# label = 'Dice'
+# title = 'OAI'
+# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/lpba40_seg.png"
+# #plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+# draw_plots(name_list,['non-aug','bspline','2d','1d',"rand","atlas"], [data_list1, data_list2,data_list3, data_list4,data_list5,data_list6],label, title,rotation_on=True,fpth=None)
 #
 #
-# #
-# ##get multi-step affine trend data
+
 #
-# data_list1, name_list = get_list_from_dic(get_multi_step_affine_dic(draw_aug=True),use_perc=True)
-# order = -1
-# data_list2, _ = get_list_from_dic(get_multi_step_affine_dic(draw_aug=False),use_perc=True)
-# order = -1
-# label = 'Average Dice'
-# title= 'Step-Dice (Multi-step Affine)'
-# fpth = '/playpen-raid/zyshen/debugs/res/step_dice_affine.png'
-# # plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=fpth)
-# #
-# # # get multi-step dice-jacobi trend data
-#
-# data_list1, name_list = get_list_from_dic(get_multi_step_svf_dic(draw_aug=True,file_type='records.npy'),use_perc=True)
-# order = -1
-# data_list2, name_list = get_list_from_dic(get_multi_step_svf_dic(draw_aug=False,file_type='records.npy'),use_perc=True)
-# order = -1
-# label = 'Average Dice'
-# title = 'Step-Dice (Multi-step vSVF)'
-# fpth = '/playpen-raid/zyshen/debugs/res/step_dice_svf.png'
-# plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=fpth)
-#
-data_list1, name_list = get_list_from_dic(get_lpba_dic(draw_aug=False,file_type = 'records.npy'))
+data_list1, name_list = get_list_from_dic(get_lpba_dic(task_type='base',file_type = 'records.npy'))
 order = -1
-data_list2, _ = get_list_from_dic(get_lpba_dic(draw_aug=True,file_type = 'records.npy'))  #records_jacobi_num
+data_list2, _ = get_list_from_dic(get_lpba_dic(task_type='bspline',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+data_list3, _ = get_list_from_dic(get_lpba_dic(task_type='aug_2d',file_type = 'records.npy'))  #records_jacobi_num
+order =-1
+data_list4, _ = get_list_from_dic(get_lpba_dic(task_type='aug_aug',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+# data_list5, _ = get_list_from_dic(get_lpba_dic(task_type='rand',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+label = 'Dice'
+title = 'LPBA40'
+fpath = "/playpen-raid/zyshen/debug/aug_res_plot/lpba40_seg.png"
+#plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+draw_plots(name_list,['non-aug','bspline','pre_aug','post_aug'], [data_list1, data_list2,data_list3, data_list4],label, title,rotation_on=True,fpth=fpath)
+
+
+
+data_list1, name_list = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_10',file_type = 'records.npy'))
+order = -1
+data_list2, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_20',file_type = 'records.npy'))  #records_jacobi_num
+order =-1
+data_list3, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_30',file_type = 'records.npy'))  #records_jacobi_num
 order = -1
 label = 'Dice'
-title = 'lpba'
-plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+title = 'LPBA40'
+fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_lpba_post.png"
+draw_plots(name_list,['10 times','20 times','30 times'], [ data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=fpath)
 
 
-data_list1, name_list = get_list_from_dic(get_oai_dic(draw_aug=False,file_type = 'records.npy'))
+#
+# data_list1, name_list = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_10_t0',file_type = 'records.npy'))
+# order = -1
+# data_list2, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_20_t0',file_type = 'records.npy'))  #records_jacobi_num
+# order =-1
+# data_list3, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_30_t0',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+# label = 'Dice'
+# title = 'LPBA40'
+# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_lpba_post_t0.png"
+# draw_plots(name_list,['post_aug_10_t0','post_aug_20_t0','post_aug_30_t0'], [ data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=None)
+
+
+
+
+data_list1, name_list = get_list_from_dic(get_oai_post_dic(task_type='post_aug_10',file_type = 'records.npy'))
 order = -1
-data_list2, _ = get_list_from_dic(get_oai_dic(draw_aug=True,file_type = 'records.npy'))  #records_jacobi_num
+data_list2, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_20',file_type = 'records.npy'))  #records_jacobi_num
+order =-1
+data_list3, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_30',file_type = 'records.npy'))  #records_jacobi_num
 order = -1
 label = 'Dice'
 title = 'OAI'
-plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_oai_post.png"
+draw_plots(name_list,['10 times','20 times','30 times'], [data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=fpath)
 
-# get sym data
+
+
+# data_list1, name_list = get_list_from_dic(get_oai_post_dic(task_type='post_aug_10_t0',file_type = 'records.npy'))
+# order = -1
+# data_list2, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_20_t0',file_type = 'records.npy'))  #records_jacobi_num
+# order =-1
+# data_list3, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_30_t0',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+# label = 'Dice'
+# title = 'OAI'
+# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_oai_post_t0.png"
+# draw_plots(name_list,['post_aug_10_t0','post_aug_20_t0','post_aug_30_t0'], [data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=None)
 #
-# data_list1, name_list = get_list_from_dic(get_sym_dic(draw_aug=True),use_log=True)
+#
+
+
+data_list1, name_list = get_list_from_dic(get_lpba_dic(task_type='base',file_type = 'records.npy'))
+order = -1
+data_list2, _ = get_list_from_dic(get_lpba_dic(task_type='aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+order =-1
+data_list3, _ = get_list_from_dic(get_lpba_dic(task_type='aug_2d',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+label = 'Dice'
+title = 'LPBA40'
+#plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_dim_lpba.png"
+draw_plots(name_list,['K = 1','K = 2'], [ data_list2,data_list3],label, title,rotation_on=True,fpth=fpath)
+
+
+data_list1, name_list = get_list_from_dic(get_oai_dic(task_type='base',file_type = 'records.npy'))
+order = -1
+data_list2, _ = get_list_from_dic(get_oai_dic(task_type='aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+order =-1
+data_list3, _ = get_list_from_dic(get_oai_dic(task_type='aug_2d',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+label = 'Dice'
+title = 'OAI'
+#plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_dim_oai.png"
+draw_plots(name_list,['K = 1','K = 2'], [ data_list2,data_list3],label, title,rotation_on=True,fpth=fpath)
+
+
+
+
+# data_list1, name_list = get_list_from_dic(get_longitudinal_reg_res("",""),use_perc=True)
 # order = -1
-# data_list2, _ = get_list_from_dic(get_sym_dic(draw_aug=False),use_log=True)
-# order = -1
+#
+# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/longtitudinal.png"
+# draw_single_boxplot(name_list,data_list1,label="Dice",fpth=fpath,data_name='synth',title='Performance on OAI')
+#
 # compute_std(data_list1, name_list)
-# print( "now compute the cross subject ")
-# compute_std(data_list2, name_list)
-# label = 'Symmetric Difference'
-# fpth = '/playpen-raid/zyshen/debugs/res/sym.png'
-# draw_group_boxplot(name_list,data_list1,data_list2,label=label,fpth=fpth)
 
-# #
-# # if not draw_trendency:
-#     plot_box(data_list1, name_list)
-# else:
-#     plot_trendency(data_list1,name_list)
-# if draw_boxplot:
-#     draw_group_boxplot(name_list,data_list1,data_list2,label=label)
 
-######################################################compute mean and std ##################################3
 
-# data_list1, name_list = get_list_from_dic(get_res_dic(draw_aug=True, draw_trendency=False),use_perc=True)
+data_list1, name_list = get_list_from_dic(get_oai_dic(task_type='base',file_type = 'records.npy'))
+order = -1
+data_list2, _ = get_list_from_dic(get_oai_dic(task_type='bspline',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+data_list3, _ = get_list_from_dic(get_oai_dic(task_type='aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+
+data_list4, _ = get_list_from_dic(get_oai_dic(task_type='aug_aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+order = -1
+
+label = 'Dice'
+title = 'OAI'
+fpath = "/playpen-raid/zyshen/debug/aug_res_plot/oai_seg.png"
+draw_plots(name_list,['non-aug','bspline','pre_aug','post_aug'], [data_list1, data_list2,data_list3,data_list4],label, title,rotation_on=True,fpth=fpath)
+
+
+
+
+#
+# data_list1, name_list = get_list_from_dic(get_oai_dic(task_type='aug',file_type = 'records.npy'))
 # order = -1
-# data_list2, _ = get_list_from_dic(get_res_dic(draw_aug=False, draw_trendency=False),use_perc=True)
+# data_list2, _ = get_list_from_dic(get_oai_dic(task_type='aug_aug',file_type = 'records.npy'))
 # order = -1
+# data_list3, _ = get_list_from_dic(get_oai_dic(task_type='aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+# order =-1
+# data_list4, _ = get_list_from_dic(get_oai_dic(task_type='aug_aug_1d',file_type = 'records.npy'))  #records_jacobi_num
+# order = -1
+# label = 'Dice'
+# title = 'OAI'
+# #plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
+# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_dim_oai.png"
+# draw_plots(name_list,['pre_aug_2d','post_aug_2d',"pre_aug_1d","post_aug_1d"], [ data_list1,data_list2,data_list3,data_list4],label, title,rotation_on=True,fpth=None)
+#
+
+# data_list1, name_list = get_list_from_dic(get_brainstorm_res(task_type='',file_type = 'records.npy'))
+# order = -1
+# # data_list2, _ = get_list_from_dic(get_oai_dic(task_type='1d',file_type = 'records.npy'))  #records_jacobi_num
+# # order =-1
+#
 # compute_std(data_list1, name_list)
-# print( "now compute the cross subject ")
-# compute_std(data_list2, name_list)
-
-#
-# # #################################################### plot boxplot
-# if draw_boxplot:
-#     draw_group_boxplot(name_list,data_list1,data_list2,label=label)
-# #
-# ####################################################3 plot trend
-# if draw_trendency:
-#     plot_group_trendency(name_list, data_list1, data_list2,label, title)
-
-
-# #
-#
-# #
-# #############################################Jacobian###############################################
-# print("Now lets compute jacobi for different methods")
-# order = -1
-# jacobi_list1, jacobi_name_list = get_list_from_dic(get_jacobi_dic(draw_aug=True, draw_trendency=False))
-# order = -1
-# jacobi_list2, _ = get_list_from_dic(get_jacobi_dic(draw_aug=False, draw_trendency=False))
-# compute_std(jacobi_list1, jacobi_name_list)
-# compute_jacobi_info(jacobi_list1, jacobi_name_list)
-#
-# print( "now compute the cross subject ")
-# compute_std(jacobi_list2, jacobi_name_list)
-#compute_jacobi_info(jacobi_list2, jacobi_name_list)
-#draw_group_boxplot(jacobi_name_list, jacobi_list1, jacobi_list2)
-
-# print("Now lets do jacobi statistic")
-# order = -1
-# jacobi_list1, jacobi_name_list = get_list_from_dic(get_group_jacobi_dic(draw_aug=True, draw_trendency=False),use_log=True)
-# order = -1
-# jacobi_list2, _ = get_list_from_dic(get_group_jacobi_dic(draw_aug=False, draw_trendency=False),use_log=True)
-#
-#
-# draw_histogram(jacobi_name_list, jacobi_list1, jacobi_list2)
-#
-# print("Now lets sort the jacobi")
-# order = -1
-# data_dic ={}
-# jacobi_name_list=['step_6']
-# data_dic['step6'] = get_experiment_data_from_record(inc(),
-#                                                     '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/visualize_jacobi/records/records_jacobi.npy')
-# jacobi_list2, _ = get_list_from_dic(data_dic)
-# #sort_jacobi_info(jacobi_list1, jacobi_name_list,7)
-# print( "now compute the cross subject ")
-# sort_jacobi_info(jacobi_list2, jacobi_name_list,7)
-#
-
+# # print( "now compute the cross subject ")
+# # compute_std(data_list2, name_list)

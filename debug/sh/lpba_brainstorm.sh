@@ -1,0 +1,1 @@
+python demo_for_easyreg_train.py -o=/playpen-raid/zyshen/data/lpba_seg_resize/baseline/brainstorm -dtn=/playpen-raid/zyshen/data/lpba_reg/train_with_25 -tn=trans -ts=./demo_settings/mermaid/training_on_3_cases_brainstrom -g=0

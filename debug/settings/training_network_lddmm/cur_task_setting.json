@@ -1,0 +1,105 @@
+{
+    "dataset": {
+        "img_after_resize": [
+            160,
+            192,
+            192
+        ],
+        "load_training_data_into_memory": true,
+        "max_num_for_loading": [
+            -1,
+            -1,
+            -1,
+            -1
+        ],
+        "spacing_to_refer": [
+            0.7,
+            0.7,
+            0.7
+        ]
+    },
+    "tsk_set": {
+        "batch_sz": 2,
+        "check_best_model_period": 5,
+        "continue_train": true,
+        "continue_train_lr": 1e-04,
+        "reset_train_epoch": true,
+        "load_model_but_train_from_epoch": 100,
+        "criticUpdates": 2,
+        "epoch": 500,
+        "gpu_ids": 0,
+        "loss": {
+            "type": "lncc"
+        },
+        "max_batch_num_per_epoch": [
+            400,
+            4,
+            4
+        ],
+        "model": "reg_net",
+        "model_path": "/playpen-raid/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter/reg_lddmm_2step_sym500/checkpoints/model_best.pth.tar",
+        "n_in_channel": 1,
+        "method_name": "mermaid",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 0.0001,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 60
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_taking_original_image_format": false,
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "acc_multi_step_loss": false,
+                "affine_net_iter": 3,
+                "epoch_activate_extern_loss": 100,
+                "epoch_activate_multi_step": 300,
+                "epoch_activate_sym": 200,
+                "epoch_activate_sym_loss": 200,
+                "initial_reg_factor": 10,
+                "min_reg_factor": 1e-3,
+                "reset_lr_for_multi_step": true,
+                "using_complex_net": true
+            },
+            "compute_inverse_map": false,
+            "low_res_factor": 0.5,
+            "mermaid_net": {
+                "affine_init_path": "",
+                "affine_refine_step": 7,
+                "clamp_momentum": true,
+                "clamp_thre": 1,
+                "epoch_activate_multi_step": -1,
+                "epoch_activate_sym": 501,
+                "load_trained_affine_net": true,
+                "mermaid_net_json_pth": "/playpen-raid/zyshen/reg_clean/debug/settings/training_network_lddmm/mermaid_nonp_settings.json",
+                "num_step": 1,
+                "optimize_momentum_network": true,
+                "reset_lr_for_multi_step": true,
+                "sym_factor": 500,
+                "using_affine_init": false,
+                "using_physical_coord": false,
+                "using_complex_net": true
+            }
+        },
+        "save_3d_img_on": false,
+        "save_extra_3d_img": false,
+        "save_fig_on": true,
+        "train": true,
+        "use_physical_coord": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    }
+}

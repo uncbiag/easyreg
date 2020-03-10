@@ -1,4 +1,7 @@
 from __future__ import print_function
+import os, sys
+sys.path.insert(0,os.path.abspath('.'))
+sys.path.insert(0,os.path.abspath('..'))
 from data_pre.seg_data_utils import *
 import random
 from multiprocessing import *
@@ -181,6 +184,7 @@ class BaseSegDataSet(object):
         if self.max_used_train_samples>0:
             divided_path_and_name_dic['file_path_list']['train']=divided_path_and_name_dic['file_path_list']['train'][:self.max_used_train_samples]#  should be -1 in most cases
             divided_path_and_name_dic['file_name_list']['train']=divided_path_and_name_dic['file_name_list']['train'][:self.max_used_train_samples]
+        print("num of train samples is {}".format(len(divided_path_and_name_dic['file_name_list']['train'])))
         saving_pair_info(sub_folder_dic, divided_path_and_name_dic)
 
 
@@ -235,34 +239,36 @@ if __name__ == "__main__":
     #     lpba.img_after_resize = (196, 164, 196)
     #     lpba.prepare_data()
 
-
-    num_c_list = [5, 10, 15, 20, 25]
-
-    for num_c in num_c_list:
-        lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*_image.nii.gz'])
-
-        label_switch = ('_image.nii.gz', '_label.nii.gz')
-        sever_switch = ('/playpen-raid', '/pine/scr/z/y')
-        # sever_switch = None
-
-        data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/gen_lresol_bspline/{}case".format(num_c)
-        label_path = data_path
-        output_path = "/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever/gen_lresol_bspline/{}case".format(num_c)
-        divided_ratio = (1, 0, 0)
-        lpba.label_switch = label_switch
-        lpba.sever_switch = sever_switch
-        lpba.set_data_path(data_path)
-        lpba.set_label_path(label_path)
-        lpba.set_output_path(output_path)
-        lpba.set_divided_ratio(divided_ratio)
-        lpba.img_after_resize = (196, 164, 196)
-        lpba.prepare_data()
-        import subprocess
-        cmd = "\n cp -r /playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case/val ".format(num_c) +output_path
-        cmd += "\n cp -r /playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case/test ".format(num_c) +output_path
-        cmd += "\n cp -r /playpen-raid/zyshen/data/lpba_seg_resize/baseline_sever/{}case/debug ".format(num_c) +output_path
-        process = subprocess.Popen(cmd, shell=True)
-        process.wait()
+    #
+    # num_c_list = [5, 10, 15, 20, 25]
+    # sever_on = True
+    # cur_path = '/pine/scr/z/y' if sever_on else '/playpen-raid'
+    #
+    # for num_c in num_c_list:
+    #     lpba = SegDatasetPool().create_dataset(dataset_name='lpba',file_type_list=['*_image.nii.gz'])
+    #
+    #     label_switch = ('_image.nii.gz', '_label.nii.gz')
+    #     sever_switch = (cur_path, '/pine/scr/z/y')
+    #     # sever_switch = None
+    #
+    #     data_path = "{}/zyshen/data/lpba_seg_resize/baseline/aug/gen_lresol_atlas/{}case".format(cur_path,num_c)
+    #     label_path = data_path
+    #     output_path = "{}/zyshen/data/lpba_seg_resize/baseline/aug/sever/gen_lresol_atlas/{}case".format(cur_path,num_c)
+    #     divided_ratio = (1, 0, 0)
+    #     lpba.label_switch = label_switch
+    #     lpba.sever_switch = sever_switch if sever_on else None
+    #     lpba.set_data_path(data_path)
+    #     lpba.set_label_path(label_path)
+    #     lpba.set_output_path(output_path)
+    #     lpba.set_divided_ratio(divided_ratio)
+    #     lpba.img_after_resize = (196, 164, 196)
+    #     lpba.prepare_data()
+    #     import subprocess
+    #     cmd = "\n cp -r {}/zyshen/data/lpba_seg_resize/baseline/{}case/val ".format(cur_path,num_c) +output_path
+    #     cmd += "\n cp -r {}/zyshen/data/lpba_seg_resize/baseline/{}case/test ".format(cur_path,num_c) +output_path
+    #     cmd += "\n cp -r {}/zyshen/data/lpba_seg_resize/baseline/{}case/debug ".format(cur_path,num_c) +output_path
+    #     process = subprocess.Popen(cmd, shell=True)
+    #     process.wait()
     # num_c_list= [5,10,15,20,25]
     #
     # for num_c in num_c_list:
@@ -328,6 +334,8 @@ if __name__ == "__main__":
 
 
     num_c_list = [10, 20, 30, 40,60,80,100]
+    sever_on = True
+    cur_path = '/pine/scr/z/y' if sever_on else '/playpen-raid'
     for num_c in num_c_list:
         oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*_image.nii.gz'])
 
@@ -337,23 +345,23 @@ if __name__ == "__main__":
 
         # data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
         # label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-        data_path = "/playpen-raid/zyshen/data/oai_seg/baseline/aug/gen_lresol_bspline/{}case".format(num_c)
+        data_path = "{}/zyshen/data/oai_seg/baseline/aug/gen_lresol_atlas/{}case".format(cur_path,num_c)
         label_path = data_path
-        output_path = "/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever/gen_lresol_bspline/{}case".format(num_c)
+        output_path = "{}/zyshen/data/oai_seg/baseline/aug/sever/gen_lresol_atlas/{}case".format(cur_path,num_c)
         divided_ratio = (1,0,0)
         oai.label_switch = label_switch
-        oai.sever_switch = sever_switch
+        oai.sever_switch = sever_switch if sever_on else None
         oai.set_data_path(data_path)
         oai.set_label_path(label_path)
         oai.set_output_path(output_path)
         oai.set_divided_ratio(divided_ratio)
-        oai.img_after_resize = ( 160,200,200)
+        oai.img_after_resize = (160,200,200)
         oai.prepare_data()
         import subprocess
 
-        cmd = "\n cp -r /playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case/val ".format(num_c) + output_path
-        cmd += "\n cp -r /playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case/test ".format(num_c) + output_path
-        cmd += "\n cp -r /playpen-raid/zyshen/data/oai_seg/baseline_sever/{}case/debug ".format(num_c) + output_path
+        cmd = "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/val ".format(cur_path,num_c) + output_path
+        cmd += "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/test ".format(cur_path,num_c) + output_path
+        cmd += "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/debug ".format(cur_path,num_c) + output_path
         process = subprocess.Popen(cmd, shell=True)
         process.wait()
 

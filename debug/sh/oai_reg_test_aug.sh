@@ -1,0 +1,2 @@
+cd /playpen-raid/zyshen/reg_clean/demo
+python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/settings/oai_reg_test_aug -txt=/playpen-raid/zyshen/data/oai_reg/train_with_test_aug_40/test/pair_path_list.txt   -o=/playpen-raid/zyshen/data/oai_reg/test_aug -g=1

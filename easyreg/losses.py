@@ -26,7 +26,7 @@ class Loss(object):
         if cont_loss_type == 'l1':
             self.criterion = nn.L1Loss()
         elif cont_loss_type == 'mse':
-            self.criterion = nn.MSELoss()
+            self.criterion = nn.MSELoss(size_average=True)
         elif cont_loss_type =='ncc':
             self.criterion = NCCLoss()
         elif cont_loss_type =='lncc':
@@ -82,6 +82,7 @@ class NCCLoss(nn.Module):
         nccSqr =  nccSqr.mean()
 
         return (1 - nccSqr)*input.shape[0]
+
 
 
 

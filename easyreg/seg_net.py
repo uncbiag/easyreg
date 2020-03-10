@@ -197,6 +197,8 @@ class SegNet(SegModelBase):
 
     def get_evaluation(self):
         sz =self.input_img_sz
+        if hasattr(self.network, 'set_file_path'):
+            self.network.set_file_path(self.pair_path)
 
         self.network.set_img_sz(sz)
         output_np = self.network.forward(self.input,self.is_train)

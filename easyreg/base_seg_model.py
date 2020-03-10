@@ -221,7 +221,6 @@ class SegModelBase():
         :param phase: train|val|test|debug
         :return:
         """
-
         if type(self.output)==torch.Tensor:
             output = self.output.detach().cpu().numpy()
         else:

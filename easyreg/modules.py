@@ -315,9 +315,9 @@ class Seg_resid(nn.Module):
 
 
 
-class Seg_resid_concise(nn.Module):
+class Seg_resid_imp(nn.Module):
     def __init__(self, num_class, bn=False):
-        super(Seg_resid_concise,self).__init__()
+        super(Seg_resid_imp,self).__init__()
         self.down_path_1 = conv_bn_rel(1, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_1 = conv_bn_rel(32, 32, 3, stride=2, active_unit='relu', same_padding=True, bn=False,group=2)
         self.down_path_2_2 = conv_bn_rel(32, 32, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)

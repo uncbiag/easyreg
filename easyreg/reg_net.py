@@ -6,12 +6,15 @@ import torch.optim.lr_scheduler as lr_scheduler
 from .utils import *
 from .mermaid_net import MermaidNet
 from .voxel_morph import VoxelMorphCVPR2018, VoxelMorphMICCAI2019
+from .brainstorm import TransformCVPR2019, AppearanceCVPR2019
 
 model_pool = {
     'affine_sym': AffineNetSym,
     'mermaid': MermaidNet,
     'vm_cvpr': VoxelMorphCVPR2018,
-    'vm_miccai': VoxelMorphMICCAI2019
+    'vm_miccai': VoxelMorphMICCAI2019,
+    "bs_trans": TransformCVPR2019,
+    'bs_ap': AppearanceCVPR2019
 }
 
 
@@ -78,6 +81,8 @@ class RegNet(MermaidBase):
             lr = new_lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
+        self.lr_scheduler.base_lrs=[lr]
+        self.lr_scheduler.last_epoch = 1
         print(" the learning rate now is set to {}".format(lr))
 
     def set_input(self, data, is_train=True):
@@ -112,12 +117,7 @@ class RegNet(MermaidBase):
         :return: optimizer, custom scheduler, plateau scheduler
         """
         optimize_name = opt['optim_type']
-        if not warmming_up:
-            lr = opt['lr']
-            print(" no warming up the learning rate is {}".format(lr))
-        else:
-            lr = opt['lr']/10
-            print(" warming up on the learning rate is {}".format(lr))
+        lr = opt['lr']
         beta = opt['adam']['beta']
         lr_sched_opt = opt[('lr_scheduler',{},"settings for learning scheduler")]
         self.lr_sched_type = lr_sched_opt['type']
@@ -140,6 +140,14 @@ class RegNet(MermaidBase):
             re_exp_lr_scheduler = lr_scheduler.ReduceLROnPlateau(re_optimizer, mode='min', patience=patience,
                                                                  factor=factor, verbose=True,
                                                                  threshold=threshold, min_lr=min_lr)
+        if not warmming_up:
+            print(" no warming up the learning rate is {}".format(lr))
+        else:
+            lr = opt['lr']/10
+            for param_group in re_optimizer.param_groups:
+                param_group['lr'] = lr
+            re_lr_scheduler.base_lrs = [lr]
+            print(" warming up on the learning rate is {}".format(lr))
         return re_optimizer, re_lr_scheduler, re_exp_lr_scheduler
 
     def cal_loss(self, output=None):
@@ -168,7 +176,7 @@ class RegNet(MermaidBase):
         return output, phi, afimg_or_afparam, loss
 
     def update_scheduler(self,epoch):
-        if self.lr_scheduler is not None:
+        if self.lr_scheduler is not None and epoch>0:
             self.lr_scheduler.step(epoch)
 
         for param_group in self.optimizer.param_groups:

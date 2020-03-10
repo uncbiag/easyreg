@@ -11,6 +11,8 @@ import tools.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from easyreg.piplines import run_one_task
 from easyreg.reg_data_utils import write_list_into_txt, get_file_name, read_txt_into_list
+import torch
+torch.backends.cudnn.benchmark=True
 
 
 class BaseTask():

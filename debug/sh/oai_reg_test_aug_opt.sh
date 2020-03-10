@@ -1,0 +1,7 @@
+
+cd /pine/scr/z/y/zyshen/reg_clean/demo
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_oai -txt=/pine/scr/z/y/zyshen/data/oai_reg/train_with_test_aug_40/test/opt/p0.txt   -o=/pine/scr/z/y/zyshen/data/oai_reg/test_aug_opt/p0 -g=0
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_oai -txt=/pine/scr/z/y/zyshen/data/oai_reg/train_with_test_aug_40/test/opt/p1.txt   -o=/pine/scr/z/y/zyshen/data/oai_reg/test_aug_opt/p1 -g=0
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_oai -txt=/pine/scr/z/y/zyshen/data/oai_reg/train_with_test_aug_40/test/opt/p2.txt   -o=/pine/scr/z/y/zyshen/data/oai_reg/test_aug_opt/p2 -g=0
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_oai -txt=/pine/scr/z/y/zyshen/data/oai_reg/train_with_test_aug_40/test/opt/p3.txt   -o=/pine/scr/z/y/zyshen/data/oai_reg/test_aug_opt/p3 -g=0
+python demo_for_easyreg_eval.py -ts=/pine/scr/z/y/zyshen/reg_clean/debug/settings/opt_lddmm_oai -txt=/pine/scr/z/y/zyshen/data/oai_reg/train_with_test_aug_40/test/opt/p4.txt   -o=/pine/scr/z/y/zyshen/data/oai_reg/test_aug_opt/p4 -g=0

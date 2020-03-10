@@ -294,7 +294,7 @@ class RegistrationDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.name_list)*500 if len(self.name_list)<100 and self.phase=='train' else len(self.name_list)  #############################3
+        return len(self.name_list)*500 if len(self.name_list)<200 and self.phase=='train' else len(self.name_list)  #############################3
 
 
 

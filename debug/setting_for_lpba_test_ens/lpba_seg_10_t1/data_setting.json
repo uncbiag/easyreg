@@ -11,7 +11,7 @@
         },
         "seg": {
             "max_num_for_loading": [2,2,2,2],
-            "num_crop_per_class_per_train_img": 20,
+            "num_crop_per_class_per_train_img": -1,
             "partition": {
                 "mode": "pred",
                 "overlap_size": [

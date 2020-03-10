@@ -264,14 +264,14 @@ class MermaidBase(RegModelBase):
 
         :return:
         """
-        if not self.affine_on:
-            import nibabel as nib
-            phi_np = self.phi.detach().cpu().numpy()
-            phi_np = phi_np if self.use_01 else (phi_np + 1.) / 2.  # normalize the phi into 0, 1
-            for i in range(phi_np.shape[0]):
-                phi = nib.Nifti1Image(phi_np[i], np.eye(4))
-                nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
-        else:
+
+        import nibabel as nib
+        phi_np = self.phi.detach().cpu().numpy()
+        phi_np = phi_np if self.use_01 else (phi_np + 1.) / 2.  # normalize the phi into 0, 1
+        for i in range(phi_np.shape[0]):
+            phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+            nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
+        if self.affine_on:
             # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
             affine_param = self.afimg_or_afparam
             if isinstance(affine_param, list):

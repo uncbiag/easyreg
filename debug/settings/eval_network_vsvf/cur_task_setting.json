@@ -19,7 +19,7 @@
         ]
     },
     "tsk_set": {
-        "batch_sz": 1,
+        "batch_sz": 3,
         "check_best_model_period": 5,
         "continue_train": false,
         "continue_train_lr": 5e-05,

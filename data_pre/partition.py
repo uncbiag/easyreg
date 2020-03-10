@@ -198,3 +198,39 @@ class Partition(object):
         # seg_image.CopyInformation(self.image)
         seg_reassemble = np.expand_dims(np.expand_dims(seg_reassemble, axis=0), axis=0)
         return seg_reassemble
+
+
+
+    def assemble_multi_torch(self, tiles,image_size=None):
+        """
+        Assembles segmentation of small patches into the original size
+        :param tiles: Nxhxdxw tensor contains N small patches of size hxdxw
+        :param is_vote:
+        :return: a segmentation information
+
+        """
+        import torch
+        if image_size is not None:
+            self.image_size = image_size
+        self.effective_size = self.tile_size - self.overlap_size * 2  # size effective region of tiles after cropping
+        self.tiles_grid_size = np.ceil(self.image_size / self.effective_size).astype(int)  # size of tiles grid
+        self.padded_size = self.effective_size * self.tiles_grid_size + self.overlap_size * 2 - self.image_size  # size difference of padded image with original image
+
+
+        seg_reassemble = torch.zeros([1,tiles.shape[1]]+list(self.effective_size * self.tiles_grid_size)).to(tiles.device)
+        for i in range(self.tiles_grid_size[0]):
+            for j in range(self.tiles_grid_size[1]):
+                for k in range(self.tiles_grid_size[2]):
+                    ind = i * self.tiles_grid_size[1] * self.tiles_grid_size[2] + j * self.tiles_grid_size[2] + k
+                    seg_reassemble[0,:,i * self.effective_size[0]:(i + 1) * self.effective_size[0],
+                    j * self.effective_size[1]:(j + 1) * self.effective_size[1],
+                    k * self.effective_size[2]:(k + 1) * self.effective_size[2]] = \
+                        tiles[ind][:,self.overlap_size[0]:self.tile_size[0] - self.overlap_size[0],
+                        self.overlap_size[1]:self.tile_size[1] - self.overlap_size[1],
+                        self.overlap_size[2]:self.tile_size[2] - self.overlap_size[2]]
+        seg_reassemble = seg_reassemble[:,:,:self.image_size[0], :self.image_size[1], :self.image_size[2]]
+
+        # seg_image = sitk.GetImageFromArray(seg_reassemble)
+        # seg_image.CopyInformation(self.image)
+        return seg_reassemble
+

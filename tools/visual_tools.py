@@ -93,12 +93,15 @@ def save_smoother_map(adaptive_smoother_map,gaussian_stds,t,path=None,weighting_
         plot_2d_img(smoother_map[0,0,:,y_half,:],fname,path)
 
 
-def save_momentum(momentum,t,path=None):
+def save_momentum(momentum,t=None,path=None):
     dim = len(momentum.shape)-2
     momentum = momentum.detach()
     momentum = torch.sum(momentum**2,1,keepdim=True)
-    print(t)
-    fname = str(t)+"momentum"
+    if t is not None:
+        print(t)
+        fname = str(t)+"momentum"
+    else:
+        fname = "momentum"
     if dim ==2:
         plot_2d_img(momentum[0,0],fname,path)
     elif dim==3:
