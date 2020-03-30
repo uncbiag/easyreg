@@ -218,7 +218,7 @@ class MermaidBase(RegModelBase):
                 ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
             if save_disp:
                 fname_list = [fname + '_inv_disp' for fname in self.fname_list]
-                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True)
+                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True).cuda()
                 id_map = (id_map[None]+1)/2.
                 inv_disp = new_inv_phi -id_map
                 ires.save_transfrom(inv_disp, new_spacing, saving_original_sz_path, fname_list)
@@ -255,7 +255,7 @@ class MermaidBase(RegModelBase):
                 sitk.WriteImage(img_to_save, fpath)
             else:
                 multi_ch_img = nib.Nifti1Image(img_np[i], np.eye(4))
-                fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
+                fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + "_"+title + '.nii.gz')
                 nib.save(multi_ch_img, fpath)
 
     def save_deformation(self):

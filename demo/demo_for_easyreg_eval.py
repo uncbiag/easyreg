@@ -143,8 +143,8 @@ def do_registration_eval(args, registration_pair_list):
     source_path_list, target_path_list, l_source_path_list, l_target_path_list = registration_pair_list
     dm, tsm = init_test_env(setting_folder_path,task_output_path,source_path_list,target_path_list,l_source_path_list,l_target_path_list)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
-    if not tsm.task_par['tsk_set']['train']:
-        force_test_setting(dm, tsm, task_output_path)
+    #if not tsm.task_par['tsk_set']['train']:
+    force_test_setting(dm, tsm, task_output_path)
 
     dm_json_path = os.path.join(task_output_path, 'cur_data_setting.json') if dm is not None else None
     tsm_json_path = os.path.join(task_output_path, 'cur_task_setting.json')

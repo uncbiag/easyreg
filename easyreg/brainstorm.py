@@ -87,7 +87,7 @@ class TransformCVPR2019(nn.Module):
         self.loss_fn = None #NCCLoss()
         self.epoch = -1
         self.print_count = 0
-        self.id_transform = gen_identity_map(self.img_sz, 1.0)
+        self.id_transform = gen_identity_map(self.img_sz, 1.0).cuda()
         self.encoders = nn.ModuleList()
         self.decoders = nn.ModuleList()
         self.bilinear = Bilinear(zero_boundary=True)

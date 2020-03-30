@@ -104,9 +104,11 @@ def get_brainstorm_res(task_type,file_type='records.npy'):
     data_dic['brainstom_real'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_real_img_disp/res/seg/res/records/' + file_type)
     data_dic['fluid_aug'] = get_experiment_data_from_record(inc(),
-                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_fake_img_fluid/res/seg/res/records/' + file_type)
+                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_fake_img_fluid_sr/res/seg/res/records/' + file_type)
+    data_dic['fluid_aug_real_t1'] = get_experiment_data_from_record(inc(),
+                                                                 '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_real_img_fluidt1/res/seg/res/records/' + file_type)
     data_dic['fluid_aug_real'] = get_experiment_data_from_record(inc(),
-                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_real_img_fluid/res/seg/res/records/' + file_type)
+                                                              '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_real_img_fluid_sr/res/seg/res/records/' + file_type)
     data_dic['upper_bound'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/upperbound/res/seg/res/records/' + file_type)
     return data_dic
@@ -137,76 +139,76 @@ def get_lpba_post_dic(task_type,file_type='records.npy'):
 
 
     if task_type=='post_aug_10':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2/25case/seg/res/records/' + file_type)
 
     if task_type=='post_aug_20':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/25case/seg/res/records/' + file_type)
 
 
     if task_type=='post_aug_30':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2/25case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_10_t0':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/10_v2_w0d2/25case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_20_t0':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2_w0d2/25case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_30_t0':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/30_v2_w0d2/25case/seg/res/records/' + file_type)
 
     return data_dic
@@ -217,75 +219,75 @@ def get_oai_post_dic(task_type,file_type='records.npy'):
 
 
     if task_type=='post_aug_10':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10/60case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_20':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/60case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_30':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30/60case/seg/res/records/' + file_type)
 
     if task_type=='post_aug_10_t0':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/10_w0d2/60case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_20_t0':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20_w0d2/60case/seg/res/records/' + file_type)
 
     if task_type == 'post_aug_30_t0':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/30_w0d2/60case/seg/res/records/' + file_type)
 
     return data_dic
@@ -296,86 +298,86 @@ def get_oai_post_dic(task_type,file_type='records.npy'):
 def get_lpba_dic(task_type,file_type='records.npy'):
     data_dic = {}
     if task_type=='aug_2d':
-        data_dic['5_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                    '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/5case/best2_aug/seg/res/records/'+file_type)
-        data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                         '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/10case/best2_aug/seg/res/records/'+file_type)
-        data_dic['15_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                         '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/15case/best2_aug/seg/res/records/'+file_type)
-        data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                         '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/20case/best2_aug/seg/res/records/'+file_type)
-        data_dic['25_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                         '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/best2_aug/seg/res/records/'+file_type)
 
 
     if task_type=='base':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/5case/best2/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/10case/best2/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/15case/best2/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/20case/best2/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/best2/seg/res/records/' + file_type)
 
     if task_type=='aug_aug':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                              '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_aug_300/20_v2/25case/seg/res/records/' + file_type)
 
     if task_type=='bspline':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_bspline/25case/seg/res/records/' + file_type)
 
     if task_type=='rand':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_rand/25case/seg/res/records/' + file_type)
     if task_type=='aug_1d':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_1d/25case/seg/res/records/' + file_type)
     if task_type=='atlas':
-        data_dic['5_case'] = get_experiment_data_from_record(inc(),
+        data_dic['5 patients'] = get_experiment_data_from_record(inc(),
                                                                  '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/5case/seg/res/records/' + file_type)
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/10case/seg/res/records/' + file_type)
-        data_dic['15_case'] = get_experiment_data_from_record(inc(),
+        data_dic['15 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/15case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/20case/seg/res/records/' + file_type)
-        data_dic['25_case'] = get_experiment_data_from_record(inc(),
+        data_dic['25 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/lpba_seg_resize/baseline/aug/sever_res/gen_lresol_atlas/25case/seg/res/records/' + file_type)
 
     return data_dic
@@ -387,116 +389,116 @@ def get_lpba_dic(task_type,file_type='records.npy'):
 def get_oai_dic(task_type,file_type='records.npy'):
     data_dic = {}
     if task_type=='aug_2d':
-        data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                    '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best4_aug/seg/res/records/'+file_type)
-        data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/20case/best3_aug/seg/res/records/' + file_type)
-        data_dic['30_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/30case/best3_aug/seg/res/records/' + file_type)
-        data_dic['40_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3_aug/seg/res/records/' + file_type)
-        data_dic['60_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3_aug/seg/res/records/' + file_type)
-        # data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
+        # data_dic['80 patients_aug'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug/seg/res/records/' + file_type)
-        # data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
+        # data_dic['100 patients_aug'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug/seg/res/records/' + file_type)
 
 
     if task_type=='base':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best3/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/20case/best3/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/30case/best3/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3/seg/res/records/' + file_type)
-        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['80 patients'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3/seg/res/records/' + file_type)
-        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['100 patients'] = get_experiment_data_from_record(inc(),
         #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3/seg/res/records/' + file_type)
 
-    if task_type == 'aug_aug':
-        data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
+    if task_type == 'aug_aug_1d':
+        data_dic['10 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/10case/seg/res/records/' + file_type)
-        data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/20case/seg/res/records/' + file_type)
-        data_dic['30_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/30case/seg/res/records/' + file_type)
-        data_dic['40_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients_aug'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/40case/seg/res/records/' + file_type)
-        data_dic['60_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/50case/seg/res/records/' + file_type)
-        # data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients_aug'] = get_experiment_data_from_record(inc(),
+                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/test_ensemble_1d/20/60case/seg/res/records/' + file_type)
+        # data_dic['80 patients_aug'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug3/seg/res/records/' + file_type)
-        # data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
+        # data_dic['100 patients_aug'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug3/seg/res/records/' + file_type)
 
-    if task_type == 'aug_aug_1d':
-        data_dic['10_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best3_aug_1d/seg/res/records/' + file_type)
-        data_dic['20_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/20case/best3_aug_1d/seg/res/records/' + file_type)
-        data_dic['30_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/30case/best3_aug_1d/seg/res/records/' + file_type)
-        data_dic['40_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3_aug_1d/seg/res/records/' + file_type)
-        data_dic['60_case_aug'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3_aug_1d/seg/res/records/' + file_type)
-        # data_dic['80_case_aug'] = get_experiment_data_from_record(inc(),
-        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug_1d/seg/res/records/' + file_type)
-        # data_dic['100_case_aug'] = get_experiment_data_from_record(inc(),
-        #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug_1d/seg/res/records/' + file_type)
+    # if task_type == 'aug_aug_1d':
+    #     data_dic['10 patients_aug'] = get_experiment_data_from_record(inc(),
+    #                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/10case/best3_aug3/seg/res/records/' + file_type)
+    #     data_dic['20 patients_aug'] = get_experiment_data_from_record(inc(),
+    #                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/20case/best3_aug3/seg/res/records/' + file_type)
+    #     data_dic['30 patients_aug'] = get_experiment_data_from_record(inc(),
+    #                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/30case/best3_aug3/seg/res/records/' + file_type)
+    #     data_dic['40 patients_aug'] = get_experiment_data_from_record(inc(),
+    #                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/40case/best3_aug3/seg/res/records/' + file_type)
+    #     data_dic['60 patients_aug'] = get_experiment_data_from_record(inc(),
+    #                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/60case/best3_aug3/seg/res/records/' + file_type)
+    #     # data_dic['80 patients_aug'] = get_experiment_data_from_record(inc(),
+    #     #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/80case/best3_aug_1d/seg/res/records/' + file_type)
+    #     # data_dic['100 patients_aug'] = get_experiment_data_from_record(inc(),
+    #     #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/100case/best3_aug_1d/seg/res/records/' + file_type)
 
     if task_type=='bspline':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/60case/seg/res/records/' + file_type)
-        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['80 patients'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/80case/seg/res/records/' + file_type)
-        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['100 patients'] = get_experiment_data_from_record(inc(),
         #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_bspline/100case/seg/res/records/' + file_type)
 
     if task_type=='rand':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/60case/seg/res/records/' + file_type)
-        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['80 patients'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/80case/seg/res/records/' + file_type)
-        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['100 patients'] = get_experiment_data_from_record(inc(),
         #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/100case/seg/res/records/' + file_type)
 
     if task_type == 'aug_1d':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_1d/60case/seg/res/records/' + file_type)
-        # data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['80 patients'] = get_experiment_data_from_record(inc(),
         #                                                           '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/80case/seg/res/records/' + file_type)
-        # data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        # data_dic['100 patients'] = get_experiment_data_from_record(inc(),
         #                                                            '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res/gen_lresol_rand/100case/seg/res/records/' + file_type)
 
     return data_dic
@@ -506,101 +508,101 @@ def get_oai_dic(task_type,file_type='records.npy'):
 def get_oai_dic2(task_type,file_type='records.npy'):
     data_dic = {}
     if task_type == 'bspline':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/60case/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        data_dic['80 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/80case/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        data_dic['100 patients'] = get_experiment_data_from_record(inc(),
                                                                '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_bspline/100case/seg/res/records/' + file_type)
 
     if task_type == 'aug_2d':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/60case/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        data_dic['80 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/80case/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        data_dic['100 patients'] = get_experiment_data_from_record(inc(),
                                                                '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_aug/100case/seg/res/records/' + file_type)
 
     if task_type == 'base':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/60case/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        data_dic['80 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/80case/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        data_dic['100 patients'] = get_experiment_data_from_record(inc(),
                                                                '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/base/100case/seg/res/records/' + file_type)
 
 
     if task_type == 'aug_1d':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/60case/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        data_dic['80 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/80case/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        data_dic['100 patients'] = get_experiment_data_from_record(inc(),
                                                                    '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_1d/100case/seg/res/records/' + file_type)
 
 
     if task_type == 'atlas':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/60case/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        data_dic['80 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/80case/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        data_dic['100 patients'] = get_experiment_data_from_record(inc(),
                                                                    '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_atlas/100case/seg/res/records/' + file_type)
 
     if task_type == 'rand':
-        data_dic['10_case'] = get_experiment_data_from_record(inc(),
+        data_dic['10 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/10case/seg/res/records/' + file_type)
-        data_dic['20_case'] = get_experiment_data_from_record(inc(),
+        data_dic['20 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/20case/seg/res/records/' + file_type)
-        data_dic['30_case'] = get_experiment_data_from_record(inc(),
+        data_dic['30 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/30case/seg/res/records/' + file_type)
-        data_dic['40_case'] = get_experiment_data_from_record(inc(),
+        data_dic['40 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/40case/seg/res/records/' + file_type)
-        data_dic['60_case'] = get_experiment_data_from_record(inc(),
+        data_dic['60 patients'] = get_experiment_data_from_record(inc(),
                                                               '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/60case/seg/res/records/' + file_type)
-        data_dic['80_case'] = get_experiment_data_from_record(inc(),
+        data_dic['80 patients'] = get_experiment_data_from_record(inc(),
                                                                   '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/80case/seg/res/records/' + file_type)
-        data_dic['100_case'] = get_experiment_data_from_record(inc(),
+        data_dic['100 patients'] = get_experiment_data_from_record(inc(),
                                                                    '/playpen-raid/zyshen/data/oai_seg/baseline/aug/sever_res_par/gen_lresol_rand/100case/seg/res/records/' + file_type)
 
     return data_dic
@@ -655,7 +657,7 @@ def draw_single_boxplot(name_list,data_list,label ='Dice Score',titile=None, fpt
         plt.clf()
 
 
-def draw_group_boxplot(name_list,data_list1,data_list2, label ='Dice Score',titile=None, fpth=None ):
+def draw_group_boxplot(name_list,data_list1,data_list2, label ='Dice Score',titile=None, fpth=None):
     df = get_df_from_list(name_list,data_list1,data_list2)
     df = df[['Group', 'Longitudinal', 'Cross-subject']]
     dd = pd.melt(df, id_vars=['Group'], value_vars=['Longitudinal', 'Cross-subject'], var_name='task')
@@ -804,7 +806,7 @@ label = 'Dice'
 title = 'LPBA40'
 fpath = "/playpen-raid/zyshen/debug/aug_res_plot/lpba40_seg.png"
 #plot_group_trendency(name_list, data_list1, data_list2,label, title,rotation_on=True,fpth=None)
-draw_plots(name_list,['non-aug','bspline','pre_aug','post_aug'], [data_list1, data_list2,data_list3, data_list4],label, title,rotation_on=True,fpth=fpath)
+draw_plots(name_list,['non-aug','bspline','pre-aug','post-aug'], [data_list1, data_list2,data_list3, data_list4],label, title,rotation_on=True,fpth=fpath)
 
 
 
@@ -820,20 +822,20 @@ fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_lpba_post.png"
 draw_plots(name_list,['10 times','20 times','30 times'], [ data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=fpath)
 
 
+# #
+# # data_list1, name_list = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_10_t0',file_type = 'records.npy'))
+# # order = -1
+# # data_list2, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_20_t0',file_type = 'records.npy'))  #records_jacobi_num
+# # order =-1
+# # data_list3, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_30_t0',file_type = 'records.npy'))  #records_jacobi_num
+# # order = -1
+# # label = 'Dice'
+# # title = 'LPBA40'
+# # fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_lpba_post_t0.png"
+# # draw_plots(name_list,['post_aug_10_t0','post_aug_20_t0','post_aug_30_t0'], [ data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=None)
 #
-# data_list1, name_list = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_10_t0',file_type = 'records.npy'))
-# order = -1
-# data_list2, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_20_t0',file_type = 'records.npy'))  #records_jacobi_num
-# order =-1
-# data_list3, _ = get_list_from_dic(get_lpba_post_dic(task_type='post_aug_30_t0',file_type = 'records.npy'))  #records_jacobi_num
-# order = -1
-# label = 'Dice'
-# title = 'LPBA40'
-# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_lpba_post_t0.png"
-# draw_plots(name_list,['post_aug_10_t0','post_aug_20_t0','post_aug_30_t0'], [ data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=None)
-
-
-
+#
+#
 
 data_list1, name_list = get_list_from_dic(get_oai_post_dic(task_type='post_aug_10',file_type = 'records.npy'))
 order = -1
@@ -846,22 +848,22 @@ title = 'OAI'
 fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_oai_post.png"
 draw_plots(name_list,['10 times','20 times','30 times'], [data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=fpath)
 
-
-
-# data_list1, name_list = get_list_from_dic(get_oai_post_dic(task_type='post_aug_10_t0',file_type = 'records.npy'))
-# order = -1
-# data_list2, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_20_t0',file_type = 'records.npy'))  #records_jacobi_num
-# order =-1
-# data_list3, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_30_t0',file_type = 'records.npy'))  #records_jacobi_num
-# order = -1
-# label = 'Dice'
-# title = 'OAI'
-# fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_oai_post_t0.png"
-# draw_plots(name_list,['post_aug_10_t0','post_aug_20_t0','post_aug_30_t0'], [data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=None)
 #
 #
-
-
+# # data_list1, name_list = get_list_from_dic(get_oai_post_dic(task_type='post_aug_10_t0',file_type = 'records.npy'))
+# # order = -1
+# # data_list2, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_20_t0',file_type = 'records.npy'))  #records_jacobi_num
+# # order =-1
+# # data_list3, _ = get_list_from_dic(get_oai_post_dic(task_type='post_aug_30_t0',file_type = 'records.npy'))  #records_jacobi_num
+# # order = -1
+# # label = 'Dice'
+# # title = 'OAI'
+# # fpath = "/playpen-raid/zyshen/debug/aug_res_plot/ablation_oai_post_t0.png"
+# # draw_plots(name_list,['post_aug_10_t0','post_aug_20_t0','post_aug_30_t0'], [data_list1,data_list2,data_list3],label, title,rotation_on=True,fpth=None)
+# #
+# #
+#
+#
 data_list1, name_list = get_list_from_dic(get_lpba_dic(task_type='base',file_type = 'records.npy'))
 order = -1
 data_list2, _ = get_list_from_dic(get_lpba_dic(task_type='aug_1d',file_type = 'records.npy'))  #records_jacobi_num
@@ -913,7 +915,7 @@ order = -1
 label = 'Dice'
 title = 'OAI'
 fpath = "/playpen-raid/zyshen/debug/aug_res_plot/oai_seg.png"
-draw_plots(name_list,['non-aug','bspline','pre_aug','post_aug'], [data_list1, data_list2,data_list3,data_list4],label, title,rotation_on=True,fpth=fpath)
+draw_plots(name_list,['non-aug','bspline','pre-aug','post-aug'], [data_list1, data_list2,data_list3,data_list4],label, title,rotation_on=True,fpth=fpath)
 
 
 
@@ -934,11 +936,11 @@ draw_plots(name_list,['non-aug','bspline','pre_aug','post_aug'], [data_list1, da
 # draw_plots(name_list,['pre_aug_2d','post_aug_2d',"pre_aug_1d","post_aug_1d"], [ data_list1,data_list2,data_list3,data_list4],label, title,rotation_on=True,fpth=None)
 #
 
-# data_list1, name_list = get_list_from_dic(get_brainstorm_res(task_type='',file_type = 'records.npy'))
-# order = -1
+data_list1, name_list = get_list_from_dic(get_brainstorm_res(task_type='',file_type = 'records.npy'))
+order = -1
 # # data_list2, _ = get_list_from_dic(get_oai_dic(task_type='1d',file_type = 'records.npy'))  #records_jacobi_num
 # # order =-1
 #
-# compute_std(data_list1, name_list)
+compute_std(data_list1, name_list)
 # # print( "now compute the cross subject ")
 # # compute_std(data_list2, name_list)

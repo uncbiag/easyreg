@@ -242,7 +242,7 @@ def get_inverse_affine_param(affine_param):
     """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
 
     affine_param = affine_param.view(affine_param.shape[0], 4, 3)
-    inverse_param = torch.zeros_like(affine_param.data).cuda()
+    inverse_param = torch.zeros_like(affine_param.data)#.cuda()
     for n in range(affine_param.shape[0]):
         tm_inv = torch.inverse(affine_param[n, :3,:])
         inverse_param[n, :3, :] = tm_inv

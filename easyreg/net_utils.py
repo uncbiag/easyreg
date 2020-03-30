@@ -94,7 +94,7 @@ class Bilinear(Module):
         input2_ordered[:, 2, ...] = input2[:, 0, ...]
 
         output = torch.nn.functional.grid_sample(input1, input2_ordered.permute([0, 2, 3, 4, 1]),
-                                                     padding_mode=self.zero_boundary)
+                                                     padding_mode=self.zero_boundary, align_corners=True)
         return output
 
     def forward(self, input1, input2):
@@ -141,7 +141,7 @@ def identity_map_for_reproduce(sz):
     else:
         raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
     # id= id*2-1
-    return torch.from_numpy(id.astype(np.float32)).cuda()
+    return torch.from_numpy(id.astype(np.float32))
 
 def identity_map(sz, dtype= np.float32):
     """
@@ -171,7 +171,7 @@ def identity_map(sz, dtype= np.float32):
         id[d] *= spacing[d]
         id[d] = id[d]*2 - 1
 
-    return torch.from_numpy(id.astype(np.float32)).cuda()
+    return torch.from_numpy(id.astype(np.float32))
 
 
 def not_normalized_identity_map(sz):
@@ -194,7 +194,7 @@ def not_normalized_identity_map(sz):
     else:
         raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
     # id= id*2-1
-    return torch.from_numpy(id.astype(np.float32)).cuda()
+    return torch.from_numpy(id.astype(np.float32))
 
 
 def gen_identity_map(img_sz, resize_factor=1.,normalized=True):

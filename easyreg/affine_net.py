@@ -54,7 +54,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """ the affine network output the affine parameter"""
         self.affine_cons= AffineConstrain()
         """ the func return regularization loss on affine parameter"""
-        self.id_map= gen_identity_map(self.img_sz)
+        self.id_map= gen_identity_map(self.img_sz).cuda()
         """ the identity map"""
         self.gen_identity_ap()
         """ generate identity affine parameter"""

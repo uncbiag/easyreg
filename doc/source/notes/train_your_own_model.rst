@@ -30,7 +30,7 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 .. code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
 
 * Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
 
@@ -69,7 +69,7 @@ Let's take a glance at what's the repository looks like.
 
 .. code:: shell
 
-    demo/demo_training/oai$ ls -l
+    demo/demo_training_reg_net/oai$ ls -l
     total 0
     drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 debug
     drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 test
@@ -84,7 +84,7 @@ The train|val|debug|test folder looks like this
 
 .. code:: shell
 
-    demo/demo_training/oai/train$ ls
+    demo/demo_training_reg_net/oai/train$ ls
     pair_name_list.txt  pair_path_list.txt
 
 
@@ -253,7 +253,7 @@ In demo repository, we include a training demo. The demo trains the affine-netwo
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
 
 
 **Two steps training**
@@ -267,7 +267,7 @@ we need following steps
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 
 After we complete training the affine part, the next step is calling mermaid-net to train the non-parametric part. Simiarly, we need following steps
@@ -278,7 +278,7 @@ After we complete training the affine part, the next step is calling mermaid-net
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 4. Resume the training
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -294,7 +294,7 @@ To resume the training, we can need following steps
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 
 .. _training-settings-label:

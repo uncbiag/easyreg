@@ -102,7 +102,7 @@ class VoxelMorphCVPR2018(nn.Module):
             self.init_affine_net(opt)
             self.id_transform = None
         else:
-            self.id_transform = gen_identity_map(self.img_sz, 1.0)
+            self.id_transform = gen_identity_map(self.img_sz, 1.0).cuda()
             print("Attention, the affine net is not used")
 
 
@@ -303,11 +303,11 @@ class VoxelMorphMICCAI2019(nn.Module):
             self.init_affine_net(opt)
             self.id_transform = None
         else:
-            self.id_transform = gen_identity_map(self.img_sz, 1.0)
+            self.id_transform = gen_identity_map(self.img_sz, 1.0).cuda()
             self.id_transform  =self.id_transform.view([1]+list(self.id_transform.shape))
             print("Attention, the affine net is not used")
         """to compatiable to the mesh setting in voxel morph"""
-        self.low_res_id_transform = gen_identity_map(self.img_sz, 0.5, normalized=False)
+        self.low_res_id_transform = gen_identity_map(self.img_sz, 0.5, normalized=False).cuda()
         self.encoders = nn.ModuleList()
         self.decoders = nn.ModuleList()
         #self.bilinear = Bilinear(zero_boundary=True)

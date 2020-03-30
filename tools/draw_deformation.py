@@ -42,6 +42,10 @@ def get_image_list_to_draw(refer_folder,momentum_folder,img_type,source_target_f
 
     return dict_to_draw
 
+
+
+
+
 def draw_images(dict_to_draw):
     for pair_name in dict_to_draw:
         try:

@@ -1,0 +1,20 @@
+{
+  "data_aug":{
+    "mode":"aug_with_nonaffined_data",
+    "max_aug_num": 10,
+    "t_range": [-1,2],
+    "task_type": "data_interp",
+    "K": 2,
+    "compute_inverse": true,
+    "data_interp": {
+          "t_aug_list": [0.5,1.0],
+          "weight_list": [[0.5,0.5,0,0],[1.0,0.0,0,0]]
+    },
+    "aug_with_nonaffined_data": {
+      "affine_back_to_original_postion": false
+    },
+    "rand_aug": {
+          "rand_momentum_scale": 8
+    }
+  }
+}

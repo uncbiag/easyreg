@@ -11,6 +11,11 @@ python demo_for_easyreg_train.py -o /playpen-raid1/zyshen/data/reg_oai_aug -dtn=
 python demo_for_easyreg_train.py -o /playpen-raid1/zyshen/data/reg_oai_aug -dtn=svf_aug -tn=svf_lld_scratch -ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_train_aug_scratch  -g=2
 
 
+python demo_for_easyreg_train.py -o /playpen-raid1/zyshen/data/reg_oai_aug -dtn=aug_net_cross -tn=svf_lld -ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_train_aug_cross  -g=2
+python demo_for_easyreg_train.py -o /playpen-raid1/zyshen/data/reg_oai_aug -dtn=aug_net_bspline_cross -tn=seg -ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_train_bspline_cross -g=3
+
 
 -ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_test_aug_scratch -txt=/playpen-raid1/zyshen/data/reg_oai_aug/test/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_oai_aug/svf_lld_scratch_res -g=3
+-ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_test_aug_scratch -txt=/playpen-raid1/zyshen/data/reg_oai_aug/test/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_oai_aug/aug_net_cross_res -g=3
+-ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_bspline_test -txt=/playpen-raid1/zyshen/data/reg_oai_aug/test/pair_path_list.txt   -o=/playpen-raid1//zyshen/data/reg_oai_aug/aug_net_bspline_cross_res -g=3
 -ts=/playpen-raid/zyshen/reg_clean/debug_reg/oai_reg_test_scratch -txt=/playpen-raid1/zyshen/data/reg_oai_aug/test/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_oai_aug/svf_net_scratch_res -g=3

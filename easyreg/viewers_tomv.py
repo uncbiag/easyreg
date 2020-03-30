@@ -435,9 +435,9 @@ class ImageViewer3D_Sliced_Contour(ImageViewer3D_Sliced):
         plt.sca(self.ax)
         phiSliced = self.get_phi_slice_at_dimension(self.index)
         for d in range(0,self.sliceDim):
-            plt.contour(phiSliced[d,:,:], np.linspace(-1,1,25),colors='r',linestyles='solid', linewidths=2)
+            plt.contour(phiSliced[d,:,:], np.linspace(-1,1,25),colors='r',linestyles='solid', linewidths=1)
         for d in range(self.sliceDim+1,3):
-            plt.contour(phiSliced[d,:,:], np.linspace(-1,1,25),colors='r',linestyles='solid',linewidths=2)
+            plt.contour(phiSliced[d,:,:], np.linspace(-1,1,25),colors='r',linestyles='solid',linewidths=1)
 
     def previous_slice(self):
         """

@@ -156,7 +156,7 @@ if __name__ == '__main__':
        
         input related:two input styles are supported,
             1. given txt
-             --file_txt_path/-txt: the txt file recording the pairs to registration
+             --file_txt_path/-txt: the txt file recording the pairs to segmentation
             2. given image
             --image_list/ -s: the source list,  s1 s2 s3..sn
             --limage_list/ -ls: optional, the source label list,  ls1,ls2,ls3..lsn

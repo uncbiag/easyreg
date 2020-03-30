@@ -278,7 +278,7 @@ class MermaidIter(MermaidBase):
             if self.nonp_model_name=='lddmm_adapt_smoother_map':
                 return self.__get_adaptive_smoother_map(), 'inital_weight'
             else:
-                return self.__get_momentum(), "_Momentum"
+                return self.__get_momentum(), "Momentum"
         else:
             return None, None
 

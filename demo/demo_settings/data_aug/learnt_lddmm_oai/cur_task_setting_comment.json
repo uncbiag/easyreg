@@ -1,0 +1,30 @@
+{
+    "dataset": {
+        "img_after_resize": "image size after resampling"
+    },
+    "tsk_set": {
+        "batch_sz": "batch sz (only for mermaid related method, otherwise set to 1)",
+        "gpu_ids": "the gpu id used for network methods",
+        "n_in_channel": "for network training method, the color channel typically set to 1",
+        "output_taking_original_image_format": "output follows the same sz and physical format of the original image (input by command line or txt)",
+        "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to source, target, warped, phi, inv_warped, inv_phi",
+        "path": {
+            "__doc__": "record paths"
+        },
+        "reg": {
+            "compute_inverse_map": "compute the inverse transformation map",
+            "mermaid_iter": {
+                "affine": {},
+                "mermaid_affine_json": "the json path for the setting for mermaid affine",
+                "mermaid_nonp_json": "the json path for the setting for mermaid non-parametric",
+                "use_init_weight": "whether to use init weight for RDMM registration",
+                "weights_for_bg": "regularizer weight for the background area",
+                "weights_for_fg": "regularizer weight for the foregound area, this should be got from the mermaid_json file"
+            }
+        },
+        "save_3d_img_on": "saving fig",
+        "save_fig_on": "saving fig",
+        "train": "True, take the train mode",
+        "use_physical_coord": "Keep physical spacing"
+    }
+}

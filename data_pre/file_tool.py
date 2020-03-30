@@ -143,7 +143,7 @@ def get_pair_txt_for_oai_reg_net(train_txt_path,warped_folder,warped_type, num_t
         num_sample = 0
         while num_sample < num_per_patient:
             pair = random.sample(name_file_dict[name],2)
-            if get_file_name(pair[0])==get_file_name(pair[1]):
+            if get_file_name(pair[0])==get_file_name(pair[1]) or get_file_name(pair[0]).split("_")[1]==get_file_name(pair[1]).split("_")[1]:
                 continue
             else:
                 train_list.append(pair)
@@ -172,6 +172,12 @@ def get_test_file_for_brainstorm_color(test_path,transfer_path,output_txt):
 # output_txt = "/playpen-raid/zyshen/data//oai_reg/brainstorm/colored_test_for_seg.txt"
 # get_test_file_for_brainstorm_color(test_path,transfer_path,output_txt)
 
+# #
+# test_path = "/playpen-raid/zyshen/data/oai_seg/val/file_path_list.txt"
+# transfer_path = "/playpen-raid/zyshen/data/oai_reg/brainstorm/color_lrfix_val_res/reg/res/records/3D"
+# output_txt = "/playpen-raid/zyshen/data//oai_reg/brainstorm/colored_val_for_seg.txt"
+# get_test_file_for_brainstorm_color(test_path,transfer_path,output_txt)
+
 
 # path = "/playpen-raid1/zyshen/data/oai_reg/brain_storm/data_aug_fake_img_fluidt1"
 # ftype = "*image.nii.gz"
@@ -182,47 +188,47 @@ def get_test_file_for_brainstorm_color(test_path,transfer_path,output_txt):
 # get_img_label_txt_file(path,ftype,switcher,output_path)
 
 
-
-
-path = "/playpen-raid1/zyshen/data/oai_reg/brain_storm/data_aug_fake_img_fluid_sr"
-ftype = "*image.nii.gz"
-switcher = ("image.nii.gz","label.nii.gz")
-output_path = "/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_fake_img_fluid_sr/train"
-os.makedirs(output_path,exist_ok=True)
-output_path = os.path.join(output_path,'file_path_list.txt')
-get_img_label_txt_file(path,ftype,switcher,output_path)
+#
+#
+# path = "/playpen-raid1/zyshen/data/oai_reg/brain_storm/data_aug_fake_img_fluid_sr"
+# ftype = "*image.nii.gz"
+# switcher = ("image.nii.gz","label.nii.gz")
+# output_path = "/playpen-raid1/zyshen/data/oai_reg/brain_storm/aug_expr/data_aug_fake_img_fluid_sr/train"
+# os.makedirs(output_path,exist_ok=True)
+# output_path = os.path.join(output_path,'file_path_list.txt')
+# get_img_label_txt_file(path,ftype,switcher,output_path)
 
 
 # pair_path_txt ="/playpen-raid/zyshen/data/oai_reg/brainstorm/color_lrfix/train/pair_path_list.txt"
 # output_txt = "/playpen-raid/zyshen/data/oai_reg/brainstorm/color_lrfix/test/pair_path_list.txt"
 # remove_label_info(pair_path_txt,output_txt)
 
-# pair_path_txt ="/playpen-raid/zyshen/data/oai_reg/brainstorm/test/atlas_to_test.txt"
-# output_txt = "/playpen-raid/zyshen/data/oai_reg/brainstorm/test/atlas_to_test.txt"
+# pair_path_txt ="/playpen-raid/zyshen/data/oai_reg/brainstorm/val/atlas_to_val.txt"
+# output_txt = "/playpen-raid/zyshen/data/oai_reg/brainstorm/val/atlas_to_val.txt"
 # remove_label_info(pair_path_txt,output_txt)
 
 #
-# train_txt_path = '/playpen-raid1/zyshen/data/reg_oai_aug/train/pair_path_list.txt'
-# warped_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/data_aug'
-# warped_type = '*_image.nii.gz'
-# num_train = 2000
-# output_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/aug_net/train'
-# os.makedirs(output_folder,exist_ok=True)
-# output_txt = os.path.join(output_folder,'pair_path_list.txt')
-# get_pair_txt_for_oai_reg_net(train_txt_path, warped_folder, warped_type, num_train, output_txt)
+train_txt_path = '/playpen-raid1/zyshen/data/reg_oai_aug/train/pair_path_list.txt'
+warped_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/data_aug'
+warped_type = '*_image.nii.gz'
+num_train = 2000
+output_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/aug_net_cross/train'
+os.makedirs(output_folder,exist_ok=True)
+output_txt = os.path.join(output_folder,'pair_path_list.txt')
+get_pair_txt_for_oai_reg_net(train_txt_path, warped_folder, warped_type, num_train, output_txt)
 
 
 
-# #
-# train_txt_path = '/playpen-raid1/zyshen/data/reg_oai_aug/train/pair_path_list.txt'
-# warped_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/data_aug_bspline'
-# warped_type = '*_image.nii.gz'
-# num_train = 2000
-# output_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/aug_net_bspline/train'
-# os.makedirs(output_folder,exist_ok=True)
-# output_txt = os.path.join(output_folder,'pair_path_list.txt')
-# get_pair_txt_for_oai_reg_net(train_txt_path, warped_folder, warped_type, num_train, output_txt)
 #
+train_txt_path = '/playpen-raid1/zyshen/data/reg_oai_aug/train/pair_path_list.txt'
+warped_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/data_aug_bspline'
+warped_type = '*_image.nii.gz'
+num_train = 2000
+output_folder = '/playpen-raid1/zyshen/data/reg_oai_aug/aug_net_bspline_cross/train'
+os.makedirs(output_folder,exist_ok=True)
+output_txt = os.path.join(output_folder,'pair_path_list.txt')
+get_pair_txt_for_oai_reg_net(train_txt_path, warped_folder, warped_type, num_train, output_txt)
+
 
 # train_txt_path = '/playpen-raid1/zyshen/data/reg_oai_aug/train/pair_path_list.txt'
 # output_txt_path = '/playpen-raid1/zyshen/data/reg_oai_aug/bspline_path_list.txt'
