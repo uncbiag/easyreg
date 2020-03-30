@@ -1,5 +1,0 @@
-python demo_for_seg_train.py -o /playpen-raid/zyshen/data/lpba_reg/train_with_25/lpba_ncc_reg1 -dtn=gen_lresol_seg -tn=seg -ts=/playpen-raid/zyshen/reg_clean/debug/settings/oai_seg_aug -g=0
-python demo_for_seg_train.py -o /playpen-raid/zyshen/data/lpba_reg/train_with_20/lpba_ncc_reg1 -dtn=gen_lresol_seg -tn=seg -ts=/playpen-raid/zyshen/reg_clean/debug/settings/oai_seg_aug -g=3
-python demo_for_seg_train.py -o /playpen-raid/zyshen/data/lpba_reg/train_with_15/lpba_ncc_reg1 -dtn=gen_lresol_seg -tn=seg -ts=/playpen-raid/zyshen/reg_clean/debug/settings/oai_seg_aug -g=2
-python demo_for_seg_train.py -o /playpen-raid/zyshen/lpba_reg/oai_reg/train_with_10/lpba_ncc_reg1 -dtn=gen_lresol_seg -tn=seg -ts=/playpen-raid/zyshen/reg_clean/debug/settings/oai_seg_aug -g=0
-python demo_for_seg_train.py -o /playpen-raid/zyshen/data/lpba_reg/train_with_5/lpba_ncc_reg1 -dtn=gen_lresol_seg -tn=seg -ts=/playpen-raid/zyshen/reg_clean/debug/settings/oai_seg_aug -g=1
