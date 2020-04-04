@@ -325,14 +325,10 @@ def loading_img_list_from_files(path):
     path_list = read_txt_into_list(path)
     num_pair = len(path_list)
     assert len(path_list[0])>=2
-    has_label = True if len(path_list[0])==4 else False
     source_path_list = [path_list[i][0] for i in range(num_pair)]
     target_path_list = [path_list[i][1] for i in range(num_pair)]
-    l_source_path_list = None
-    l_target_path_list = None
-    if has_label:
-        l_source_path_list = [path_list[i][2] for i in range(num_pair)]
-        l_target_path_list = [path_list[i][3] for i in range(num_pair)]
+    l_source_path_list = [path_list[i][2] if len((path_list[i]))==4 else "None" for i in range(num_pair)]
+    l_target_path_list = [path_list[i][3] if len((path_list[i]))==4 else "None" for i in range(num_pair)]
     return source_path_list, target_path_list, l_source_path_list, l_target_path_list
 
 

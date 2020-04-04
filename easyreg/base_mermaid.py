@@ -70,6 +70,8 @@ class MermaidBase(RegModelBase):
             l_target_np = self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np,l_target_np, rm_bg=False)
+        else:
+            self.val_res_dic={}
         self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True,
                                                   use_01=self.use_01)
         print("current batch jacobi is {}".format(self.jacobi_val))
@@ -258,6 +260,18 @@ class MermaidBase(RegModelBase):
                 fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + "_"+title + '.nii.gz')
                 nib.save(multi_ch_img, fpath)
 
+
+    def save_affine_param_with_easyreg_custom(self,affine_param, affine_compute_from_mermaid=False):
+        affine_param = affine_param.detach().clone()
+        if affine_compute_from_mermaid:
+            affine_param = transfer_mermaid_affine_into_easyreg_affine(affine_param)
+
+        if isinstance(affine_param, list):
+            affine_param = affine_param[0]
+        affine_param = affine_param.detach().cpu().numpy()
+        for i in range(affine_param.shape[0]):
+            np.save(os.path.join(self.record_path, self.fname_list[i]) + '_affine_param.npy', affine_param[i])
+
     def save_deformation(self):
         """
         save deformation in [0,1] coord, no physical spacing is included
@@ -271,11 +285,11 @@ class MermaidBase(RegModelBase):
         for i in range(phi_np.shape[0]):
             phi = nib.Nifti1Image(phi_np[i], np.eye(4))
             nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
-        if self.affine_on:
-            # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
-            affine_param = self.afimg_or_afparam
-            if isinstance(affine_param, list):
-                affine_param = self.afimg_or_afparam[0]
-            affine_param = affine_param.detach().cpu().numpy()
-            for i in range(affine_param.shape[0]):
-                np.save(os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy', affine_param[i])
+        # if self.affine_on:
+        #     # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
+        #     affine_param = self.afimg_or_afparam
+        #     if isinstance(affine_param, list):
+        #         affine_param = self.afimg_or_afparam[0]
+        #     affine_param = affine_param.detach().cpu().numpy()
+        #     for i in range(affine_param.shape[0]):
+        #         np.save(os.path.join(self.record_path, self.fname_list[i]) + '_affine_param.npy', affine_param[i])

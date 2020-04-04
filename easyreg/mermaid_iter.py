@@ -98,13 +98,41 @@ class MermaidIter(MermaidBase):
         #     self.phi[:, i, ...] = self.phi[:, i, ...] / ((self.input_img_sz[i] - 1) * self.spacing[i])
 
         Ab = self.si.opt.optimizer.ssOpt.model.Ab
+
+        ############################################333
+        easyreg_Ab = Ab.detach().clone()
+        easyreg_Ab= transfer_mermaid_affine_into_easyreg_affine(easyreg_Ab)
+        dim=3
+        easyreg_Ab = easyreg_Ab.view(easyreg_Ab.shape[0], dim + 1, dim)
+        phi_e = gen_identity_map(self.input_img_sz).to(easyreg_Ab.device)
+        phi = torch.Tensor(py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)).cuda()*2-1
+
+        phi_cp = phi.view(dim, -1)
+        affine_map = torch.matmul(easyreg_Ab[:, :dim, :], phi_cp)
+        affine_map = easyreg_Ab[:, dim, :].contiguous().view(-1, dim, 1) + affine_map
+        easyreg_map = affine_map.view([easyreg_Ab.shape[0]] + list(phi.shape))
+        easyreg_map = easyreg_map/2+0.5
+        identity_map = torch.Tensor(py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)).cuda()
+        mermaid_map =  py_utils.apply_affine_transform_to_map_multiNC(Ab, identity_map)
+        diff = easyreg_map-mermaid_map
+
+
+
+
+        ################################
+
+
         if self.compute_inverse_map:
             inv_Ab = py_utils.get_inverse_affine_param(Ab.detach())
             identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
-            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch(identity_map).cuda())  ##########################3
+            self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch.Tensor(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
         self.afimg_or_afparam = Ab
+        self.save_affine_param_with_easyreg_custom(self.afimg_or_afparam,affine_compute_from_mermaid=True)
         return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
+
+
+
 
 
     def nonp_optimization(self):

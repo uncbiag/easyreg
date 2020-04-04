@@ -172,8 +172,11 @@ class RegNet(MermaidBase):
             self.network.set_cur_epoch(self.cur_epoch)
         output, phi, afimg_or_afparam = self.network.forward(self.moving, self.target)
         loss = self.cal_loss()
+        self.save_affine_param_with_easyreg_custom(afimg_or_afparam)
 
         return output, phi, afimg_or_afparam, loss
+
+
 
     def update_scheduler(self,epoch):
         if self.lr_scheduler is not None and epoch>0:

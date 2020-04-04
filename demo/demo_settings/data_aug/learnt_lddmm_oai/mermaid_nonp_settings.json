@@ -7,7 +7,9 @@
         },
         "registration_model": {
             "forward_model": {
-                "number_of_time_steps": 10,
+                "tFrom": 0.0,
+                "tTo": 1.0,
+                "number_of_time_steps": 15,
                 "solver": "dopri5",
                 "adjoin_on": true,
                 "rtol": 1e-5,
@@ -41,7 +43,7 @@
             "similarity_measure": {
                 "develop_mod_on": false,
                 "sigma": 1.0,
-                "type": "ncc",
+                "type": "lncc",
                 "lncc":{
                     "resol_bound":[128,64],
                     "kernel_size_ratio":[[0.0625,0.125, 0.25], [0.25,0.5], [0.5]],
@@ -54,44 +56,13 @@
             "spline_order": 1,
             "type": "lddmm_shooting_map",
             "env":{
-                "get_momentum_from_external_network":false,
+                "get_momentum_from_external_network":true,
                 "use_odeint":true,
-                "reg_factor":1.0
+                "reg_factor":10.0
                 },
             "shooting_vector_momentum":{
                 "use_velocity_mask_on_boundary":false
             }
         }
-    },
-    "optimizer": {
-        "lbfgs": {
-            "history_size": 5,
-            "line_search_fn": "backtracking",
-            "max_eval": 5,
-            "max_iter": 1
-        },
-        "multi_scale": {
-            "scale_factors": [
-                1.0,
-                0.5,
-                0.25
-            ],
-            "scale_iterations": [
-                60,
-                60,
-                60
-            ]
-        },
-        "name": "lbfgs_ls",
-        "scheduler": {
-            "factor": 0.5,
-            "patience": 10,
-            "verbose": true
-        },
-        "single_scale": {
-            "nr_of_iterations": 100,
-            "rel_ftol": 1e-09
-        },
-        "use_step_size_scheduler": true
     }
 }

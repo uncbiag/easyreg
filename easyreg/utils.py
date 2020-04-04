@@ -231,22 +231,22 @@ def update_affine_param( cur_af, last_af): # A2(A1*x+b1) + b2 = A2A1*x + A2*b1+b
     """
     cur_af = cur_af.view(cur_af.shape[0], 4, 3)
     last_af = last_af.view(last_af.shape[0],4,3)
-    updated_af = torch.zeros_like(cur_af.data).cuda()
+    updated_af = torch.zeros_like(cur_af.data).to(cur_af.device)
     dim =3
     updated_af[:,:3,:] = torch.matmul(cur_af[:,:3,:],last_af[:,:3,:])
     updated_af[:,3,:] = cur_af[:,3,:] + torch.squeeze(torch.matmul(cur_af[:,:3,:], torch.transpose(last_af[:,3:,:],1,2)),2)
     updated_af = updated_af.contiguous().view(cur_af.shape[0],-1)
     return updated_af
 
-def get_inverse_affine_param(affine_param):
+def get_inverse_affine_param(affine_param,dim=3):
     """A2(A1*x+b1) +b2= A2A1*x + A2*b1+b2 = x    A2= A1^-1, b2 = - A2^b1"""
 
-    affine_param = affine_param.view(affine_param.shape[0], 4, 3)
-    inverse_param = torch.zeros_like(affine_param.data)#.cuda()
+    affine_param = affine_param.view(affine_param.shape[0], dim+1, dim)
+    inverse_param = torch.zeros_like(affine_param.data).to(affine_param.device)
     for n in range(affine_param.shape[0]):
-        tm_inv = torch.inverse(affine_param[n, :3,:])
-        inverse_param[n, :3, :] = tm_inv
-        inverse_param[n, 3, :] = - torch.matmul(tm_inv, affine_param[n, 3, :])
+        tm_inv = torch.inverse(affine_param[n, :dim,:])
+        inverse_param[n, :dim, :] = tm_inv
+        inverse_param[n, dim, :] = - torch.matmul(tm_inv, affine_param[n, dim, :])
     inverse_param = inverse_param.contiguous().view(affine_param.shape[0], -1)
     return inverse_param
 
@@ -257,15 +257,33 @@ def gen_affine_map(Ab, img_sz, dim=3):
        :param img_sz: image sz  [X,Y,Z]
        :return: affine transformation map
     """
-    Ab = Ab.view(Ab.shape[0], 4, 3)  # 3d: (batch,3)
-    phi = gen_identity_map(img_sz)
+    Ab = Ab.view(Ab.shape[0], dim+1, dim)
+    phi = gen_identity_map(img_sz).to(Ab.device)
     phi_cp = phi.view(dim, -1)
-    affine_map = None
-    if dim == 3:
-        affine_map = torch.matmul(Ab[:, :3, :], phi_cp)
-        affine_map = Ab[:, 3, :].contiguous().view(-1, 3, 1) + affine_map
-        affine_map = affine_map.view([Ab.shape[0]] + list(phi.shape))
+    affine_map = torch.matmul(Ab[:, :dim, :], phi_cp)
+    affine_map = Ab[:, dim, :].contiguous().view(-1, dim, 1) + affine_map
+    affine_map = affine_map.view([Ab.shape[0]] + list(phi.shape))
     return affine_map
+
+def transfer_mermaid_affine_into_easyreg_affine(affine_param, dim=3):
+    affine_param = affine_param.view(affine_param.shape[0], dim+1, dim)
+    I = torch.ones(dim).to(affine_param.device)
+    b = affine_param[:, dim,:]
+    affine_param[:,:dim,:]=  affine_param[:,:dim,:].transpose(1, 2)
+    affine_param[:, dim,:] =2*b +torch.matmul(affine_param[:,:dim,:],I)-1 # easyreg assume map is defined in [-1,1] whle the mermaid assumes [0,1]
+    affine_param = affine_param.contiguous()
+    affine_param = affine_param.view(affine_param.shape[0],-1)
+    return affine_param
+
+def transfer_easyreg_affine_into_mermaid_affine(affine_param, dim=3):
+    affine_param = affine_param.view(affine_param.shape[0], dim+1, dim)
+    I = torch.ones(dim).to(affine_param.device)
+    b = affine_param[:, dim,:]
+    affine_param[:, dim,:] = (b-torch.matmul(affine_param[:,:dim,:],I)+1)/2 # the order here is important
+    affine_param[:,:dim,:]=  affine_param[:,:dim,:].transpose(1, 2)
+    affine_param = affine_param.contiguous()
+    affine_param = affine_param.view(affine_param.shape[0],-1)
+    return affine_param
 
 def get_warped_img_map_param( Ab, img_sz, moving, dim=3, zero_boundary=True):
     """
