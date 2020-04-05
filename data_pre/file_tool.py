@@ -168,9 +168,21 @@ def get_test_file_for_brainstorm_color(test_path,transfer_path,output_txt):
 
 
 def generate_file_for_xu():
-    folder_path = "/playpen-raid1/xhs400/Research/data/r21/data/ct-cbct/images/1822709/Cropped"
-    path = glob(os.path.join(folder_path,"**","*.nii.gz"))
-    print(0)
+    folder_path = "/playpen-raid1/xhs400/Research/data/r21/data/ct-cbct/images/"
+    paths = glob(os.path.join(folder_path,"**","image_normalized.nii.gz"),recursive=True)
+    outpath="/playpen-raid1/zyshen/debug/xu/"
+    f = lambda x: "_OG" in x
+    og_paths = list(filter(f,paths))
+    em_paths = [og_path.replace("_OG","_EM") for og_path in og_paths]
+    sm_paths = [og_path.replace("_OG","_SM") for og_path in og_paths]
+    og_l_paths = [og_path.replace("image_normalized.nii.gz","SmBowel_label.nii.gz") for og_path in og_paths]
+    em_l_paths =[og_path.replace("image_normalized.nii.gz","SmBowel_label.nii.gz") for og_path in em_paths]
+    sm_l_paths =[og_path.replace("image_normalized.nii.gz","SmBowel_label.nii.gz") for og_path in sm_paths]
+    pair_path_list = [[og_path,em_path,og_l_path,em_l_path] for og_path,em_path,og_l_path,em_l_path in zip(og_paths,em_paths,og_l_paths,em_l_paths)]
+    pair_path_list += [[og_path,sm_path,og_l_path,sm_l_path] for og_path,sm_path,og_l_path,sm_l_path in zip(og_paths,sm_paths,og_l_paths,sm_l_paths)]
+    os.makedirs(outpath,exist_ok=True)
+    outpath = os.path.join(outpath,"source_target_set.txt")
+    write_list_into_txt(outpath,pair_path_list)
 
 
 

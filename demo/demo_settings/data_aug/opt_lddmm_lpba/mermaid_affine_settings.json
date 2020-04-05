@@ -27,7 +27,7 @@
                 0.25
             ],
             "scale_iterations": [
-                1,
+                10,
                 10,
                 10
             ]
@@ -41,7 +41,7 @@
         "sgd": {
             "individual": {
                 "dampening": 0.0,
-                "lr": 5e-04,
+                "lr": 5e-07,
                 "momentum": 0.9,
                 "nesterov": true,
                 "weight_decay": 0.0

@@ -97,10 +97,10 @@ class FluidAug(DataAug):
         self.K = aug_setting['data_aug']["fluid_aug"][('K',1,"the dimension of the geodeisc subspace")]
         self.task_type = aug_setting['data_aug']["fluid_aug"][('task_type',"rand_aug","rand_aug/data_interp,  rand_aug: random data augmentation; data_interp: data interpolation")]
         self.compute_inverse = aug_setting['data_aug']["fluid_aug"][('compute_inverse',True,"compute the inverse map")]
-        self.t_range = aug_setting['data_aug']["fluid_aug"][('t_range',[-1,2],"the range of t inter-/extra-polation, the registration completes in unit time [0,1]")]
         self.rand_w_t = True if self.task_type=="rand_aug" else False
         self.t_aug_list= aug_setting['data_aug']["fluid_aug"]['data_interp'][('t_aug_list',[1.0],"the time points for inter-/extra-polation")]
         self.weight_list = self.aug_setting['data_aug']["fluid_aug"]['data_interp'][('weight_list',[[1.0]],"the weight for each target image, set in data_interp mode")]
+        self.t_range = aug_setting['data_aug']["fluid_aug"]['rand_aug'][('t_range',[-1,2],"the range of t inter-/extra-polation, the registration completes in unit time [0,1]")]
         self.rand_momentum_scale = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('rand_momentum_scale',8,"the size of random momentum is 1/rand_momentum_scale of the original image sz")]
         self.magnitude = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('magnitude',1.5,"the magnitude of the random momentum")]
         self.affine_back_to_original_postion = self.aug_setting['data_aug']["fluid_aug"]['aug_with_nonaffined_data'][('affine_back_to_original_postion',False,"transform the new image to the original postion")]
@@ -125,7 +125,7 @@ class FluidAug(DataAug):
             momentum = (np.random.rand(*momentum_sz_low) * 2 - 1) * self.magnitude
             mom_spacing = 1./(np.array(momentum_sz_low[2:])-1)
             momentum = torch.Tensor(momentum)
-            momentum,_ =  resample_image(momentum,mom_spacing,momentum_sz,spline_order=1,zero_boundary=True)
+            momentum, _ = resample_image(momentum,mom_spacing,momentum_sz,spline_order=1,zero_boundary=True)
 
         org_spacing = 1.0 / (np.array(moving.shape[2:]) - 1)
         input_spacing = 1.0 / (np.array(input_img_sz[2:]) - 1)

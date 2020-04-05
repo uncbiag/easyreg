@@ -4,7 +4,6 @@
 
     "fluid_aug": {
       "fluid_mode":"aug_with_nonaffined_data",
-      "t_range": [-1,2],
       "task_type": "rand_aug",
       "K": 2,
       "compute_inverse": true,
@@ -13,6 +12,7 @@
             "weight_list": [[0.5,0.5,0,0],[1.0,0.0,0,0]]
       },
       "rand_aug": {
+            "t_range": [-1,2],
             "rand_momentum_scale": 8,
             "magnitude": 1.5
       },

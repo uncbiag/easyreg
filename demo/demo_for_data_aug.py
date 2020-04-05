@@ -66,17 +66,29 @@ def do_augmentation(input_txt, setting_folder_path, task_output_path):
     assert os.path.isfile(aug_setting_path), "the aug setting json  {} is not found".format(aug_setting_path)
     aug_setting = pars.ParameterDict()
     aug_setting.load_JSON(aug_setting_path)
-    max_aug_num = aug_setting["data_aug"]["max_aug_num"]
-    num_process = 10
-    max_aug_num_per_process = round(max_aug_num/10)
-    aug_setting["data_aug"]["data_aug"]=max_aug_num_per_process
-    aug_setting_mp_path = os.path.join(setting_folder_path,"data_aug_setting_mutli_process.json")
-    aug_setting.write_ext_JSON(aug_setting_mp_path)
-    cmd = ""
+    task_type = aug_setting["data_aug"]["fluid_aug"]["task_type"]
+    num_process = 5
+    if task_type == "rand_aug":
+        max_aug_num = aug_setting["data_aug"]["max_aug_num"]
+        max_aug_num_per_process = round(max_aug_num/num_process)
+        aug_setting["data_aug"]["data_aug"]=max_aug_num_per_process
+        aug_setting_mp_path = os.path.join(setting_folder_path,"data_aug_setting_mutli_process.json")
+        aug_setting.write_ext_JSON(aug_setting_mp_path)
+        cmd = ""
+        for _ in range(num_process):
+            cmd += "python gen_aug_samples.py "
+            cmd += "-txt={}  -as={} -ms={} -o={} & \n".format(input_txt,aug_setting_mp_path,mermaid_setting_path,task_output_path)
+            cmd += "sleep 1s \n"
 
-    for _ in range(num_process):
-        cmd = "\n python gen_aug_samples.py "
-        cmd += "-txt={}  -as={} -ms={} -o={} &".format(input_txt,aug_setting_mp_path,mermaid_setting_path,task_output_path)
+    else:
+        num_process = split_txt(txt_path, num_process, task_output_path,"aug_p")
+        sub_input_txt_list = [os.path.join(task_output_path, 'aug_p{}.txt'.format(i)) for i in range(num_process)]
+        cmd = ""
+        for i in range(num_process):
+            cmd += "python gen_aug_samples.py "
+            cmd += "-txt={}  -as={} -ms={} -o={} & \n".format(sub_input_txt_list[i], aug_setting_path, mermaid_setting_path,
+                                                           task_output_path)
+            cmd += "sleep 1s \n"
 
     process = subprocess.Popen(cmd, shell=True)
     process.wait()
@@ -86,9 +98,21 @@ def do_augmentation(input_txt, setting_folder_path, task_output_path):
 
 
 
-def do_registration(txt_path, setting_folder_path,output_path,gpu_id):
-    cmd = "python demo_for_easyreg_eval.py "
-    cmd +="-ts={} -txt={} -o={} -g={}".format(setting_folder_path,txt_path,output_path,gpu_id)
+def do_registration(txt_path, setting_folder_path,output_path,gpu_id_list):
+    cmd = ""
+    if len(gpu_id_list)==1:
+        cmd += "python demo_for_easyreg_eval.py "
+        cmd +="-ts={} -txt={} -o={} -g={}".format(setting_folder_path,txt_path,output_path,int(gpu_id_list[0]))
+    else:
+        num_split = len(gpu_id_list)
+        split_txt(txt_path, num_split, output_path)
+        sub_txt_path_list = [os.path.join(output_path, 'p{}.txt'.format(i)) for i in range(num_split)]
+        for i,sub_txt_path in enumerate(sub_txt_path_list):
+            cmd += "echo GPU {} \n".format(gpu_id_list[i])
+            cmd += "python demo_for_easyreg_eval.py "
+            cmd += "-ts={} -txt={} -o={} -g={} & \n".format(setting_folder_path, sub_txt_path, output_path, int(gpu_id_list[i]))
+            cmd += "sleep 1m \n"
+
     process = subprocess.Popen(cmd, shell=True)
     process.wait()
 
@@ -102,7 +126,7 @@ def pipeline(args):
     :return: None
     """
     setting_folder_path, reg_pair_list_txt=init_reg_env(args)
-    #do_registration(reg_pair_list_txt,setting_folder_path,args.task_output_path,args.gpu_id)
+    do_registration(reg_pair_list_txt,setting_folder_path,args.task_output_path,args.gpu_id_list)
     aug_input_txt = init_aug_env(reg_pair_list_txt,args.task_output_path,setting_folder_path)
     do_augmentation(aug_input_txt,setting_folder_path, args.task_output_path)
 
@@ -143,12 +167,13 @@ if __name__ == '__main__':
         other arguments:
              --setting_folder_path/-ts :path of the folder where settings are saved
              --task_output_path/ -o: the path of output folder
-             --gpu_id/ -g: gpu_id to use
+             --gpu_id_list/ -g: gpu_id_list to use
 
 
     """
     import argparse
     # --run_demo --demo_name=opt_lddmm_lpba
+    # -ts=/playpen-raid1/zyshen/debug/xu/opt_lddmm -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt -f=aug_by_line -o=/playpen-raid1/zyshen/debug/xu/expr -g 0 0 1 1
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
     parser.add_argument("--run_demo", required=False, action='store_true', help='run demo')
@@ -167,7 +192,7 @@ if __name__ == '__main__':
     parser.add_argument('-ma','--max_size_of_pair_to_reg', required=False, default=-1, type=int,
                         help='max size of pair for registration, set -1 if there is no constraint, in that case the potential pair  number would be N*(N-1) if txt_format is set as aug_by_file')
     parser.add_argument('-o', "--task_output_path", required=False, default="",  type=str,help='the output path')
-    parser.add_argument('-g', "--gpu_id", required=False, type=int, default=0, help='gpu_id to use')
+    parser.add_argument('-g', "--gpu_id_list", nargs='+', required=False, default=None, help='list of gpu id to use')
 
     args = parser.parse_args()
     print(args)

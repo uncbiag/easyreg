@@ -110,7 +110,7 @@ def get_pair_list_txt_by_line(txt_path,output_path,pair_num_limit=-1, per_num_li
 from easyreg.reg_data_utils import *
 
 def generate_moving_target_dict(txt_path):
-    pair_list = read_txt_into_list(txt_path)
+    pair_list = read_img_label_into_list(txt_path)
     moving_name_list = [get_file_name(pth[0]) for pth in pair_list]
     moving_name_set = set(moving_name_list)
     moving_target_dict = {moving_name:{'m_pth':None,"t_pth":[],"l_pth":None} for moving_name in moving_name_set}
@@ -137,3 +137,18 @@ def generate_moving_momentum_txt(txt_path, momentum_path, output_txt_path,affine
         moving_momentum_list_tmp = [item['m_pth']] + [label_path] + momentum_path_list + affine_path_list
         moving_momentum_list.append(moving_momentum_list_tmp)
     write_list_into_txt(output_txt_path,moving_momentum_list)
+
+
+def split_txt(input_txt,num_split, output_folder,sub_fname="p"):
+    import math
+    os.makedirs(output_folder,exist_ok=True)
+    pairs = read_img_label_into_list(input_txt)
+    pairs = [["None" if item is None else item for item in pair] for pair in pairs]
+    num_pairs = len(pairs)
+    chunk_size = max(math.ceil(num_pairs/num_split),1)
+    index = list(range(0, num_pairs, chunk_size))
+    for i, ind in enumerate(index):
+        split = pairs[ind:ind+chunk_size]
+        write_list_into_txt(os.path.join(output_folder, '{}{}.txt'.format(sub_fname,i)),split)
+    return len(index)
+
