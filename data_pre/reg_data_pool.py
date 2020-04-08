@@ -110,7 +110,7 @@ class CustomDataSet(BaseRegDataSet):
         return divided_path_and_name_dic
 
     def __gen_pair_name_list(self, pair_list_dic):
-        return {sess: [get_file_name(path[0]) + '_' + get_file_name(path[1]) for path in pair_list_dic[sess]] for sess
+        return {sess: [generate_pair_name([path[0],path[1]]) for path in pair_list_dic[sess]] for sess
                 in sesses}
 
 
@@ -343,7 +343,7 @@ class PatientStructureDataSet(BaseRegDataSet):
 
 
     def __gen_pair_name_list(self,pair_list_dic):
-        return {sess:[get_file_name(path[0])+'_'+get_file_name(path[1]) for path in pair_list_dic[sess]] for sess in sesses}
+        return {sess:[generate_pair_name([path[0],path[1]]) for path in pair_list_dic[sess]] for sess in sesses}
 
 
 

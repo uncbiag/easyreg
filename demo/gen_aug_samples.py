@@ -30,6 +30,7 @@ import SimpleITK as sitk
 import nibabel as nib
 from tools.image_rescale import save_image_with_given_reference
 from easyreg.aug_utils import read_img_label_into_list
+from easyreg.reg_data_utils import read_fname_list_from_pair_fname_txt
 from easyreg.utils import gen_affine_map, get_inverse_affine_param
 from glob import glob
 import copy
@@ -180,7 +181,7 @@ class FluidRand(FluidAug):
     def __init__(self,aug_setting_path,mermaid_setting_path):
         FluidAug.__init__(self,aug_setting_path,mermaid_setting_path)
 
-    def get_input(self,moving_path_list, init_weight_path_list=None):
+    def get_input(self,moving_path_list,fname, init_weight_path_list=None):
         """ each line include the path of moving, the path of label (None if not exist), path of momentum1, momentum2...."""
 
         fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x)))
@@ -188,10 +189,11 @@ class FluidRand(FluidAug):
         l_moving = None
         if moving_path_list[1] is not None:
             l_moving = fr_sitk(moving_path_list[1])[None][None]
-        moving_name =get_file_name(moving_path_list[0])
+        if fname is None:
+            moving_name =get_file_name(moving_path_list[0])
         return moving, l_moving, moving_name
 
-    def generate_aug_data(self,moving_path_list, init_weight_path_list, output_path):
+    def generate_aug_data(self,moving_path_list,fname_list, init_weight_path_list, output_path):
         max_aug_num  = self.max_aug_num
         t_range = self.t_range
         t_span = t_range[1]-t_range[0]
@@ -199,7 +201,8 @@ class FluidRand(FluidAug):
         num_pair = len(moving_path_list)
         for i in range(num_pair):
             moving_path = moving_path_list[i][0]
-            moving, l_moving, moving_name = self.get_input(moving_path_list[i], None)
+            fname = fname_list[i] if fname_list is not None else None
+            moving, l_moving, moving_name = self.get_input(moving_path_list[i],fname, None)
             num_aug = round(max_aug_num / num_pair)
             for _ in range(num_aug):
                 t_aug = random.random() * t_span +t_range[0]
@@ -214,7 +217,7 @@ class FluidAffined(FluidAug):
 
 
 
-    def get_input(self,moving_momentum_path_list, init_weight_path_list):
+    def get_input(self,moving_momentum_path_list,fname_list, init_weight_path_list):
         """ each line include the path of moving, the path of label (None if not exist), path of momentum1, momentum2...."""
 
         fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x)))
@@ -228,11 +231,16 @@ class FluidAffined(FluidAug):
             init_weight_list = [[fr_sitk(path) for path in init_weight_path_list]]
         else:
             init_weight_list = None
-        fname_list = [get_file_name(path) for path in moving_momentum_path_list[2:]]
-        fname_list = [fname.replace("_0000_Momentum", '') for fname in fname_list]
-        return moving, l_moving, momentum_list, init_weight_list, fname_list
+        if fname_list is None:
+            moving_name = get_file_name(moving_momentum_path_list[0])
+            target_name_list = [get_file_name(path) for path in moving_momentum_path_list[2:]]
+            target_name_list = [fname.replace("_0000_Momentum", '') for fname in target_name_list]
+        else:
+            moving_name = fname_list[0]
+            target_name_list = fname_list[1:]
+        return moving, l_moving, momentum_list, init_weight_list, moving_name,target_name_list
 
-    def generate_aug_data(self,moving_momentum_path_list, init_weight_path_list, output_path):
+    def generate_aug_data(self,moving_momentum_path_list, fname_list,init_weight_path_list, output_path):
         max_aug_num  = self.max_aug_num
         rand_w_t = self.rand_w_t
         t_range = self.t_range
@@ -243,8 +251,8 @@ class FluidAffined(FluidAug):
 
         for i in range(num_pair):
             moving_path = moving_momentum_path_list[i][0]
-            moving, l_moving, momentum_list, init_weight_list, fname_list = self.get_input(
-                moving_momentum_path_list[i], init_weight_path_list[i] if init_weight_path_list else None)
+            moving, l_moving, momentum_list, init_weight_list, moving_name, target_name_list = self.get_input(
+                moving_momentum_path_list[i], fname_list[i],init_weight_path_list[i] if init_weight_path_list else None)
             num_aug = round(max_aug_num / num_pair) if rand_w_t else 1
             for _ in range(num_aug):
                 num_momentum = len(momentum_list)
@@ -263,11 +271,11 @@ class FluidAffined(FluidAug):
                 for t_aug in t_aug_list:
                     for weight in weight_list:
                         momentum = torch.zeros_like(momentum_list[0])
-                        fname = ""
+                        fname = moving_name + '_to_'
                         suffix =""
                         for k in range(K):
                             momentum += weight[k] * momentum_list[selected_index[k]]
-                            fname += fname_list[selected_index[k]] + '_'
+                            fname += target_name_list[selected_index[k]] + '_'
                             suffix += '{:.4f}_'.format(weight[k])
 
                         fname = fname + suffix +'t_{:.2f}'.format(t_aug)
@@ -295,7 +303,7 @@ class FluidNonAffined(FluidAug):
         return affine_map, inverse_affine_map
 
 
-    def get_input(self,moving_momentum_path_list, init_weight_path_list):
+    def get_input(self,moving_momentum_path_list,fname_list, init_weight_path_list):
         """
         each line includes  path of moving, path of moving label(None if not exists), path of mom_1,...mom_m, affine_1....affine_m
         """
@@ -317,9 +325,15 @@ class FluidNonAffined(FluidAug):
             init_weight_list=[[fr_sitk(path) for path in init_weight_path_list]]
         else:
             init_weight_list=None
-        fname_list =[get_file_name(path) for path in moving_momentum_path_list[2:num_m+2]]
-        fname_list = [fname.replace("_0000_Momentum",'') for fname in fname_list]
-        return moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, fname_list
+        if fname_list is None:
+            moving_name = get_file_name(moving_momentum_path_list[0])
+            target_name_list = [get_file_name(path) for path in moving_momentum_path_list[2:num_m + 2]]
+            target_name_list = [fname.replace("_0000_Momentum", '') for fname in target_name_list]
+        else:
+            moving_name = fname_list[0]
+            target_name_list = fname_list[1:]
+
+        return moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, moving_name, target_name_list
 
     def generate_aug_data(self,moving_momentum_path_list, init_weight_path_list, output_path):
 
@@ -332,7 +346,7 @@ class FluidNonAffined(FluidAug):
         num_pair = len(moving_momentum_path_list)
         for i in range(num_pair):
             moving_path = moving_momentum_path_list[i][0]
-            moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, fname_list = self.get_input(
+            moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, moving_name, target_name_list = self.get_input(
                 moving_momentum_path_list[i], init_weight_path_list[i] if init_weight_path_list else None)
             num_aug = max(round(max_aug_num / num_pair),1) if rand_w_t else 1
             for _ in range(num_aug):
@@ -349,7 +363,7 @@ class FluidNonAffined(FluidAug):
                     momentum  = momentum_list[selected_index[0]]
                     affine = affine_list[selected_index[0]]
                     inverse_affine = inverse_affine_list[selected_index[0]]
-                    fname = fname_list[selected_index[0]] + '_t_{:.2f}'.format(t_aug)
+                    fname = moving_name + "_to_" + target_name_list[selected_index[0]] + '_t_{:.2f}'.format(t_aug)
 
                     fname = fname.replace('.', 'd')
                     init_weight = None
@@ -369,7 +383,7 @@ class FluidAtlas(FluidAug):
         self.atlas_to_folder = self.aug_setting['data_aug']["fluid_aug"]["aug_with_atlas"][
             ('atlas_to_folder', None, "the folder containing the atlas to image momentum")]
 
-    def get_input(self,moving_momentum_path_list, init_weight_path_list):
+    def get_input(self,moving_momentum_path_list,moving_name, init_weight_path_list):
         """
         each line include the path of moving, the path of label(None if not exists)
         :return:
@@ -380,16 +394,17 @@ class FluidAtlas(FluidAug):
         l_moving = None
         if moving_momentum_path_list[1] is not None:
             l_moving = fr_sitk(moving_momentum_path_list[1])[None][None]
-        moving_name = get_file_name(moving_momentum_path_list[0])
+        if moving_name is None:
+            moving_name = get_file_name(moving_momentum_path_list[0])
         return moving, l_moving,moving_name
 
-    def generate_aug_data(self,path_list, init_weight_path_list, output_path):
+    def generate_aug_data(self,path_list,fname_list, init_weight_path_list, output_path):
         """
         here we use the low-interface of mermaid to get efficient low-res- propagration (avod saving phi and inverse phi as well as the precision loss from unnecessary upsampling and downsampling
         ) which provide high precision in maps
         """
 
-        def create_mermaid_model(mermaid_json_pth, img_sz, compute_inverse):
+        def create_mermaid_model(mermaid_json_pth, img_sz, compute_inverse=True):
             import mermaid.model_factory as py_mf
             spacing = 1. / (np.array(img_sz[2:]) - 1)
             params = pars.ParameterDict()
@@ -450,14 +465,14 @@ class FluidAtlas(FluidAug):
             mermaid_setting_path, [1, 1] + img_sz, self.compute_inverse)
 
         for i in range(num_pair):
-            moving, l_moving,moving_name = self.get_input(path_list[i], None)
-            fname = moving_name
+            fname = fname_list[i] if fname_list is not None else None
+            moving, l_moving,moving_name = self.get_input(path_list[i], fname, None)
             # get the transformation to atlas, which should simply load the transformation map
             low_moving = get_resampled_image(moving, None, lowResSize, 1, zero_boundary=True,
                                              identity_map=lowResIdentityMap)
             init_map = lowResIdentityMap.clone()
             init_inverse_map = lowResIdentityMap.clone()
-            index = list(filter(lambda x: fname in x, to_atlas_momentum_path_list))[0]
+            index = list(filter(lambda x: moving_name in x, to_atlas_momentum_path_list))[0]
             index = to_atlas_momentum_path_list.index(index)
             # here we only interested in forward the map, so the moving image doesn't affect
             mermaid_unit_st.integrator.cparams['tTo'] = 1.0
@@ -480,7 +495,7 @@ class FluidAtlas(FluidAug):
                         continue
                     for weight in weight_list:
                         momentum = torch.zeros_like(atlas_to_momentum_list[0])
-                        fname = ""
+                        fname = moving_name + "_to_"
                         suffix = ""
                         for k in range(K):
                             momentum += weight[k] * atlas_to_momentum_list[selected_index[k]]
@@ -580,16 +595,17 @@ class BsplineAug(DataAug):
         "chance to deform the image, i.e., 0.5 refers to ratio of the deformed images and the non-deformed (original) image")]
         assert len(self.mesh_size_list) == len(self.deform_scale_list)
 
-    def get_input(self,moving_path_list):
+    def get_input(self,moving_path_list,fname_list):
         moving = [sitk.ReadImage(pth[0]) for pth in moving_path_list]
         l_moving = [sitk.ReadImage(pth[1]) for pth in moving_path_list]
-        fname_list = [get_file_name(pth[0]) for pth in moving_path_list]
+        if fname_list is None:
+            fname_list = [get_file_name(pth[0]) for pth in moving_path_list]
         return moving, l_moving, fname_list
 
-    def generate_aug_data(self, moving_path_list, output_path):
+    def generate_aug_data(self, moving_path_list,fname_list, output_path):
         num_pair = len(moving_path_list)
         num_aug = int(self.max_aug_num / num_pair)
-        moving_list, l_moving_list, fname_list = self.get_input(moving_path_list)
+        moving_list, l_moving_list, fname_list = self.get_input(moving_path_list,fname_list)
         bspline_func_list = [RandomBSplineTransform(mesh_size=self.mesh_size_list[i], bspline_order=2, deform_scale=self.deform_scale_list[i], ratio=self.aug_ratio)
                              for i in range(len(self.mesh_size_list))]
 
@@ -604,7 +620,7 @@ class BsplineAug(DataAug):
                 sitk.WriteImage(aug_sample['label'], os.path.join(output_path, fname + '_label.nii.gz'))
 
 
-def generate_aug_data(moving_momentum_path_list,init_weight_path_list,output_path, mermaid_setting_path,fluid_mode,aug_setting_path,fluid_aug=True):
+def generate_aug_data(moving_momentum_path_list, fname_list,init_weight_path_list,output_path, mermaid_setting_path,fluid_mode,aug_setting_path,fluid_aug=True):
     if fluid_aug:
         if fluid_mode=='aug_with_affined_data':
             fluid_aug = FluidAffined(aug_setting_path,mermaid_setting_path)
@@ -616,12 +632,12 @@ def generate_aug_data(moving_momentum_path_list,init_weight_path_list,output_pat
             fluid_aug = FluidRand(aug_setting_path,mermaid_setting_path)
         else:
             raise ValueError("not supported mode, should be aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas/rand_aug")
-        fluid_aug.generate_aug_data(moving_momentum_path_list, init_weight_path_list, output_path)
+        fluid_aug.generate_aug_data(moving_momentum_path_list, fname_list,init_weight_path_list, output_path)
 
     else:
         moving_path_list = moving_momentum_path_list
         bspline_aug = BsplineAug(aug_setting_path)
-        bspline_aug.generate_aug_data(moving_path_list, output_path)
+        bspline_aug.generate_aug_data(moving_path_list,fname_list, output_path)
 
 
 
@@ -642,17 +658,29 @@ if __name__ == '__main__':
     
     since we relax the affine constrain here, the augmentation only works under 1d geodesic subspace
     
-    For the input txt file, each line include a source image, N target image
+    For the input txt file, 
+    for fluid augmentation (fluid_mode: aug_with_affined_data/aug_with_nonaffined_data) : each line include a source image path, source label path (None if not exist), N momentum paths that register to N target images
+    for fluid augmentation (fluid_mode: aug_with_atlas(need additional setting in json) and rand_aug): each line include a source image path, source_label path (None if not exist)
+    for bspline augmentation : each line include a source image path, source_label path (None if not exist)
+    
+    the name_txt (optional, will use the filename if not provided) include the fname for each image ( to avoid confusion of source images with the same filename)
+    for fluid augmentation (fluid_mode: aug_with_affined_data/aug_with_nonaffined_data) : each line include a source name, N target name
+    for fluid augmentation (fluid_mode: aug_with_atlas(need additional setting in json) and rand_aug): a source name
+    for bspline augmentation : each line include a source image, source_label (None if not exist): a source name
+     
 
     
     """
     import argparse
-    # --txt_path=/playpen-raid/zyshen/data/lpba_reg/train_with_5/lpba_ncc_reg1/momentum_lresol.txt  --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid/zyshen/debug/debug_aug
-    # --txt_path=/playpen-raid1/zyshen/data/reg_oai_aug/momentum_lresol.txt --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid/zyshen/debug/debug_aug
-    # --txt_path=/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/train/file_path_list.txt --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid1/zyshen/debug/debug_aug3
+    # --file_txt=/playpen-raid/zyshen/data/lpba_reg/train_with_5/lpba_ncc_reg1/momentum_lresol.txt  --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid/zyshen/debug/debug_aug
+    # --file_txt=/playpen-raid1/zyshen/data/reg_oai_aug/momentum_lresol.txt --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid/zyshen/debug/debug_aug
+    # --file_txt=/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/train/file_path_list.txt --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid1/zyshen/debug/debug_aug3
+    # -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt -
     parser = argparse.ArgumentParser(description='Registration demo for data augmentation')
-    parser.add_argument("-txt",'--txt_path', required=False, default=None,
+    parser.add_argument("-t",'--file_txt', required=False, default=None,
                         help='the file path of input txt, exclusive with random_m')
+    parser.add_argument("-n", '--name_txt', required=False, default=None,
+                        help=' txt recording corresponding file name')
     parser.add_argument("-w",'--rdmm_preweight_txt_path', required=False, default=None,
                         help='the file path of rdmm preweight txt, only needed when use predefined rdmm model,(need to further test)')
     parser.add_argument("-m",'--fluid_mode',required=False,default=None,
@@ -666,7 +694,8 @@ if __name__ == '__main__':
     parser.add_argument("-ms",'--mermaid_setting_path', required=False, default=None,
                         help='path of mermaid setting json')
     args = parser.parse_args()
-    txt_path = args.txt_path
+    file_txt = args.file_txt
+    name_txt = args.name_txt
     rdmm_preweight_txt_path = args.rdmm_preweight_txt_path
     use_init_weight = rdmm_preweight_txt_path is not None
     mermaid_setting_path = args.mermaid_setting_path
@@ -674,7 +703,7 @@ if __name__ == '__main__':
     fluid_mode = args.fluid_mode
     use_bspline = args.bspline
     output_path = args.output_path
-    assert os.path.isfile(txt_path),"{} not exists".format(txt_path)
+    assert os.path.isfile(file_txt),"{} not exists".format(file_txt)
     assert os.path.isfile(aug_setting_path),"{} not exists".format(aug_setting_path)
     assert os.path.isfile(mermaid_setting_path),"{} not exists".format(mermaid_setting_path)
     if fluid_mode is None and not use_bspline:
@@ -684,11 +713,15 @@ if __name__ == '__main__':
         fluid_mode = params["data_aug"]["fluid_aug"]["fluid_mode"]
     os.makedirs(output_path,exist_ok=True)
     # if the use_random_m is false or use_bspline, then the each only include moving and its label(optional)
-    moving_momentum_path_list = get_pair_list(txt_path)
+    moving_momentum_path_list = get_pair_list(file_txt)
+    if name_txt is not None:
+        fname_list = read_fname_list_from_pair_fname_txt(name_txt,detail=True)
+    else:
+        fname_list = None
     init_weight_path_list = None
     if use_init_weight:
         init_weight_path_list = get_init_weight_list(rdmm_preweight_txt_path)
 
-    generate_aug_data(moving_momentum_path_list,init_weight_path_list,output_path, mermaid_setting_path,fluid_mode, aug_setting_path,fluid_aug= not use_bspline)
+    generate_aug_data(moving_momentum_path_list,fname_list,init_weight_path_list,output_path, mermaid_setting_path,fluid_mode, aug_setting_path,fluid_aug= not use_bspline)
 
 

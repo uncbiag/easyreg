@@ -1,5 +1,5 @@
 import os
-from easyreg.reg_data_utils import write_list_into_txt, get_file_name, loading_img_list_from_files
+from easyreg.reg_data_utils import write_list_into_txt, loading_img_list_from_files,generate_pair_name
 
 
 def generate_atlas_set(original_txt_path,atlas_path,l_atlas_path, output_path,phase='train'):
@@ -18,7 +18,7 @@ def generate_atlas_set(original_txt_path,atlas_path,l_atlas_path, output_path,ph
     os.makedirs(output_phase_path,exist_ok=True)
     pair_txt_path =  os.path.join(output_phase_path,'pair_path_list.txt')
     fn_txt_path =   os.path.join(output_phase_path,'pair_name_list.txt')
-    fname_list = [get_file_name(file_list[i][0])+'_'+get_file_name(file_list[i][1]) for i in range(file_num)]
+    fname_list = [generate_pair_name([file_list[i][0],file_list[i][1]]) for i in range(file_num)]
     write_list_into_txt(pair_txt_path,file_list)
     write_list_into_txt(fn_txt_path,fname_list)
 

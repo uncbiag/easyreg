@@ -175,14 +175,19 @@ def generate_file_for_xu():
     og_paths = list(filter(f,paths))
     em_paths = [og_path.replace("_OG","_EM") for og_path in og_paths]
     sm_paths = [og_path.replace("_OG","_SM") for og_path in og_paths]
+    og_em_name = [[path1.split("/")[-4]+"_"+path1.split("/")[-2],path2.split("/")[-4]+"_"+path2.split("/")[-2]] for path1, path2 in zip(og_paths,em_paths)]
+    og_sm_name = [[path1.split("/")[-4]+"_"+path1.split("/")[-2],path2.split("/")[-4]+"_"+path2.split("/")[-2]] for path1, path2 in zip(og_paths,sm_paths)]
     og_l_paths = [og_path.replace("image_normalized.nii.gz","SmBowel_label.nii.gz") for og_path in og_paths]
     em_l_paths =[og_path.replace("image_normalized.nii.gz","SmBowel_label.nii.gz") for og_path in em_paths]
     sm_l_paths =[og_path.replace("image_normalized.nii.gz","SmBowel_label.nii.gz") for og_path in sm_paths]
     pair_path_list = [[og_path,em_path,og_l_path,em_l_path] for og_path,em_path,og_l_path,em_l_path in zip(og_paths,em_paths,og_l_paths,em_l_paths)]
     pair_path_list += [[og_path,sm_path,og_l_path,sm_l_path] for og_path,sm_path,og_l_path,sm_l_path in zip(og_paths,sm_paths,og_l_paths,sm_l_paths)]
+    fname_list = og_em_name + og_sm_name
     os.makedirs(outpath,exist_ok=True)
-    outpath = os.path.join(outpath,"source_target_set.txt")
-    write_list_into_txt(outpath,pair_path_list)
+    pair_outpath = os.path.join(outpath,"source_target_set.txt")
+    fname_outpath = os.path.join(outpath,"source_target_name.txt")
+    write_list_into_txt(pair_outpath,pair_path_list)
+    write_list_into_txt(fname_outpath,fname_list)
 
 
 

@@ -59,17 +59,19 @@ class RegistrationDataset(Dataset):
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
         pair_name_path = os.path.join(self.data_path, 'pair_name_list.txt')
         if os.path.isfile(pair_name_path):
-            self.name_list = read_txt_into_list(pair_name_path)
+            self.name_list = read_fname_list_from_pair_fname_txt(pair_name_path)
         else:
-            self.name_list = [get_file_name(self.path_list[i][0])+'_'+get_file_name(self.path_list[i][1]) for i in range(len(self.path_list))]
+            name_list = [generate_pair_name([self.path_list[i][0],self.path_list[i][1]]) for i in range(len(self.path_list))]
+            write_list_into_txt(name_list,pair_name_path)
+            self.name_list =[name[0] for name in name_list]
+
         if self.load_init_weight:
             self.init_weight_list = read_txt_into_list(os.path.join(self.data_path,'pair_weight_path_list.txt'))
         # if len(self.path_list[0])==4:
         #     self.has_label=True
 
-
+        read_num = min(self.max_num_for_loading, len(self.path_list))
         if self.max_num_for_loading>0:
-            read_num = min(self.max_num_for_loading, len(self.path_list))
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
             if self.load_init_weight:
@@ -82,15 +84,19 @@ class RegistrationDataset(Dataset):
                     path_list_inverse.append([pair_path[1],pair_path[0], pair_path[3], pair_path[2]])
                 else:
                     path_list_inverse.append([pair_path[1], pair_path[0]])
-            name_list_inverse = [self.__inverse_name(name) for name in self.name_list]
+            try:
+                s_t_name_list = read_fname_list_from_pair_fname_txt(pair_name_path,detail=True)[:read_num]
+                name_list_inverse = [s_t[2]+"_"+s_t[1] for s_t in s_t_name_list]
+            except:
+                name_list_inverse = [self.__inverse_name(name) for name in self.name_list]
             self.path_list += path_list_inverse
             self.name_list += name_list_inverse
             if self.load_init_weight:
                 init_weight_inverse =[[path[1],path[0]] for path in self.init_weight_list]
                 self.init_weight_list += init_weight_inverse
 
-        if len(self.name_list)==0:
-            self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
+        # if len(self.name_list)==0:
+        #     self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
 
     def __read_img_label_into_zipnp(self,img_label_path_dic,img_label_dic):
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(img_label_path_dic)).start()

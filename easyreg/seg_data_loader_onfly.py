@@ -93,8 +93,8 @@ class SegmentationDataset(Dataset):
             self.name_list = self.name_list[:read_num]
 
 
-        if len(self.name_list)==0:
-            self.name_list = ['img_{}'.format(idx) for idx in range(len(self.path_list))]
+        # if len(self.name_list)==0:
+        #     self.name_list = ['img_{}'.format(idx) for idx in range(len(self.path_list))]
         self.num_img = len(self.name_list)
 
 

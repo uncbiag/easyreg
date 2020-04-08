@@ -1,5 +1,5 @@
 import SimpleITK as sitk
-from easyreg.reg_data_utils import write_list_into_txt, get_file_name
+from easyreg.reg_data_utils import write_list_into_txt, generate_pair_name
 from easyreg.utils import *
 import mermaid.utils as py_utils
 from mermaid.data_wrapper import MyTensor
@@ -160,7 +160,7 @@ def init_env(output_path, source_path_list, target_path_list, l_source_path_list
     os.makedirs(os.path.join(output_path,'reg/res'),exist_ok=True)
     pair_txt_path =  os.path.join(output_path,'reg/test/pair_path_list.txt')
     fn_txt_path =   os.path.join(output_path,'reg/test/pair_name_list.txt')
-    fname_list = [get_file_name(file_list[i][0])+'_'+get_file_name(file_list[i][1]) for i in range(file_num)]
+    fname_list = [generate_pair_name([file_list[i][0],file_list[i][1]]) for i in range(file_num)]
     write_list_into_txt(pair_txt_path,file_list)
     write_list_into_txt(fn_txt_path,fname_list)
     root_path = output_path

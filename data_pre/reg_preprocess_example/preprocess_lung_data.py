@@ -14,7 +14,7 @@ import mermaid.smoother_factory  as sf
 import mermaid.module_parameters as pars
 import mermaid.fileio as fileio
 from functools import partial
-from easyreg.reg_data_utils import write_list_into_txt, get_file_name
+from easyreg.reg_data_utils import write_list_into_txt, get_file_name,generate_pair_name
 
 def set_path_env(s_list, t_list, ls_list, lt_list,intermid_path, output_path):
     raw_path_list = []
@@ -168,6 +168,6 @@ if generate_txt:
     os.makedirs(os.path.join(output_txt_path, 'reg/res'), exist_ok=True)
     pair_txt_path = os.path.join(output_txt_path, 'reg/test/pair_path_list.txt')
     fn_txt_path = os.path.join(output_txt_path, 'reg/test/pair_name_list.txt')
-    fname_list = [get_file_name(file_list[i][0]) + '_' + get_file_name(file_list[i][1]) for i in range(file_num)]
+    fname_list = [generate_pair_name([file_list[i][0],file_list[i][1]]) for i in range(file_num)]
     write_list_into_txt(pair_txt_path, file_list)
     write_list_into_txt(fn_txt_path, fname_list)

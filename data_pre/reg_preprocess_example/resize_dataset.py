@@ -121,7 +121,7 @@ class RegistrationDataset(object):
         output_path = self.task_output_path
         pair_txt_path = os.path.join(output_path, 'pair_path_list.txt')
         fn_txt_path = os.path.join(output_path, 'pair_name_list.txt')
-        fname_list = [get_file_name(file_list[i][0]) + '_' + get_file_name(file_list[i][1]) for i in range(file_num)]
+        fname_list = [generate_pair_name([file_list[i][0],file_list[i][1]]) for i in range(file_num)]
         write_list_into_txt(pair_txt_path, file_list)
         write_list_into_txt(fn_txt_path, fname_list)
 

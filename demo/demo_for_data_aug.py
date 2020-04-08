@@ -5,7 +5,9 @@ A demo for fluid-based data augmentation.
 import matplotlib as matplt
 import subprocess
 matplt.use('Agg')
-import os, sys
+import os, sys, time
+import torch
+torch.backends.cudnn.benchmark=True
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
@@ -16,32 +18,69 @@ from easyreg.aug_utils import *
 
 
 
+
+def generate_txt_for_registration(file_txt,name_txt, txt_format,output_path,pair_num_limit=-1,per_num_limit=-1):
+    if txt_format =="aug_by_file":
+        pair_list_txt, pair_name_list = get_pair_list_txt_by_file(file_txt,name_txt,output_path,pair_num_limit,per_num_limit)
+    else:
+        pair_list_txt, pair_name_list = get_pair_list_txt_by_line(file_txt,name_txt,output_path,pair_num_limit,per_num_limit)
+    return pair_list_txt, pair_name_list
+
 def init_reg_env(args):
     task_output_path = args.task_output_path
     run_demo = args.run_demo
+    name_txt = args.name_txt
+
     if run_demo:
         demo_name = args.demo_name
         setting_folder_path = os.path.join('./demo_settings/data_aug', demo_name)
         task_output_path = os.path.join('./demo_data_aug', demo_name)
         args.task_output_path = task_output_path
-        txt_path = os.path.join(task_output_path,"source_target_set.txt")
+        file_txt = os.path.join(task_output_path,"source_target_set.txt")
         txt_format = "aug_by_line"
     else:
         txt_format = args.txt_format
-        txt_path = args.txt_path
+        file_txt = args.file_txt
         setting_folder_path = args.setting_folder_path
     os.makedirs(task_output_path, exist_ok=True)
-    output_pair_list_txt = generate_txt_for_registration(txt_path, txt_format, task_output_path,args.max_size_of_pair_to_reg,args.max_size_of_target_set_to_reg)
-    return setting_folder_path, output_pair_list_txt
+    output_pair_list_txt, output_name_list_txt = generate_txt_for_registration(file_txt,name_txt, txt_format, task_output_path,args.max_size_of_pair_to_reg,args.max_size_of_target_set_to_reg)
+    return setting_folder_path, output_pair_list_txt, output_name_list_txt
 
 
-def init_aug_env(reg_pair_list_txt,output_path,setting_folder_path):
+
+
+def do_registration(txt_path, name_path, setting_folder_path,output_path,gpu_id_list):
+    if len(gpu_id_list)==1:
+        cmd = "python demo_for_easyreg_eval.py "
+        cmd +="-ts={} -txt={} -pntxt={} -o={} -g={}".format(setting_folder_path,txt_path,name_path,output_path,int(gpu_id_list[0]))
+    else:
+        num_split = len(gpu_id_list)
+        num_split = split_txt(txt_path, num_split, output_path, "p")
+        split_txt(name_path, num_split, output_path, "pn")
+        sub_txt_path_list = [os.path.join(output_path, 'p{}.txt'.format(i)) for i in range(num_split)]
+        sub_name_path_list = [os.path.join(output_path, 'pn{}.txt'.format(i)) for i in range(num_split)]
+        processes = []
+        for i in range(num_split):
+            cmd = "echo GPU {} \n".format(gpu_id_list[i])
+            cmd += "python demo_for_easyreg_eval.py "
+            cmd += "-ts={} -txt={} -pntxt={} -o={} -g={}\n".format(setting_folder_path, sub_txt_path_list[i],sub_name_path_list[i], output_path, int(gpu_id_list[i]))
+            p = subprocess.Popen(cmd, shell=True)
+            processes.append(p)
+            time.sleep(60)
+        exit_codes = [p.wait() for p in processes]
+
+
+
+def init_aug_env(reg_pair_list_txt,reg_name_list_txt,task_output_path,setting_folder_path):
+    aug_output_path = os.path.join(task_output_path, "aug")
+    os.makedirs(aug_output_path,exist_ok=True)
     aug_setting_path = os.path.join(setting_folder_path, "data_aug_setting.json")
     aug_setting = pars.ParameterDict()
     aug_setting.load_JSON(aug_setting_path)
     fluid_mode = aug_setting["data_aug"]["fluid_aug"]["fluid_mode"]
-    reg_res_folder_path = os.path.join(output_path,"reg/res/records")
-    aug_input_txt = os.path.join(output_path,"moving_momentum.txt")
+    reg_res_folder_path = os.path.join(task_output_path,"reg/res/records")
+    aug_input_txt = os.path.join(aug_output_path,"aug_input_path.txt")
+    aug_name_txt = os.path.join(aug_output_path,"aug_input_name.txt")
     affine_path = None
     if fluid_mode == "aug_with_nonaffined_data":
         affine_path = reg_res_folder_path
@@ -49,18 +88,12 @@ def init_aug_env(reg_pair_list_txt,output_path,setting_folder_path):
         aug_setting["data_aug"]["fluid_aug"]["to_atlas_folder"] = reg_res_folder_path
         aug_setting["data_aug"]["fluid_aug"]["atlas_to_folder"] = reg_res_folder_path
         aug_setting.write_JSON(aug_setting_path)
-    generate_moving_momentum_txt(reg_pair_list_txt,reg_res_folder_path,aug_input_txt,affine_path)
-    return aug_input_txt
+    generate_moving_momentum_txt(reg_pair_list_txt,reg_res_folder_path,aug_input_txt,aug_name_txt,reg_name_list_txt,affine_path)
+    return aug_input_txt,aug_name_txt,aug_output_path
 
 
-def generate_txt_for_registration(txt_path, txt_format,output_path,pair_num_limit=-1,per_num_limit=-1):
-    if txt_format =="aug_by_file":
-        output_pair_list_txt = get_pair_list_txt_by_file(txt_path,output_path,pair_num_limit,per_num_limit)
-    else:
-        output_pair_list_txt = get_pair_list_txt_by_line(txt_path,output_path,pair_num_limit,per_num_limit)
-    return output_pair_list_txt
 
-def do_augmentation(input_txt, setting_folder_path, task_output_path):
+def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_path):
     aug_setting_path = os.path.join(setting_folder_path,"data_aug_setting.json")
     mermaid_setting_path = os.path.join(setting_folder_path,"mermaid_nonp_settings.json")
     assert os.path.isfile(aug_setting_path), "the aug setting json  {} is not found".format(aug_setting_path)
@@ -74,47 +107,36 @@ def do_augmentation(input_txt, setting_folder_path, task_output_path):
         aug_setting["data_aug"]["data_aug"]=max_aug_num_per_process
         aug_setting_mp_path = os.path.join(setting_folder_path,"data_aug_setting_mutli_process.json")
         aug_setting.write_ext_JSON(aug_setting_mp_path)
-        cmd = ""
+        processes = []
         for _ in range(num_process):
-            cmd += "python gen_aug_samples.py "
-            cmd += "-txt={}  -as={} -ms={} -o={} & \n".format(input_txt,aug_setting_mp_path,mermaid_setting_path,task_output_path)
-            cmd += "sleep 1s \n"
+            cmd = "python gen_aug_samples.py "
+            cmd += "-t={} -n={} -as={} -ms={} -o={}\n".format(input_txt,input_name_txt,aug_setting_mp_path,mermaid_setting_path,aug_output_path)
+            p = subprocess.Popen(cmd, shell=True)
+            processes.append(p)
+            time.sleep(1)
+
 
     else:
-        num_process = split_txt(txt_path, num_process, task_output_path,"aug_p")
-        sub_input_txt_list = [os.path.join(task_output_path, 'aug_p{}.txt'.format(i)) for i in range(num_process)]
-        cmd = ""
+        num_process = split_txt(input_txt, num_process, aug_output_path,"aug_p")
+        split_txt(input_name_txt, num_process, aug_output_path,"aug_np")
+        sub_input_txt_list = [os.path.join(aug_output_path, 'aug_p{}.txt'.format(i)) for i in range(num_process)]
+        sub_input_name_txt_list = [os.path.join(aug_output_path, 'aug_np{}.txt'.format(i)) for i in range(num_process)]
+        processes = []
         for i in range(num_process):
-            cmd += "python gen_aug_samples.py "
-            cmd += "-txt={}  -as={} -ms={} -o={} & \n".format(sub_input_txt_list[i], aug_setting_path, mermaid_setting_path,
-                                                           task_output_path)
-            cmd += "sleep 1s \n"
-
-    process = subprocess.Popen(cmd, shell=True)
-    process.wait()
-
+            cmd = "python gen_aug_samples.py "
+            cmd += "-t={} -n={} -as={} -ms={} -o={} \n".format(sub_input_txt_list[i],sub_input_name_txt_list[i], aug_setting_path, mermaid_setting_path,
+                                                           aug_output_path)
+            p = subprocess.Popen(cmd, shell=True)
+            processes.append(p)
+            time.sleep(1)
 
 
+    exit_codes = [p.wait() for p in processes]
 
 
 
-def do_registration(txt_path, setting_folder_path,output_path,gpu_id_list):
-    cmd = ""
-    if len(gpu_id_list)==1:
-        cmd += "python demo_for_easyreg_eval.py "
-        cmd +="-ts={} -txt={} -o={} -g={}".format(setting_folder_path,txt_path,output_path,int(gpu_id_list[0]))
-    else:
-        num_split = len(gpu_id_list)
-        split_txt(txt_path, num_split, output_path)
-        sub_txt_path_list = [os.path.join(output_path, 'p{}.txt'.format(i)) for i in range(num_split)]
-        for i,sub_txt_path in enumerate(sub_txt_path_list):
-            cmd += "echo GPU {} \n".format(gpu_id_list[i])
-            cmd += "python demo_for_easyreg_eval.py "
-            cmd += "-ts={} -txt={} -o={} -g={} & \n".format(setting_folder_path, sub_txt_path, output_path, int(gpu_id_list[i]))
-            cmd += "sleep 1m \n"
 
-    process = subprocess.Popen(cmd, shell=True)
-    process.wait()
+
 
 
 def pipeline(args):
@@ -125,10 +147,10 @@ def pipeline(args):
     :param registration_pair_list:  list of registration pairs, [source_list, target_list, lsource_list, ltarget_list]
     :return: None
     """
-    setting_folder_path, reg_pair_list_txt=init_reg_env(args)
-    do_registration(reg_pair_list_txt,setting_folder_path,args.task_output_path,args.gpu_id_list)
-    aug_input_txt = init_aug_env(reg_pair_list_txt,args.task_output_path,setting_folder_path)
-    do_augmentation(aug_input_txt,setting_folder_path, args.task_output_path)
+    setting_folder_path, reg_pair_list_txt, reg_name_list_txt=init_reg_env(args)
+    #do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
+    aug_input_txt,aug_name_txt, aug_output_path = init_aug_env(reg_pair_list_txt,reg_name_list_txt,args.task_output_path,setting_folder_path)
+    do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path)
 
 
 if __name__ == '__main__':
@@ -173,7 +195,7 @@ if __name__ == '__main__':
     """
     import argparse
     # --run_demo --demo_name=opt_lddmm_lpba
-    # -ts=/playpen-raid1/zyshen/debug/xu/opt_lddmm -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt -f=aug_by_line -o=/playpen-raid1/zyshen/debug/xu/expr -g 0 0 1 1
+    # -ts=/playpen-raid1/zyshen/debug/xu/opt_lddmm -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt  -n=/playpen-raid1/zyshen/debug/xu/source_target_name.txt -f=aug_by_line -o=/playpen-raid1/zyshen/debug/xu/expr2_lambda1 -g  0 1 2
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
     parser.add_argument("--run_demo", required=False, action='store_true', help='run demo')
@@ -183,8 +205,10 @@ if __name__ == '__main__':
     parser.add_argument('-ts', '--setting_folder_path', required=False, type=str,
                         default="",
                         help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings(optional) and mermaid_nonp_settings(optional)')
-    parser.add_argument('-t','--txt_path',  required=False, default="", type=str,
-                        help='the txt file recording the pairs to registration')  # 2
+    parser.add_argument('-t','--file_txt',  required=False, default="", type=str,
+                        help='the txt file recording the file to augment')
+    parser.add_argument('-n', '--name_txt', required=False, default="", type=str,
+                        help='the txt file recording the corresponding file name')
     parser.add_argument('-f','--txt_format',  required=False, default="aug_by_file", type=str,
                         help='txt format, aug_by_line/aug_by_file')
     parser.add_argument('-mt','--max_size_of_target_set_to_reg',  required=False, default=5, type=int,
@@ -198,11 +222,11 @@ if __name__ == '__main__':
     print(args)
     run_demo = args.run_demo
     demo_name = args.demo_name
-    txt_path = args.txt_path
+    file_txt = args.file_txt
     txt_format = args.txt_format
 
     if run_demo:
         assert demo_name in ["opt_lddmm_lpba","learnt_lddmm_oai"]
-    assert os.path.isfile(txt_path) or run_demo,"file not exist"
+    assert os.path.isfile(file_txt) or run_demo,"file not exist"
     assert txt_format in ["aug_by_line","aug_by_file"]
     pipeline(args)
