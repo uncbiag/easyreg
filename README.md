@@ -77,12 +77,19 @@ A typical strategy is as following:
 
 We provide two demo for data augmentation for affined and non-affined dataset, see.
 
+An illustration of sampling from geodesic subspace.
+
+<img src="figs/geodesic_subspace.png" alt="geodesic_subspace" width="800"/><br>
+
+<br/><br/>
+
+
 
 <br/>
 
 ## Segmentation
 We provide an interface for image segmentaion task with a u-net structure.
-The segmentation framework supports an ensemble method given inverse transformation maps that can be obtained via test phase data augmentation.
+The segmentation framework supports an *test* phase data augmentation method.
 
 An illustration of ensemble method during test.
 
