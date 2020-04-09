@@ -34,10 +34,10 @@ def init_reg_env(args):
     if run_demo:
         demo_name = args.demo_name
         setting_folder_path = os.path.join('./demo_settings/data_aug', demo_name)
-        task_output_path = os.path.join('./demo_data_aug', demo_name)
+        task_output_path = os.path.join('./data_aug_demo_output', demo_name)
         args.task_output_path = task_output_path
-        file_txt = os.path.join(task_output_path,"source_target_set.txt")
-        txt_format = "aug_by_line"
+        file_txt = os.path.join(task_output_path,"input.txt")
+        txt_format = "aug_by_line" if demo_name=="opt_lddmm_lpba" else "aug_by_file"
     else:
         txt_format = args.txt_format
         file_txt = args.file_txt
@@ -53,6 +53,8 @@ def do_registration(txt_path, name_path, setting_folder_path,output_path,gpu_id_
     if len(gpu_id_list)==1:
         cmd = "python demo_for_easyreg_eval.py "
         cmd +="-ts={} -txt={} -pntxt={} -o={} -g={}".format(setting_folder_path,txt_path,name_path,output_path,int(gpu_id_list[0]))
+        p = subprocess.Popen(cmd, shell=True)
+        p.wait()
     else:
         num_split = len(gpu_id_list)
         num_split = split_txt(txt_path, num_split, output_path, "p")
@@ -104,7 +106,7 @@ def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_p
     if task_type == "rand_aug":
         max_aug_num = aug_setting["data_aug"]["max_aug_num"]
         max_aug_num_per_process = round(max_aug_num/num_process)
-        aug_setting["data_aug"]["data_aug"]=max_aug_num_per_process
+        aug_setting["data_aug"]["max_aug_num"]=max_aug_num_per_process
         aug_setting_mp_path = os.path.join(setting_folder_path,"data_aug_setting_mutli_process.json")
         aug_setting.write_ext_JSON(aug_setting_mp_path)
         processes = []
@@ -148,53 +150,60 @@ def pipeline(args):
     :return: None
     """
     setting_folder_path, reg_pair_list_txt, reg_name_list_txt=init_reg_env(args)
-    #do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
+    do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
     aug_input_txt,aug_name_txt, aug_output_path = init_aug_env(reg_pair_list_txt,reg_name_list_txt,args.task_output_path,setting_folder_path)
     do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path)
 
 
 if __name__ == '__main__':
     """
+    Though the purpose of this script is to provide demo, it is a generalized interface for fluid-based data augmentation and interpolation
+
     
-    A data augmentation interface for optimization methods or learning methods with pre-trained models.
+    The augmentation/interpolatin include two parts 
+    1. do fluid-based registration with either optimization methods or learning methods with pre-trained models.
+    2. do data augmentation via random sampling on geodesic space and time axis
+       or do data inter-/extra-polation with given direction and time point from geodesic space
     
-    In the case that a lot of unlabeled data is available, we suggest to train a network via demo_for_easyreg_train.py,
+    it will call two script:  demo_for_easyreg_eval.py and gen_aug_samples.py
+    so setting files for both tasks are need to be provided, see demo for details
+    
+    As high precision registration is not necessary for data-augmentation, the default setting will be fine for most cases.
+    Of course, feel free to fine tune the multi_gaussian_stds and iterations if the task is to do data interpolation.
+    
+    In the case that a lot of unlabeled data is available, we suggest to train a network via demo_for_easyreg_train.py first,
     which would provide fast interpolation for data augmentation. Otherwise, the optimization option is recommended.
+        
     
-    As the registration precision is not highly necessary for data-augmentation, the default setting is fine.
-    Of course, feel free to fine tune the multi_gaussian_stds if the task is to perform a precise pair interpolation
-    
-    Though the purpose of this script is to provide demo, it is a generalized interface for fluid-based data augmentation
-    The method support list: mermaid-related ( optimizing/pretrained) methods
-    
-    IMPORTANT !!!!!!!!!!!!!!!!!
-    Currently, we assume the all the input pairs are affinely aligned.
-    (Todo to remove this constrain, the geodesic space should either be 1D or an atlas image needs to be introduced for two-step registration)
-    
-    Two input formats are supported:
-    1) aug_by_line: input txt where each line refer to a source image, a target set and the source label (None if not exist), the labels of target sets(None if not exist)
+    For file_txt, two input formats are supported:
+    1) aug_by_line: input txt where each line refer to a path of source image, paths of target images and the source label (string "None" if not exist), the labels of target images(None if not exist)
     the augmentation takes place for each line
-    2) aug_by_file: input txt where each line refer to a image and corresponding label (None if not exist)
+    2) aug_by_file: input txt where each line refer to a image and corresponding label (string "None" if not exist)
     the augmentation takes place among lines
     
+    For the name_txt (optional, will use the filename if not provided) include the fname for each image( to avoid confusion of source images with the same filename)
+    1) aug_by_line: each line include a source name,  target names
+    2) aug_by_file: each line include a image name
+    
+    
     All the settings should be given in the setting folder.
-    Though we support both learning-based and optimization based registration, for the learning-based method,  
-    a mermaid-setting file with pretrained model path should be provided, please refer to the demo we provide here for details.
-
+    We support both learning-based and optimization based registration, 
+    for the learning-based method, the pretrained model path should be provided in cur_task_setting.json
     Arguments:
         demo related:
              --run_demo: run the demo
-             --demo_name: opt_lddmm/learnt_lddmm
-             --txt_path/-txt: the input txt file
+             --demo_name: opt_lddmm_lpba/learnt_lddmm_oai
+             --gpu_id_list/ -g: gpu_id_list to use
         other arguments:
+             --txt_path/-txt: the input txt file
              --setting_folder_path/-ts :path of the folder where settings are saved
              --task_output_path/ -o: the path of output folder
-             --gpu_id_list/ -g: gpu_id_list to use
 
 
     """
     import argparse
-    # --run_demo --demo_name=opt_lddmm_lpba
+    # --run_demo --demo_name=opt_lddmm_lpba -g 0 1 2 3 0 1 2 3
+    # --run_demo --demo_name=learnt_lddmm_oai -g 0
     # -ts=/playpen-raid1/zyshen/debug/xu/opt_lddmm -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt  -n=/playpen-raid1/zyshen/debug/xu/source_target_name.txt -f=aug_by_line -o=/playpen-raid1/zyshen/debug/xu/expr2_lambda1 -g  0 1 2
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
@@ -207,7 +216,7 @@ if __name__ == '__main__':
                         help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings(optional) and mermaid_nonp_settings(optional)')
     parser.add_argument('-t','--file_txt',  required=False, default="", type=str,
                         help='the txt file recording the file to augment')
-    parser.add_argument('-n', '--name_txt', required=False, default="", type=str,
+    parser.add_argument('-n', '--name_txt', required=False, default=None, type=str,
                         help='the txt file recording the corresponding file name')
     parser.add_argument('-f','--txt_format',  required=False, default="aug_by_file", type=str,
                         help='txt format, aug_by_line/aug_by_file')

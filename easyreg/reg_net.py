@@ -40,6 +40,8 @@ class RegNet(MermaidBase):
                     np.array(input_img_sz) - 1)
         """ image spacing"""
         method_name = opt['tsk_set']['method_name']
+        self.method_name = method_name
+        """the name of the method"""
         self.affine_on = True if 'affine' in method_name else False
         """ perform affine registrtion, if affine is in the network name"""
         self.nonp_on = not self.affine_on
@@ -172,7 +174,8 @@ class RegNet(MermaidBase):
             self.network.set_cur_epoch(self.cur_epoch)
         output, phi, afimg_or_afparam = self.network.forward(self.moving, self.target)
         loss = self.cal_loss()
-        self.save_affine_param_with_easyreg_custom(afimg_or_afparam)
+        if not self.is_train and (self.affine_on or self.method_name=="mermaid"):
+            save_affine_param_with_easyreg_custom(self.network.affine_param,self.record_path,self.fname_list)
 
         return output, phi, afimg_or_afparam, loss
 

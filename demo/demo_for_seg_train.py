@@ -3,7 +3,7 @@ matplt.use('Agg')
 import os, sys
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
-sys.path.insert(0,os.path.abspath('../easy_reg'))
+sys.path.insert(0,os.path.abspath('../easyreg'))
 #sys.path.insert(0,os.path.abspath('../mermaid'))
 import numpy as np
 import torch
@@ -154,14 +154,13 @@ def do_segmentation_train(args):
 
 if __name__ == '__main__':
     """
-        A training interface for learning methods.
-        The method support list :  mermaid-related methods
+        An interface for learning segmentation methods.
         Assume there is three level folder, output_root_path/ data_task_folder/ task_folder 
         Arguments: 
             --output_root_path/ -o: the path of output folder
             --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task
             --task_name / -tn: task name i.e. run_training_vsvf_task, run_training_rdmm_task
-            --setting_folder_path/ -ts: path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
+            --setting_folder_path/ -ts: path of the folder where settings are saved,should include cur_task_setting.json
             --gpu_id/ -g: gpu_id to use
     """
     import argparse

@@ -306,6 +306,7 @@ def read_txt_into_list(file_path):
     :param file_path: the file path to read
     :return: list of list
     """
+    assert os.path.isfile(file_path), "the file {} doesnt exist".format(file_path)
     import re
     lists= []
     with open(file_path,'r') as f:

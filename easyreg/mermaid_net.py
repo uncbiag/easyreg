@@ -156,6 +156,7 @@ class MermaidNet(nn.Module):
         :return:
         """
         self.affine_net = AffineNetSym(self.img_sz[2:],opt)
+        self.affine_param = None
         self.affine_net.compute_loss = False
         self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
         self.affine_net.set_step(self.affine_refine_step)
@@ -551,6 +552,7 @@ class MermaidNet(nn.Module):
         if self.using_affine_init:
             with torch.no_grad():
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
+                self.affine_param = affine_param
                 affine_map = (affine_map + 1) / 2.
                 inverse_map = None
                 if self.compute_inverse_map:
@@ -636,6 +638,7 @@ class MermaidNet(nn.Module):
         if self.using_affine_init:
             with torch.no_grad():
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
+                self.affine_param = affine_param
                 affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
                 inverse_map = None
                 if self.compute_inverse_map:

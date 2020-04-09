@@ -64,7 +64,7 @@ def gen_intra_pair_list(img_path_list,fname_list,label_path_list, pair_num_limit
                 img_pair_list_tmp.append([img_path_list[i][0], img_path_list[i][j],
                                           label_path_list[i][0], label_path_list[i][j]])
             else:
-                img_pair_list_tmp.append([img_path_list[i][i][0], img_path_list[i][j]])
+                img_pair_list_tmp.append([img_path_list[i][0], img_path_list[i][j]])
             if fname_list is not None:
                 pair_name_list_tmp.append([fname_list[i][0] + "_" + fname_list[i][j],fname_list[i][0],fname_list[i][j]])
             else:
@@ -181,7 +181,7 @@ def generate_moving_momentum_txt(pair_path_list_txt,momentum_path,output_path_tx
         momentum_path_list = [os.path.join(momentum_path, momentum_name) for momentum_name in momentum_name_list]
         affine_path_list = []
         if affine_path is not None:
-            affine_path_list = [os.path.join(affine_path,pair_name+"_affine_param.npy") for pair_name in item["pair_name"]]
+            affine_path_list = [os.path.join(affine_path,name[0]+"_affine_param.npy") for name in item["name"]]
         moving_momentum_list_tmp = [item['m_pth']] + [label_path] + momentum_path_list + affine_path_list
         moving_momentum_list.append(moving_momentum_list_tmp)
     write_list_into_txt(output_path_txt_path,moving_momentum_list)

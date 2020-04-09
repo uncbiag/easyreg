@@ -285,6 +285,19 @@ def transfer_easyreg_affine_into_mermaid_affine(affine_param, dim=3):
     affine_param = affine_param.view(affine_param.shape[0],-1)
     return affine_param
 
+def save_affine_param_with_easyreg_custom(affine_param, output_path, fname_list, affine_compute_from_mermaid=False):
+    if affine_param is not None:
+        affine_param = affine_param.detach().clone()
+        if affine_compute_from_mermaid:
+            affine_param = transfer_mermaid_affine_into_easyreg_affine(affine_param)
+
+        if isinstance(affine_param, list):
+            affine_param = affine_param[0]
+        affine_param = affine_param.detach().cpu().numpy()
+        for i in range(affine_param.shape[0]):
+            np.save(os.path.join(output_path, fname_list[i]) + '_affine_param.npy', affine_param[i])
+
+
 def get_warped_img_map_param( Ab, img_sz, moving, dim=3, zero_boundary=True):
     """
            generate the affine transformation map with regard to affine parameter

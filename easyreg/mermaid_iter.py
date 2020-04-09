@@ -105,7 +105,7 @@ class MermaidIter(MermaidBase):
             self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch.Tensor(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
         self.afimg_or_afparam = Ab
-        self.save_affine_param_with_easyreg_custom(self.afimg_or_afparam,affine_compute_from_mermaid=True)
+        save_affine_param_with_easyreg_custom(self.afimg_or_afparam,self.record_path,self.fname_list,affine_compute_from_mermaid=True)
         return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
 
 

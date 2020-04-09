@@ -16,9 +16,10 @@ import matplotlib as matplt
 matplt.use('Agg')
 import sys,os
 os.environ["CUDA_VISIBLE_DEVICES"] = ''
-sys.path.insert(0,os.path.abspath('.'))
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../easyreg'))
+sys.path.insert(0,os.path.abspath('.'))
+
 import random
 import torch
 from mermaid.model_evaluation import evaluate_model
@@ -102,7 +103,7 @@ class FluidAug(DataAug):
         self.t_aug_list= aug_setting['data_aug']["fluid_aug"]['data_interp'][('t_aug_list',[1.0],"the time points for inter-/extra-polation")]
         self.weight_list = self.aug_setting['data_aug']["fluid_aug"]['data_interp'][('weight_list',[[1.0]],"the weight for each target image, set in data_interp mode")]
         self.t_range = aug_setting['data_aug']["fluid_aug"]['rand_aug'][('t_range',[-1,2],"the range of t inter-/extra-polation, the registration completes in unit time [0,1]")]
-        self.rand_momentum_scale = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('rand_momentum_scale',8,"the size of random momentum is 1/rand_momentum_scale of the original image sz")]
+        self.rand_momentum_shrink_factor = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('rand_momentum_shrink_factor',8,"the size of random momentum is 1/rand_momentum_shrink_factor of the original image sz")]
         self.magnitude = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('magnitude',1.5,"the magnitude of the random momentum")]
         self.affine_back_to_original_postion = self.aug_setting['data_aug']["fluid_aug"]['aug_with_nonaffined_data'][('affine_back_to_original_postion',False,"transform the new image to the original postion")]
 
@@ -121,7 +122,7 @@ class FluidAug(DataAug):
             input_img_sz = [1, 1] + [int(sz * 2) for sz in momentum.shape[2:]]
         else:
             input_img_sz = list(moving.shape)
-            momentum_sz_low = [1, 3] + [int(dim /self.rand_momentum_scale) for dim in input_img_sz[2:]]
+            momentum_sz_low = [1, 3] + [int(dim /self.rand_momentum_shrink_factor) for dim in input_img_sz[2:]]
             momentum_sz = [1, 3] + [int(dim / 2) for dim in input_img_sz[2:]]
             momentum = (np.random.rand(*momentum_sz_low) * 2 - 1) * self.magnitude
             mom_spacing = 1./(np.array(momentum_sz_low[2:])-1)
@@ -160,22 +161,26 @@ class FluidAug(DataAug):
         phi_new = phi
         if size_diff:
             phi_new, _ = resample_image(phi, input_spacing, [1, 3] + list(moving.shape[2:]))
-        if initial_inverse_map is not None and self.affine_back_to_original_postion:
-            phi_new = compute_warped_image_multiNC(phi_new, initial_inverse_map, org_spacing, spline_order=1)
         warped = compute_warped_image_multiNC(moving, phi_new, org_spacing, spline_order=1, zero_boundary=True)
+        if initial_inverse_map is not None and self.affine_back_to_original_postion:
+            # here we take zero boundary boundary which need two step image interpolation
+            warped = compute_warped_image_multiNC(warped, initial_inverse_map, org_spacing, spline_order=1, zero_boundary=True)
+            phi_new = compute_warped_image_multiNC(phi_new, initial_inverse_map, org_spacing, spline_order=1)
         save_image_with_given_reference(warped, [moving_path], output_path, [fname + '_image'])
         if l_moving is not None:
+            # we assume the label doesnt lie at the boundary
             l_warped = compute_warped_image_multiNC(l_moving, phi_new, org_spacing, spline_order=0, zero_boundary=True)
             save_image_with_given_reference(l_warped, [moving_path], output_path, [fname + '_label'])
-        save_deformation(phi, output_path, [fname + '_phi_map'])
+        save_deformation(phi_new, output_path, [fname + '_phi_map'])
         if self.compute_inverse:
             phi_inv = res[2]
+            inv_phi_new = phi_inv
             if self.affine_back_to_original_postion:
                 print("Cannot compute the inverse map when affine back to the source image position")
                 return
             if size_diff:
                 inv_phi_new, _ = resample_image(phi_inv, input_spacing, [1, 3] + list(moving.shape[2:]))
-            save_deformation(phi_inv, output_path, [fname + '_inv_map'])
+            save_deformation(inv_phi_new, output_path, [fname + '_inv_map'])
 
 class FluidRand(FluidAug):
     def __init__(self,aug_setting_path,mermaid_setting_path):
@@ -251,8 +256,9 @@ class FluidAffined(FluidAug):
 
         for i in range(num_pair):
             moving_path = moving_momentum_path_list[i][0]
+            fname = fname_list[i] if fname_list is not None else None
             moving, l_moving, momentum_list, init_weight_list, moving_name, target_name_list = self.get_input(
-                moving_momentum_path_list[i], fname_list[i],init_weight_path_list[i] if init_weight_path_list else None)
+                moving_momentum_path_list[i],fname,init_weight_path_list[i] if init_weight_path_list else None)
             num_aug = round(max_aug_num / num_pair) if rand_w_t else 1
             for _ in range(num_aug):
                 num_momentum = len(momentum_list)
@@ -335,7 +341,7 @@ class FluidNonAffined(FluidAug):
 
         return moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, moving_name, target_name_list
 
-    def generate_aug_data(self,moving_momentum_path_list, init_weight_path_list, output_path):
+    def generate_aug_data(self,moving_momentum_path_list,fname_list, init_weight_path_list, output_path):
 
         max_aug_num = self.max_aug_num
         rand_w_t = self.rand_w_t
@@ -346,8 +352,9 @@ class FluidNonAffined(FluidAug):
         num_pair = len(moving_momentum_path_list)
         for i in range(num_pair):
             moving_path = moving_momentum_path_list[i][0]
+            fname = fname_list[i] if fname_list is not None else None
             moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, moving_name, target_name_list = self.get_input(
-                moving_momentum_path_list[i], init_weight_path_list[i] if init_weight_path_list else None)
+                moving_momentum_path_list[i], fname,init_weight_path_list[i] if init_weight_path_list else None)
             num_aug = max(round(max_aug_num / num_pair),1) if rand_w_t else 1
             for _ in range(num_aug):
                 num_momentum = len(momentum_list)

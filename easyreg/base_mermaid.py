@@ -261,16 +261,6 @@ class MermaidBase(RegModelBase):
                 nib.save(multi_ch_img, fpath)
 
 
-    def save_affine_param_with_easyreg_custom(self,affine_param, affine_compute_from_mermaid=False):
-        affine_param = affine_param.detach().clone()
-        if affine_compute_from_mermaid:
-            affine_param = transfer_mermaid_affine_into_easyreg_affine(affine_param)
-
-        if isinstance(affine_param, list):
-            affine_param = affine_param[0]
-        affine_param = affine_param.detach().cpu().numpy()
-        for i in range(affine_param.shape[0]):
-            np.save(os.path.join(self.record_path, self.fname_list[i]) + '_affine_param.npy', affine_param[i])
 
     def save_deformation(self):
         """

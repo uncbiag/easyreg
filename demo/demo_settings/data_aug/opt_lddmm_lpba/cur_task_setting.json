@@ -14,7 +14,7 @@
         },
         "model": "mermaid_iter",
         "n_in_channel": 1,
-        "method_name": "nonp",
+        "method_name": "nonp_only",
         "output_taking_original_image_format": false,
         "reg": {
             "compute_inverse_map": false,

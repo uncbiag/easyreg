@@ -3,7 +3,7 @@
     "max_aug_num": 10,
 
     "fluid_aug": {
-      "fluid_mode":"aug_with_nonaffined_data",
+      "fluid_mode":"aug_with_affined_data",
       "task_type": "rand_aug",
       "K": 2,
       "compute_inverse": true,
@@ -13,15 +13,15 @@
       },
       "rand_aug": {
             "t_range": [-1,2],
-            "rand_momentum_scale": 8,
+            "rand_momentum_shrink_factor": 8,
             "magnitude": 1.5
       },
       "aug_with_nonaffined_data": {
         "affine_back_to_original_postion": false
       },
       "aug_with_atlas": {
-        "to_atlas_folder": "/playpen-raid/zyshen/data/lpba_seg_resize/atlas/momentum",
-        "atlas_to_folder": "/playpen-raid/zyshen/data/lpba_seg_resize/atlas/momentum",
+        "to_atlas_folder": "",
+        "atlas_to_folder": "",
         "to_atlas_mermaid_setting": ""
       }
     },

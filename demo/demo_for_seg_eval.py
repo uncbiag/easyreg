@@ -141,16 +141,7 @@ def do_registration_eval(args, registration_pair_list):
 
 if __name__ == '__main__':
     """
-    A evaluation interface for optimization methods or learning methods with pre-trained models.
-    Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
-    The method support list :  mermaid-related ( optimizing/pretrained) methods, ants, demons, niftyreg
-    The demos supported by category are : 
-        mermaid: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined
-        ants: ants
-        demons: demons
-        niftyreg: niftyreg
-    * network_* refers to learning methods with pre-trained models
-    * opt_* : refers to optimization based methods
+    A evaluation interface for segmentation network with pre-trained models.
 
     Arguments:
        
@@ -158,7 +149,7 @@ if __name__ == '__main__':
             1. given txt
              --file_txt_path/-txt: the txt file recording the pairs to segmentation
             2. given image
-            --image_list/ -s: the source list,  s1 s2 s3..sn
+            --image_list/ -s: the image list,  s1 s2 s3..sn
             --limage_list/ -ls: optional, the source label list,  ls1,ls2,ls3..lsn
         other arguments:
              --setting_folder_path/-ts :path of the folder where settings are saved

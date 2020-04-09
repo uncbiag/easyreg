@@ -1,13 +1,37 @@
 {
   "data_aug":{
-    "mode":"aug_with_affined_data",
-    "max_aug_num": 1000,
-    "t_range": [-1,2],
-    "t_aug_list": [1.0],
-    "task_type": "rand_aug",
-    "K": 1,
-    "compute_inverse": true,
-    "weight_list": [[1.0]],
-    "rand_momentum_scale": 8
+    "max_aug_num": 10,
+
+    "fluid_aug": {
+      "fluid_mode":"aug_with_nonaffined_data",
+      "task_type": "rand_aug",
+      "K": 1,
+      "compute_inverse": true,
+      "data_interp": {
+            "t_aug_list": [0.5,1.0],
+            "weight_list": [[1.0]]
+      },
+      "rand_aug": {
+            "t_range": [-1,2],
+            "rand_momentum_shrink_factor": 8,
+            "magnitude": 1.5
+      },
+      "aug_with_nonaffined_data": {
+        "affine_back_to_original_postion": true
+      },
+      "aug_with_atlas": {
+        "to_atlas_folder": "",
+        "atlas_to_folder": "",
+        "to_atlas_mermaid_setting": ""
+      }
+    },
+
+    "bspline_aug": {
+      "mesh_size_list": [[10,10,10]],
+      "deform_scale_list": [3],
+      "aug_ratio": 0.95
+
+    }
+
   }
 }
