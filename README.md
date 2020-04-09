@@ -111,7 +111,7 @@ pip install -r requirements.txt
 
 # ################download demo (optional)######
 cd demo
-gdown https://drive.google.com/uc?id=1XOsKVxDEmR8U1dsBARmWtUZgcNRhH4Lv
+gdown https://drive.google.com/uc?id=11OuJdpAauN1HMAIq80PFbOLjwyZx8Af9
 unzip demo.zip -d . 
 cd ..
 # #############################################
