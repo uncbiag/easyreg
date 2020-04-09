@@ -1,0 +1,12 @@
+{
+  "data_aug":{
+    "max_aug_num": 10,
+      "bspline_aug": {
+      "mesh_size_list": [[10,10,10],[10,10,10],[20,20,20]],
+      "deform_scale_list": [3,4,2],
+      "aug_ratio": 0.95
+
+    }
+
+  }
+}

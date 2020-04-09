@@ -103,7 +103,7 @@ def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_p
     aug_setting.load_JSON(aug_setting_path)
     task_type = aug_setting["data_aug"]["fluid_aug"]["task_type"]
     num_process = 5
-    if task_type == "rand_aug":
+    if task_type == "rand_sampl":
         max_aug_num = aug_setting["data_aug"]["max_aug_num"]
         max_aug_num_per_process = round(max_aug_num/num_process)
         aug_setting["data_aug"]["max_aug_num"]=max_aug_num_per_process
@@ -150,7 +150,7 @@ def pipeline(args):
     :return: None
     """
     setting_folder_path, reg_pair_list_txt, reg_name_list_txt=init_reg_env(args)
-    do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
+    #do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
     aug_input_txt,aug_name_txt, aug_output_path = init_aug_env(reg_pair_list_txt,reg_name_list_txt,args.task_output_path,setting_folder_path)
     do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path)
 

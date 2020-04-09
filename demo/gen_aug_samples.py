@@ -81,7 +81,7 @@ class DataAug(object):
     def __init__(self,aug_setting_path):
         self.aug_setting_path = aug_setting_path
         self.aug_setting = get_setting(aug_setting_path,"aug")
-        self.max_aug_num = self.aug_setting['data_aug'][('max_aug_num',1000,"the max num of rand aug, only set when in rand_aug mode")]
+        self.max_aug_num = self.aug_setting['data_aug'][('max_aug_num',1000,"the max num of rand aug, only set when in dataset rand augmentation mode")]
 
 
 
@@ -97,14 +97,15 @@ class FluidAug(DataAug):
     def init_setting(self):
         aug_setting = self.aug_setting
         self.K = aug_setting['data_aug']["fluid_aug"][('K',1,"the dimension of the geodeisc subspace")]
-        self.task_type = aug_setting['data_aug']["fluid_aug"][('task_type',"rand_aug","rand_aug/data_interp,  rand_aug: random data augmentation; data_interp: data interpolation")]
+        self.task_type = aug_setting['data_aug']["fluid_aug"][('task_type',"rand_sampl/data_interp,  rand_sampl: random sampling from the geodesic space, typically for dataset augmentation;"
+                                                                           " data_interp: interpolation between source and the target set with given time point and given weight")]
         self.compute_inverse = aug_setting['data_aug']["fluid_aug"][('compute_inverse',True,"compute the inverse map")]
-        self.rand_w_t = True if self.task_type=="rand_aug" else False
-        self.t_aug_list= aug_setting['data_aug']["fluid_aug"]['data_interp'][('t_aug_list',[1.0],"the time points for inter-/extra-polation")]
-        self.weight_list = self.aug_setting['data_aug']["fluid_aug"]['data_interp'][('weight_list',[[1.0]],"the weight for each target image, set in data_interp mode")]
-        self.t_range = aug_setting['data_aug']["fluid_aug"]['rand_aug'][('t_range',[-1,2],"the range of t inter-/extra-polation, the registration completes in unit time [0,1]")]
-        self.rand_momentum_shrink_factor = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('rand_momentum_shrink_factor',8,"the size of random momentum is 1/rand_momentum_shrink_factor of the original image sz")]
-        self.magnitude = self.aug_setting['data_aug']["fluid_aug"]['rand_aug'][('magnitude',1.5,"the magnitude of the random momentum")]
+        self.rand_w_t = True if self.task_type=="rand_sampl" else False
+        self.t_aug_list= aug_setting['data_aug']["fluid_aug"]['data_interp'][('t_aug_list',[1.0],"list of number, the time points for inter-/extra-polation")]
+        self.weight_list = self.aug_setting['data_aug']["fluid_aug"]['data_interp'][('weight_list',[[1.0]],"list of list, the weight for each target image, set in data_interp mode")]
+        self.t_range = aug_setting['data_aug']["fluid_aug"]['rand_sampl'][('t_range',[-1,2],"the range of t inter-/extra-polation, the registration completes in unit time [0,1]")]
+        self.rand_momentum_shrink_factor = self.aug_setting['data_aug']["fluid_aug"]['aug_with_random_momentum'][('rand_momentum_shrink_factor',8,"the size of random momentum is 1/rand_momentum_shrink_factor of the original image sz")]
+        self.magnitude = self.aug_setting['data_aug']["fluid_aug"]['aug_with_random_momentum'][('magnitude',1.5,"the magnitude of the random momentum")]
         self.affine_back_to_original_postion = self.aug_setting['data_aug']["fluid_aug"]['aug_with_nonaffined_data'][('affine_back_to_original_postion',False,"transform the new image to the original postion")]
 
 
@@ -596,8 +597,10 @@ class RandomBSplineTransform(object):
 class BsplineAug(DataAug):
     def __init__(self, aug_setting_path):
         DataAug.__init__(self, aug_setting_path)
-        self.mesh_size_list = self.aug_setting['data_aug']["bspline_aug"][("mesh_size_list",[[10,10,10]],"mesh size ")]
-        self.deform_scale_list = self.aug_setting['data_aug']["bspline_aug"][("deform_scale_list",[3],"deform scale")]
+        self.mesh_size_list = self.aug_setting['data_aug']["bspline_aug"][("mesh_size_list",[[10,10,10]],"list of mesh size,"
+        " e.g., [[10,10,10],[20,20,20]], for each augmentation, a setting will be sampled from the two")]
+        self.deform_scale_list = self.aug_setting['data_aug']["bspline_aug"][("deform_scale_list",[3],"list of mesh size, "
+        "e.g., [2,3], should has one-to-one correspondence with the mesh_size_list for each augmentation, a setting will be sampled from the two",)]
         self.aug_ratio = self.aug_setting['data_aug']["bspline_aug"][("aug_ratio",0.95,
         "chance to deform the image, i.e., 0.5 refers to ratio of the deformed images and the non-deformed (original) image")]
         assert len(self.mesh_size_list) == len(self.deform_scale_list)
@@ -635,10 +638,10 @@ def generate_aug_data(moving_momentum_path_list, fname_list,init_weight_path_lis
             fluid_aug = FluidNonAffined(aug_setting_path,mermaid_setting_path)
         elif fluid_mode== "aug_with_atlas":
             fluid_aug = FluidAtlas(aug_setting_path,mermaid_setting_path)
-        elif fluid_mode=='rand_aug':
+        elif fluid_mode=='aug_with_random_momentum':
             fluid_aug = FluidRand(aug_setting_path,mermaid_setting_path)
         else:
-            raise ValueError("not supported mode, should be aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas/rand_aug")
+            raise ValueError("not supported mode, should be aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas/aug_with_random_momentum")
         fluid_aug.generate_aug_data(moving_momentum_path_list, fname_list,init_weight_path_list, output_path)
 
     else:
@@ -659,20 +662,31 @@ def generate_aug_data(moving_momentum_path_list, fname_list,init_weight_path_lis
 if __name__ == '__main__':
     """
     Two data augmentation methods are supported
-    1) lddmm shooting
-    2) bspline random transformation
+    1) fluid-based anatomical data augmentation
+    2) random transformation
     
+    For fluid-based anatomical data augmentation:
+        we support two task type:
+        1. random sampling from the geodesic subspace
+        2. data interpolation with given time point and the weight for each target image.
+        
+        And support three strategy: 
+        aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas
+        
+    For random transformation:
+        we support bspline random transformation and fluid-based random momentum augmentation
+        
+    See the EasyReg document for more details
     
-    since we relax the affine constrain here, the augmentation only works under 1d geodesic subspace
-    
+        
     For the input txt file, 
     for fluid augmentation (fluid_mode: aug_with_affined_data/aug_with_nonaffined_data) : each line include a source image path, source label path (None if not exist), N momentum paths that register to N target images
-    for fluid augmentation (fluid_mode: aug_with_atlas(need additional setting in json) and rand_aug): each line include a source image path, source_label path (None if not exist)
+    for fluid augmentation (fluid_mode: aug_with_atlas and aug_with_random_momentum): each line include a source image path, source_label path (None if not exist)
     for bspline augmentation : each line include a source image path, source_label path (None if not exist)
     
     the name_txt (optional, will use the filename if not provided) include the fname for each image ( to avoid confusion of source images with the same filename)
     for fluid augmentation (fluid_mode: aug_with_affined_data/aug_with_nonaffined_data) : each line include a source name, N target name
-    for fluid augmentation (fluid_mode: aug_with_atlas(need additional setting in json) and rand_aug): a source name
+    for fluid augmentation (fluid_mode: aug_with_atlas and aug_with_random_momentum): a source name
     for bspline augmentation : each line include a source image, source_label (None if not exist): a source name
      
 
@@ -691,7 +705,7 @@ if __name__ == '__main__':
     parser.add_argument("-w",'--rdmm_preweight_txt_path', required=False, default=None,
                         help='the file path of rdmm preweight txt, only needed when use predefined rdmm model,(need to further test)')
     parser.add_argument("-m",'--fluid_mode',required=False,default=None,
-                        help='aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas/rand_aug')
+                        help='aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas/aug_with_random_momentum')
     parser.add_argument('--bspline', required=False, action='store_true',
                         help='data augmentation with bspline, exclusive random_m, rdmm_preweight_txt_path,compute_inverse')
     parser.add_argument("-o",'--output_path', required=False, default='./rdmm_synth_data_generation/data_task',
@@ -712,7 +726,8 @@ if __name__ == '__main__':
     output_path = args.output_path
     assert os.path.isfile(file_txt),"{} not exists".format(file_txt)
     assert os.path.isfile(aug_setting_path),"{} not exists".format(aug_setting_path)
-    assert os.path.isfile(mermaid_setting_path),"{} not exists".format(mermaid_setting_path)
+    if not use_bspline:
+        assert os.path.isfile(mermaid_setting_path),"{} not exists".format(mermaid_setting_path)
     if fluid_mode is None and not use_bspline:
         print("the fluid mode is not provided, now read from {}".format(aug_setting_path))
         params = pars.ParameterDict()

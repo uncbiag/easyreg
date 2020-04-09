@@ -1,6 +1,6 @@
 {
     "dataset": {
-        "img_after_resize": "image size after resampling"
+        "img_after_resize": "Important, the image resolution that models actually work on, the images will be first resampled to this resolution, set [-1,-1,-1] if take the original image resolution"
     },
     "tsk_set": {
         "batch_sz": "batch sz (only for mermaid related method, otherwise set to 1)",

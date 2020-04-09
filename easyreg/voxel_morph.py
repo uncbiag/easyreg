@@ -74,11 +74,11 @@ class VoxelMorphCVPR2018(nn.Module):
         self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
         opt_voxelmorph = opt['tsk_set']['reg']['morph_cvpr']
         self.load_trained_affine_net = opt_voxelmorph[('load_trained_affine_net',False,'if true load_trained_affine_net; if false, the affine network is not initialized')]
-        self.using_affine_init = opt_voxelmorph[("using_affine_init",False,"deploy pretrained affine network")]
+        self.using_affine_init = opt_voxelmorph[("using_affine_init",False, "deploy affine network before the nonparametric network")]
         self.affine_init_path = opt_voxelmorph[('affine_init_path','',"the path of pretrained affine model")]
         self.affine_refine_step = opt_voxelmorph[('affine_refine_step', 5, "the multi-step num in affine refinement")]
         self.initial_reg_factor = opt_voxelmorph[('initial_reg_factor', 1., 'initial regularization factor')]
-        self.min_reg_factor = opt_voxelmorph[('min_reg_factor', 1., 'minimum regularization factor')]
+        self.min_reg_factor = opt_voxelmorph[('min_reg_factor', 1., 'minimum of regularization factor')]
         enc_filters = [16, 32, 32, 32, 32]
         #dec_filters = [32, 32, 32, 8, 8]
         dec_filters = [32, 32, 32, 32, 32, 16, 16]
@@ -188,6 +188,7 @@ class VoxelMorphCVPR2018(nn.Module):
         self.warped = warped_source
         self.target = target
         self.disp_field = disp_field
+        self.source  = source
         if self.train:
             self.print_count += 1
         return warped_source, deform_field, disp_field
@@ -240,6 +241,13 @@ class VoxelMorphCVPR2018(nn.Module):
                                                                                                 reg_factor))
         return sim_loss+ reg_factor*reg_loss
 
+    def get_inverse_map(self, use_01=False):
+        # TODO  not test yet
+        print("VoxelMorph approach doesn't support analytical computation of inverse map")
+        print("Instead, we compute it's numerical approximation")
+        _, inverse_map, _ = self.forward(self.target, self.source)
+        return inverse_map
+
     # def cal_affine_loss(self,output=None,afimg_or_afparam=None,using_decay_factor=False):
     #     factor = 1.0
     #     if using_decay_factor:
@@ -274,7 +282,7 @@ class VoxelMorphMICCAI2019(nn.Module):
                                                        'if true load_trained_affine_net; if false, the affine network is not initialized')]
         self.affine_refine_step = opt_voxelmorph[('affine_refine_step', 5, "the multi-step num in affine refinement")]
 
-        self.using_affine_init = opt_voxelmorph[("using_affine_init", False, "deploy pretrained affine network")]
+        self.using_affine_init = opt_voxelmorph[("using_affine_init", False,  "deploy affine network before the nonparametric network")]
         self.affine_init_path = opt_voxelmorph[('affine_init_path', '', "the path of pretrained affine model")]
         enc_filters = [16, 32, 32, 32, 32]
         #dec_filters = [32, 32, 32, 8, 8]
@@ -430,6 +438,7 @@ class VoxelMorphMICCAI2019(nn.Module):
         self.res_log_sigma = log_sigma
         self.warped = warped_source
         self.target = target
+        self.source = source
         if self.train:
             self.print_count += 1
 
@@ -447,6 +456,7 @@ class VoxelMorphMICCAI2019(nn.Module):
         self.res_log_sigma = None
         self.warped = None
         self.target = None
+        self.source = None
 
     def scale_reg_loss(self,disp=None,sched='l2'):
         reg = self.kl_loss()
@@ -557,6 +567,14 @@ class VoxelMorphMICCAI2019(nn.Module):
         sim_loss = self.get_sim_loss()
         reg_loss = self.scale_reg_loss()
         return sim_loss+ reg_loss
+
+
+    def get_inverse_map(self,use_01=False):
+        # TODO  not test yet
+        print("VoxelMorph approach doesn't support analytical computation of inverse map")
+        print("Instead, we compute it's numerical approximation")
+        _, inverse_map,_ = self.forward(self.target, self.source)
+        return inverse_map
 
 
 

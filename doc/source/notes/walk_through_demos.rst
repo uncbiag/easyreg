@@ -70,19 +70,19 @@ Let's first go through the document of the *demo_for_easyreg_eval.py*.
 
 Demos on toolkit methods
 ^^^^^^^^^^^^^^^^^^^^^^^^
-1. For NiftyReg
+1. NiftyReg
 
 .. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=nifty_reg  -txt=./oai_examples.txt -o=OUTPUT_PATH
 
-2. For Demons
+2. Demons
 
 .. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=demons -txt=./oai_examples.txt -o=OUTPUT_PATH
 
-3. For AntsPy
+3. AntsPy
 
 .. code:: shell
 
@@ -92,14 +92,14 @@ Demos on toolkit methods
 
 Demos on optimization-based mermaid model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-1. For Vector momentum-parameterized Stationary Velocity Field (vSVF) [`link <https://arxiv.org/pdf/1903.08811.pdf>`_]
+1. Vector momentum-parameterized Stationary Velocity Field (vSVF) [`link <https://arxiv.org/pdf/1903.08811.pdf>`_]
 
 .. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=opt_vsvf -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
-2. For Region-specific Diffeomorphic Metric Mapping (RDMM) with pre-defined regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
+2. Region-specific Diffeomorphic Metric Mapping (RDMM) with pre-defined regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
 
 .. code:: shell
 
@@ -109,15 +109,14 @@ Demos on optimization-based mermaid model
 
 Demos on evaluating pretrained learning-based mermaid model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-1. For Affine-vSVF-Mapping [`link <https://arxiv.org/pdf/1903.08811.pdf>`_]
+1. Affine-vSVF-Mapping [`link <https://arxiv.org/pdf/1903.08811.pdf>`_]
 
 .. code:: shell
 
     python demo_for_easyreg_eval.py  --run_demo --demo_name=eval_network_vsvf -txt=./oai_examples.txt -g=0 -o=OUTPUT_PATH
 
 
-2. For RDMM network with a learnt regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
+2. RDMM network with a learnt regularizer [`link <https://arxiv.org/pdf/1906.00139.pdf>`_]
 
 .. code:: shell
 
@@ -127,7 +126,7 @@ Demos on evaluating pretrained learning-based mermaid model
 
 Demos on training Mermaid Network
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-1. For more training details, please refer to :ref:`train_your_own_model`
+More training details, please refer to :ref:`train_your_own_model`
 
 .. code:: shell
 
@@ -136,13 +135,13 @@ Demos on training Mermaid Network
 
 Demos on training VoxelMorph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-1. For the CVPR 2018 VoxelMorph [`link <https://arxiv.org/abs/1809.05231>`_]
+1. The CVPR 2018 VoxelMorph [`link <https://arxiv.org/abs/1809.05231>`_]
 
 .. code:: shell
 
     python demo_for_easyreg_train.py  -dtn=oai -tn=training_vm_cvpr -ts=./demo_settings/mermaid/training_on_3_cases_voxelmorph -g=0 -o=OUTPUT_PATH
 
-2. For its MICAAI 2018 Diffeomorphic Version [`link <https://arxiv.org/abs/1805.04605>`_]
+2. The MICAAI 2018 Diffeomorphic Version [`link <https://arxiv.org/abs/1805.04605>`_]
 
 .. code:: shell
 
@@ -151,16 +150,16 @@ Demos on training VoxelMorph
 
 Demos on training BrainStorm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This demo need some additional steps to generate new data.
+This demo need set input data and some additional steps to generate new data.
 We didn't put data generation code here, but sample codes can be found in data_pre/reg_process_example/gen_from_brainstorm.py
 
-1. Train the transformation network of Brainstorm [`link <https://arxiv.org/abs/1902.09383>`_]
+1. The transformation network of Brainstorm [`link <https://arxiv.org/abs/1902.09383>`_]
 
 .. code:: shell
 
     python demo_for_easyreg_train.py  -dtn=DATA_TASK_NAME -tn=training_brainstorm_tf -ts=./demo_settings/mermaid/training_brainstorm_transform -g=0 -o=OUTPUT_PATH
 
-2. Train the appearance network of Brainstorm
+2. The appearance network of Brainstorm
 
 .. code:: shell
 
@@ -169,16 +168,29 @@ We didn't put data generation code here, but sample codes can be found in data_p
 
 Demos on Data augmentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-For more training details, please refer to (to be added)
+For more training details, please refer to (to be added).
 
-1. For augmentation with mermaid optimization
-
-.. code:: shell
-
-    demo_for_data_aug.py --run_demo --demo_name=opt_lddmm_lpba -g 0 1 2 3 0 1 2 3
-
-2. For augmentation with learnt mermaid network
+1. Anatomical augmentation with mermaid optimization
 
 .. code:: shell
 
-    demo_for_data_aug.py --run_demo --demo_name=learnt_lddmm_oai -g 0
+    python demo_for_data_aug.py --run_demo --demo_name=opt_lddmm_lpba -g 0 1 2 3 0 1 2 3
+
+2. Anatomical augmentation with learnt mermaid network
+
+.. code:: shell
+
+    python demo_for_data_aug.py --run_demo --demo_name=learnt_lddmm_oai -g 0
+
+3. Random augmentation with Bspline
+
+.. code:: shell
+
+    python gen_aug_samples.py -t=./data_aug_demo_output/rand_bspline_lpba/input.txt --bspline  -as=./demo_settings/data_aug/rand_bspline_lpba/data_aug_setting.json -o=./data_aug_demo_output/rand_bspline_lpba/aug
+
+
+4. Random augmentation with Fluid-based model
+
+.. code:: shell
+
+    python gen_aug_samples.py -t=./data_aug_demo_output/rand_lddmm_oai/input.txt -as=./demo_settings/data_aug/rand_lddmm_oai/data_aug_setting.json -ms=./demo_settings/data_aug/rand_lddmm_oai/mermaid_nonp_settings.json -o=./data_aug_demo_output/rand_lddmm_oai/aug

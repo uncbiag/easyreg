@@ -181,8 +181,8 @@ if __name__ == '__main__':
             2. given image
             --source_list/ -s: the source list,  s1 s2 s3..sn
             --target_list/ -t: the target list,  t1 t2 t3..tn
-            --lsource_list/ -ls: optional, the source label list,  ls1,ls2,ls3..lsn
-            --ltarget_list/ -lt: optional, the target label list,  lt1,lt2,lt3..ltn
+            --lsource_list/ -ls: optional, the source label list,  ls1 ls2 ls3..lsn
+            --ltarget_list/ -lt: optional, the target label list,  lt1 lt2 lt3..ltn
         other arguments:
              --setting_folder_path/-ts :path of the folder where settings are saved
              --task_output_path/ -o: the path of output folder

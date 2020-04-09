@@ -53,7 +53,6 @@
             "optim_type": "adam"
         },
         "output_taking_original_image_format": false,
-        "save_original_image_by_type": [true, true, true, true, true,true],
         "print_step": [
             10,
             3,
@@ -75,21 +74,11 @@
                 "using_complex_net": true
             },
             "compute_inverse_map": false,
-            "low_res_factor": 0.5,
             "morph_cvpr": {
                 "affine_init_path": "",
                 "affine_refine_step": 5,
                 "using_affine_init": false,
                 "load_trained_affine_net": true
-            },
-            "morph_miccai": {
-                "affine_init_path": "",
-                "using_affine_init": false,
-                "affine_refine_step": 5,
-                "load_trained_affine_net": true,
-                "image_sigma": 0.02,
-                "lambda_factor_in_vmr": 50,
-                "lambda_mean_factor_in_vmr": 50
             }
         },
         "save_3d_img_on": false,

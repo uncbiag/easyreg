@@ -1,6 +1,6 @@
 {
     "dataset": {
-        "img_after_resize": "image size after resampling",
+        "img_after_resize": "Important, the image resolution that models actually work on, the images will be first resampled to this resolution, set [-1,-1,-1] if take the original image resolution",
         "max_num_for_loading": "the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]",
         "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden",
         "spacing_to_refer": "the physical spacing in numpy coordinate, only activate when using_physical_coord is true"
@@ -49,27 +49,13 @@
                 "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                 "using_complex_net": "use complex version of affine net"
             },
-            "compute_inverse_map": "compute the inverse transformation map",
-            "low_res_factor": "factor of low-resolution map",
-            "mermaid_net": {
-                "affine_init_path": "the path of trained affined network",
+            "morph_cvpr": {
+                "affine_init_path": "the path of pretrained affine model",
+                "initial_reg_factor": "initial regularization factor",
+                "min_reg_factor": "minimum of regularization factor",
                 "affine_refine_step": "the multi-step num in affine refinement",
-                "clamp_momentum": "clamp_momentum",
-                "clamp_thre": "clamp momentum into [-clamp_thre, clamp_thre]",
-                "epoch_activate_multi_step": "epoch activate the multi-step",
-                "epoch_activate_sym": "epoch activate the symmetric loss",
-                "epoch_list_fixed_deep_smoother_network": "epoch_list_fixed_deep_smoother_network",
-                "epoch_list_fixed_momentum_network": "list of epoch, fix the momentum network",
-                "load_trained_affine_net": "if true load_trained_affine_net; if false, the affine network is not initialized",
-                "lr_for_multi_step": "if reset_lr_for_multi_step, reset learning rate when multi-step begins",
-                "mermaid_net_json_pth": "the path for mermaid settings json",
-                "num_step": "compute multi-step loss",
-                "optimize_momentum_network": "if true, optimize the momentum network",
-                "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
-                "sym_factor": "factor on symmetric loss",
-                "using_affine_init": "if ture, deploy an affine network before mermaid-net",
-                "using_physical_coord": "use physical coordinate system",
-                "using_complex_net": "using complex version of momentum generation network"
+                "using_affine_init": "deploy affine network before the nonparametric network",
+                "load_trained_affine_net": "if true load_trained_affine_net; if false, the affine network is not initialized"
             }
         },
         "save_3d_img_on": "saving fig",
