@@ -5,7 +5,7 @@
             200,
             200
         ],
-        "load_training_data_into_memory": false,
+        "load_training_data_into_memory": true,
         "max_num_for_loading": [
             -1,
             -1,
@@ -13,29 +13,31 @@
             -1
         ],
         "spacing_to_refer": [
-            1,1,1
+            1,
+            1,
+            1
         ]
     },
     "tsk_set": {
         "batch_sz": 1,
         "check_best_model_period": 5,
         "continue_train": false,
-        "continue_train_lr": 5e-05,
+        "continue_train_lr": 0.0001,
         "criticUpdates": 2,
         "epoch": 300,
-        "gpu_ids": 0,
+        "gpu_ids": 2,
         "loss": {
-            "type": "ncc"
+            "type": "mse"
         },
         "max_batch_num_per_epoch": [
-            2,
-            1,
+            400,
+            0,
             0
         ],
+        "method_name": "bs_trans",
         "model": "reg_net",
         "model_path": "",
         "n_in_channel": 1,
-        "method_name": "bs_ap",
         "optim": {
             "adam": {
                 "beta": 0.9
@@ -43,13 +45,14 @@
             "lr": 0.0001,
             "lr_scheduler": {
                 "custom": {
-                    "gamma": 0.1,
-                    "step_size": 20
+                    "gamma": 0.5,
+                    "step_size": 60
                 },
                 "type": "custom"
             },
             "optim_type": "adam"
         },
+        "output_root_path": "",
         "output_taking_original_image_format": false,
         "print_step": [
             10,
@@ -58,19 +61,24 @@
         ],
         "print_val_detail": true,
         "reg": {
-            "compute_inverse_map": false,
-            "low_res_factor": 0.5,
-            "aug_trans_net": {
-            },
             "aug_appear_net": {
-            }
+                "initial_reg_factor": 0.02,
+                "sim_factor": 10.0
+            },
+            "aug_trans_net": {
+                "initial_reg_factor": 1.0
+            },
+            "compute_inverse_map": false,
+            "low_res_factor": 0.5
         },
+        "reset_train_epoch": false,
         "save_3d_img_on": false,
         "save_extra_3d_img": false,
         "save_fig_on": true,
+        "task_name": "color",
         "train": true,
         "use_physical_coord": false,
-        "val_period": 3,
+        "val_period": 10,
         "warmming_up_epoch": 2
     }
 }

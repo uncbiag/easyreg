@@ -12,7 +12,11 @@ In this tutorial, we would show how to run the following demos:
 1. Demos on toolkit methods (NiftyReg, ANTsPy, Demons)
 2. Demos on optimization-based mermaid model (vSVF and RDMM)
 3. Demos on evaluating pretrained learning-based mermaid model (vSVF and RDMM)
-4. Demos on training learning-based mermaid model(vSVF and RDMM)
+4. Demos on evaluating learning-based mermaid model(vSVF and RDMM)
+5. Demos on training learning-based mermaid network
+6. Demos on training VoxelMorph (cvpr and miccai version)
+7. Demos on training `Brainstorm <https://arxiv.org/abs/1902.09383>`_
+8. Demos on data augmentation (optimization and learnt version)
 
 *Demos for RDMM on synthesis data is put in mermaid repository. if you are interested in that, please refer to mermaid tutorial.*
 
@@ -28,7 +32,9 @@ To run the demo, we first need to download examples and pretrained model for lea
 
 Now we are ready to play with demos. The repository *demo* lists the scripts and settings for demos.
 
-In this section, the script *demo_for_easyreg_eval.py* will be introduced which is for optimization-based or pretrained methods.
+
+
+The script *demo_for_easyreg_eval.py*  is for optimization-based or pretrained methods.
 
 Let's first go through the document of the *demo_for_easyreg_eval.py*.
 .. code:: shell
@@ -119,4 +125,58 @@ Demos on evaluating pretrained learning-based mermaid model
 
 
 
+Demos on training Mermaid Network
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. For more training details, please refer to :ref:`train_your_own_model`
 
+.. code:: shell
+
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
+
+
+Demos on training VoxelMorph
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. For the VoxelMorph [`link <https://arxiv.org/abs/1809.05231>`_]
+
+.. code:: shell
+
+    python demo_for_easyreg_train.py  -dtn=oai -tn=training_vm_cvpr -ts=./demo_settings/mermaid/training_on_3_cases_voxelmorph -g=0 -o=OUTPUT_PATH
+
+2. For its MICAAI 2018 Diffeomorphic Version [`link <https://arxiv.org/abs/1805.04605>`_]
+
+.. code:: shell
+
+    python demo_for_easyreg_train.py  -dtn=oai -tn=training_vm_miccai -ts=./demo_settings/mermaid/training_on_3_cases_voxelmorph_miccai -g=0 -o=OUTPUT_PATH
+
+
+Demos on training BrainStorm
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This demo need some additional steps to generate new data as mention in their paper.
+We didn't put generation code here, but sample codes can be found in data_pre/reg_process_example/gen_from_brainstorm.py
+1. Train the transformation network of Brainstorm [`link <https://arxiv.org/abs/1902.09383>`_]
+
+.. code:: shell
+
+    python demo_for_easyreg_train.py  -dtn=DATA_TASK_NAME -tn=training_brainstorm_tf -ts=./demo_settings/mermaid/training_brainstorm_transform -g=0 -o=OUTPUT_PATH
+
+2. Train the appearance network of Brainstorm
+
+.. code:: shell
+
+    python demo_for_easyreg_train.py  -dtn=DATA_TASK_NAME -tn=training_brainstorm_ap -ts=./demo_settings/mermaid/training_brainstorm_appearance -g=0 -o=OUTPUT_PATH
+
+
+Demos on Data augmentation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For more training details, please refer to (to be added)
+1. For augmentation with mermaid optimization
+
+.. code:: shell
+
+    demo_for_data_aug.py --run_demo --demo_name=opt_lddmm_lpba -g 0 1 2 3 0 1 2 3
+
+2. For augmentation with learnt mermaid network
+
+.. code:: shell
+
+    demo_for_data_aug.py --run_demo --demo_name=learnt_lddmm_oai -g 0

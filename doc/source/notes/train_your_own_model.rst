@@ -1,6 +1,7 @@
 Train your own model
 ========================================
 
+.. _train_your_own_model:
 
 Quick Start
 ____________

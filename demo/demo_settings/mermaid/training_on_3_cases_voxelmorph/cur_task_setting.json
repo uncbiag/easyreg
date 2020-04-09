@@ -37,7 +37,7 @@
         "model": "reg_net",
         "model_path": "",
         "n_in_channel": 1,
-        "method_name": "vm_miccai",
+        "method_name": "morph_cvpr",
         "optim": {
             "adam": {
                 "beta": 0.9
@@ -77,14 +77,14 @@
             "compute_inverse_map": false,
             "low_res_factor": 0.5,
             "morph_cvpr": {
-                "affine_init_path": "/playpen/zyshen/reg_clean/demo/demo_output/training/oai/training_on_3_cases_seed2019_sym01_stage1_affine/checkpoints/model_best.pth.tar",
+                "affine_init_path": "",
                 "affine_refine_step": 5,
-                "using_affine_init": true,
+                "using_affine_init": false,
                 "load_trained_affine_net": true
             },
             "morph_miccai": {
-                "affine_init_path": "/playpen/zyshen/reg_clean/demo/demo_output/training/oai/training_on_3_cases_seed2019_sym01_stage1_affine/checkpoints/model_best.pth.tar",
-                "using_affine_init": true,
+                "affine_init_path": "",
+                "using_affine_init": false,
                 "affine_refine_step": 5,
                 "load_trained_affine_net": true,
                 "image_sigma": 0.02,

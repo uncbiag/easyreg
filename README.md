@@ -40,7 +40,7 @@ Demo list (for more details, please refer to the doc<sup>*</sup>)
 5) Optimization-based mermaid registration on lung pairs<sup>**</sup> (inspiration to expiration) ([RDMM](https://arxiv.org/pdf/1906.00139.pdf))
 6) Pretrained learning-based mermaid registration on OAI (vSVF, RDMM)
 7) A training demo for joint affine and vSVF registration on sub-OAI dataset (3 pairs)
-8) A training demo for Voxelmorph like framework.
+8) A training demo for VoxelMorph like framework
 
 \* For 2D demo (vSVF, LDDMM, RDMM) on synthetic data, please refers to [mermaid](https://mermaid.readthedocs.io/en/latest/notes/rdmm_example.html)<br/>
 ** Thanks Dr. RaúlSan José Estépar for providing the lung data
