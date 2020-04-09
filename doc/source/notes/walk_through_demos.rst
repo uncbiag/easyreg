@@ -136,7 +136,7 @@ Demos on training Mermaid Network
 
 Demos on training VoxelMorph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-1. For the VoxelMorph [`link <https://arxiv.org/abs/1809.05231>`_]
+1. For the CVPR 2018 VoxelMorph [`link <https://arxiv.org/abs/1809.05231>`_]
 
 .. code:: shell
 
@@ -151,8 +151,9 @@ Demos on training VoxelMorph
 
 Demos on training BrainStorm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This demo need some additional steps to generate new data as mention in their paper.
-We didn't put generation code here, but sample codes can be found in data_pre/reg_process_example/gen_from_brainstorm.py
+This demo need some additional steps to generate new data.
+We didn't put data generation code here, but sample codes can be found in data_pre/reg_process_example/gen_from_brainstorm.py
+
 1. Train the transformation network of Brainstorm [`link <https://arxiv.org/abs/1902.09383>`_]
 
 .. code:: shell
@@ -169,6 +170,7 @@ We didn't put generation code here, but sample codes can be found in data_pre/re
 Demos on Data augmentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For more training details, please refer to (to be added)
+
 1. For augmentation with mermaid optimization
 
 .. code:: shell

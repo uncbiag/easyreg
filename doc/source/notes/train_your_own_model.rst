@@ -89,7 +89,7 @@ The train|val|debug|test folder looks like this
     pair_name_list.txt  pair_path_list.txt
 
 
-The pair_name_list.txt reads like:
+The pair_name_list.txt (optional) reads like:
 
 .. code:: shell
 

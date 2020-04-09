@@ -1,6 +1,6 @@
 # EasyReg
-The EasyReg is a image registration package, that support a series of mainstream image registration methods.\
-The EasyReg has following properties:
+The EasyReg is a image registration package, that support a series of mainstream methods.\
+We list a few properties:
 1) A simple interface for learning/optimization based image registration tools, e.g., [Mermaid](https://github.com/uncbiag/mermaid) and other popular registration
 packages<sup>*</sup>.
 2) A simple interface for fluid-based data augmentation, supporting either random augmentation and data interpolation/extrapolation
@@ -8,7 +8,8 @@ packages<sup>*</sup>.
 
 
 \*The currently supported methods include Mermaid-optimization (i.e., optimization-based fluid registration) and Mermaid-network (i.e., deep network-based fluid registration methods using the mermaid deformation models).
-We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend using the official source.
+We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg), Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)),
+ [VoxelMorph](https://arxiv.org/abs/1809.05231) and its diffeomorphic [variant](https://arxiv.org/abs/1805.04605),  though we recommend using the official source.
 
 Currently, we support 3d image registration (2d is in progress).
 
@@ -40,7 +41,8 @@ Demo list (for more details, please refer to the doc<sup>*</sup>)
 5) Optimization-based mermaid registration on lung pairs<sup>**</sup> (inspiration to expiration) ([RDMM](https://arxiv.org/pdf/1906.00139.pdf))
 6) Pretrained learning-based mermaid registration on OAI (vSVF, RDMM)
 7) A training demo for joint affine and vSVF registration on sub-OAI dataset (3 pairs)
-8) A training demo for VoxelMorph like framework
+8) A training demo for VoxelMorph like registration framework (cvpr and miccai version)
+9) A training demo for [Brainstorm](https://arxiv.org/abs/1902.09383) like data-augmentation framework
 
 \* For 2D demo (vSVF, LDDMM, RDMM) on synthetic data, please refers to [mermaid](https://mermaid.readthedocs.io/en/latest/notes/rdmm_example.html)<br/>
 ** Thanks Dr. RaúlSan José Estépar for providing the lung data
@@ -89,9 +91,9 @@ An illustration of sampling from geodesic subspace.
 
 ## Segmentation
 We provide an interface for image segmentaion task with a u-net structure.
-The segmentation framework supports an *test* phase data augmentation method.
+The segmentation framework supports an *test* phase *data augmentation* method that can generally improve the performance without additional models.
 
-An illustration of ensemble method during test.
+An illustration of data augmentation- based ensemble prediction during test.
 
 <img src="figs/test_phase.png" alt="test_phase" width="800"/><br>
 
@@ -108,8 +110,10 @@ git clone https://github.com/uncbiag/mermaid.git
 pip install -r requirements.txt
 
 # ################download demo (optional)######
-gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
+cd demo
+gdown https://drive.google.com/uc?id=1XOsKVxDEmR8U1dsBARmWtUZgcNRhH4Lv
 unzip demo.zip -d . 
+cd ..
 # #############################################
 
 cd mermaid
