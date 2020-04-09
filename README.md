@@ -1,14 +1,36 @@
-# An Extension Package for Mermaid
-The purpose of this package is to provide a simple interface to [Mermaid](https://github.com/uncbiag/mermaid) and other popluar registration
-packages.\
+# EasyReg
+The EasyReg is a image registration package, that support a series of mainstream image registration methods.\
+The EasyReg has following properties:
+1) A simple interface for learning/optimization based image registration tools, e.g., [Mermaid](https://github.com/uncbiag/mermaid) and other popular registration
+packages<sup>*</sup>.
+2) A simple interface for fluid-based data augmentation, supporting either random augmentation and data interpolation/extrapolation
+3) A simple interface for image segmentation.
 
-The currently supported methods include Mermaid-optimization (i.e., optimization-based registration) and Mermaid-network (i.e., deep network-based registration methods using the mermaid deformation models).
+
+\*The currently supported methods include Mermaid-optimization (i.e., optimization-based fluid registration) and Mermaid-network (i.e., deep network-based fluid registration methods using the mermaid deformation models).
 We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) and Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)), though we recommend using the official source.
 
-\* Currently, we support 3d image registration (2d is in progress).
+Currently, we support 3d image registration (2d is in progress).
 
 <br/>
 
+## Build Documentation
+The latest doc can be found here [https://easyreg-unc-biag.readthedocs.io/en/latest/](https://easyreg-unc-biag.readthedocs.io/en/latest/).
+
+Source code documentation and tutorials can be built on local using sphinx.
+
+```
+cd EASYREG_REPOSITORY_PATH
+cd doc
+make html
+```
+Now you are ready to explore various optimization-based as well as learning-based demos provided by EasyReg.
+
+<br/><br/>
+
+<br/>
+
+## Registration 
 We provide abundant of demos for both learning and optimization methods :)<br/>
 Demo list (for more details, please refer to the doc<sup>*</sup>)
 1) ANTsPy on OAI (knee MRI of the Osteoarthritis Initiative dataset)
@@ -18,6 +40,7 @@ Demo list (for more details, please refer to the doc<sup>*</sup>)
 5) Optimization-based mermaid registration on lung pairs<sup>**</sup> (inspiration to expiration) ([RDMM](https://arxiv.org/pdf/1906.00139.pdf))
 6) Pretrained learning-based mermaid registration on OAI (vSVF, RDMM)
 7) A training demo for joint affine and vSVF registration on sub-OAI dataset (3 pairs)
+8) A training demo for Voxelmorph like framework.
 
 \* For 2D demo (vSVF, LDDMM, RDMM) on synthetic data, please refers to [mermaid](https://mermaid.readthedocs.io/en/latest/notes/rdmm_example.html)<br/>
 ** Thanks Dr. RaúlSan José Estépar for providing the lung data
@@ -41,10 +64,37 @@ Registration results from Region-spec Region-specific Diffeomorphic Metric Mappi
 
 <br/><br/>
 
+
+<br/>
+
+## Data Augmentation/Interpolation
+
+We provide an easy interface for fluid-based data augmentation and interpolation/extrapolation.
+A typical strategy is as following:
+1) Construct a geodesic subspace with given a source image and a set of target images.
+2) Sample transformations from the resulting geodesic subspace.
+3) Obtain deformed images and segmentations via interpolation.
+
+We provide two demo for data augmentation for affined and non-affined dataset, see.
+
+
+<br/>
+
+## Segmentation
+We provide an interface for image segmentaion task with a u-net structure.
+The segmentation framework supports an ensemble method given inverse transformation maps that can be obtained via test phase data augmentation.
+
+An illustration of ensemble method during test.
+
+<img src="figs/test_phase.png" alt="test_phase" width="800"/><br>
+
+<br/><br/>
+
+
 # Installation
 ```
 conda create -n easyreg python=3.6
-source activate easyreg
+conda activate easyreg
 git clone https://github.com/uncbiag/easyreg.git
 cd easyreg
 git clone https://github.com/uncbiag/mermaid.git
@@ -76,20 +126,7 @@ For NiftyReg installation instructions please refer to [NiftyReg Installation](h
 <br/><br/>
 
 
-# Build Documentation
-The latest doc can be found [here](https://easyreg-unc-biag.readthedocs.io/en/latest/)
 
-Source code documentation and tutorials can be built on local using sphinx.
-
-```
-cd EASYREG_REPOSITORY_PATH
-cd doc
-make html
-```
-
-Now you are ready to explore various optimization-based as well as learning-based demos provided by EasyReg.
-
-<br/><br/>
 
 # Related papers
 

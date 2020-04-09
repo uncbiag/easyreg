@@ -1,2 +1,0 @@
-cd /playpen-raid/zyshen/reg_clean/mermaid/mermaid_demos
-python /playpen-raid/zyshen/reg_clean/mermaid/mermaid_demos/gen_aug_samples.py --txt_path=/playpen-raid/zyshen/data/oai_reg/test_aug_opt/momentum_lresol.txt  --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/debug/settings/opt_lddmm_oai/mermaid_nonp_settings.json  --output_path=/playpen-raid1/zyshen/data/oai_reg/test_aug_1500 --compute_inverse

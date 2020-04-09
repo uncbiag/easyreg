@@ -1,2 +1,0 @@
-python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/settings/opt_lddmm_test_aug -txt=/playpen-raid/zyshen/data/lpba_seg_resize/atlas/train.txt   -o=/playpen-raid/zyshen/data/lpba_seg_resize/atlas/train -g=0
-python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/settings/opt_lddmm_test_aug -txt=/playpen-raid/zyshen/data/lpba_seg_resize/atlas/test.txt   -o=/playpen-raid/zyshen/data/lpba_seg_resize/atlas/test -g=1

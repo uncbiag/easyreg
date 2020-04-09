@@ -1,4 +1,0 @@
-cd /playpen-raid/zyshen/reg_clean/demo
-python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/settings/opt_lddmm_test_aug -txt=/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_25/test/pair_path_list_1.txt   -o=/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_25_1 -g=0 &
-python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/settings/opt_lddmm_test_aug -txt=/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_25/test/pair_path_list_2.txt   -o=/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_25_2 -g=2 &
-python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/settings/opt_lddmm_test_aug -txt=/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_25/test/pair_path_list_3.txt   -o=/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_25_3 -g=3 &
