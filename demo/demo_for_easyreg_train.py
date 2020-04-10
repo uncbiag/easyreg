@@ -246,9 +246,3 @@ if __name__ == '__main__':
     print(args)
     do_registration_train(args)
 
-    # -o=./training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_network_vsvf -g=3
-    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_rdmm -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_rdmm -g=3
-    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf -g=3
-    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf --train_affine_first -g=2
-    # -o=//playpen/zyshen/ll1/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter_gpu0 -tn=interface_vsvf_dev_gpu0 -ts=/playpen/zyshen/ll1/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf_gpu0 --train_affine_first -g=2
-

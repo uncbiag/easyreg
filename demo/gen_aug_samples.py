@@ -693,10 +693,7 @@ if __name__ == '__main__':
     
     """
     import argparse
-    # --file_txt=/playpen-raid/zyshen/data/lpba_reg/train_with_5/lpba_ncc_reg1/momentum_lresol.txt  --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid/zyshen/debug/debug_aug
-    # --file_txt=/playpen-raid1/zyshen/data/reg_oai_aug/momentum_lresol.txt --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid/zyshen/debug/debug_aug
-    # --file_txt=/playpen-raid/zyshen/data/lpba_seg_resize/baseline/25case/train/file_path_list.txt --aug_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/data_aug_setting.json --mermaid_setting_path=/playpen-raid/zyshen/reg_clean/demo/demo_settings/data_aug/opt_lddmm_lpba/mermaid_nonp_settings.json --output_path=/playpen-raid1/zyshen/debug/debug_aug3
-    # -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt -
+
     parser = argparse.ArgumentParser(description='Registration demo for data augmentation')
     parser.add_argument("-t",'--file_txt', required=False, default=None,
                         help='the file path of input txt, exclusive with random_m')

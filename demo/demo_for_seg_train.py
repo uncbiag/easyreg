@@ -179,10 +179,3 @@ if __name__ == '__main__':
     print(args)
     do_segmentation_train(args)
 
-
-    # -o /home/zyshen/proj/local_debug -dtn=brain_seg -tn=debuging -ts=/home/zyshen/proj/easyreg/debug/settings -g=-1
-    # -o /playpen-raid/zyshen/data -dtn=lpba_seg -tn=debuging -ts=/playpen-raid/zyshen/reg_clean/debug/settings -g=-1
-
-    # -o=/playpen/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter -tn=interface_vsvf -ts=/playpen/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf --train_affine_first -g=2
-    # -o=//playpen/zyshen/ll1/zyshen/data -dtn=croped_for_reg_debug_3000_pair_oai_reg_inter_gpu0 -tn=interface_vsvf_dev_gpu0 -ts=/playpen/zyshen/ll1/zyshen/reg_clean/demo/demo_settings/mermaid/training_network_vsvf_gpu0 --train_affine_first -g=2
-

@@ -150,7 +150,7 @@ def pipeline(args):
     :return: None
     """
     setting_folder_path, reg_pair_list_txt, reg_name_list_txt=init_reg_env(args)
-    #do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
+    do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
     aug_input_txt,aug_name_txt, aug_output_path = init_aug_env(reg_pair_list_txt,reg_name_list_txt,args.task_output_path,setting_folder_path)
     do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path)
 
@@ -202,10 +202,6 @@ if __name__ == '__main__':
 
     """
     import argparse
-    # --run_demo --demo_name=opt_lddmm_lpba -g 0 1 2 3 0 1 2 3
-    # --run_demo --demo_name=learnt_lddmm_oai -g 0
-    # -ts=/playpen-raid1/zyshen/debug/xu/opt_lddmm -t=/playpen-raid1/zyshen/debug/xu/source_target_set.txt  -n=/playpen-raid1/zyshen/debug/xu/source_target_name.txt -f=aug_by_line -o=/playpen-raid1/zyshen/debug/xu/expr2_lambda1 -g  0 1 2
-
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
     parser.add_argument("--run_demo", required=False, action='store_true', help='run demo')
     parser.add_argument('--demo_name', required=False, type=str, default='opt_lddmm_lpba',
