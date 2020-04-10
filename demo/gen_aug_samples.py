@@ -1,17 +1,3 @@
-"""
-the first demo is to input a txt file
-each line includes the moving image, target image
-the output should be the warped image, the momentum
-( we would remove the first demo into easyreg package)
-
-
-the second demo is to input a txt file
-each line include the moving image, label,  momentum1, momentum2,...
-the output should be the the warped image ( by random momentum, by random t) and the corresponding warped label
-"""
-""""
-demo on RDMM on 2d synthetic image registration
-"""
 import matplotlib as matplt
 matplt.use('Agg')
 import sys,os

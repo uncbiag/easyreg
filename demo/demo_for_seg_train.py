@@ -173,7 +173,7 @@ if __name__ == '__main__':
     parser.add_argument('-tn','--task_name', required=False, type=str,
                         default=None,help='the name of the task')
     parser.add_argument('-ts','--setting_folder_path', required=False, type=str,
-                        default=None,help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)')
+                        default=None,help='path of the folder where settings are saved,should include cur_task_setting.json)')
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')
     args = parser.parse_args()
     print(args)

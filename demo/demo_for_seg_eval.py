@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-ts', '--setting_folder_path', required=False, type=str,
                         default=None,
-                        help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)')
+                        help='path of the folder where settings are saved,should include cur_task_setting.json')
     parser.add_argument('-txt', '--file_txt_path', required=False, default=None, type=str,
                         help='the txt file recording the pairs to registration')  # 2
     parser.add_argument('-i', '--image_list', nargs='+', required=False, default=None,
