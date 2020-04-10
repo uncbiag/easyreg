@@ -1,5 +1,5 @@
 # EasyReg
-The EasyReg is a image registration package, that support a series of mainstream methods.\
+The EasyReg is a image registration package, that supports a series of mainstream methods.\
 We list a few properties:
 1) A simple interface for learning/optimization based image registration tools, e.g., [Mermaid](https://github.com/uncbiag/mermaid) and other popular registration
 packages<sup>*</sup>.
@@ -33,7 +33,7 @@ Now you are ready to explore various optimization-based as well as learning-base
 
 ## Registration 
 We provide abundant of demos for both learning and optimization methods :)<br/>
-Demo list (for more details, please refer to the doc<sup>*</sup>)
+Demo list (for more details, please refer to the [doc](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html)<sup>*</sup>)
 1) ANTsPy on OAI (knee MRI of the Osteoarthritis Initiative dataset)
 2) NiftyReg on OAI
 3) Demons on OAI
@@ -77,7 +77,12 @@ A typical strategy is as following:
 2) Sample transformations from the resulting geodesic subspace.
 3) Obtain deformed images and segmentations via interpolation.
 
-We provide two demo for data augmentation for affined and non-affined dataset, see.
+The current supported methods list:
+1). Anatomical fluid-based data augmentation
+2). Random data augmentation (including Bspline random transformation and Random momentum based fluid data augmentation)
+
+Related demos can be found at [Demos on Data augmentation](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html#demos-on-data-augmentation) section.
+
 
 An illustration of sampling from geodesic subspace.
 
