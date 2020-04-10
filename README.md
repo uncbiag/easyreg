@@ -1,18 +1,18 @@
 # EasyReg
 
-A friendly tutorial on fluid based augmentation will come soon :)
+A friendly tutorial on fluid based registration and augmentation will come soon :)
 
 The EasyReg is a image registration package, that supports a series of mainstream methods.\
 We list a few properties:
 1) A simple interface for learning/optimization based image registration tools, e.g., [Mermaid](https://github.com/uncbiag/mermaid) and other popular registration
 packages<sup>*</sup>.
-2) A simple interface for a series of data augmentation approach, supporting either random data augmentation and anatomical data augmentation/inter-and extra-polation
+2) A simple interface for a series of data augmentation approaches, supporting both random data augmentation and anatomical data augmentation/inter-and extra-polation
 3) A simple interface for image segmentation.
 
 
 \*The currently supported methods include Mermaid-optimization (i.e., optimization-based fluid registration) and Mermaid-network (i.e., deep network-based fluid registration methods using the mermaid deformation models).
 We also added support for [ANTsPy](https://github.com/ANTsX/ANTsPy), [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg), Demons(embedded in [SimpleITK](http://www.simpleitk.org/SimpleITK/resources/software.html)),
- [VoxelMorph](https://arxiv.org/abs/1809.05231) and its diffeomorphic [variant](https://arxiv.org/abs/1805.04605),  though we recommend using the official source.
+ [VoxelMorph](https://arxiv.org/abs/1809.05231) and its diffeomorphic [variant](https://arxiv.org/abs/1805.04605),  though we recommend using the official release.
 
 Currently, we support 3d image registration (2d is in progress).
 
@@ -107,7 +107,6 @@ An illustration of data augmentation- based ensemble prediction during test.
 
 <br/><br/>
 
-
 # Installation
 ```
 conda create -n easyreg python=3.6
@@ -119,7 +118,7 @@ pip install -r requirements.txt
 
 # ################download demo (optional)######
 cd demo
-gdown https://drive.google.com/uc?id=11OuJdpAauN1HMAIq80PFbOLjwyZx8Af9
+gdown https://drive.google.com/uc?id=1m0dhCUYe3DTisHEV3FMy7LY0SIJlTjpa
 unzip demo.zip -d . 
 cd ..
 # #############################################
