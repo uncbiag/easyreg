@@ -1,0 +1,39 @@
+{
+  "data_aug":{
+    "max_aug_num": 10,
+
+    "fluid_aug": {
+      "fluid_mode":"aug_with_nonaffined_data",
+      "task_type": "rand_sampl",
+      "K": 1,
+      "compute_inverse": true,
+      "rand_sampl": {
+            "t_range": [-1,2]
+      },
+      "data_interp": {
+            "t_aug_list": [0.5,1.0],
+            "weight_list": [[1.0]]
+      },
+      "aug_with_random_momentum": {
+            "rand_momentum_shrink_factor": 8,
+            "magnitude": 1.5
+      },
+      "aug_with_nonaffined_data": {
+        "affine_back_to_original_postion": true
+      },
+      "aug_with_atlas": {
+        "to_atlas_folder": "",
+        "atlas_to_folder": "",
+        "to_atlas_mermaid_setting": ""
+      }
+    },
+
+    "bspline_aug": {
+      "mesh_size_list": [[10,10,10]],
+      "deform_scale_list": [3],
+      "aug_ratio": 0.95
+
+    }
+
+  }
+}

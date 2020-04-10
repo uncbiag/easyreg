@@ -62,7 +62,7 @@ def train_model(opt,model, dataloaders,writer):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
         model.set_cur_epoch(epoch)
-        if epoch == warmming_up_epoch:
+        if epoch == warmming_up_epoch and not reset_train_epoch:
             model.update_learning_rate()
 
         for phase in phases:
@@ -102,7 +102,9 @@ def train_model(opt,model, dataloaders,writer):
                     #     model.optimize_parameters()
                     # except:
                     #     info = model.get_debug_info()
-                    #     save_and_debug_model(model,info,check_point_path,epoch,global_step)
+                    #     print("the program meet error, now output the debugging info")
+                    #     print("{}".format(info))
+                    #     save_model(model,check_point_path,epoch,global_step,"epoch_debug")
                     #     exit(1)
                     loss = model.get_current_errors()
 
@@ -116,6 +118,7 @@ def train_model(opt,model, dataloaders,writer):
                             model.save_fig_3D(phase='val')
                     score, detailed_scores= model.get_val_res()
                     print('val loss of batch {} is {}:'.format(model.get_image_names(),score))
+                    print('val detailed loss of batch {} is {}:'.format(model.get_image_names(),detailed_scores))
                     model.update_loss(epoch,end_of_epoch)
                     running_val_score += score
                     loss = score
@@ -130,6 +133,8 @@ def train_model(opt,model, dataloaders,writer):
                         if save_3d_img_on:
                             model.save_fig_3D(phase='debug')
                     score, detailed_scores = model.get_val_res()
+                    print('debug loss of batch {} is {}:'.format(model.get_image_names(),score))
+                    print('debug detailed loss of batch {} is {}:'.format(model.get_image_names(),detailed_scores))
                     running_debug_score += score
                     loss = score
 
@@ -164,44 +169,21 @@ def train_model(opt,model, dataloaders,writer):
                 if epoch == 0:
                     best_score = epoch_val_score
 
-                if epoch_val_score > best_score:
-                    is_best = True
+                if epoch_val_score > best_score or epoch_val_score==-1:
                     best_score = epoch_val_score
                     best_epoch = epoch
+                    save_model(model,check_point_path,epoch,global_step,'epoch_'+str(epoch),True,best_score)
+
             if phase == 'train':
                 # currently we just save model by period, so need to check the best model manually
                 if epoch % check_best_model_period==0:  #is_best and epoch % check_best_model_period==0:
-                    if isinstance(model.optimizer, tuple):
-                        # for multi-optimizer cases,
-                        optimizer_state = []
-                        for term in model.optimizer:
-                            optimizer_state.append(term.state_dict())
-                        optimizer_state = tuple(optimizer_state)
-                    else:
-                        optimizer_state  = model.optimizer.state_dict()
-                    save_checkpoint({'epoch': epoch,'state_dict':  model.network.state_dict(),'optimizer': optimizer_state,
-                             'best_score': best_score, 'global_step':global_step}, is_best, check_point_path, 'epoch_'+str(epoch), '')
-                    is_best = False
+                    save_model(model,check_point_path,epoch,global_step,'epoch_'+str(epoch),False,best_score)
 
 
             if phase == 'debug':
                 epoch_debug_score = running_debug_score / min(max_batch_num_per_epoch['debug'], dataloaders['data_size']['debug'])
                 print('{} epoch_debug_score: {:.4f}'.format(epoch, epoch_debug_score))
 
-
-
-
-    # optional,  at end of the training, lets save the last model and optimizer
-    # if isinstance(model.optimizer, tuple):
-    #     optimizer_state = []
-    #     for term in model.optimizer:
-    #         optimizer_state.append(term.state_dict())
-    #     optimizer_state = tuple(optimizer_state)
-    # else:
-    #     optimizer_state = model.optimizer.state_dict()
-    # save_checkpoint({'epoch': num_epochs, 'state_dict': model.network.state_dict(), 'optimizer': optimizer_state,
-    #                  'best_score': epoch_val_score, 'global_step': global_step}, False, check_point_path, 'epoch_'+str(num_epochs),
-    #                 '')
 
     time_elapsed = time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -212,9 +194,7 @@ def train_model(opt,model, dataloaders,writer):
     return model
 
 
-def save_and_debug_model(model, info,check_point_path,epoch,global_step):
-    print("the program meet error, now output the debugging info")
-    print("{}".format(info))
+def save_model(model,check_point_path,epoch,global_step,name, is_best=False, best_score=-1):
     if isinstance(model.optimizer, tuple):
         # for multi-optimizer cases
         optimizer_state = []
@@ -224,5 +204,4 @@ def save_and_debug_model(model, info,check_point_path,epoch,global_step):
     else:
         optimizer_state = model.optimizer.state_dict()
     save_checkpoint({'epoch': epoch, 'state_dict': model.network.state_dict(), 'optimizer': optimizer_state,
-                     'best_score': 0.0, 'global_step': global_step}, False, check_point_path,
-                    'epoch_' + 'debug', '')
+                     'best_score': best_score, 'global_step': global_step}, is_best, check_point_path,name, '')

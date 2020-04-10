@@ -20,6 +20,7 @@ def get_multi_metric(pred, gt, eval_label_list=None, rm_bg=False, verbose=True):
 
     if not isinstance(pred, (np.ndarray, np.generic)):
         pred = pred.cpu().data.numpy()
+    if not isinstance(gt, (np.ndarray, np.generic)):
         gt = gt.cpu().data.numpy()
     label_list = np.unique(gt).tolist()
     pred_list = np.unique(pred).tolist()

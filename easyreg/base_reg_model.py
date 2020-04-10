@@ -5,12 +5,12 @@ import SimpleITK as sitk
 
 
 
-class ModelBase():
+class RegModelBase():
     """
     the base class for image registration
     """
     def name(self):
-        return 'ModelBase'
+        return 'RegModelBase'
 
     def initialize(self, opt):
         """

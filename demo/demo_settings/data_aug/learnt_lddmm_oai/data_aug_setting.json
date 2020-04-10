@@ -1,0 +1,19 @@
+{
+  "data_aug":{
+    "max_aug_num": 10,
+
+    "fluid_aug": {
+      "fluid_mode":"aug_with_nonaffined_data",
+      "task_type": "rand_sampl",
+      "K": 1,
+      "compute_inverse": true,
+      "rand_sampl": {
+            "t_range": [-1,2]
+      },
+      "aug_with_nonaffined_data": {
+        "affine_back_to_original_postion": true
+      }
+    }
+
+  }
+}

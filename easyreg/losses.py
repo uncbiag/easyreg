@@ -21,10 +21,12 @@ class Loss(object):
     def __init__(self,opt):
         super(Loss,self).__init__()
         cont_loss_type = opt['tsk_set']['loss']['type']
+        class_num = opt['tsk_set']['seg']['class_num']
+
         if cont_loss_type == 'l1':
             self.criterion = nn.L1Loss()
         elif cont_loss_type == 'mse':
-            self.criterion = nn.MSELoss()
+            self.criterion = nn.MSELoss(size_average=True)
         elif cont_loss_type =='ncc':
             self.criterion = NCCLoss()
         elif cont_loss_type =='lncc':
@@ -33,6 +35,26 @@ class Loss(object):
             self.criterion =lncc
         elif cont_loss_type =='empty':
             self.criterion = None
+        elif cont_loss_type =='ce':
+            ce_opt = opt['tsk_set']['loss']['ce']
+            ce_opt['class_num'] = class_num
+            self.criterion = CrossEntropyLoss(ce_opt)
+        elif cont_loss_type == 'focal_loss':
+            focal_loss = FocalLoss()
+            focal_loss.initialize(class_num, alpha=None, gamma=2, size_average=True)
+            self.criterion = focal_loss
+        elif cont_loss_type == 'dice_loss':
+            dice_loss =  DiceLoss()
+            dice_loss.initialize(class_num,None)
+            self.criterion =dice_loss
+        elif cont_loss_type == 'gdice_loss':
+            dice_loss =  GeneralizedDiceLoss()
+            dice_loss.initialize(class_num,None)
+            self.criterion =dice_loss
+        elif cont_loss_type == 'tdice_loss':
+            dice_loss =  TverskyLoss()
+            dice_loss.initialize(class_num,None)
+            self.criterion =dice_loss
         else:
             raise ValueError("Model [%s] not recognized." % opt.model)
 
@@ -60,6 +82,7 @@ class NCCLoss(nn.Module):
         nccSqr =  nccSqr.mean()
 
         return (1 - nccSqr)*input.shape[0]
+
 
 
 
@@ -205,6 +228,267 @@ class LNCCLoss(nn.Module):
             lncc_total += lncc * self.scale_weight[scale_id]
 
         return lncc_total*(input.shape[0])
+
+
+
+class FocalLoss(nn.Module):
+    """
+        This criterion is a implemenation of Focal Loss, which is proposed in
+        Focal Loss for Dense Object Detection.
+
+            Loss(x, class) = - \alpha (1-softmax(x)[class])^gamma \log(softmax(x)[class])
+
+        The losses are averaged across observations for each minibatch.
+        Args:
+            alpha(1D Tensor, Variable) : the scalar factor for this criterion
+            gamma(float, double) : gamma > 0; reduces the relative loss for well-classiﬁed examples (p > .5),
+                                   putting more focus on hard, misclassiﬁed examples
+            size_average(bool): size_average(bool): By default, the losses are averaged over observations for each minibatch.
+                                However, if the field size_average is set to False, the losses are
+                                instead summed for each minibatch.
+    """
+
+    def initialize(self, class_num, alpha=None, gamma=2, size_average=True, verbose=True):
+        if alpha is None:
+            self.alpha = torch.ones(class_num, 1)
+        else:
+            self.alpha = alpha
+
+        self.alpha = torch.squeeze(self.alpha)
+        if verbose:
+            print("the alpha of focal loss is  {}".format(alpha))
+        self.gamma = gamma
+        self.class_num = class_num
+        self.size_average = size_average
+
+    def forward(self, inputs, targets, weight= None, inst_weights=None, train=None):
+        """
+
+        :param inputs: Bxn_classxXxYxZ
+        :param targets: Bx.....  , range(0,n_class)
+        :return:
+        """
+        inputs = inputs.permute(0, 2, 3, 4, 1).contiguous().view(-1, inputs.size(1))
+        targets = targets.view(-1)
+
+        P = F.softmax(inputs,dim=1)
+        ids = targets.view(-1)
+
+
+        if inputs.is_cuda and not self.alpha.is_cuda:
+            self.alpha = self.alpha.cuda()
+
+        alpha = self.alpha[ids.data.view(-1)]
+
+        log_p = - F.cross_entropy(inputs, targets,reduce=False)
+        probs = F.nll_loss(P, targets,reduce=False)
+        # print(probs)
+        # print(log_p)
+        # print(torch.pow((1 - probs), self.gamma))
+        # print(alpha)
+        batch_loss = -alpha * (torch.pow((1 - probs), self.gamma)) * log_p
+
+        if self.size_average:
+            loss = batch_loss.mean()
+        else:
+            loss = batch_loss.sum()
+        return loss
+
+
+
+class DiceLoss(nn.Module):
+    def initialize(self, class_num, weight = None):
+        self.class_num = class_num
+        self.class_num = class_num
+        if weight is None:
+            self.weight =torch.ones(class_num, 1)/self.class_num
+        else:
+            self.weight = weight
+        self.weight = torch.squeeze(self.weight)
+    def forward(self,input, target, inst_weights=None,train=None):
+        """
+        input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
+        target is a Bx....   range 0,1....N_label
+        """
+        in_sz = input.size()
+        from functools import reduce
+        extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
+        targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim).cuda()
+        targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1.)
+        target = targ_one_hot.view(in_sz).contiguous()
+        probs = F.softmax(input,dim=1)
+        num = probs*target
+        num = num.view(num.shape[0],num.shape[1],-1)
+        num = torch.sum(num, dim=2)
+
+        den1 = probs#*probs
+        den1 = den1.view(den1.shape[0], den1.shape[1], -1)
+        den1 = torch.sum(den1, dim=2)
+
+        den2 = target#*target
+        den2 = den1.view(den2.shape[0], den2.shape[1], -1)
+        den2 = torch.sum(den2, dim=2)
+        # print("den1:{}".format(sum(sum(den1))))
+        # print("den2:{}".format(sum(sum(den2/den1))))
+
+
+        dice = 2 * (num / (den1 + den2))
+        dice = self.weight.expand_as(dice) * dice
+        dice_eso = dice
+        # dice_eso = dice[:, 1:]  # we ignore bg dice val, and take the fg
+        dice_total = -1 * torch.sum(dice_eso) / dice_eso.size(0)  # divide by batch_sz
+        return dice_total
+
+
+
+class GeneralizedDiceLoss(nn.Module):
+    def initialize(self, class_num, weight=None):
+        self.class_num = class_num
+        if weight is None:
+            self.weight =torch.ones(class_num, 1)
+        else:
+            self.weight = weight
+
+        self.weight = torch.squeeze(self.weight)
+    def forward(self,input, target,inst_weights=None,train=None):
+        """
+        input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
+        target is a Bx....   range 0,1....N_label
+        """
+        in_sz = input.size()
+        from functools import reduce
+        extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
+        targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim).cuda()
+        targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1.)
+        target = targ_one_hot.view(in_sz).contiguous()
+        probs = F.softmax(input,dim=1)
+        num = probs*target
+        num = num.view(num.shape[0],num.shape[1],-1)
+        num = torch.sum(num, dim=2)  # batch x ch
+
+        den1 = probs
+        den1 = den1.view(den1.shape[0], den1.shape[1], -1)
+        den1 = torch.sum(den1, dim=2)  # batch x ch
+
+        den2 = target
+        den2 = den1.view(den2.shape[0], den2.shape[1], -1)
+        den2 = torch.sum(den2, dim=2)  # batch x ch
+        # print("den1:{}".format(sum(sum(den1))))
+        # print("den2:{}".format(sum(sum(den2/den1))))
+        weights = self.weight.expand_as(den1)
+
+        dice = 2 * (torch.sum(weights*num,dim=1) / torch.sum(weights*(den1 + den2),dim=1))
+        dice_eso = dice
+        # dice_eso = dice[:, 1:]  # we ignore bg dice val, and take the fg
+        dice_total = -1 * torch.sum(dice_eso) / dice_eso.size(0)  # divide by batch_sz
+
+        return dice_total
+
+
+
+
+class TverskyLoss(nn.Module):
+    def initialize(self, class_num, weight=None, alpha=0.5, beta=0.5):
+        self.class_num = class_num
+        if weight is None:
+            self.weight = torch.ones(class_num, 1)/self.class_num
+        else:
+            self.weight = weight
+
+        self.weight = torch.squeeze(self.weight)
+        self.alpha = alpha
+        self.beta = beta
+        print("the weight of Tversky loss is  {}".format(weight))
+
+    def forward(self,input, target,inst_weights=None, train=None):
+        """
+        input is a torch variable of size BatchxnclassesxHxWxD representing log probabilities for each class
+        target is a Bx....   range 0,1....N_label
+        """
+        in_sz = input.size()
+        from functools import reduce
+        extra_dim = reduce(lambda x,y:x*y,in_sz[2:])
+        targ_one_hot = torch.zeros(in_sz[0],in_sz[1],extra_dim).cuda()
+        targ_one_hot.scatter_(1,target.view(in_sz[0],1,extra_dim),1.)
+        target = targ_one_hot.view(in_sz).contiguous()
+        probs = F.softmax(input,dim=1)
+        num = probs*target
+        num = num.view(num.shape[0],num.shape[1],-1)
+        num = torch.sum(num, dim=2)
+
+
+        den1 = probs*(1-target)
+        den1 = den1.view(den1.shape[0], den1.shape[1], -1)
+        den1 = torch.sum(den1, dim=2)
+
+        den2 = (1-probs)*target
+        den2 = den1.view(den2.shape[0], den2.shape[1], -1)
+        den2 = torch.sum(den2, dim=2)
+        # print("den1:{}".format(sum(sum(den1))))
+        # print("den2:{}".format(sum(sum(den2/den1))))
+
+
+        dice = 2 * (num / (num + self.alpha*den1 + self.beta*den2))
+        dice = self.weight.expand_as(dice) * dice
+
+        dice_eso = dice
+        #dice_eso = dice[:, 1:]  # we ignore bg dice val, and take the fg
+
+        dice_total = -1 * torch.sum(dice_eso) / dice_eso.size(0)  # divide by batch_sz
+
+        return dice_total
+
+
+
+
+
+
+class CrossEntropyLoss(nn.Module):
+    def __init__(self, opt, imd_weight=None):
+        # To Do,  add dynamic weight
+        super(CrossEntropyLoss,self).__init__()
+        no_bg = opt[('no_bg',False,'exclude background')]
+        weighted = opt[('weighted',False,'  weighted the class')]
+        reduced = opt[('reduced',True,'  reduced the class')]
+        self.mask = None #opt[('mask',None, 'masked other label')]
+        class_num = opt['class_num']
+
+        if no_bg:
+            self.loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
+        if weighted:
+            class_weight = opt['class_weight']if imd_weight is None else imd_weight
+            if class_weight is not None and not (len(class_weight)< class_num):
+                self.loss_fn = nn.CrossEntropyLoss(weight=class_weight, reduce = reduced)
+                self.mask=None
+            else:  # this is the case for using random mask, the class weight here refers to the label need be masked
+                self.mask = class_weight
+                print("the current mask is {}".format(self.mask))
+                self.loss_fn = nn.CrossEntropyLoss()
+        else:
+            self.loss_fn = nn.CrossEntropyLoss(reduce = reduced)
+        self.n_class = class_num
+    def forward(self, input, gt, inst_weights= None, train=False):
+        """
+        :param inputs: Bxn_classxXxYxZ
+        :param targets: Bx.....  , range(0,n_class)
+        :return:
+        """
+        if self.mask is not None and train:
+            for m in self.mask:
+                gt[gt==m]=0
+        if len(input.shape)==5:
+            output_flat = input.permute(0, 2, 3, 4, 1).contiguous().view(-1, self.n_class)
+        else:
+            output_flat = input
+        truths_flat = gt.view(-1)
+        if inst_weights is None:
+            return self.loss_fn(output_flat,truths_flat)
+        else:
+            return torch.mean( inst_weights.view(-1)*self.loss_fn(output_flat,truths_flat))
+
+
+
+
 
 
 

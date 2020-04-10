@@ -156,6 +156,7 @@ class MermaidNet(nn.Module):
         :return:
         """
         self.affine_net = AffineNetSym(self.img_sz[2:],opt)
+        self.affine_param = None
         self.affine_net.compute_loss = False
         self.affine_net.epoch_activate_sym = 1e7  # todo to fix this unatural setting
         self.affine_net.set_step(self.affine_refine_step)
@@ -455,6 +456,11 @@ class MermaidNet(nn.Module):
 
         return rec_IWarped, rec_phiWarped
 
+
+    def __get_momentum(self):
+        momentum = self.mermaid_unit_st.m
+        return momentum
+
     def __get_adaptive_smoother_map(self):
         """
         get the adaptive smoother weight map from spatial-variant regualrizer model
@@ -518,7 +524,7 @@ class MermaidNet(nn.Module):
             # the last step adaptive smoother is returned, todo add the first stage smoother
             return self.__get_adaptive_smoother_map(), 'Inital_weight'
         else:
-            return None, None
+            return self.__get_momentum(), "Momentum"
 
 
     def __transfer_return_var(self,rec_IWarped,rec_phiWarped,affine_img):
@@ -546,6 +552,7 @@ class MermaidNet(nn.Module):
         if self.using_affine_init:
             with torch.no_grad():
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
+                self.affine_param = affine_param
                 affine_map = (affine_map + 1) / 2.
                 inverse_map = None
                 if self.compute_inverse_map:
@@ -562,9 +569,10 @@ class MermaidNet(nn.Module):
                             inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
                 self.inverse_map = inverse_map
         else:
-            affine_map = self.identityMap.clone()
+            num_b = moving.shape[0]
+            affine_map = self.identityMap[:num_b].clone()
             if self.compute_inverse_map:
-                self.inverse_map = self.identityMap.clone()
+                self.inverse_map = self.identityMap[:num_b].clone()
 
             affine_img = moving
         record_is_grad_enabled = torch.is_grad_enabled()
@@ -630,6 +638,7 @@ class MermaidNet(nn.Module):
         if self.using_affine_init:
             with torch.no_grad():
                 affine_img, affine_map, affine_param = self.affine_net(moving, target)
+                self.affine_param = affine_param
                 affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
                 inverse_map = None
                 if self.compute_inverse_map:
@@ -647,9 +656,10 @@ class MermaidNet(nn.Module):
                             inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
                 self.inverse_map = inverse_map
         else:
-            affine_map = self.identityMap.clone()
+            num_b = moving.shape[0]
+            affine_map = self.identityMap[:num_b].clone()
             if self.compute_inverse_map:
-                self.inverse_map = self.identityMap.clone()
+                self.inverse_map = self.identityMap[:num_b].clone()
             affine_img = moving
         warped_img = affine_img
         init_map = affine_map
@@ -703,7 +713,6 @@ class MermaidNet(nn.Module):
          :param target: target image with intensity [-1,1]
          :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
          """
-        self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
         rec_IWarped, rec_phiWarped, affine_img = self.mutli_step_forward(moving_sym, target_sym)
@@ -745,6 +754,7 @@ class MermaidNet(nn.Module):
         :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
         """
         self.get_step_config()
+        self.n_batch = moving.shape[0]
         if self.using_sym_on:
             if not self.print_count:
                 print(" The mermaid network is in multi-step and symmetric mode, with step {}".format(self.step))

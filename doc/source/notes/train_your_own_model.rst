@@ -1,6 +1,7 @@
 Train your own model
 ========================================
 
+.. _train_your_own_model:
 
 Quick Start
 ____________
@@ -30,7 +31,7 @@ The script *demo_for_easyreg_train.py* is for training new learning-based regist
 
 .. code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
 
 * Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
 
@@ -69,7 +70,7 @@ Let's take a glance at what's the repository looks like.
 
 .. code:: shell
 
-    demo/demo_training/oai$ ls -l
+    demo/demo_training_reg_net/oai$ ls -l
     total 0
     drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 debug
     drwxr-xr-x 2 zyshen compsci  70 Oct  6 22:59 test
@@ -84,11 +85,11 @@ The train|val|debug|test folder looks like this
 
 .. code:: shell
 
-    demo/demo_training/oai/train$ ls
+    demo/demo_training_reg_net/oai/train$ ls
     pair_name_list.txt  pair_path_list.txt
 
 
-The pair_name_list.txt reads like:
+The pair_name_list.txt (optional) reads like:
 
 .. code:: shell
 
@@ -146,7 +147,7 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
                 192
             ],
             "load_training_data_into_memory": true,
-            "max_pair_for_loading": [
+            "max_num_for_loading": [
                 -1,
                 -1,
                 -1,
@@ -253,7 +254,7 @@ In demo repository, we include a training demo. The demo trains the affine-netwo
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0
 
 
 **Two steps training**
@@ -267,7 +268,7 @@ we need following steps
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_affine -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 
 After we complete training the affine part, the next step is calling mermaid-net to train the non-parametric part. Simiarly, we need following steps
@@ -278,7 +279,7 @@ After we complete training the affine part, the next step is calling mermaid-net
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_nonp -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 4. Resume the training
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -294,7 +295,7 @@ To resume the training, we can need following steps
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
 
 
 .. _training-settings-label:
@@ -315,8 +316,8 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
 
     {
         "dataset": {
-            "img_after_resize": "image size after resampling",
-            "max_pair_for_loading": "the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]",
+            "img_after_resize": "Important, the image resolution that models actually work on, the images will be first resampled to this resolution, set [-1,-1,-1] if take the original image resolution",
+            "max_num_for_loading": "the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]",
             "load_training_data_into_memory": "when train network, load all training sample into memory can relieve disk burden",
             "spacing_to_refer": "the physical spacing in numpy coordinate, only activate when using_physical_coord is true"
         },
@@ -345,7 +346,7 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                 }
             },
             "output_taking_original_image_format": "output follows the same sz and physical format of the original image (input by command line or txt)",
-            "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to source, target, warped, phi, inv_warped, inv_phi",
+            "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra",
             "path": {
                 "__doc__": "record paths"
             },

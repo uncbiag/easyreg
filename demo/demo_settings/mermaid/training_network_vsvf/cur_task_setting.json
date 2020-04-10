@@ -6,7 +6,7 @@
             192
         ],
         "load_training_data_into_memory": true,
-        "max_pair_for_loading": [
+        "max_num_for_loading": [
             -1,
             -1,
             -1,
@@ -52,7 +52,7 @@
             },
             "optim_type": "adam"
         },
-        "output_taking_original_image_format": true,
+        "output_taking_original_image_format": false,
         "print_step": [
             10,
             4,

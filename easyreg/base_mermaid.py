@@ -1,5 +1,5 @@
 from time import time
-from .base_model import ModelBase
+from .base_reg_model import RegModelBase
 from .utils import *
 import mermaid.finite_differences as fdt
 from mermaid.utils import compute_warped_image_multiNC
@@ -8,7 +8,7 @@ from .metrics import get_multi_metric
 import SimpleITK as sitk
 
 
-class MermaidBase(ModelBase):
+class MermaidBase(RegModelBase):
     """
     the base class of mermaid
     """
@@ -20,12 +20,12 @@ class MermaidBase(ModelBase):
         :param opt: ParameterDict, task setting
         :return:
         """
-        ModelBase.initialize(self, opt)
+        RegModelBase.initialize(self, opt)
         self.affine_on = False
         self.nonp_on = False
         self.afimg_or_afparam = None
         self.save_extra_3d_img = opt['tsk_set'][('save_extra_3d_img', False, 'save extra image')]
-        self.save_original_image_by_type = opt['tsk_set'][('save_original_image_by_type', [True, True, True, True, True, True], 'save_original_image_by_type, source, target, warped, phi, inv_warped, inv_phi')]
+        self.save_original_image_by_type = opt['tsk_set'][('save_original_image_by_type', [True, True, True, True, True, True, True, True], 'save_original_image_by_type, save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra')]
         self.use_01 = True
 
     def get_warped_label_map(self, label_map, phi, sched='nn', use_01=False):
@@ -70,6 +70,8 @@ class MermaidBase(ModelBase):
             l_target_np = self.l_target.detach().cpu().numpy()
 
             self.val_res_dic = get_multi_metric(warped_label_map_np,l_target_np, rm_bg=False)
+        else:
+            self.val_res_dic={}
         self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True,
                                                   use_01=self.use_01)
         print("current batch jacobi is {}".format(self.jacobi_val))
@@ -162,7 +164,7 @@ class MermaidBase(ModelBase):
             raise ValueError("displacement field is removed from current version")
             # disp = ((self.afimg_or_afparam[:,...]**2).sum(1))**0.5
 
-        if self.nonp_on:
+        if self.nonp_on and self.afimg_or_afparam is not None:
             disp = self.afimg_or_afparam[:, 0, ...]
             extra_title = 'affine'
 
@@ -185,7 +187,7 @@ class MermaidBase(ModelBase):
         :return:
         """
         save_original_image_by_type = self.save_original_image_by_type
-        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp = save_original_image_by_type
+        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra_not_used_here = save_original_image_by_type
         spacing = self.spacing
         moving_list = pair_path[0]
         target_list = pair_path[1]
@@ -216,12 +218,16 @@ class MermaidBase(ModelBase):
             fname_list = [fname + '_inv_warped' for fname in self.fname_list]
             if save_w_inv:
                 ires.save_image_with_given_reference(inv_warped, reference_list, saving_original_sz_path, fname_list)
-            fname_list = [fname + '_disp' for fname in self.fname_list]
             if save_disp:
-                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True)
+                fname_list = [fname + '_inv_disp' for fname in self.fname_list]
+                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True).cuda()
                 id_map = (id_map[None]+1)/2.
-                disp = new_inv_phi -id_map
+                inv_disp = new_inv_phi -id_map
+                ires.save_transfrom(inv_disp, new_spacing, saving_original_sz_path, fname_list)
+                fname_list = [fname + '_disp' for fname in self.fname_list]
+                disp = new_phi - id_map
                 ires.save_transfrom(disp, new_spacing, saving_original_sz_path, fname_list)
+
 
     def save_extra_img(self, img, title):
         """
@@ -235,18 +241,26 @@ class MermaidBase(ModelBase):
         :return:
         """
         import SimpleITK as sitk
+        import nibabel as nib
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))
-        input_img_sz = self.input_img_sz  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
+        input_img_sz = self.input_img_sz if not self.save_original_image_by_type[-1] else self.original_im_sz[0].cpu().numpy().tolist()  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        #img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
-            img_to_save = img_np[i, 0]
-            fpath = os.path.join(self.record_path,
-                                 self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
-            img_to_save = sitk.GetImageFromArray(img_to_save)
-            img_to_save.SetSpacing(np.flipud(self.spacing))
-            sitk.WriteImage(img_to_save, fpath)
+            if img_np.shape[1]==1:
+                img_to_save = img_np[i, 0]
+                fpath = os.path.join(self.record_path,
+                                     self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
+                img_to_save = sitk.GetImageFromArray(img_to_save)
+                img_to_save.SetSpacing(np.flipud(self.spacing))
+                sitk.WriteImage(img_to_save, fpath)
+            else:
+                multi_ch_img = nib.Nifti1Image(img_np[i], np.eye(4))
+                fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + "_"+title + '.nii.gz')
+                nib.save(multi_ch_img, fpath)
+
+
 
     def save_deformation(self):
         """
@@ -254,18 +268,18 @@ class MermaidBase(ModelBase):
 
         :return:
         """
-        if not self.affine_on:
-            import nibabel as nib
-            phi_np = self.phi.detach().cpu().numpy()
-            phi_np = phi_np if self.use_01 else (phi_np + 1.) / 2.  # normalize the phi into 0, 1
-            for i in range(phi_np.shape[0]):
-                phi = nib.Nifti1Image(phi_np[i], np.eye(4))
-                nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
-        else:
-            # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
-            affine_param = self.afimg_or_afparam
-            if isinstance(affine_param, list):
-                affine_param = self.afimg_or_afparam[0]
-            affine_param = affine_param.detach().cpu().numpy()
-            for i in range(affine_param.shape[0]):
-                np.save(os.path.join(self.record_path, self.fname_list[i]) + 'affine_param.npy', affine_param[i])
+
+        import nibabel as nib
+        phi_np = self.phi.detach().cpu().numpy()
+        phi_np = phi_np if self.use_01 else (phi_np + 1.) / 2.  # normalize the phi into 0, 1
+        for i in range(phi_np.shape[0]):
+            phi = nib.Nifti1Image(phi_np[i], np.eye(4))
+            nib.save(phi, os.path.join(self.record_path, self.fname_list[i]) + '_phi.nii.gz')
+        # if self.affine_on:
+        #     # todo the affine param is assumed in -1, 1 phi coord, to be fixed into 0,1 coord
+        #     affine_param = self.afimg_or_afparam
+        #     if isinstance(affine_param, list):
+        #         affine_param = self.afimg_or_afparam[0]
+        #     affine_param = affine_param.detach().cpu().numpy()
+        #     for i in range(affine_param.shape[0]):
+        #         np.save(os.path.join(self.record_path, self.fname_list[i]) + '_affine_param.npy', affine_param[i])

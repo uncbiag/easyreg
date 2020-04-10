@@ -7,7 +7,7 @@ This section lists the detailed inferface for supported registration methods.
 .. _base_model-label:
 
 
-ModelBase
+RegModelBase
 ^^^^^^^^^
 
 A base class provides shared functions for both optimization-/network- based methods.

@@ -19,6 +19,9 @@ class MermaidIter(MermaidBase):
         elif method_name =='nonp':
             self.affine_on = True
             self.nonp_on = True
+        elif method_name=='nonp_only':
+            self.affine_on = False
+            self.nonp_on = True
         self.si = SI.RegisterImagePair()
         self.opt_optim = opt['tsk_set']['optim']
         self.compute_inverse_map = opt['tsk_set']['reg'][('compute_inverse_map', False,"compute the inverse transformation map")]
@@ -47,10 +50,11 @@ class MermaidIter(MermaidBase):
         data[0]['image'] =(data[0]['image'].cuda()+1)/2
         if 'label' in data[0]:
             data[0]['label'] =data[0]['label'].cuda()
-        moving, target, l_moving,l_target = get_pair(data[0])
+        moving, target, l_moving,l_target = get_reg_pair(data[0])
         input = data[0]['image']
         self.input_img_sz  = list(moving.shape)[2:]
         self.original_spacing = data[0]['original_spacing']
+        self.original_im_sz =  data[0]['original_sz']
         self.spacing = data[0]['spacing'][0] if self.use_physical_coord else 1. / (np.array(self.input_img_sz) - 1)
         self.spacing = np.array(self.spacing) if type(self.spacing) is not np.ndarray else self.spacing
         self.moving = moving
@@ -94,13 +98,18 @@ class MermaidIter(MermaidBase):
         #     self.phi[:, i, ...] = self.phi[:, i, ...] / ((self.input_img_sz[i] - 1) * self.spacing[i])
 
         Ab = self.si.opt.optimizer.ssOpt.model.Ab
+
         if self.compute_inverse_map:
             inv_Ab = py_utils.get_inverse_affine_param(Ab.detach())
             identity_map = py_utils.identity_map_multiN([1, 1] + self.input_img_sz, self.spacing)
             self.inversed_map = py_utils.apply_affine_transform_to_map_multiNC(inv_Ab, torch.Tensor(identity_map).cuda())  ##########################3
             self.inversed_map = self.inversed_map.detach()
         self.afimg_or_afparam = Ab
+        save_affine_param_with_easyreg_custom(self.afimg_or_afparam,self.record_path,self.fname_list,affine_compute_from_mermaid=True)
         return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
+
+
+
 
 
     def nonp_optimization(self):
@@ -111,7 +120,9 @@ class MermaidIter(MermaidBase):
 
         :return: warped image, transformation map, affined image, loss(None)
         """
-        affine_map = self.si.opt.optimizer.ssOpt.get_map()
+        affine_map = None
+        if self.affine_on:
+            affine_map = self.si.opt.optimizer.ssOpt.get_map()
 
         self.si =  SI.RegisterImagePair()
         extra_info = pars.ParameterDict()
@@ -144,7 +155,7 @@ class MermaidIter(MermaidBase):
 
         if self.compute_inverse_map:
             self.inversed_map = self.si.get_inverse_map().detach()
-        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_(), None
+        return self.output.detach_(), self.phi.detach_(), self.afimg_or_afparam.detach_() if self.afimg_or_afparam is not None else None, None
 
 
     def save_setting(self,path, output_path,fname='mermaid_setting.json'):
@@ -179,8 +190,11 @@ class MermaidIter(MermaidBase):
     def forward(self,input=None):
         if self.affine_on and not self.nonp_on:
             return self.affine_optimization()
-        else:
+        elif self.affine_on and self.nonp_on:
             self.affine_optimization()
+            return self.nonp_optimization()
+
+        else:
             return self.nonp_optimization()
 
 
@@ -237,6 +251,11 @@ class MermaidIter(MermaidBase):
         self._display_stats(smoother_map.float(),'statistic for weighted smoother map')
         return smoother_map
 
+
+
+    def __get_momentum(self):
+        param =  self.si.get_model_parameters()
+        return param['m'].detach()
     def _display_stats(self, Ia, iname):
         """
         statistic analysis on variable
@@ -260,8 +279,11 @@ class MermaidIter(MermaidBase):
         plot extra image, i.e. the initial weight map of rdmm model
         :return:
         """
-        if self.nonp_model_name=='lddmm_adapt_smoother_map':
-            return self.__get_adaptive_smoother_map(), 'inital_weight'
+        if self.nonp_on:
+            if self.nonp_model_name=='lddmm_adapt_smoother_map':
+                return self.__get_adaptive_smoother_map(), 'inital_weight'
+            else:
+                return self.__get_momentum(), "Momentum"
         else:
             return None, None
 

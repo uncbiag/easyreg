@@ -75,7 +75,7 @@ def init_train_env(setting_path,output_root_path, task_name, data_task_name=None
         dm.data_par['datapro']['dataset']['task_name'] = data_task_name
     tsm.task_par['tsk_set']['task_name'] = task_name
     tsm.task_par['tsk_set']['output_root_path'] = data_task_path
-    if tsm.task_par['tsk_set']['model']=='reg_net':
+    if tsm.task_par['tsk_set']['model']=='reg_net'and 'mermaid' in tsm.task_par['tsk_set']['method_name']:
         mermaid_setting_json = tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']
         if len(mermaid_setting_json) == 0:
             tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth'] = os.path.join(setting_path,'mermaid_nonp_settings.json')
@@ -124,7 +124,7 @@ def backup_settings(args):
     os.makedirs(setting_backup, exist_ok=True)
     dm_backup_json_path = os.path.join(setting_backup, 'cur_data_setting.json')
     tsm_backup_json_path =os.path.join(setting_backup,'cur_task_setting.json')
-    if tsm.task_par['tsk_set']['model']=='reg_net':
+    if tsm.task_par['tsk_set']['model']=='reg_net' and 'mermaid' in tsm.task_par['tsk_set']['method_name']:
         mermaid_backup_json_path = os.path.join(setting_backup, 'mermaid_nonp_settings.json')
         mermaid_setting_json = tsm.task_par['tsk_set']['reg']['mermaid_net']['mermaid_net_json_pth']
         if len(mermaid_setting_json)==0:

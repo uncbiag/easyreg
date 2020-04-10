@@ -6,12 +6,15 @@ import torch.optim.lr_scheduler as lr_scheduler
 from .utils import *
 from .mermaid_net import MermaidNet
 from .voxel_morph import VoxelMorphCVPR2018, VoxelMorphMICCAI2019
+from .brainstorm import TransformCVPR2019, AppearanceCVPR2019
 
 model_pool = {
     'affine_sym': AffineNetSym,
     'mermaid': MermaidNet,
     'vm_cvpr': VoxelMorphCVPR2018,
-    'vm_miccai': VoxelMorphMICCAI2019
+    'vm_miccai': VoxelMorphMICCAI2019,
+    "bs_trans": TransformCVPR2019,
+    'bs_ap': AppearanceCVPR2019
 }
 
 
@@ -37,6 +40,8 @@ class RegNet(MermaidBase):
                     np.array(input_img_sz) - 1)
         """ image spacing"""
         method_name = opt['tsk_set']['method_name']
+        self.method_name = method_name
+        """the name of the method"""
         self.affine_on = True if 'affine' in method_name else False
         """ perform affine registrtion, if affine is in the network name"""
         self.nonp_on = not self.affine_on
@@ -78,6 +83,8 @@ class RegNet(MermaidBase):
             lr = new_lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
+        self.lr_scheduler.base_lrs=[lr]
+        self.lr_scheduler.last_epoch = 1
         print(" the learning rate now is set to {}".format(lr))
 
     def set_input(self, data, is_train=True):
@@ -89,15 +96,18 @@ class RegNet(MermaidBase):
         """
         img_and_label, self.fname_list = data
         self.pair_path = data[0]['pair_path']
-        img_and_label['image'] = img_and_label['image'].cuda()
-        if 'label' in img_and_label:
-            img_and_label['label'] = img_and_label['label'].cuda()
-        moving, target, l_moving, l_target = get_pair(img_and_label)
+        if self.gpu_ids is not None and self.gpu_ids>=0:
+            img_and_label['image'] = img_and_label['image'].cuda()
+            if 'label' in img_and_label:
+                img_and_label['label'] = img_and_label['label'].cuda()
+        moving, target, l_moving, l_target = get_reg_pair(img_and_label)
         self.moving = moving
         self.target = target
         self.l_moving = l_moving
         self.l_target = l_target
         self.original_spacing = data[0]['original_spacing']
+        self.original_im_sz =  data[0]['original_sz']
+
 
     def init_optim(self, opt, network, warmming_up=False):
         """
@@ -109,12 +119,7 @@ class RegNet(MermaidBase):
         :return: optimizer, custom scheduler, plateau scheduler
         """
         optimize_name = opt['optim_type']
-        if not warmming_up:
-            lr = opt['lr']
-            print(" no warming up the learning rate is {}".format(lr))
-        else:
-            lr = opt['lr']/10
-            print(" warming up on the learning rate is {}".format(lr))
+        lr = opt['lr']
         beta = opt['adam']['beta']
         lr_sched_opt = opt[('lr_scheduler',{},"settings for learning scheduler")]
         self.lr_sched_type = lr_sched_opt['type']
@@ -137,6 +142,14 @@ class RegNet(MermaidBase):
             re_exp_lr_scheduler = lr_scheduler.ReduceLROnPlateau(re_optimizer, mode='min', patience=patience,
                                                                  factor=factor, verbose=True,
                                                                  threshold=threshold, min_lr=min_lr)
+        if not warmming_up:
+            print(" no warming up the learning rate is {}".format(lr))
+        else:
+            lr = opt['lr']/10
+            for param_group in re_optimizer.param_groups:
+                param_group['lr'] = lr
+            re_lr_scheduler.base_lrs = [lr]
+            print(" warming up on the learning rate is {}".format(lr))
         return re_optimizer, re_lr_scheduler, re_exp_lr_scheduler
 
     def cal_loss(self, output=None):
@@ -161,11 +174,15 @@ class RegNet(MermaidBase):
             self.network.set_cur_epoch(self.cur_epoch)
         output, phi, afimg_or_afparam = self.network.forward(self.moving, self.target)
         loss = self.cal_loss()
+        if not self.is_train and (self.affine_on or self.method_name=="mermaid"):
+            save_affine_param_with_easyreg_custom(self.network.affine_param,self.record_path,self.fname_list)
 
         return output, phi, afimg_or_afparam, loss
 
+
+
     def update_scheduler(self,epoch):
-        if self.lr_scheduler is not None:
+        if self.lr_scheduler is not None and epoch>0:
             self.lr_scheduler.step(epoch)
 
         for param_group in self.optimizer.param_groups:

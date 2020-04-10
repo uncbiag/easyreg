@@ -1,14 +1,15 @@
 Prepare Data
 =============
 
-For either optimization- or learning- based methods, SimpleITK is used as the image IO and our test is based on "nii.gz" format.
+For all methods, SimpleITK is used as the image IO and our test is based on "nii.gz" format.
 
 \*TODO, SimpleITK will be replaced by ITK in the future release.\*
 
 
+
 .. _prepare-data-non-training-label:
 
-Non-Training Tasks
+Non-Training Registration Tasks
 ^^^^^^^^^^^^^^^^^^
 
 For non-training tasks, we support two kind of input format.
@@ -33,8 +34,8 @@ Example:
 
 .. _prepare-data-training-label:
 
-Training Tasks
-^^^^^^^^^^^^^^
+Training Registration Tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 we assume there is three level folder, **output_root_path**/ **data_task_folder**/ **task_folder**
 
 * In **data_task_folder**, each folder refer to different preprocessing strategies or different datasets, i.e. lung tasks and brain tasks.
@@ -48,3 +49,21 @@ For training tasks, the data should be organized as following:
 * **pair_path_list.txt**: each line of the txt include 4 terms: s_pth t_pth ls_path lt_path
 * **pair_name_list.txt**: each line of the txt include 1 term: the pair name  the file is line to line corresponded with pair_path_list.txt
 
+
+Data Augmentation Tasks
+^^^^^^^^^^^^^^^^^^^^^^^^
+We support two different data augmentation strategy, random augmentation and anatomical augmentation.
+
+* For the random augmentation, we support Bspine augmentation and fluid-based random augmentation.
+* For the anatomical augmentation, we support random sampling and data inter-/extra-polation.
+
+Both tasks take a txt file recording file paths as input, items in the same line are separated by the space:
+
+* For the random augmentation, the augmentation takes place among different lines, each line refers to a image and corresponding label (string "None" if not exist).
+* For the anatomical augmentation, the augmentation takes place in a line, each line refers to a path of source image, paths of target images and the source label (string "None" if not exist), the labels of target images(None if not exist).
+
+
+Additionally, an optional input is a txt file recording filename:
+
+* For the random augmentation, each line include a image name.
+* For the anatomical augmentation, each line include a source name and a series of target names.

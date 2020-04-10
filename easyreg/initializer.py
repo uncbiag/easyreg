@@ -44,7 +44,10 @@ class Initializer():
         if self.task_root_path is None:
             self.task_root_path = self.task_opt['tsk_set']['output_root_path']
             par_dataset= self.task_opt['dataset']
+            task_type = par_dataset[('task_type','reg',"task type can be 'reg' or 'seg'")]
+            self.data_manager.set_task_type(task_type)
             self.data_manager.set_reg_option(par_dataset)
+            self.data_manager.set_seg_option(par_dataset)
             self.data_manager.manual_set_task_root_path(self.task_root_path)
         else:
             self.task_opt['dataset'] = par_dataset
@@ -81,7 +84,7 @@ class Initializer():
         """
         par_dataset = pars.ParameterDict()
         par_dataset.load_JSON(setting_path)
-        task_type = par_dataset['datapro']['task_type']
+        task_type = par_dataset['datapro'][('task_type','reg',"task type can be 'reg' or 'seg'")]
         # switch to exist task
         switch_to_exist_task = par_dataset['datapro']['switch']['switch_to_exist_task']
         task_root_path = par_dataset['datapro']['switch']['task_root_path']

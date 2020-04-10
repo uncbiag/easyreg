@@ -30,7 +30,7 @@ class conv_bn_rel(nn.Module):
             self.conv = ConvTranspose(in_channels, out_channels, kernel_size, stride, padding=padding, groups=1,
                                       dilation=1)
 
-        self.bn = BatchNorm(out_channels, eps=0.0001, momentum=0, affine=True) if bn else None
+        self.bn = BatchNorm(out_channels) if bn else None #, eps=0.0001, momentum=0, affine=True
         if active_unit == 'relu':
             self.active_unit = nn.ReLU(inplace=True)
         elif active_unit == 'elu':
@@ -94,7 +94,7 @@ class Bilinear(Module):
         input2_ordered[:, 2, ...] = input2[:, 0, ...]
 
         output = torch.nn.functional.grid_sample(input1, input2_ordered.permute([0, 2, 3, 4, 1]),
-                                                     padding_mode=self.zero_boundary)
+                                                     padding_mode=self.zero_boundary, align_corners=True)
         return output
 
     def forward(self, input1, input2):
@@ -141,7 +141,7 @@ def identity_map_for_reproduce(sz):
     else:
         raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
     # id= id*2-1
-    return torch.from_numpy(id.astype(np.float32)).cuda()
+    return torch.from_numpy(id.astype(np.float32))
 
 def identity_map(sz, dtype= np.float32):
     """
@@ -171,7 +171,7 @@ def identity_map(sz, dtype= np.float32):
         id[d] *= spacing[d]
         id[d] = id[d]*2 - 1
 
-    return torch.from_numpy(id.astype(np.float32)).cuda()
+    return torch.from_numpy(id.astype(np.float32))
 
 
 def not_normalized_identity_map(sz):
@@ -194,7 +194,7 @@ def not_normalized_identity_map(sz):
     else:
         raise ValueError('Only dimensions 1-3 are currently supported for the identity map')
     # id= id*2-1
-    return torch.from_numpy(id.astype(np.float32)).cuda()
+    return torch.from_numpy(id.astype(np.float32))
 
 
 def gen_identity_map(img_sz, resize_factor=1.,normalized=True):
@@ -456,3 +456,51 @@ def save_checkpoint(state, is_best, path, prefix, filename='checkpoint.pth.tar')
     torch.save(state, name)
     if is_best:
         torch.save(state, path + '/model_best.pth.tar')
+
+
+def conv_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1):
+    """
+    Utility function for computing output of convolutions
+    takes a tuple of (h,w) and returns a tuple of (h,w)
+    """
+
+    if type(h_w) is not tuple:
+        h_w = (h_w, h_w)
+
+    if type(kernel_size) is not tuple:
+        kernel_size = (kernel_size, kernel_size)
+
+    if type(stride) is not tuple:
+        stride = (stride, stride)
+
+    if type(pad) is not tuple:
+        pad = (pad, pad)
+
+    h = (h_w[0] + (2 * pad[0]) - (dilation * (kernel_size[0] - 1)) - 1) // stride[0] + 1
+    w = (h_w[1] + (2 * pad[1]) - (dilation * (kernel_size[1] - 1)) - 1) // stride[1] + 1
+
+    return h, w
+
+
+def convtransp_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1):
+    """
+    Utility function for computing output of transposed convolutions
+    takes a tuple of (h,w) and returns a tuple of (h,w)
+    """
+
+    if type(h_w) is not tuple:
+        h_w = (h_w, h_w)
+
+    if type(kernel_size) is not tuple:
+        kernel_size = (kernel_size, kernel_size)
+
+    if type(stride) is not tuple:
+        stride = (stride, stride)
+
+    if type(pad) is not tuple:
+        pad = (pad, pad)
+
+    h = (h_w[0] - 1) * stride[0] - 2 * pad[0] + kernel_size[0] + pad[0]
+    w = (h_w[1] - 1) * stride[1] - 2 * pad[1] + kernel_size[1] + pad[1]
+
+    return h, w

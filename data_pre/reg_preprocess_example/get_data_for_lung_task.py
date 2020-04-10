@@ -25,7 +25,7 @@ def resize_and_save_img_pair(input,output,resize_factor):
     resize_input_img_and_save_it_as_tmp(input['ltarget'],resize_factor=resize_factor,is_label=True,keep_physical=True,saving_path=output['ltarget'])
 
 
-def get_pair(pth):
+def get_pair_and_info(pth):
     source, info = file_io_read_img(pth['source'],is_label=False,normalize_spacing=True,normalize_intensities=True,squeeze_image=True,adaptive_padding=4)
     lsource, _ = file_io_read_img(pth['lsource'],is_label=True,normalize_spacing=True,normalize_intensities=False,squeeze_image=True,adaptive_padding=4)
     target, _ = file_io_read_img(pth['target'],is_label=False,normalize_spacing=True,normalize_intensities=True,squeeze_image=True,adaptive_padding=4)
@@ -101,7 +101,7 @@ setting_file = '/playpen/zyshen/reg_clean/mermaid_settings/cur_settings_adpt_ldd
 desired_sz = [256,256,256]
 resize_factor = [1./4,1./4,1./4]
 resize_and_save_img_pair(file_raw_path,file_path,resize_factor=resize_factor)
-source, lsource, target, ltarget, info = get_pair(file_path)
+source, lsource, target, ltarget, info = get_pair_and_info(file_path)
 source = np.clip(source,0,None)
 target = np.clip(target,0,None)
 spacing = info['spacing']

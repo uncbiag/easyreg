@@ -306,6 +306,7 @@ def read_txt_into_list(file_path):
     :param file_path: the file path to read
     :return: list of list
     """
+    assert os.path.isfile(file_path), "the file {} doesnt exist".format(file_path)
     import re
     lists= []
     with open(file_path,'r') as f:
@@ -316,6 +317,25 @@ def read_txt_into_list(file_path):
         lists = [item[0] if len(item) == 1 else item for item in lists]
     return lists
 
+def read_fname_list_from_pair_fname_txt(file_path,detail=False):
+    """
+    the txt file may has two type
+    1) 1 item per line,  that is the pair_name
+    2) 2 item per line, that is the pair_name  moving_name  target_name
+    :param file_path:
+    :param detail:
+    :return:
+    """
+    fname_list = read_txt_into_list(file_path)
+    if len(fname_list) and isinstance(fname_list[0],list):
+        if detail:
+            return fname_list
+        else:
+            return [fname[0] for fname in fname_list]
+    else:
+        return fname_list
+
+
 def loading_img_list_from_files(path):
     """
     loading image pair list from the file
@@ -325,65 +345,38 @@ def loading_img_list_from_files(path):
     path_list = read_txt_into_list(path)
     num_pair = len(path_list)
     assert len(path_list[0])>=2
-    has_label = True if len(path_list[0])==4 else False
     source_path_list = [path_list[i][0] for i in range(num_pair)]
     target_path_list = [path_list[i][1] for i in range(num_pair)]
-    l_source_path_list = None
-    l_target_path_list = None
-    if has_label:
-        l_source_path_list = [path_list[i][2] for i in range(num_pair)]
-        l_target_path_list = [path_list[i][3] for i in range(num_pair)]
+    l_source_path_list = [path_list[i][2] if len((path_list[i]))==4 else "None" for i in range(num_pair)]
+    l_target_path_list = [path_list[i][3] if len((path_list[i]))==4 else "None" for i in range(num_pair)]
     return source_path_list, target_path_list, l_source_path_list, l_target_path_list
 
 
-def get_file_name(file_path):
-    """
-    get the filename given path, i.e. /path/fname.nii.gz
-    :param file_path:
-    :return: the fname
-    """
-    return os.path.split(file_path)[1].split('.')[0]
+def get_file_name(file_path,last_ocur=True):
+    if not last_ocur:
+        name= os.path.split(file_path)[1].split('.')[0]
+    else:
+        name = os.path.split(file_path)[1].rsplit('.',1)[0]
+    name = name.replace('.nii','')
+    name = name.replace('.','d')
+    return name
 
-
-def generate_pair_name(pair_path_list,sched='mixed'):
-    """
-    rename the filename for different dataset,
-    :param pair_path_list: path of generated file
-    :param sched: 'mixed' 'custom
-    :return: return filename of the pair image
-    """
-    if sched == 'mixed':
-        return mixed_pair_name(pair_path_list)
-    elif sched == 'custom':
-        return custom_pair_name(pair_path_list)
-
-
-def mixed_pair_name(pair_path_list):
-    """
-    specific to data folder organized like  ***/paitent1_id/slice1_id, ****/patient2_id/slice2_id
-    the filename is orgnized as: patient1_id_slice1_id_patient2_id_slice2_id
-
-    :param pair_path_list: list of pair path, each pair path refers to [path_source, path_target]
-    :return: list of pair name
-    """
-    f = lambda name: os.path.split(name)
-    get_in = lambda x: os.path.splitext(f(x)[1])[0]
-    get_fn = lambda x: f(f(x)[0])[1]
-    get_img_name = lambda x: get_fn(x)+'_'+get_in(x)
-    img_pair_name_list = [get_img_name(pair_path[0])+'_'+get_img_name(pair_path[1]) for pair_path in pair_path_list]
-    return img_pair_name_list
-
-def custom_pair_name(pair_path_list):
-    """
-        specific to data folder organized like  ****/slice1_id, ****/slice2_id
-        the filename is orgnized as: slice1_id_slice2_id
-        :param pair_path_list: list of pair path, each pair path refers to [path_source, path_target]
-        :return: list of pair name
-        """
-    f = lambda name: os.path.split(name)
-    get_img_name = lambda x: os.path.splitext(f(x)[1])[0]
-    img_pair_name_list = [get_img_name(pair_path[0])+'_'+get_img_name(pair_path[1]) for pair_path in pair_path_list]
-    return img_pair_name_list
+def generate_pair_name(pair_path,detail=False):
+    source_path, target_path = pair_path
+    f = lambda x: os.path.split(x)
+    assert source_path != target_path,"the source image should be different to the target image"
+    while True:
+        s = get_file_name(f(source_path)[-1])
+        t = get_file_name(f(target_path)[-1])
+        if s !=t:
+            break
+        else:
+            source_path, target_path = f(source_path)[0],f(target_path)[0]
+    pair_name = s+"_"+t
+    if not detail:
+        return pair_name
+    else:
+        return pair_name, s, t
 
 def check_same_size(img, standard):
     """

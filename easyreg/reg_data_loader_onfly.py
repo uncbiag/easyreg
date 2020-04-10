@@ -11,34 +11,33 @@ import progressbar as pb
 class RegistrationDataset(Dataset):
     """registration dataset."""
 
-    def __init__(self, data_path,phase=None, transform=None, seg_option=None, reg_option=None):
+    def __init__(self, data_path,phase=None, transform=None, option=None):
         """
         the dataloader for registration task, to avoid frequent disk communication, all pairs are compressed into memory
         :param data_path:  string, path to the data
             the data should be preprocessed and saved into txt
         :param phase:  string, 'train'/'val'/ 'test'/ 'debug' ,    debug here means a subset of train data, to check if model is overfitting
         :param transform: function,  apply transform on data
-        : seg_option: pars,  settings for segmentation task,  None for registration task
-        : reg_option:  pars, settings for registration task, None for segmentation task
+        : seg_option: pars,  settings for segmentation task,  None for segmentation task
+        : reg_option:  pars, settings for registration task, None for registration task
 
         """
         self.data_path = data_path
         self.phase = phase
         self.transform = transform
-        self.data_type = '*.nii.gz'
-        self.turn_on_pair_regis = False
+        #self.data_type = '*.nii.gz'
+        self.inverse_reg_direction = False
         """ inverse the registration order, i.e the original set is A->B, the new set would be A->B and B->A """
         ind = ['train', 'val', 'test', 'debug'].index(phase)
-        max_pair_for_loading=reg_option['max_pair_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
-        self.max_pair_for_loading = max_pair_for_loading[ind]
+        max_num_for_loading=option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
+        self.max_num_for_loading = max_num_for_loading[ind]
         """ the max number of pairs to be loaded into the memory,[max_train, max_val, max_test, max_debug]"""
-        self.load_init_weight=reg_option[('load_init_weight',False,'load init weight for adaptive weighting model')]
-        self.has_label = False
+        self.load_init_weight=option[('load_init_weight',False,'load init weight for adaptive weighting model')]
         self.get_file_list()
-        self.reg_option = reg_option
-        self.img_after_resize = reg_option[('img_after_resize',[-1,-1,-1],"resample the image into desired size")]
+        self.reg_option = option
+        self.img_after_resize = option[('img_after_resize',[-1,-1,-1],"resample the image into desired size")]
         self.img_after_resize = None if any([sz == -1 for sz in self.img_after_resize]) else self.img_after_resize
-        load_training_data_into_memory = reg_option[('load_training_data_into_memory',False,"when train network, load all training sample into memory can relieve disk burden")]
+        load_training_data_into_memory = option[('load_training_data_into_memory',False,"when train network, load all training sample into memory can relieve disk burden")]
         self.load_into_memory = load_training_data_into_memory if phase == 'train' else False
         self.pair_list = []
         self.original_spacing_list = []
@@ -58,31 +57,46 @@ class RegistrationDataset(Dataset):
             self.init_weight_list=[]
             return
         self.path_list = read_txt_into_list(os.path.join(self.data_path,'pair_path_list.txt'))
-        self.name_list = read_txt_into_list(os.path.join(self.data_path, 'pair_name_list.txt'))
+        pair_name_path = os.path.join(self.data_path, 'pair_name_list.txt')
+        if os.path.isfile(pair_name_path):
+            self.name_list = read_fname_list_from_pair_fname_txt(pair_name_path)
+        else:
+            name_list = [generate_pair_name([self.path_list[i][0],self.path_list[i][1]]) for i in range(len(self.path_list))]
+            write_list_into_txt(name_list,pair_name_path)
+            self.name_list =[name[0] for name in name_list]
+
         if self.load_init_weight:
             self.init_weight_list = read_txt_into_list(os.path.join(self.data_path,'pair_weight_path_list.txt'))
-        if len(self.path_list[0])==4:
-            self.has_label=True
+        # if len(self.path_list[0])==4:
+        #     self.has_label=True
 
-
-        if self.max_pair_for_loading>0:
-            read_num = min(self.max_pair_for_loading, len(self.path_list))
+        read_num = min(self.max_num_for_loading, len(self.path_list))
+        if self.max_num_for_loading>0:
             self.path_list = self.path_list[:read_num]
             self.name_list = self.name_list[:read_num]
             if self.load_init_weight:
                 self.init_weight_list = self.init_weight_list[:read_num]
 
-        if self.turn_on_pair_regis and (self.phase=='train' or self.phase == 'test'): #self.phase =='test' and self.turn_on_pair_regis:
-            path_list_inverse = [[path[1],path[0], path[3], path[2]] for path in self.path_list]
-            name_list_inverse = [self.__inverse_name(name) for name in self.name_list]
+        if self.inverse_reg_direction and (self.phase=='train' or self.phase == 'test'): #self.phase =='test' and self.inverse_reg_direction:
+            path_list_inverse = []
+            for pair_path in self.path_list:
+                if len(pair_path)==4:
+                    path_list_inverse.append([pair_path[1],pair_path[0], pair_path[3], pair_path[2]])
+                else:
+                    path_list_inverse.append([pair_path[1], pair_path[0]])
+            try:
+                s_t_name_list = read_fname_list_from_pair_fname_txt(pair_name_path,detail=True)[:read_num]
+                name_list_inverse = [s_t[2]+"_"+s_t[1] for s_t in s_t_name_list]
+            except:
+                name_list_inverse = [self.__inverse_name(name) for name in self.name_list]
             self.path_list += path_list_inverse
             self.name_list += name_list_inverse
             if self.load_init_weight:
                 init_weight_inverse =[[path[1],path[0]] for path in self.init_weight_list]
                 self.init_weight_list += init_weight_inverse
 
-        if len(self.name_list)==0:
-            self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
+        # if len(self.name_list)==0:
+        #     self.name_list = ['pair_{}'.format(idx) for idx in range(len(self.path_list))]
 
     def __read_img_label_into_zipnp(self,img_label_path_dic,img_label_dic):
         pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=len(img_label_path_dic)).start()
@@ -94,7 +108,7 @@ class RegistrationDataset(Dataset):
             img_np = sitk.GetArrayFromImage(resized_img)
             img_label_np_dic['img'] = blosc.pack_array(img_np.astype(np.float32))
 
-            if self.has_label:
+            if 'label' in img_label_path:
                 label_sitk, _, _ = self.__read_and_clean_itk_info(img_label_path['label'])
                 resized_label,_ = self.resize_img(label_sitk,is_label=True)
                 label_np = sitk.GetArrayFromImage(resized_label)
@@ -156,11 +170,12 @@ class RegistrationDataset(Dataset):
         img_label_path_dic = {}
         pair_name_list = []
         for fps in self.path_list:
+            has_label = len(fps)==4
             for i in range(2):
                 fp = fps[i]
                 fn = get_file_name(fp)
                 if fn not in img_label_path_dic:
-                    if self.has_label:
+                    if has_label:
                         img_label_path_dic[fn] = {'img':fps[i], 'label':fps[i+2]}
                     else:
                         img_label_path_dic[fn] = {'img':fps[i]}
@@ -185,7 +200,7 @@ class RegistrationDataset(Dataset):
         for pair_name in pair_name_list:
             sn = pair_name[0]
             tn = pair_name[1]
-            if self.has_label:
+            if 'label' in img_label_dic[sn]:
                 self.pair_list.append([img_label_dic[sn]['img'],img_label_dic[tn]['img'],
                                    img_label_dic[sn]['label'],img_label_dic[tn]['label']])
             else:
@@ -291,7 +306,7 @@ class RegistrationDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.name_list)*500 if len(self.name_list)<100 and self.phase=='train' else len(self.name_list)  #############################3
+        return len(self.name_list)*500 if len(self.name_list)<200 and self.phase=='train' else len(self.name_list)  #############################3
 
 
 
@@ -307,6 +322,7 @@ class RegistrationDataset(Dataset):
 
         pair_path = self.path_list[idx]
         filename = self.name_list[idx]
+        has_label = len(self.path_list[idx])==4
         if not self.load_into_memory:
             img_spacing_pair_list = [ list(self.__read_and_clean_itk_info(pt)) for pt in pair_path]
             sitk_pair_list = [item[0] for item in img_spacing_pair_list]
@@ -314,10 +330,11 @@ class RegistrationDataset(Dataset):
             original_sz = img_spacing_pair_list[0][2]
             sitk_pair_list[0], resize_factor = self.resize_img(sitk_pair_list[0])
             sitk_pair_list[1], _ = self.resize_img(sitk_pair_list[1])
-            if self.has_label:
+            if has_label:
                 sitk_pair_list[2],_ = self.resize_img(sitk_pair_list[2], is_label=True)
                 sitk_pair_list[3],_ = self.resize_img(sitk_pair_list[3], is_label=True)
             pair_list = [sitk.GetArrayFromImage(sitk_pair) for sitk_pair in sitk_pair_list]
+            pair_list = [item.astype(np.float32) for item in pair_list]
             img_after_resize = self.img_after_resize if self.img_after_resize is not None else original_sz
             new_spacing=  original_spacing*(original_sz-1)/(np.array(img_after_resize)-1)
             spacing = self._normalize_spacing(new_spacing,img_after_resize, silent_mode=True)
@@ -335,7 +352,7 @@ class RegistrationDataset(Dataset):
         if self.load_init_weight:
             sample['init_weight']=self.init_weight_list[idx]
 
-        if self.has_label:
+        if has_label:
             try:
                 sample ['label']= np.asarray([pair_list[2], pair_list[3]]).astype(np.float32)
             except:
@@ -345,7 +362,7 @@ class RegistrationDataset(Dataset):
         #     sample['label'] = None
         if self.transform:
             sample['image'] = self.transform(sample['image'])
-            if self.has_label:
+            if has_label:
                  sample['label'] = self.transform(sample['label'])
 
         sample['spacing'] = spacing.copy()
