@@ -6,7 +6,7 @@ The EasyReg is a image registration package, that supports a series of mainstrea
 We list a few properties:
 1) A simple interface for learning/optimization based image registration tools, e.g., [Mermaid](https://github.com/uncbiag/mermaid) and other popular registration
 packages<sup>*</sup>.
-2) A simple interface for fluid-based data augmentation, supporting either random augmentation and data interpolation/extrapolation
+2) A simple interface for a series of data augmentation approach, supporting either random data augmentation and anatomical data augmentation/inter-and extra-polation
 3) A simple interface for image segmentation.
 
 
@@ -35,7 +35,7 @@ Now you are ready to explore various optimization-based as well as learning-base
 <br/>
 
 ## Registration 
-We provide abundant of demos for both learning and optimization methods :)<br/>
+We provide a series of demos for both learning and optimization methods :)<br/>
 Demo list (for more details, please refer to the [doc](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html)<sup>*</sup>)
 1) ANTsPy on OAI (knee MRI of the Osteoarthritis Initiative dataset)
 2) NiftyReg on OAI
@@ -45,7 +45,6 @@ Demo list (for more details, please refer to the [doc](https://easyreg-unc-biag.
 6) Pretrained learning-based mermaid registration on OAI (vSVF, RDMM)
 7) A training demo for joint affine and vSVF registration on sub-OAI dataset (3 pairs)
 8) A training demo for VoxelMorph like registration framework (cvpr and miccai version)
-9) A training demo for [Brainstorm](https://arxiv.org/abs/1902.09383) like data-augmentation framework
 
 \* For 2D demo (vSVF, LDDMM, RDMM) on synthetic data, please refers to [mermaid](https://mermaid.readthedocs.io/en/latest/notes/rdmm_example.html)<br/>
 ** Thanks Dr. RaúlSan José Estépar for providing the lung data
@@ -80,9 +79,10 @@ A typical strategy is as following:
 2) Sample transformations from the resulting geodesic subspace.
 3) Obtain deformed images and segmentations via interpolation.
 
-The current supported methods list:
-1). Anatomical fluid-based data augmentation
-2). Random data augmentation (including Bspline random transformation and Random momentum based fluid data augmentation)
+The current supported method list:
+1) Anatomical fluid-based data augmentation
+2) Random data augmentation (including Bspline random transformation and Random momentum based fluid data augmentation)
+3) [Brainstorm](https://arxiv.org/abs/1902.09383) like data-augmentation framework
 
 Related demos can be found at [Demos on Data augmentation](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html#demos-on-data-augmentation) section.
 
