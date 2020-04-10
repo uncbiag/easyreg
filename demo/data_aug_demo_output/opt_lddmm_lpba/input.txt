@@ -1,0 +1,2 @@
+./lpba_examples/data/s35.nii.gz   ./lpba_examples/data/s37.nii.gz     ./lpba_examples/data/s3.nii.gz  ./lpba_examples/data/s21.nii.gz       ./lpba_examples/label/s35.nii.gz   ./lpba_examples/label/s37.nii.gz   None None
+./lpba_examples/data/s27.nii.gz   ./lpba_examples/data/s37.nii.gz     ./lpba_examples/data/s3.nii.gz                                        ./lpba_examples/label/s27.nii.gz   lpba_examples/label/s37.nii.gz  None

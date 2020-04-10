@@ -1,0 +1,3 @@
+./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz          ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_label_all.nii.gz
+./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz      ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_label_all.nii.gz
+./oai_examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_image.nii.gz     ./oai_examples/9102858_20060210_SAG_3D_DESS_LEFT_016610859602_label_all.nii.gz
