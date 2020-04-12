@@ -79,8 +79,8 @@ def force_test_setting(dm, tsm, output_path):
 
 def init_test_env(setting_path, output_path, file_list):
     """
-    create test environment, the pair list would be saved into output_path/reg/test/pair_path_list.txt,
-     a corresponding auto-parsed filename list would also be saved in output/path/reg/test/pair_name_list.txt
+    create test environment, the file list would be saved into output_path/reg/test/file_path_list.txt,
+     a corresponding auto-parsed filename list would also be saved in output/path/reg/test/file_name_list.txt
 
     :param setting_path: the path to load 'cur_task_setting.json' and 'cur_data_setting.json' (optional if the related settings are in cur_task_setting)
     :param output_path: the output path of the task
@@ -115,18 +115,18 @@ def init_test_env(setting_path, output_path, file_list):
     return dm, tsm
 
 
-def do_registration_eval(args, registration_pair_list):
+def do_segmentation_eval(args, segmentation_file_list):
     """
     set running env and run the task
 
     :param args: the parsed arguments
-    :param registration_pair_list:  list of registration pairs, [image_list, label_list]
+    :param segmentation_file_list:  list of segmentation file list, [image_list, label_list]
     :return: None
     """
     task_output_path = args.task_output_path
     os.makedirs(task_output_path, exist_ok=True)
     setting_folder_path = args.setting_folder_path
-    dm, tsm = init_test_env(setting_folder_path, task_output_path, registration_pair_list)
+    dm, tsm = init_test_env(setting_folder_path, task_output_path, segmentation_file_list)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
     model_path= args.model_path
     if model_path is not None:
@@ -147,10 +147,10 @@ if __name__ == '__main__':
        
         input related:two input styles are supported,
             1. given txt
-             --file_txt_path/-txt: the txt file recording the pairs to segmentation
+             --file_txt_path/-txt: the txt file recording the paths of images to segmentation
             2. given image
             --image_list/ -s: the image list,  s1 s2 s3..sn
-            --limage_list/ -ls: optional, the source label list,  ls1,ls2,ls3..lsn
+            --limage_list/ -ls: optional, the label list,  ls1,ls2,ls3..lsn
         other arguments:
              --setting_folder_path/-ts :path of the folder where settings are saved
              --task_output_path/ -o: the path of output folder
@@ -160,13 +160,13 @@ if __name__ == '__main__':
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description='An easy interface for evaluate various registration methods')
+    parser = argparse.ArgumentParser(description='An easy interface for evaluate various segmentation methods')
 
     parser.add_argument('-ts', '--setting_folder_path', required=False, type=str,
                         default=None,
                         help='path of the folder where settings are saved,should include cur_task_setting.json')
     parser.add_argument('-txt', '--file_txt_path', required=False, default=None, type=str,
-                        help='the txt file recording the pairs to registration')  # 2
+                        help='the txt file recording the paths of images for segmentation')  # 2
     parser.add_argument('-i', '--image_list', nargs='+', required=False, default=None,
                         help='the image list,  s1 s2 s3..sn')
     parser.add_argument('-li', '--limage_list', nargs='+', required=False, default=None,
@@ -190,4 +190,4 @@ if __name__ == '__main__':
     if limage_list is not None:
         assert len(image_list) == len(limage_list), "the image_list and limage_list should be the same length"
         image_label_list = [image_list, limage_list]
-    do_registration_eval(args, image_label_list)
+    do_segmentation_eval(args, image_label_list)

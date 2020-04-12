@@ -69,7 +69,7 @@ class SegNet(SegModelBase):
         :return:
         """
         img_and_label, self.fname_list = data
-        self.pair_path = data[0]['img_path']
+        self.img_path = data[0]['img_path']
         if self.gpu_ids is not None and self.gpu_ids>=0:
             img_and_label['image'] = img_and_label['image'].cuda()
             if 'label' in img_and_label:
@@ -177,12 +177,7 @@ class SegNet(SegModelBase):
     def get_current_errors(self):
         return self.loss
 
-    def get_jacobi_val(self):
-        """
-        :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
 
-        """
-        return self.jacobi_val
 
     def save_image_into_original_sz_with_given_reference(self):
         """
@@ -190,15 +185,13 @@ class SegNet(SegModelBase):
 
         :return:
         """
-        inverse_phi = self.network.get_inverse_map(use_01=self.use_01)
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phi=inverse_phi,
-                                                               use_01=self.use_01)
+        pass
 
 
     def get_evaluation(self):
         sz =self.input_img_sz
         if hasattr(self.network, 'set_file_path'):
-            self.network.set_file_path(self.pair_path)
+            self.network.set_file_path(self.img_path)
 
         self.network.set_img_sz(sz)
         output_np = self.network.forward(self.input,self.is_train)

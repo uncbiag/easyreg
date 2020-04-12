@@ -47,7 +47,7 @@ Demo list (for more details, please refer to the [doc](https://easyreg-unc-biag.
 8) A training demo for VoxelMorph like registration framework (cvpr and miccai version)
 
 \* For 2D demo (vSVF, LDDMM, RDMM) on synthetic data, please refers to [mermaid](https://mermaid.readthedocs.io/en/latest/notes/rdmm_example.html)<br/>
-** Thanks Dr. RaúlSan José Estépar for providing the lung data
+** Thanks Dr. Raúl San José Estépar for providing the lung data
 <br/>
 <br/><br/>
 

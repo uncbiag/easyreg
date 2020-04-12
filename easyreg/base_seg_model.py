@@ -7,7 +7,7 @@ from tools.visual_tools import save_3D_img_from_numpy
 
 class SegModelBase():
     """
-    the base class for image registration
+    the base class for image segmentation
     """
     def name(self):
         return 'SegModelBase'
@@ -213,10 +213,9 @@ class SegModelBase():
 
     def save_fig_3D(self,phase=None):
         """
-        save 3d output, i.e. moving, target and warped images,
-        the propose of this function is for visualize the reg performance
+        save 3d output,
+        the propose of this function is for visualize the seg performance
         for toolkit based method, they will default save the 3d images, so no need to call this function
-        for mermaid related method, this function is for result analysis, for original sz output, see "save_image_into_original_sz_with_given_reference",
         the physical information like  origin, orientation is not saved, todo, include this information
         :param phase: train|val|test|debug
         :return:

@@ -12,7 +12,7 @@ from copy import deepcopy
 import random
 import time
 class SegmentationDataset(Dataset):
-    """registration dataset.
+    """segmentation dataset.
     if the data are loaded into memory, we provide data processing option like image resampling and label filtering
     if not, for efficiency, we assume the data are preprocessed and the image resampling still works but the label filtering are disabled
     """
@@ -209,9 +209,8 @@ class SegmentationDataset(Dataset):
         """img pool shoudl include following thing:
         img_label_path_dic:{img_name:{'image':img_fp,'label':label_fp,...}
         img_label_dic: {img_name:{'image':img_np,'label':label_np},......}
-        pair_name_list:[[pair1_s,pair1_t],[pair2_s,pair2_t],....]
-        pair_list [[s_np,t_np,sl_np,tl_np],....]
-        only the pair_list need to be used by get_item method
+        img_list [[s_np,t_np,sl_np,tl_np],....]
+        only the img_list need to be used by get_item method
         """
         use_parallel = self.phase=='train'
         if use_parallel:
