@@ -68,7 +68,7 @@ class Affine_unet_im(nn.Module):
         self.down_path_4_t_32 = nn.Sequential(self.down_path_8_1,self.down_path_8_2,self.down_path_16_1,self.down_path_16_2,
                                               self.down_path_32)
 
-        fc_input_num = 4*3*6*6   # oai  4*3*6*6    oasis 4*4*4*4 # brats 4*3*3*3 Z
+        fc_input_num = 4*3*6*6    # oai  4*3*6*6  #lung 4*5*5*5  oasis 4*4*4*4 # brats 4*3*3*3 Z
 
         self.fc_1 = FcRel(fc_input_num, 32, active_unit='relu')
         self.fc_2 = FcRel(32, 12, active_unit='None')

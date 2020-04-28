@@ -1,0 +1,6 @@
+
+python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/lung/testing_network_vsvf -txt=/playpen-raid1/zyshen/data/reg_new_lung/test/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_new_lung/testing_svf -g=2
+python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/lung/testing_network_lddmm -txt=/playpen-raid1/zyshen/data/reg_new_lung/test/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_new_lung/testing_lddmm -g=3
+python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/lung/testing_network_affine -txt=/playpen-raid1/zyshen/data/reg_new_lung/test/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_new_lung/testing_affine -g=2
+
+python demo_for_easyreg_eval.py -ts=/playpen-raid/zyshen/reg_clean/debug/lung/testing_network_lddmm -txt=/playpen-raid1/zyshen/data/reg_new_lung/val/pair_path_list.txt   -o=/playpen-raid1/zyshen/data/reg_new_lung/val_lddmm -g=3

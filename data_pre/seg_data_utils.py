@@ -53,10 +53,12 @@ def find_corr_map(file_path_list, label_path, label_switch = ('','')):
     :return:
     """
     fn_switch = lambda x: x.replace(label_switch[0], label_switch[1])
-    if len(label_path):
-        return [os.path.join(label_path, fn_switch(os.path.split(file_path)[1])) for file_path in file_path_list]
+
+    if label_path is not None:
+        label_path_list =  [os.path.join(label_path, fn_switch(os.path.split(file_path)[1])) for file_path in file_path_list]
     else:
-        return [fn_switch(file_path) for file_path in file_path_list]
+        label_path_list = [ fn_switch(file_path) for file_path in file_path_list]
+    return label_path_list
 
 
 def make_dir(path):

@@ -41,10 +41,12 @@ def train_model(opt,model, dataloaders,writer):
         if continue_train_lr > 0:
             model.update_learning_rate(continue_train_lr)
             print("the learning rate has been changed into {} when resuming the training".format(continue_train_lr))
+            model.iter_count = global_step['train']
         if reset_train_epoch:
             start_epoch=load_model_but_train_from_epoch
             global_step = {x: load_model_but_train_from_epoch*max_batch_num_per_epoch[x] for x in phases}
             print("the model has been initialized from extern, but will train from the epoch {}".format(start_epoch))
+            model.iter_count = 0
     #
     # gpu_count = torch.cuda.device_count()
     #

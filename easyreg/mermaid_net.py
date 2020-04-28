@@ -22,7 +22,7 @@ class MermaidNet(nn.Module):
 
     1 . (optional) affine net the affine network is used to affine the source and target image
     2. the momentum generation net work, this network is a u-net like encoder decoder
-    3. the mermaid part, an map-based registration model would be called from the mermaid code
+    3. the mermaid part, an map-based registration model would be called from the Mermaid tookit
 
     In detail of implementation, we should take care of the memory issue, one possible solution is using low-resolution mapping and then upsampling the transformation map
 
@@ -40,7 +40,7 @@ class MermaidNet(nn.Module):
     2. momentum: input: init_warped_source, target,  output: low_res_mom
     3. mermaid: input: s, low_res_mom, low_res_initial_map  output: map, warped_source
 
-    pay attention in mermaid, the image intensity and identity transformation coord are normalized into [0,1],
+    pay attention in Mermaid toolkit, the image intensity and identity transformation coord are normalized into [0,1],
     while in networks the intensity and identity transformation coord are normalized into [-1,1],
     todo use the coordinate system consistent with mermaid [0,1]
 
@@ -458,7 +458,7 @@ class MermaidNet(nn.Module):
 
 
     def __get_momentum(self):
-        momentum = self.mermaid_unit_st.m
+        momentum = self.mermaid_unit_st.m[:self.n_batch]
         return momentum
 
     def __get_adaptive_smoother_map(self):

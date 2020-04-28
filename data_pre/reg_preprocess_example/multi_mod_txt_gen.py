@@ -50,7 +50,7 @@ class MultiTxtGen(object):
 
     def get_label_list(self):
         mode_0 = self.mode_list[0]
-        label_list = find_corr_map(self.file_path_list_dic[mode_0], '', label_switch = (mode_0,self.label_replace))
+        label_list = find_corr_map(self.file_path_list_dic[mode_0], None, label_switch = (mode_0,self.label_replace))
         self.file_path_list_dic['label']=label_list
 
     def gen_divide_index(self):
@@ -152,7 +152,7 @@ class MultiTxtGenByFolder(object):
 
     def get_label_list(self):
         mode_0 = self.mode_list[0]
-        label_list = find_corr_map(self.file_path_list_dic[mode_0], '', label_switch = (mode_0,self.label_replace))
+        label_list = find_corr_map(self.file_path_list_dic[mode_0], None, label_switch = (mode_0,self.label_replace))
         self.file_path_list_dic['label']=label_list
 
     def gen_divide_index(self):

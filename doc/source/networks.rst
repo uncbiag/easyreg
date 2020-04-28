@@ -10,8 +10,8 @@ This section describes networks for learning based registration.
 Affine Network
 ^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: model_pool.affine_net
-.. automodule:: model_pool.affine_net
+.. inheritance-diagram:: easyreg.affine_net
+.. automodule:: easyreg.affine_net
 	:members:
 	:undoc-members:
 
@@ -20,8 +20,8 @@ Affine Network
 Momentum Network
 ^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: model_pool.momentum_net
-.. automodule:: model_pool.momentum_net
+.. inheritance-diagram:: easyreg.momentum_net
+.. automodule:: easyreg.momentum_net
 	:members:
 	:undoc-members:
 
@@ -32,8 +32,8 @@ Momentum Network
 Mermaid Network
 ^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: model_pool.mermaid_net
-.. automodule:: model_pool.mermaid_net
+.. inheritance-diagram:: easyreg.mermaid_net
+.. automodule:: easyreg.mermaid_net
 	:members:
 	:undoc-members:
 

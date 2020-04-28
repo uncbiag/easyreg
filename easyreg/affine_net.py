@@ -193,7 +193,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         self.affine_identity[4] = 1.
         self.affine_identity[8] = 1.
 
-    def compute_symmetric_reg_loss(self, bias_factor=1.):
+    def compute_symmetric_reg_loss(self,affine_param, bias_factor=1.):
         """
         compute the symmetry loss
         s-t transform (a,b), t-s transform (c,d), then assume transform from t-s-t
@@ -206,7 +206,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         :return: the symmetry loss (average on batch)
         """
 
-        ap_st, ap_ts  = self.affine_param
+        ap_st, ap_ts  = affine_param
 
         ap_st = ap_st.view(-1, 4, 3)
         ap_ts = ap_ts.view(-1, 4, 3)
@@ -286,7 +286,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         epoch_for_reg = self.epoch if self.epoch < self.epoch_activate_multi_step else self.epoch - self.epoch_activate_multi_step
         factor_scale = self.initial_reg_factor if self.epoch < self.epoch_activate_multi_step else self.initial_reg_factor/100
         static_epoch = 10 if self.epoch < self.epoch_activate_multi_step else 1
-        min_threshold = 1e-3
+        min_threshold = self.min_reg_factor
         decay_factor = 3
         factor_scale = float(
             max(sigmoid_decay(epoch_for_reg, static=static_epoch, k=decay_factor) * factor_scale, min_threshold))
@@ -306,9 +306,9 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         """
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
         sym_on = self.epoch>= self.epoch_activate_sym
-        self.affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
-        sym_reg_loss = self.compute_symmetric_reg_loss(bias_factor=1.) if  sym_on else 0.
-        scale_reg_loss = self.scale_sym_reg_loss(self.affine_param, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(self.affine_param, sched='l2')
+        affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
+        sym_reg_loss = self.compute_symmetric_reg_loss(affine_param,bias_factor=1.) if  sym_on else 0.
+        scale_reg_loss = self.scale_sym_reg_loss(affine_param, sched = 'l2') if sym_on else self.scale_multi_step_reg_loss(affine_param, sched='l2')
         factor_scale = self.get_factor_reg_scale()
         factor_sym =self.sym_factor if self.epoch>= self.epoch_activate_sym_loss else 0.
         sim_factor = 1.

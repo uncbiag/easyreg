@@ -1,0 +1,89 @@
+{
+    "dataset": {
+        "img_after_resize": [
+            160,
+            160,
+            160
+        ],
+        "load_training_data_into_memory": true,
+        "max_num_for_loading": [
+            -1,
+            -1,
+            -1,
+            -1
+        ],
+        "spacing_to_refer": [
+            1,
+            1,
+            1
+        ]
+    },
+    "tsk_set": {
+        "batch_sz": 2,
+        "check_best_model_period": 5,
+        "continue_train": true,
+        "continue_train_lr": 5e-05,
+        "criticUpdates": 2,
+        "epoch": 300,
+        "gpu_ids": 0,
+        "loss": {
+            "type": "ncc"
+        },
+        "max_batch_num_per_epoch": [
+            400,
+            8,
+            4
+        ],
+        "method_name": "affine_sym",
+        "model": "reg_net",
+        "model_path": "/playpen-raid1/zyshen/data/reg_new_lung/training_svf_net_stage1_affine/checkpoints/model_best.pth.tar",
+        "n_in_channel": 1,
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 0.0001,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 60
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_root_path": "/playpen-raid1/zyshen/data/reg_new_lung",
+        "output_taking_original_image_format": false,
+        "save_original_image_by_type": [true, true, true, false, true, false,false,false],
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "acc_multi_step_loss": false,
+                "affine_net_iter": 7,
+                "epoch_activate_extern_loss": 400,
+                "epoch_activate_multi_step": 200,
+                "epoch_activate_sym": 100,
+                "epoch_activate_sym_loss": 100,
+                "initial_reg_factor": 10,
+                "min_reg_factor": 0.01,
+                "reset_lr_for_multi_step": true,
+                "using_complex_net": true
+            },
+            "compute_inverse_map": true,
+            "low_res_factor": 0.5
+        },
+        "save_3d_img_on": false,
+        "save_extra_3d_img": false,
+        "save_fig_on": true,
+        "task_name": "training_lddmm_net_stage2_nonp",
+        "train": true,
+        "use_physical_coord": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    }
+}

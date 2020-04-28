@@ -12,8 +12,8 @@ RegModelBase
 
 A base class provides shared functions for both optimization-/network- based methods.
 
-.. inheritance-diagram:: model_pool.base_mermaid
-.. automodule:: model_pool.base_mermaid
+.. inheritance-diagram:: easyreg.base_mermaid
+.. automodule:: easyreg.base_mermaid
 	:members:
 	:undoc-members:
 
@@ -29,8 +29,8 @@ MermaidBase
 
 A base class provides shared functions for both optimization-/network- based methods.
 
-.. inheritance-diagram:: model_pool.base_mermaid
-.. automodule:: model_pool.base_mermaid
+.. inheritance-diagram:: easyreg.base_mermaid
+.. automodule:: easyreg.base_mermaid
 	:members:
 	:undoc-members:
 
@@ -43,8 +43,8 @@ ToolkitBase
 
 A base class provides shared functions for toolkit methods (Ants, Niftyreg, Demons).
 
-.. inheritance-diagram:: model_pool.base_toolkit
-.. automodule:: model_pool.base_toolkit
+.. inheritance-diagram:: easyreg.base_toolkit
+.. automodule:: easyreg.base_toolkit
 	:members:
 	:undoc-members:
 
@@ -59,8 +59,8 @@ Optimized Mermaid
 
 A class provides an interface for mermaid optimization-based registration.
 
-.. inheritance-diagram:: model_pool.mermaid_iter
-.. automodule:: model_pool.mermaid_iter
+.. inheritance-diagram:: easyreg.mermaid_iter
+.. automodule:: easyreg.mermaid_iter
 	:members:
 	:undoc-members:
 
@@ -74,8 +74,8 @@ Registration Net
 
 A base class provides functions for network-based registration.
 
-.. inheritance-diagram:: model_pool.reg_net
-.. automodule:: model_pool.reg_net
+.. inheritance-diagram:: easyreg.reg_net
+.. automodule:: easyreg.reg_net
 	:members:
 	:undoc-members:
 
@@ -88,8 +88,8 @@ AntsPy
 
 A class provides an interface for AntsPy registration.
 
-.. inheritance-diagram:: model_pool.ants_iter
-.. automodule:: model_pool.ants_iter
+.. inheritance-diagram:: easyreg.ants_iter
+.. automodule:: easyreg.ants_iter
 	:members:
 	:undoc-members:
 
@@ -99,8 +99,8 @@ AntsPy Utils
 
 Functions for AntsPy registration.
 
-.. inheritance-diagram:: model_pool.ants_utils
-.. automodule:: model_pool.ants_utils
+.. inheritance-diagram:: easyreg.ants_utils
+.. automodule:: easyreg.ants_utils
 	:members:
 	:undoc-members:
 
@@ -111,8 +111,8 @@ Demons
 
 A class provides an interface for Demons registration.
 
-.. inheritance-diagram:: model_pool.demons_iter
-.. automodule:: model_pool.demons_iter
+.. inheritance-diagram:: easyreg.demons_iter
+.. automodule:: easyreg.demons_iter
 	:members:
 	:undoc-members:
 
@@ -122,8 +122,8 @@ Demons Utils
 
 Functions for Demons registration.
 
-.. inheritance-diagram:: model_pool.demons_utils
-.. automodule:: model_pool.demons_utils
+.. inheritance-diagram:: easyreg.demons_utils
+.. automodule:: easyreg.demons_utils
 	:members:
 	:undoc-members:
 
@@ -133,8 +133,8 @@ NiftyReg
 
 A class provides an interface for Niftreg registration.
 
-.. inheritance-diagram:: model_pool.nifty_reg_iter
-.. automodule:: model_pool.nifty_reg_iter
+.. inheritance-diagram:: easyreg.nifty_reg_iter
+.. automodule:: easyreg.nifty_reg_iter
 	:members:
 	:undoc-members:
 
@@ -144,7 +144,7 @@ NiftyReg Utils
 
 Functions for Niftreg registration.
 
-.. inheritance-diagram:: model_pool.nifty_reg_utils
-.. automodule:: model_pool.nifty_reg_utils
+.. inheritance-diagram:: easyreg.nifty_reg_utils
+.. automodule:: easyreg.nifty_reg_utils
 	:members:
 	:undoc-members:

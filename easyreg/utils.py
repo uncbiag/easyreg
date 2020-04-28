@@ -294,7 +294,7 @@ def save_affine_param_with_easyreg_custom(affine_param, output_path, fname_list,
         if isinstance(affine_param, list):
             affine_param = affine_param[0]
         affine_param = affine_param.detach().cpu().numpy()
-        for i in range(affine_param.shape[0]):
+        for i in range(len(fname_list)):
             np.save(os.path.join(output_path, fname_list[i]) + '_affine_param.npy', affine_param[i])
 
 

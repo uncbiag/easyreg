@@ -59,8 +59,8 @@ def init_train_env(setting_path,output_root_path, task_name, data_task_name=None
 
     :param setting_path: the path to load 'cur_task_setting.json' and 'cur_data_setting.json' (optional if the related settings are in cur_task_setting)
     :param output_root_path: the output path
-    :param data_task_name: data task name i.e. lung_reg_task , oai_reg_task
-    :param task_name: task name i.e. run_training_vsvf_task, run_training_rdmm_task
+    :param data_task_name: data task name i.e. lung_seg_task , oai_seg_task
+    :param task_name: task name i.e. run_unet, run_with_ncc_loss
     :return:
     """
     dm_json_path = os.path.join(setting_path, 'cur_data_setting.json')
@@ -108,7 +108,7 @@ def __do_segmentation_train(args,pipeline=None):
         set running env and run the task
 
         :param args: the parsed arguments
-        :param pipeline:a Pipeline object, only used for two-stage training, the pipeline of the first stage (including dataloader) would be pass to the second stage
+        :param pipeline:a Pipeline object
         :return: a Pipeline object
     """
 
@@ -135,7 +135,6 @@ def __do_segmentation_train(args,pipeline=None):
 
 def do_segmentation_train(args):
     """
-    a interface for setting one-stage training or two stage training (include affine)
 
     :param args: the parsed arguments
     :return: None

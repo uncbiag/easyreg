@@ -30,7 +30,7 @@ class BaseRegDataSet(object):
         self.file_type_list = None
         self.max_used_train_samples = -1
         self.max_pairs = -1
-        self.aug_test = False
+
         self.sever_switch = None
         self.save_format = 'h5py'
         """currently only support h5py"""
@@ -97,6 +97,9 @@ class CustomDataSet(BaseRegDataSet):
     """
     def __init__(self,dataset_type, sched=None):
         BaseRegDataSet.__init__(self,dataset_type,sched)
+        self.aug_test_for_seg_task = False
+        self.reg_coupled_pair = False
+        self.coupled_pair_list = []
         self.label_switch = ('', '')
         self.label_path = None
         self.pair_label_path_list = []
@@ -139,7 +142,7 @@ class CustomDataSet(BaseRegDataSet):
 
 
 
-    def __gen_pair_list_with_coupled_list(self,img_path_list_1, img_path_list_2, pair_num_limit = 1000):
+    def __gen_pair_list_from_two_list(self,img_path_list_1, img_path_list_2, pair_num_limit = 1000):
         img_pair_list = []
         label_path_list_1 = find_corr_map(img_path_list_1, self.label_path, self.label_switch)
         label_path_list_2 = find_corr_map(img_path_list_2, self.label_path, self.label_switch)
@@ -163,9 +166,33 @@ class CustomDataSet(BaseRegDataSet):
         else:
             return img_pair_list
 
-    def gen_pair_dic(self):
-        num_pair_limit = self.max_pairs # -1 used in old code
-        img_path_list =  get_file_path_list(self.data_path, self.file_type_list)
+
+    def __gen_pair_list_with_coupled_list(self,pair_path_list, pair_num_limit = 1000):
+        img_pair_list = []
+        img_path_list_1 =  [pair_path[0] for pair_path in pair_path_list]
+        img_path_list_2 =  [pair_path[1] for pair_path in pair_path_list]
+        label_path_list_1 = find_corr_map(img_path_list_1, self.label_path, self.label_switch)
+        label_path_list_2 = find_corr_map(img_path_list_2, self.label_path, self.label_switch)
+        has_label = [os.path.exists(p1) and os.path.exists(p2) for p1, p2 in zip(label_path_list_1,label_path_list_2)]
+        num_img_1 = len(img_path_list_1)
+        num_img_2 = len(img_path_list_2)
+        assert num_img_1 == num_img_2
+        for i in range(num_img_1):
+            if has_label[i]:
+                img_pair_list.append([img_path_list_1[i],img_path_list_2[i],
+                                    label_path_list_1[i],label_path_list_2[i]])
+            else:
+                img_pair_list.append([img_path_list_1[i], img_path_list_2[i]])
+        if pair_num_limit >= 0:
+            random.shuffle(img_pair_list)
+            return img_pair_list[:pair_num_limit]
+        else:
+            return img_pair_list
+        
+        
+    def __gen_across_file_pair_dic(self):
+        num_pair_limit = self.max_pairs  # -1 
+        img_path_list = get_file_path_list(self.data_path, self.file_type_list)
         if self.sever_switch is not None:
             img_path_list = [img_path.replace(self.sever_switch[0], self.sever_switch[1]) for img_path in img_path_list]
         sub_folder_dic, sub_patients_dic = self.__divide_into_train_val_test_set(self.output_path, img_path_list,
@@ -173,19 +200,52 @@ class CustomDataSet(BaseRegDataSet):
         gen_pair_list_func = self.__gen_pair_list
         max_ratio = {'train': self.divided_ratio[0], 'val': self.divided_ratio[1], 'test': self.divided_ratio[2],
                      'debug': self.divided_ratio[1]}
-        sub_patients_dic['train']=sub_patients_dic['train'][:self.max_used_train_samples]
-        if not self.aug_test:
-            pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(num_pair_limit * max_ratio[sess]) if num_pair_limit>0 else -1) for
-                         sess in sesses}
+        if self.max_used_train_samples>-1:
+            sub_patients_dic['train'] = sub_patients_dic['train'][:self.max_used_train_samples]
+        if not self.aug_test_for_seg_task:
+            pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(
+                num_pair_limit * max_ratio[sess]) if num_pair_limit > 0 else -1) for
+                             sess in sesses}
         else:
             pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(
                 num_pair_limit * max_ratio[sess]) if num_pair_limit > 0 else -1) for
-                             sess in ['train','val','debug']}
-            pair_list_dic['test'] =  self.__gen_pair_list_with_coupled_list(sub_patients_dic['test'],sub_patients_dic['train'][:10],
-                                                                            int(num_pair_limit * max_ratio["test"]) if num_pair_limit>0 else -1)
+                             sess in ['train', 'val', 'debug']}
+            pair_list_dic['test'] = self.__gen_pair_list_from_two_list(sub_patients_dic['test'],
+                                                                       sub_patients_dic['train'][:10],
+                                                                       int(num_pair_limit * max_ratio[
+                                                                           "test"]) if num_pair_limit > 0 else -1)
 
         divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
         return (sub_folder_dic, divided_path_and_name_dic)
+
+    def __gen_pair_dic_with_given_pair(self):
+        num_pair_limit = self.max_pairs  # -1 
+        pair_path_list =self.coupled_pair_list
+        if self.sever_switch is not None:
+            pair_path_list = [[img_path.replace(self.sever_switch[0], self.sever_switch[1]) for img_path in pair_path] for pair_path in pair_path_list]
+        sub_folder_dic, sub_patients_dic = self.__divide_into_train_val_test_set(self.output_path, pair_path_list,
+                                                                                 self.divided_ratio)
+        gen_pair_list_func = self.__gen_pair_list_with_coupled_list
+        max_ratio = {'train': self.divided_ratio[0], 'val': self.divided_ratio[1], 'test': self.divided_ratio[2],
+                     'debug': self.divided_ratio[1]}
+        if self.max_used_train_samples > -1:
+            sub_patients_dic['train'] = sub_patients_dic['train'][:self.max_used_train_samples]
+
+        pair_list_dic = {sess: gen_pair_list_func(sub_patients_dic[sess], int(
+            num_pair_limit * max_ratio[sess]) if num_pair_limit > 0 else -1) for
+                         sess in sesses}
+
+        divided_path_and_name_dic = self.__gen_path_and_name_dic(pair_list_dic)
+        return (sub_folder_dic, divided_path_and_name_dic)
+        
+
+    def gen_pair_dic(self):
+        if not self.reg_coupled_pair:
+            return self.__gen_across_file_pair_dic()
+        else:
+            return self.__gen_pair_dic_with_given_pair()
+
+       
 
 
 
@@ -195,9 +255,9 @@ class CustomDataSet(BaseRegDataSet):
         val_ratio = ratio[1]
         sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test', 'debug']}
         nt = [make_dir(sub_path[key]) for key in sub_path]
-        # if sum(nt):
-        #     raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
-        #                      "manually delete the folder to reprepare the data")
+        if sum(nt):
+            raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
+                             "manually delete the folder to reprepare the data")
 
         train_num = int(train_ratio * num_img)
         val_num = int(val_ratio * num_img)
@@ -429,32 +489,32 @@ class OaiDataSet(PatientStructureDataSet):
 
 
 if __name__ == "__main__":
-    # print('debugging')
-    ###########################       LPBA TESTING           ###################################
-    path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
-    data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/resized_img"
-    label_path = '/playpen-raid/zyshen/data/lpba_seg_resize/label_filtered'
-    divided_ratio = (0.625, 0.125, 0.25)
-
-    file_type_list = ['*.nii.gz']
-    name = 'custom'
-    num_c_list = [5, 10, 15, 20, 25]
-    for num_c in num_c_list:
-        output_path = '/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_{}'.format(num_c)
-        #sever_switch = ('/playpen-raid', '/pine/scr/z/y')
-        sever_switch = None
-
-        lpba = RegDatasetPool().create_dataset(name)
-        lpba.aug_test = True
-
-        lpba.file_type_list = file_type_list
-        lpba.sever_switch = sever_switch
-        lpba.max_used_train_samples = num_c
-        lpba.set_data_path(data_path)
-        lpba.set_output_path(output_path)
-        lpba.set_divided_ratio(divided_ratio)
-        lpba.set_label_path(label_path)
-        lpba.prepare_data()
+    # # print('debugging')
+    # ###########################       LPBA TESTING           ###################################
+    # path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
+    # data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/resized_img"
+    # label_path = '/playpen-raid/zyshen/data/lpba_seg_resize/label_filtered'
+    # divided_ratio = (0.625, 0.125, 0.25)
+    #
+    # file_type_list = ['*.nii.gz']
+    # name = 'custom'
+    # num_c_list = [5, 10, 15, 20, 25]
+    # for num_c in num_c_list:
+    #     output_path = '/playpen-raid/zyshen/data/lpba_reg/train_with_test_aug_{}'.format(num_c)
+    #     #sever_switch = ('/playpen-raid', '/pine/scr/z/y')
+    #     sever_switch = None
+    #
+    #     lpba = RegDatasetPool().create_dataset(name)
+    #     lpba.aug_test_for_seg_task = True
+    #
+    #     lpba.file_type_list = file_type_list
+    #     lpba.sever_switch = sever_switch
+    #     lpba.max_used_train_samples = num_c
+    #     lpba.set_data_path(data_path)
+    #     lpba.set_output_path(output_path)
+    #     lpba.set_divided_ratio(divided_ratio)
+    #     lpba.set_label_path(label_path)
+    #     lpba.prepare_data()
 
     # num_c_list = [10,20,30,40]
     # for num_c in num_c_list:
@@ -469,7 +529,7 @@ if __name__ == "__main__":
     #     sever_switch = None
     #
     #     oai = RegDatasetPool().create_dataset(name)
-    #     oai.aug_test=True
+    #     oai.aug_test_for_seg_task=True
     #
     #
     #     oai.label_switch = label_switch
@@ -481,6 +541,28 @@ if __name__ == "__main__":
     #     oai.set_divided_ratio(divided_ratio)
     #     oai.set_label_path(label_path)
     #     oai.prepare_data()
+
+
+    data_path = "/playpen-raid1/Data/Lung_Registration_clamp_normal"
+    source_image_path_list = glob(os.path.join(data_path, "**", "*EXP*img*"))
+    target_image_path_list = [path.replace("_EXP_", "_INSP_") for path in source_image_path_list]
+    coupled_pair_path_list = list(zip(source_image_path_list,target_image_path_list))
+    divided_ratio = (0.8, 0.05, 0.15)
+    name = 'custom'
+    output_path = '/playpen-raid1/zyshen/data/reg_new_lung'
+    #sever_switch = ('/playpen-raid', '/pine/scr/z/y')
+    label_switch = ('_img', '_label')
+
+    lung = RegDatasetPool().create_dataset(name)
+    lung.reg_coupled_pair=True
+    lung.coupled_pair_list = coupled_pair_path_list
+    lung.label_switch = label_switch
+    lung.set_data_path(data_path)
+    lung.set_output_path(output_path)
+    lung.set_divided_ratio(divided_ratio)
+    lung.prepare_data()
+
+
 
 
 
