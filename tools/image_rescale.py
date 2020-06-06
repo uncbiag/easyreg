@@ -77,16 +77,83 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(0.5,0.5,0.5), i
         return fpth
 
 
-def resample_warped_phi_and_image(source,phi,spacing):
-    num_s = len(source)
-    s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source]
+def resample_warped_phi_and_image(source_path_list,l_source_path_list, phi,spacing):
+    num_s = len(source_path_list)
+    s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source_path_list]
     sz = [num_s,1]+list(s[0].shape)
     source = np.stack(s,axis=0)
     source = source.reshape(*sz)
     source = MyTensor(source)
+
+    if l_source_path_list is not None:
+        ls = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in l_source_path_list]
+        sz = [num_s, 1] + list(ls[0].shape)
+        l_source = np.stack(ls, axis=0)
+        l_source = l_source.reshape(*sz)
+        l_source = MyTensor(l_source)
+
     new_phi,new_spacing = resample_image( phi, spacing, sz, 1, zero_boundary=True)
     warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
-    return new_phi, warped, new_spacing
+    l_warped = None
+    if l_source_path_list is not None:
+        l_warped = py_utils.compute_warped_image_multiNC(l_source, new_phi, new_spacing, 0, zero_boundary=True)
+    return new_phi, warped,l_warped, new_spacing
+
+def save_transform_with_reference(transform, spacing,moving_reference_list, target_reference_list, path=None, fname_list=None,save_disp_into_itk_format=True):
+    if not save_disp_into_itk_format:
+        save_transfrom(transform, spacing, path, fname_list)
+    else:
+        save_transform_itk(transform,spacing,moving_reference_list, target_reference_list, path, fname_list)
+
+
+
+
+def save_transform_itk(transform,spacing,moving_list,target_list, path, fname_list):
+    from mermaid.utils import identity_map
+
+    if type(transform) == torch.Tensor:
+        transform = transform.detach().cpu().numpy()
+
+
+    for i in range(transform.shape[0]):
+        cur_trans = transform[i]
+        img_sz = np.array(transform.shape[2:])
+
+        moving_ref = sitk.ReadImage(moving_list[i])
+        moving_spacing_ref = moving_ref.GetSpacing()
+        moving_direc_ref = moving_ref.GetDirection()
+        moving_orig_ref = moving_ref.GetOrigin()
+        target_ref = sitk.ReadImage(target_list[i])
+        target_spacing_ref = target_ref.GetSpacing()
+        target_direc_ref = target_ref.GetDirection()
+        target_orig_ref = target_ref.GetOrigin()
+
+        id_np_moving = identity_map(img_sz, np.flipud(moving_spacing_ref))
+        id_np_target = identity_map(img_sz, np.flipud(target_spacing_ref))
+        factor = np.flipud(moving_spacing_ref) / spacing
+        factor  = factor.reshape(3,1,1,1)
+
+        moving_direc_matrix = np.array(moving_direc_ref).reshape(3, 3)
+        target_direc_matrix = np.array(target_direc_ref).reshape(3, 3)
+        cur_trans = np.matmul(moving_direc_matrix, permute_trans(id_np_moving + cur_trans * factor).reshape(3, -1)) \
+                    - np.matmul(target_direc_matrix, permute_trans(id_np_target).reshape(3, -1))
+        cur_trans = cur_trans.reshape(id_np_moving.shape)
+        fn = '{}_batch_'.format(i) + fname_list if not type(fname_list) == list else fname_list[i]
+        saving_path =  os.path.join(path, fn + '.h5')
+
+        bias = np.array(target_orig_ref)-np.array(moving_orig_ref)
+        bias = -bias.reshape(3,1,1,1)
+        transform_physic = cur_trans +bias
+
+        trans = get_transform_with_itk_format(transform_physic,target_spacing_ref, target_orig_ref,target_direc_ref)
+        sitk.WriteTransform(trans, saving_path)
+
+def permute_trans(trans):
+    trans_new = np.zeros_like(trans)
+    trans_new[0,...] = trans[2,...]
+    trans_new[1,...] = trans[1,...]
+    trans_new[2,...] = trans[0,...]
+    return trans_new
 
 
 def save_transfrom(transform,spacing, path=None, fname=None,using_affine=False):
@@ -94,6 +161,7 @@ def save_transfrom(transform,spacing, path=None, fname=None,using_affine=False):
         if type(transform) == torch.Tensor:
             transform = transform.detach().cpu().numpy()
         img_sz = np.array(transform.shape[2:])
+        # mapping into 0, 1 coordinate
         for i in range(len(img_sz)):
             transform[:, i, ...] = transform[:, i, ...] / ((img_sz[i] - 1) * spacing[i])
         import nibabel as nib
@@ -113,7 +181,7 @@ def save_transfrom(transform,spacing, path=None, fname=None,using_affine=False):
 
 def save_image_with_given_reference(img=None,reference_list=None,path=None,fname=None):
 
-    num_img = len(fname)
+    num_img = len(fname) if fname is not None else 0
     os.makedirs(path,exist_ok=True)
     for i in range(num_img):
         img_ref = sitk.ReadImage(reference_list[i])

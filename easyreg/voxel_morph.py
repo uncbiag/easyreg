@@ -606,26 +606,26 @@ class VoxelMorphMICCAI2019(nn.Module):
 
 
 
-
-def test():
-    from mermaid.module_parameters import ParameterDict
-    cuda = torch.device('cuda:0')
-    test_cvpr = True
-    opt = ParameterDict()
-    if test_cvpr:
-        # unet = UNet_light2(2,3).to(cuda)
-        net = VoxelMorphCVPR2018([80, 192, 192],opt).to(cuda)
-    else:
-        net = VoxelMorphMICCAI2019([80,192,192],opt).to(cuda)
-    print(net)
-    with torch.enable_grad():
-        input1 = torch.randn(1, 1, 80, 192, 192).to(cuda)
-        input2 = torch.randn(1, 1, 80, 192, 192).to(cuda)
-        disp_field, warped_input1, deform_field = net(input1, input2)
-        loss = net.get_loss()
-        print("The loss is {}".format(loss))
-
-    pass
-
-if __name__ == '__main__':
-    test()
+#
+# def test():
+#     from mermaid.module_parameters import ParameterDict
+#     cuda = torch.device('cuda:0')
+#     test_cvpr = True
+#     opt = ParameterDict()
+#     if test_cvpr:
+#         # unet = UNet_light2(2,3).to(cuda)
+#         net = VoxelMorphCVPR2018([80, 192, 192],opt).to(cuda)
+#     else:
+#         net = VoxelMorphMICCAI2019([80,192,192],opt).to(cuda)
+#     print(net)
+#     with torch.enable_grad():
+#         input1 = torch.randn(1, 1, 80, 192, 192).to(cuda)
+#         input2 = torch.randn(1, 1, 80, 192, 192).to(cuda)
+#         disp_field, warped_input1, deform_field = net(input1, input2)
+#         loss = net.get_loss()
+#         print("The loss is {}".format(loss))
+#
+#     pass
+#
+# if __name__ == '__main__':
+#     test()
