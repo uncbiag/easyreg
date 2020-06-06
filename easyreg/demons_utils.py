@@ -294,7 +294,7 @@ def performDemonsRegistration(param, mv_path, target_path, registration_type='de
                                 record_path=record_path,fname =fname) #[2,1],[4, 2]) (8,4)
     warped_img = sitk_grid_sampling(sitk.ReadImage(target_path), sitk.ReadImage(mv_path), tx,
                                     is_label=False)
-    output  = sitk.GetArrayFromImage(warped_img)
+    output = sitk.GetArrayFromImage(warped_img)
     if ml_path is not None and tl_path is not None:
         warped_label = sitk_grid_sampling(sitk.ReadImage(tl_path), sitk.ReadImage(ml_path), tx,
                                           is_label=True)

@@ -19,7 +19,7 @@ class SegUnet(nn.Module):
         self.unet = Seg_resid(self.num_class,bn=use_bn)
         self.print_count = 0
         self.partition = partition(opt['dataset']['seg']['partition'],patch_sz_itk,overlap_sz_itk)
-        self.ensemble_during_the_test = opt['tsk_set']['seg'][("ensemble_during_the_test",False,"do test phase ensemble, which needs the test phase data augmentation has already done")]
+        self.ensemble_during_the_test = opt['tsk_set']['seg'][("ensemble_during_the_test",False,"do test phase ensemble, which needs the test phase data augmentation already done")]
 
     def set_loss_fn(self, loss_fn):
         """ set loss function"""

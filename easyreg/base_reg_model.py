@@ -236,15 +236,22 @@ class RegModelBase():
         the physical information like  origin, orientation is not saved, todo, include this information
         :param phase: train|val|test|debug
         :return:
+
         """
+        moving = self.moving
+        target = self.target
+        warped = self.output
+        l_moving = self.l_moving
+        l_target = self.l_target
+        l_warped = self.warped_label_map
         if type(self.moving)==torch.Tensor:
             moving = self.moving.detach().cpu().numpy()
             target = self.target.detach().cpu().numpy()
             warped = self.output.detach().cpu().numpy()
-        else:
-            moving = self.moving
-            target = self.target
-            warped = self.output
+        if self.warped_label_map is not None and type(self.warped_label_map)==torch.Tensor:
+            l_moving = self.l_moving.detach().cpu().numpy()
+            l_target = self.l_target.detach().cpu().numpy()
+            l_warped = self.warped_label_map.detach().cpu().numpy()
 
 
         saving_folder_path = os.path.join(self.record_path, '3D')
@@ -263,6 +270,20 @@ class RegModelBase():
             output = sitk.GetImageFromArray(warped[i, 0, ...])
             output.SetSpacing(np.flipud(self.spacing))
             sitk.WriteImage(output, saving_file_path)
+            if l_warped is not None:
+                saving_file_path = saving_folder_path + '/' + appendix + "_moving_l.nii.gz"
+                output = sitk.GetImageFromArray(l_moving[i, 0, ...])
+                output.SetSpacing(np.flipud(self.spacing))
+                sitk.WriteImage(output, saving_file_path)
+                saving_file_path = saving_folder_path + '/' + appendix + "_target_l.nii.gz"
+                output = sitk.GetImageFromArray(l_target[i, 0, ...])
+                output.SetSpacing(np.flipud(self.spacing))
+                sitk.WriteImage(output, saving_file_path)
+                saving_file_path = saving_folder_path + '/' + appendix + "_warped_l.nii.gz"
+                output = sitk.GetImageFromArray(l_warped[i, 0, ...])
+                output.SetSpacing(np.flipud(self.spacing))
+                sitk.WriteImage(output, saving_file_path)
+
 
     def save_deformation(self):
         pass

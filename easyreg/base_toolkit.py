@@ -77,7 +77,7 @@ class ToolkitBase(RegModelBase):
             img_resampled = img
         fpth = os.path.join(self.record_path, fname)
         self.spacing = np.array([1.,1.,1.])
-        #############################  be attention the origin of the image pair is no consistent which may cause the demos fail
+        #############################  be attention if the origin of the image pair is not consistent, the demos would fail
         if keep_physical:
             itk_spacing = resize_spacing(img_sz, img_org.GetSpacing(), factor)
             self.spacing = np.flipud(itk_spacing)

@@ -118,7 +118,19 @@ def save_image_with_scale(path, variable):
     skimage.io.imsave(path, arr)
 
 
+def get_transform_with_itk_format(disp_np, spacing,original, direction):
+    import SimpleITK as sitk
+    # Create a composite transform then write and read.
+    displacement = sitk.DisplacementFieldTransform(3)
+    field_size = list(np.flipud(disp_np.shape[1:]).astype(np.float64))
+    field_origin = list(original)
+    field_spacing = list(spacing)
+    field_direction = list(direction)  # direction cosine matrix (row major order)
 
+    # Concatenate all the information into a single list.
+    displacement.SetFixedParameters(field_size + field_origin + field_spacing + field_direction)
+    displacement.SetParameters(np.transpose(disp_np,[1,2,3,0]).reshape(-1).astype(np.float64))
+    return displacement
 
 
 
@@ -519,3 +531,5 @@ def normalize_spacing(spacing,sz,silent_mode=False):
         print('Normalize spacing, extent: ' + str(extent) + ' -> ' + str(normalized_extent))
 
     return normalized_spacing
+
+
