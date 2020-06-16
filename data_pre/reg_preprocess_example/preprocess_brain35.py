@@ -1,3 +1,8 @@
+"""
+A demo on data augmentation and segmentation for brain dataset
+"""
+
+
 import os, sys
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
@@ -96,21 +101,6 @@ train_aug_label_list = [path.replace("_image.nii.gz","_label.nii.gz") for path i
 img_label_path_list = [[img_path, label_path] for img_path, label_path in zip(train_aug_img_list,train_aug_label_list)]
 write_list_into_txt(output_path,img_label_path_list)
 
-"""
-        demo related:
-             --run_demo: run the demo
-             --demo_name: opt_lddmm_lpba/learnt_lddmm_oai
-             --gpu_id_list/ -g: gpu_id_list to use
-        other arguments:
-             --file_txt/-txt: the input txt recording the file path
-             --name_txt/-txt: the input txt recording the file name
-             --txt_format: aug_by_file/aug_by_line
-             --max_size_of_target_set_to_reg: max size of the target set for each source image, set -1 if there is no constraint
-             --max_size_of_pair_to_reg: max size of pair for registration, set -1 if there is no constraint, in that case the potential pair  number would be N*(N-1) if txt_format is set as aug_by_file
-             --setting_folder_path/-ts :path of the folder where settings are saved
-             --task_output_path/ -o: the path of output folder
-
-"""
 
 """
 training phase augmentation

@@ -726,7 +726,7 @@ if __name__ == '__main__':
                         help='path of data augmentation setting json')
     parser.add_argument("-ms",'--mermaid_setting_path', required=False, default=None,
                         help='path of mermaid setting json')
-    parser.add_argument("-g", '--gpu_id', required=False, default=-1,
+    parser.add_argument("-g", '--gpu_id', required=False, default=0,
                         help='path of mermaid setting json')
     args = parser.parse_args()
     file_txt = args.file_txt
@@ -740,7 +740,7 @@ if __name__ == '__main__':
     output_path = args.output_path
     gpu_id = int(args.gpu_id)
 
-    if gpu_id<0:
+    if use_bspline:
         os.environ["CUDA_VISIBLE_DEVICES"] = ''
     else:
         torch.cuda.set_device(gpu_id)
