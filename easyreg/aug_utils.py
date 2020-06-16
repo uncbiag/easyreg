@@ -86,6 +86,58 @@ def gen_intra_pair_list(img_path_list,fname_list,label_path_list, pair_num_limit
         return img_pair_list, pair_name_list
 
 
+
+
+def gen_post_aug_pair_list(test_img_path_list,train_img_path_list, test_fname_list=None,train_fname_list=None,
+                           test_label_path_list=None,train_label_path_list=None, pair_num_limit=-1, per_num_limit=-1):
+    """
+
+    :param test_img_path_list:
+    :param train_img_path_list:
+    :param test_fname_list:
+    :param train_fname_list:
+    :param test_label_path_list:
+    :param train_label_path_list:
+    :param pair_num_limit:
+    :param per_num_limit:
+    :return:
+    """
+    img_pair_list = []
+    pair_name_list = []
+    num_test_img = len(test_img_path_list)
+    num_train_img = len(train_img_path_list)
+    if test_label_path_list is None:
+        test_label_path_list = ["None"]*num_test_img
+    if train_label_path_list is None:
+        train_label_path_list = ["None"]*num_train_img
+
+    for i in range(num_test_img):
+        img_pair_list_tmp = []
+        pair_name_list_tmp = []
+        for j in range(num_train_img):
+            img_pair_list_tmp.append([test_img_path_list[i], train_img_path_list[j],
+                                      test_label_path_list[i], train_label_path_list[j]])
+            if train_fname_list is not None and test_fname_list is not None:
+                pair_name_list_tmp.append([test_fname_list[i] + "_" + train_fname_list[j],test_fname_list[i], train_fname_list[j]])
+            else:
+                pair_name_list_tmp.append(generate_pair_name([test_img_path_list[i], train_img_path_list[j]],detail=True))
+        if len(img_pair_list_tmp) > per_num_limit and per_num_limit>-1:
+            ind = list(range(len(img_pair_list_tmp)))
+            random.shuffle(ind)
+            img_pair_list_tmp = [img_pair_list_tmp[ind[i]] for i in range(per_num_limit)]
+            pair_name_list_tmp  = [pair_name_list_tmp[ind[i]] for i in range(per_num_limit)]
+        img_pair_list += img_pair_list_tmp
+        pair_name_list += pair_name_list_tmp
+    if len(img_pair_list)>pair_num_limit and pair_num_limit >= 0:
+        ind = list(range(len(img_pair_list)))
+        random.shuffle(ind)
+        img_pair_list = [img_pair_list[ind[i]] for i in range(pair_num_limit)]
+        pair_name_list = [pair_name_list[ind[i]] for i in range(pair_num_limit)]
+        return img_pair_list, pair_name_list
+    else:
+        return img_pair_list, pair_name_list
+
+
 def read_img_label_into_list(file_path):
     """
     read the list from the file, each elem in a line compose a list, each line compose to a list,

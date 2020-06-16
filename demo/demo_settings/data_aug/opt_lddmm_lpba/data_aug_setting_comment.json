@@ -7,6 +7,7 @@
       "task_type": "rand_sampl/data_interp,  rand_sampl: random sampling from the geodesic space, typically for dataset augmentation; data_interp: interpolation between source and the target set with given time point and given weight",
       "K": "the dimension of the geodeisc subspace",
       "compute_inverse": "compute the inverse map",
+      "save_tf_map": "save the forward and inverse transformation map, set true if taking testing phase augmentation",
       "rand_sampl": {
             "t_range": "the range of t inter-/extra-polation, the registration completes in unit time [0,1]"
       },

@@ -66,8 +66,9 @@ class SegUnet(nn.Module):
         return output_np
 
 
-    def set_file_path(self, file_path):
+    def set_file_path(self, file_path, fname):
         self.file_path =file_path
+        self.fname = fname
 
 
     def get_assemble_pred_for_ensemble(self, input, split_size=8):
@@ -100,12 +101,12 @@ class SegUnet(nn.Module):
         overlap_sz_itk = list(np.flipud(np.array(overlap_sz)))
         corr_partition_pool = deepcopy(partition(option_p, patch_sz_itk, overlap_sz_itk))
 
-        def compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=50,t_zero_ratio=0):
+        def compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=50,weight_for_orig_img=0):
             warped_pth_list = glob(os.path.join(warped_pth, warped_type))
             num_max = min(len(warped_pth_list),num_max)
             inv_phi_pth_list = [pth.replace(warped_pth,inv_phi_pth).replace(*inv_switcher) for pth in warped_pth_list]
             f = lambda pth: sitk.GetArrayFromImage(sitk.ReadImage(pth))
-            fname = get_file_name(self.file_path[0][0])
+            fname = get_file_name(self.fname[0])
             f_warped = lambda x: get_file_name(x).find(fname+'_') == 0
             warped_sub_list = list(filter(f_warped, warped_pth_list))
             inv_phi_sub_list = list(filter(f_warped, inv_phi_pth_list))
@@ -121,22 +122,34 @@ class SegUnet(nn.Module):
             inv_phi = np.stack(inv_phi_list, 0)
             inv_phi = np.transpose(inv_phi, (0, 4, 3, 2, 1))
             inv_phi = torch.Tensor(inv_phi)
+            img_input_sz = self.opt["dataset"]["img_after_resize"]
+            differ_sz =  any(np.array(warped_img.shape[2:]) != np.array(img_input_sz))
 
-            sz = np.array(warped_img.shape[2:])
+
+
+            sz = np.array(self.img_sz)
             spacing = 1. / (sz - 1)
             output_np = np.zeros([1, self.num_class] + self.img_sz)
-            if t_zero_ratio!=0:
-                tzero_img = self.get_assemble_pred_tmp(input)
+            if weight_for_orig_img!=0:
+                tzero_img = self.get_assemble_pred_for_ensemble(input)
                 tzero_pred = self.partition.assemble_multi_torch(tzero_img, image_size=self.img_sz)
-                output_np = tzero_pred.cpu().numpy() * float(round(t_zero_ratio*num_aug))
+                output_np = tzero_pred.cpu().numpy() * float(round(weight_for_orig_img*num_aug))
 
             for i in range(num_aug):
-                sample = {"image":[warped_img[i,0].numpy()]}
+                if differ_sz:
+                    warped_img_cur, _ = resample_image(warped_img[i:i+1].cuda(), [1, 1, 1], [1, 3] + self.img_sz)
+                    inv_phi_cur, _ = resample_image(inv_phi[i:i+1].cuda(), [1, 1, 1], [1, 1] + self.img_sz)
+                    warped_img_cur = warped_img_cur.detach().cpu()
+                    inv_phi_cur = inv_phi_cur.detach().cpu()
+                else:
+                    warped_img_cur = warped_img[i:i+1]
+                    inv_phi_cur = inv_phi[i:i+1]
+                sample = {"image":[warped_img_cur[0,0].numpy()]}
                 sample_p =corr_partition_pool(sample)
                 pred_patched = self.get_assemble_pred_for_ensemble(torch.Tensor(sample_p["image"]).cuda())
                 pred_patched = self.partition.assemble_multi_torch(pred_patched, image_size=self.img_sz)
                 pred_patched = torch.nn.functional.softmax(pred_patched,1)
-                pred_patched = compute_warped_image_multiNC(pred_patched.cuda(), inv_phi[i:i+1].cuda(),spacing, spline_order=1, zero_boundary=True)
+                pred_patched = compute_warped_image_multiNC(pred_patched.cuda(), inv_phi_cur.cuda(),spacing, spline_order=1, zero_boundary=True)
                 output_np += pred_patched.cpu().numpy()
             res = torch.max(torch.Tensor(output_np), 1)[1]
             return res[None]
@@ -146,9 +159,9 @@ class SegUnet(nn.Module):
         warped_type = seg_ensemble_opt[("warped_type","*_warped.nii.gz","the suffix of the augmented data")]
         inv_switcher = seg_ensemble_opt[("inv_switcher",["_warped.nii.gz","_inv_phi.nii.gz"],"the fname switcher from warped image to inverse transformation map")]
         num_max =  seg_ensemble_opt[("num_max",20,"max num of augmentation for per test image")]
-        t_zero_ratio = seg_ensemble_opt[("t_zero_ratio",0.0,"the weight of original image")]
+        weight_for_orig_img = seg_ensemble_opt[("weight_for_orig_img",0.0,"the weight of original image")]
 
-        output_np = compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=num_max,t_zero_ratio=t_zero_ratio)
+        output_np = compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=num_max,weight_for_orig_img=weight_for_orig_img)
         return output_np
 
 

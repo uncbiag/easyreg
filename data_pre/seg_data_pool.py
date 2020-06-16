@@ -26,6 +26,8 @@ class BaseSegDataSet(object):
         """path of the output directory"""
         self.label_path = None
         """path of the label directory"""
+        self.find_corr_label = find_corr_map
+        self.get_file_name  = get_file_name
         self.file_name_list = []
         self.file_path_list = []
         self.file_type_list = file_type_list
@@ -94,7 +96,7 @@ class BaseSegDataSet(object):
             else:
                 # assume background label is 0
                 st_index = 0
-                print("warning label: is not in standard label index, and would be convert to 0".format(l_id))
+                print("warning label:{} is not in standard label index, and would be convert to 0".format(l_id))
             label_map[np.where(label_map == l_id)] = st_index
         return label_map
 
@@ -128,10 +130,9 @@ class BaseSegDataSet(object):
 
     def _resize_img_label(self, idx_list, file_path_list, label_path_list, saving_path_img,saving_path_label):
         for i in idx_list:
-            fname = get_file_name(file_path_list[i]) + '.nii.gz'
+            fname = self.get_file_name(file_path_list[i]) + '.nii.gz'
             resize_input_img_and_save_it_as_tmp(file_path_list[i], is_label=False, keep_physical=True, fname=fname,
                                                 saving_path=saving_path_img, fixed_sz=self.img_after_resize)
-            fname = get_file_name(label_path_list[i]) + '.nii.gz'
             resize_input_img_and_save_it_as_tmp(label_path_list[i], is_label=True, keep_physical=True, fname=fname,
                                                 saving_path=saving_path_label, fixed_sz=self.img_after_resize)
 
@@ -152,6 +153,7 @@ class BaseSegDataSet(object):
 
             self.data_path = saving_path_img
             self.label_path = saving_path_label
+            self.get_file_name = get_file_name
 
 
 
@@ -164,13 +166,13 @@ class BaseSegDataSet(object):
     def data_preprocess(self):
         file_path_list = get_file_path_list(self.data_path, self.file_type_list)
         #random.shuffle(file_path_list)
-        label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
-        # self.resize_img_label(file_path_list,label_path_list)
-        # file_path_list = get_file_path_list(self.data_path, self.file_type_list)
-        # label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
-        # self.get_shared_label_index(label_path_list)
-        # self.filter_and_save_label(label_path_list)
-        # label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
+        label_path_list = self.find_corr_label(file_path_list, self.label_path, self.label_switch)
+        self.resize_img_label(file_path_list,label_path_list)
+        file_path_list = get_file_path_list(self.data_path, ["*.nii.gz"])
+        label_path_list = find_corr_map(file_path_list, self.label_path)
+        self.get_shared_label_index(label_path_list)
+        self.filter_and_save_label(label_path_list)
+        label_path_list = find_corr_map(file_path_list, self.label_path)
         if self.sever_switch is None:
             file_label_path_list = [[file_path_list[idx], label_path_list[idx]] for idx in range(len(label_path_list))]
         else:
@@ -178,7 +180,7 @@ class BaseSegDataSet(object):
                                         , label_path_list[idx].replace(self.sever_switch[0], self.sever_switch[1])] for idx in range(len(label_path_list))]
 
         self.num_pair = len(file_label_path_list)
-        self.pair_name_list = [get_file_name(fpth,True) for fpth in file_path_list]
+        self.pair_name_list = [self.get_file_name(fpth) for fpth in file_path_list]
         sub_folder_dic, file_id_dic = divide_data_set(self.output_path, self.num_pair, self.divided_ratio)
         divided_path_and_name_dic = get_divided_dic(file_id_dic,file_label_path_list, self.pair_name_list)
         if self.max_used_train_samples>0:
