@@ -1,5 +1,0 @@
-python demo_for_easyreg_train.py -o=/playpen-raid1/zyshen/data -dtn=reg_new_lung -tn=training_svf_net -ts=/playpen-raid/zyshen/reg_clean/debug/lung/training_network_vsvf --train_affine_first -g=0
-python demo_for_easyreg_train.py -o=/playpen-raid1/zyshen/data -dtn=reg_new_lung -tn=training_svf_net_stage2_nonp -ts=/playpen-raid/zyshen/reg_clean/debug/lung/training_network_vsvf  -g=0
-python demo_for_easyreg_train.py -o=/playpen-raid1/zyshen/data -dtn=reg_new_lung -tn=training_lddmm_net_stage2_nonp -ts=/playpen-raid/zyshen/reg_clean/debug/lung/training_network_lddmm  -g=1
-
-

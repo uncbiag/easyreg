@@ -6,26 +6,6 @@ from data_pre.file_tool import get_file_list
 from  easyreg.reg_data_utils import read_txt_into_list, write_list_into_txt
 from data_pre.seg_data_pool import BaseSegDataSet
 
-# def get_file_path_from_label_path(label_path):
-#     label_folder, filename = os.path.split(label_path)
-#     img_name = os.path.split(label_folder)[-1]
-#     img_path = os.path.join(label_folder,"T1w/T1w_acpc_dc_restore.nii.gz")
-#     assert os.path.isfile(img_path)
-#     return img_path,img_name
-#
-# folder_path = "/playpen-raid1/Data/annotation"
-# label_type = "*label.nii.gz"
-# output_folder = "/playpen-raid1/zyshen/data/brain_35/corrected"
-# os.makedirs(output_folder,exist_ok=True)
-# output_file_path = os.path.join(output_folder,"file_path.txt")
-# output_name_path = os.path.join(output_folder,"file_name.txt")
-# label_path_list = get_file_list(folder_path,label_type)
-# img_path_list =[get_file_path_from_label_path(label_path)[0] for label_path in label_path_list]
-# img_name_list =[get_file_path_from_label_path(label_path)[1] for label_path in label_path_list]
-# img_label_path_list = [[img_path, label_path] for img_path, label_path in zip(img_path_list, label_path_list)]
-# write_list_into_txt(output_file_path,img_label_path_list)
-# write_list_into_txt(output_name_path,img_name_list)
-
 
 def find_corr_label(img_path_list,label_root_path=None,label_switch=None):
     get_par_folder_name = lambda x: os.path.split(os.path.split(os.path.split(x)[0])[0])[-1]
@@ -50,7 +30,7 @@ dataset.get_file_name = get_file_name
 dataset.set_output_path(output_path)
 dataset.set_divided_ratio(divided_ratio)
 dataset.img_after_resize = (200,240,200)
-#dataset.prepare_data()
+dataset.prepare_data()
 
 
 
@@ -79,8 +59,8 @@ else:
 img_pair_list, pair_name_list = gen_post_aug_pair_list(test_img_path_list,train_img_path_list, test_fname_list=test_name_list,train_fname_list=train_name_list,
                            test_label_path_list=test_label_path_list,train_label_path_list=train_label_path_list, pair_num_limit=-1, per_num_limit=5)
 pair_name_list = [pair_name[1:] for pair_name in pair_name_list]
-# write_list_into_txt(output_file_path,img_pair_list)
-# write_list_into_txt(output_name_path,pair_name_list)
+write_list_into_txt(output_file_path,img_pair_list)
+write_list_into_txt(output_name_path,pair_name_list)
 
 
 

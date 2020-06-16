@@ -150,7 +150,7 @@ def pipeline(args):
     :return: None
     """
     setting_folder_path, reg_pair_list_txt, reg_name_list_txt=init_reg_env(args)
-    #do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
+    do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
     aug_input_txt,aug_name_txt, aug_output_path = init_aug_env(reg_pair_list_txt,reg_name_list_txt,args.task_output_path,setting_folder_path)
     do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path, args.gpu_id_list)
 
