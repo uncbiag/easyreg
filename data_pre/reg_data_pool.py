@@ -100,9 +100,9 @@ class CustomDataSet(BaseRegDataSet):
         self.aug_test_for_seg_task = False
         self.reg_coupled_pair = False
         self.coupled_pair_list = []
+        self.find_corr_label = find_corr_map
         self.label_switch = ('', '')
         self.label_path = None
-        self.pair_label_path_list = []
 
 
     def __gen_path_and_name_dic(self, pair_list_dic):
@@ -119,7 +119,7 @@ class CustomDataSet(BaseRegDataSet):
 
     def __gen_pair_list(self,img_path_list, pair_num_limit = 1000):
         img_pair_list = []
-        label_path_list  = find_corr_map(img_path_list, self.label_path, self.label_switch)
+        label_path_list  = self.find_corr_label(img_path_list, self.label_path, self.label_switch)
         num_img = len(img_path_list)
         for i in range(num_img):
             count_max=15 #15
@@ -144,8 +144,8 @@ class CustomDataSet(BaseRegDataSet):
 
     def __gen_pair_list_from_two_list(self,img_path_list_1, img_path_list_2, pair_num_limit = 1000):
         img_pair_list = []
-        label_path_list_1 = find_corr_map(img_path_list_1, self.label_path, self.label_switch)
-        label_path_list_2 = find_corr_map(img_path_list_2, self.label_path, self.label_switch)
+        label_path_list_1 = self.find_corr_label(img_path_list_1, self.label_path, self.label_switch)
+        label_path_list_2 = self.find_corr_label(img_path_list_2, self.label_path, self.label_switch)
         num_img_1 = len(img_path_list_1)
         num_img_2 = len(img_path_list_2)
         for i in range(num_img_1):
@@ -171,8 +171,8 @@ class CustomDataSet(BaseRegDataSet):
         img_pair_list = []
         img_path_list_1 =  [pair_path[0] for pair_path in pair_path_list]
         img_path_list_2 =  [pair_path[1] for pair_path in pair_path_list]
-        label_path_list_1 = find_corr_map(img_path_list_1, self.label_path, self.label_switch)
-        label_path_list_2 = find_corr_map(img_path_list_2, self.label_path, self.label_switch)
+        label_path_list_1 = self.find_corr_label(img_path_list_1, self.label_path, self.label_switch)
+        label_path_list_2 = self.find_corr_label(img_path_list_2, self.label_path, self.label_switch)
         has_label = [os.path.exists(p1) and os.path.exists(p2) for p1, p2 in zip(label_path_list_1,label_path_list_2)]
         num_img_1 = len(img_path_list_1)
         num_img_2 = len(img_path_list_2)

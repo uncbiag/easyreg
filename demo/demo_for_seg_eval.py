@@ -77,7 +77,7 @@ def force_test_setting(dm, tsm, output_path):
     tsm.save(tsk_json_path)
 
 
-def init_test_env(setting_path, output_path, file_list):
+def init_test_env(setting_path, output_path, file_list,fname_list):
     """
     create test environment, the file list would be saved into output_path/reg/test/file_path_list.txt,
      a corresponding auto-parsed filename list would also be saved in output/path/reg/test/file_name_list.txt
@@ -99,10 +99,11 @@ def init_test_env(setting_path, output_path, file_list):
     file_txt_path = os.path.join(output_path, 'seg/test/file_path_list.txt')
     fn_txt_path = os.path.join(output_path, 'seg/test/file_name_list.txt')
     has_label = len(file_list[0])==2
-    if has_label:
-        fname_list = [get_file_name(file_list[i][0]) for i in range(file_num)]
-    else:
-        fname_list = [get_file_name(file_list[i]) for i in range(file_num)]
+    if fname_list is None:
+        if has_label:
+            fname_list = [get_file_name(file_list[i][0]) for i in range(file_num)]
+        else:
+            fname_list = [get_file_name(file_list[i]) for i in range(file_num)]
     write_list_into_txt(file_txt_path, file_list)
     write_list_into_txt(fn_txt_path, fname_list)
     data_task_name = 'seg'
@@ -126,7 +127,10 @@ def do_segmentation_eval(args, segmentation_file_list):
     task_output_path = args.task_output_path
     os.makedirs(task_output_path, exist_ok=True)
     setting_folder_path = args.setting_folder_path
-    dm, tsm = init_test_env(setting_folder_path, task_output_path, segmentation_file_list)
+    file_txt_path = args.file_txt_path
+    fname_txt_path = file_txt_path.replace("file_path_list.txt","file_name_list.txt")
+    fname_list = read_txt_into_list(fname_txt_path) if os.path.isfile(fname_txt_path) else None
+    dm, tsm = init_test_env(setting_folder_path, task_output_path, segmentation_file_list, fname_list)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
     model_path= args.model_path
     if model_path is not None:

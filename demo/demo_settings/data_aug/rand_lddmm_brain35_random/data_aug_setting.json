@@ -1,0 +1,19 @@
+{
+  "data_aug":{
+    "max_aug_num": 1000,
+
+    "fluid_aug": {
+      "fluid_mode":"aug_with_random_momentum",
+      "compute_inverse": false,
+      "rand_sampl": {
+            "t_range": [-1,2]
+      },
+      "aug_with_random_momentum": {
+            "rand_momentum_shrink_factor": 8,
+            "magnitude": 1.5
+      },
+      "save_tf_map": false
+
+    }
+  }
+}

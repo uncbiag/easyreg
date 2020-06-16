@@ -5,6 +5,8 @@ from glob import glob
 import random
 from copy import copy
 
+
+
 def split_txt(input_txt,num_split, output_folder):
     os.makedirs(output_folder,exist_ok=True)
     pairs = read_txt_into_list(input_txt)
@@ -13,6 +15,14 @@ def split_txt(input_txt,num_split, output_folder):
     for i in range(num_split):
         split = [pairs[ind] for ind in output_splits[i]]
         write_list_into_txt(os.path.join(output_folder, 'p{}.txt'.format(i)),split)
+
+
+def get_file_list(path, ftype):
+    f_pth = os.path.join(path,"**",ftype)
+    file_list = glob(f_pth,recursive=True)
+    file_list = [f for f in file_list]
+    return file_list
+
 
 
 def get_txt_file(path, ftype, output_txt):
@@ -113,6 +123,12 @@ def random_sample_for_oai_inter_txt(txt_path,num_patient,num_pair_per_patient, o
 
 
 
+
+
+
+
+
+
 def get_pair_txt_for_color_net(atlas_path,atlas_label_path,inv_warped_folder,inv_w_type,output_txt):
     """the image label path is not needed for training, we use atlas_label_path to meet input format"""
     inv_warped_file_list = glob(os.path.join(inv_warped_folder,inv_w_type))
@@ -191,7 +207,8 @@ def generate_file_for_xu():
 
 
 
-generate_file_for_xu()
+
+#generate_file_for_xu()
 
 
 #

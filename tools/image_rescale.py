@@ -15,7 +15,7 @@ def __read_and_clean_itk_info(input):
 
 
 
-def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(0.5,0.5,0.5), is_label=False,keep_physical=True,fname=None,saving_path=None,fixed_sz=None):
+def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(1.0,1.0,1.0), is_label=False,keep_physical=True,fname=None,saving_path=None,fixed_sz=None):
         """
         :param img: sitk input, factor is the outputsize/patched_sized
         :param  fix sz should be refered to numpy coord
@@ -40,7 +40,7 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(0.5,0.5,0.5), i
         else:
             fixed_sz  = np.flipud(fixed_sz)
             factor = [fixed_sz[i]/img_sz[i] for i in range(len(img_sz))]
-        resize = not all([factor == 1 for factor in resize_factor])
+        resize = not all([f == 1 for f in factor])
         if resize:
             resampler = sitk.ResampleImageFilter()
             affine = sitk.AffineTransform(dimension)

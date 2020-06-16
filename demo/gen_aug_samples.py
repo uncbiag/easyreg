@@ -1,7 +1,7 @@
 import matplotlib as matplt
 matplt.use('Agg')
 import sys,os
-os.environ["CUDA_VISIBLE_DEVICES"] = ''
+#os.environ["CUDA_VISIBLE_DEVICES"] = ''
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('../easyreg'))
 sys.path.insert(0,os.path.abspath('.'))
@@ -86,6 +86,7 @@ class FluidAug(DataAug):
         self.task_type = aug_setting['data_aug']["fluid_aug"][('task_type',"rand_sampl/data_interp,  rand_sampl: random sampling from the geodesic space, typically for dataset augmentation;"
                                                                            " data_interp: interpolation between source and the target set with given time point and given weight")]
         self.compute_inverse = aug_setting['data_aug']["fluid_aug"][('compute_inverse',True,"compute the inverse map")]
+        self.save_tf_map = aug_setting['data_aug']["fluid_aug"][('save_tf_map',True,"save the transformation map")]
         self.rand_w_t = True if self.task_type=="rand_sampl" else False
         self.t_aug_list= aug_setting['data_aug']["fluid_aug"]['data_interp'][('t_aug_list',[1.0],"list of number, the time points for inter-/extra-polation")]
         self.weight_list = self.aug_setting['data_aug']["fluid_aug"]['data_interp'][('weight_list',[[1.0]],"list of list, the weight for each target image, set in data_interp mode")]
@@ -93,6 +94,7 @@ class FluidAug(DataAug):
         self.rand_momentum_shrink_factor = self.aug_setting['data_aug']["fluid_aug"]['aug_with_random_momentum'][('rand_momentum_shrink_factor',8,"the size of random momentum is 1/rand_momentum_shrink_factor of the original image sz")]
         self.magnitude = self.aug_setting['data_aug']["fluid_aug"]['aug_with_random_momentum'][('magnitude',1.5,"the magnitude of the random momentum")]
         self.affine_back_to_original_postion = self.aug_setting['data_aug']["fluid_aug"]['aug_with_nonaffined_data'][('affine_back_to_original_postion',False,"transform the new image to the original postion")]
+        self.resize_output = self.aug_setting['data_aug']["fluid_aug"][('resize_output',[-1,-1,-1],"set the resized size otherwise [-1,-1,-1]")]
 
 
 
@@ -113,8 +115,15 @@ class FluidAug(DataAug):
             momentum_sz = [1, 3] + [int(dim / 2) for dim in input_img_sz[2:]]
             momentum = (np.random.rand(*momentum_sz_low) * 2 - 1) * self.magnitude
             mom_spacing = 1./(np.array(momentum_sz_low[2:])-1)
-            momentum = torch.Tensor(momentum)
+            momentum = torch.Tensor(momentum).cuda()
             momentum, _ = resample_image(momentum,mom_spacing,momentum_sz,spline_order=1,zero_boundary=True)
+        if self.resize_output != [-1, -1, -1]:
+            momentum_sz = [1, 3] + [int(dim / 2) for dim in self.resize_output]
+            mom_spacing = 1./(np.array(momentum_sz[2:])-1)
+            momentum, _ = resample_image(momentum,mom_spacing,momentum_sz,spline_order=1,zero_boundary=True)
+            input_img_sz = [1, 1] + [int(sz * 2) for sz in momentum.shape[2:]]
+
+
 
         org_spacing = 1.0 / (np.array(moving.shape[2:]) - 1)
         input_spacing = 1.0 / (np.array(input_img_sz[2:]) - 1)
@@ -158,16 +167,18 @@ class FluidAug(DataAug):
             # we assume the label doesnt lie at the boundary
             l_warped = compute_warped_image_multiNC(l_moving, phi_new, org_spacing, spline_order=0, zero_boundary=True)
             save_image_with_given_reference(l_warped, [moving_path], output_path, [fname + '_label'])
-        save_deformation(phi_new, output_path, [fname + '_phi_map'])
-        if self.compute_inverse:
-            phi_inv = res[2]
-            inv_phi_new = phi_inv
-            if self.affine_back_to_original_postion:
-                print("Cannot compute the inverse map when affine back to the source image position")
-                return
-            if size_diff:
-                inv_phi_new, _ = resample_image(phi_inv, input_spacing, [1, 3] + list(moving.shape[2:]))
-            save_deformation(inv_phi_new, output_path, [fname + '_inv_map'])
+
+        if self.save_tf_map:
+            save_deformation(phi_new, output_path, [fname + '_phi_map'])
+            if self.compute_inverse:
+                phi_inv = res[2]
+                inv_phi_new = phi_inv
+                if self.affine_back_to_original_postion:
+                    print("Cannot compute the inverse map when affine back to the source image position")
+                    return
+                if size_diff:
+                    inv_phi_new, _ = resample_image(phi_inv, input_spacing, [1, 3] + list(moving.shape[2:]))
+                save_deformation(inv_phi_new, output_path, [fname + '_inv_map'])
 
 class FluidRand(FluidAug):
     def __init__(self,aug_setting_path,mermaid_setting_path):
@@ -176,13 +187,17 @@ class FluidRand(FluidAug):
     def get_input(self,moving_path_list,fname, init_weight_path_list=None):
         """ each line include the path of moving, the path of label (None if not exist), path of momentum1, momentum2...."""
 
-        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x)))
+        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x))).cuda()
         moving = fr_sitk(moving_path_list[0])[None][None]
         l_moving = None
         if moving_path_list[1] is not None:
             l_moving = fr_sitk(moving_path_list[1])[None][None]
         if fname is None:
             moving_name =get_file_name(moving_path_list[0])
+        if self.resize_output != [-1.,-1,-1]:
+            moving,_ = resample_image(moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=1,zero_boundary=True)
+            if moving_path_list[1] is not None:
+                l_moving,_ = resample_image(l_moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=0,zero_boundary=True)
         return moving, l_moving, moving_name
 
     def generate_aug_data(self,moving_path_list,fname_list, init_weight_path_list, output_path):
@@ -212,12 +227,12 @@ class FluidAffined(FluidAug):
     def get_input(self,moving_momentum_path_list,fname_list, init_weight_path_list):
         """ each line include the path of moving, the path of label (None if not exist), path of momentum1, momentum2...."""
 
-        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x)))
+        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x))).cuda()
         moving = fr_sitk(moving_momentum_path_list[0])[None][None]
         l_moving = None
         if moving_momentum_path_list[1] is not None:
             l_moving = fr_sitk(moving_momentum_path_list[1])[None][None]
-        momentum_list = [np.transpose(fr_sitk(path))[None] for path in moving_momentum_path_list[2:]]
+        momentum_list = [((fr_sitk(path)).permute(3,2,1,0))[None] for path in moving_momentum_path_list[2:]]
 
         if init_weight_path_list is not None:
             init_weight_list = [[fr_sitk(path) for path in init_weight_path_list]]
@@ -230,6 +245,10 @@ class FluidAffined(FluidAug):
         else:
             moving_name = fname_list[0]
             target_name_list = fname_list[1:]
+        if self.resize_output != [-1.,-1,-1]:
+            moving,_ = resample_image(moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=1,zero_boundary=True)
+            if moving_momentum_path_list[1] is not None:
+                l_moving,_ = resample_image(l_moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=0,zero_boundary=True)
         return moving, l_moving, momentum_list, init_weight_list, moving_name,target_name_list
 
     def generate_aug_data(self,moving_momentum_path_list, fname_list,init_weight_path_list, output_path):
@@ -287,7 +306,7 @@ class FluidNonAffined(FluidAug):
 
     def read_affine_param_and_output_map(self,affine_param_path,img_sz):
         affine_param = np.load(affine_param_path)
-        affine_param = torch.Tensor(affine_param)[None]
+        affine_param = torch.Tensor(affine_param)[None].cuda()
         affine_map = gen_affine_map(affine_param,img_sz)
         inverse_affine_param = get_inverse_affine_param(affine_param)
         inverse_affine_map = gen_affine_map(inverse_affine_param,img_sz)
@@ -301,7 +320,7 @@ class FluidNonAffined(FluidAug):
         each line includes  path of moving, path of moving label(None if not exists), path of mom_1,...mom_m, affine_1....affine_m
         """
 
-        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x)))
+        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x))).cuda()
 
         moving = fr_sitk(moving_momentum_path_list[0])[None][None]
         l_moving = None
@@ -325,6 +344,11 @@ class FluidNonAffined(FluidAug):
         else:
             moving_name = fname_list[0]
             target_name_list = fname_list[1:]
+
+        if self.resize_output != [-1.,-1,-1]:
+            moving,_ = resample_image(moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=1,zero_boundary=True)
+            if moving_momentum_path_list[1] is not None:
+                l_moving,_ = resample_image(l_moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=0,zero_boundary=True)
 
         return moving, l_moving, momentum_list, init_weight_list, affine_list,inverse_affine_list, moving_name, target_name_list
 
@@ -383,13 +407,17 @@ class FluidAtlas(FluidAug):
         :return:
         """
 
-        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x)))
+        fr_sitk = lambda x: torch.Tensor(sitk.GetArrayFromImage(sitk.ReadImage(x))).cuda()
         moving = fr_sitk(moving_momentum_path_list[0])[None][None]
         l_moving = None
         if moving_momentum_path_list[1] is not None:
             l_moving = fr_sitk(moving_momentum_path_list[1])[None][None]
         if moving_name is None:
             moving_name = get_file_name(moving_momentum_path_list[0])
+        if self.resize_output != [-1.,-1,-1]:
+            moving,_ = resample_image(moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=1,zero_boundary=True)
+            if moving_momentum_path_list[1] is not None:
+                l_moving,_ = resample_image(l_moving,[1,1,1],desiredSize=[1,1]+self.resize_output,spline_order=0,zero_boundary=True)
         return moving, l_moving,moving_name
 
     def generate_aug_data(self,path_list,fname_list, init_weight_path_list, output_path):
@@ -413,11 +441,11 @@ class FluidAtlas(FluidAug):
             model, criterion = mf.create_registration_model(model_name, params['model'],
                                                             compute_inverse_map=True)
             lowres_id = identity_map_multiN(lowResSize, lowResSpacing)
-            lowResIdentityMap = torch.from_numpy(lowres_id)
+            lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
 
             _id = identity_map_multiN(img_sz, spacing)
-            identityMap = torch.from_numpy(_id)
-            mermaid_unit_st = model
+            identityMap = torch.from_numpy(_id).cuda()
+            mermaid_unit_st = model.cuda()
             mermaid_unit_st.associate_parameters_with_module()
             return mermaid_unit_st, criterion, lowResIdentityMap, lowResSize, lowResSpacing, identityMap, spacing
 
@@ -449,9 +477,9 @@ class FluidAtlas(FluidAug):
                                                   glob(os.path.join(self.atlas_to_folder, "*nii.gz"))))
         to_atlas_momentum_path_list = list(filter(lambda x: "Momentum" in x and get_file_name(x).find("atlas") != 0,
                                                   glob(os.path.join(self.to_atlas_folder, "*nii.gz"))))
-        atlas_to_momentum_list = [torch.Tensor(read_image(atlas_momentum_pth).transpose()[None]) for atlas_momentum_pth
+        atlas_to_momentum_list = [torch.Tensor(read_image(atlas_momentum_pth).transpose()[None]).cuda() for atlas_momentum_pth
                                   in atlas_to_momentum_path_list]
-        to_atlas_momentum_list = [torch.Tensor(read_image(atlas_momentum_pth).transpose()[None]) for atlas_momentum_pth
+        to_atlas_momentum_list = [torch.Tensor(read_image(atlas_momentum_pth).transpose()[None]).cuda() for atlas_momentum_pth
                                   in to_atlas_momentum_path_list]
         moving_example = read_image(path_list[0][0])
         img_sz = list(moving_example.shape)
@@ -515,9 +543,10 @@ class FluidAtlas(FluidAug):
                                                                     zero_boundary=True)
                             save_image_with_given_reference(l_warped, [path_list[i][0]], output_path, [fname + '_label'])
                         save_image_with_given_reference(warped, [path_list[i][0]], output_path, [fname + '_image'])
-                        if self.compute_inverse:
-                            # save_deformation(foward_map, output_path, [fname + '_phi'])
-                            save_deformation(inverse_map, output_path, [fname + '_inv_phi'])
+                        if self.save_tf_map:
+                            if self.compute_inverse:
+                                # save_deformation(foward_map, output_path, [fname + '_phi'])
+                                save_deformation(inverse_map, output_path, [fname + '_inv_phi'])
 
 
 
@@ -697,6 +726,8 @@ if __name__ == '__main__':
                         help='path of data augmentation setting json')
     parser.add_argument("-ms",'--mermaid_setting_path', required=False, default=None,
                         help='path of mermaid setting json')
+    parser.add_argument("-g", '--gpu_id', required=False, default=-1,
+                        help='path of mermaid setting json')
     args = parser.parse_args()
     file_txt = args.file_txt
     name_txt = args.name_txt
@@ -707,6 +738,12 @@ if __name__ == '__main__':
     fluid_mode = args.fluid_mode
     use_bspline = args.bspline
     output_path = args.output_path
+    gpu_id = int(args.gpu_id)
+
+    if gpu_id<0:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ''
+    else:
+        torch.cuda.set_device(gpu_id)
     assert os.path.isfile(file_txt),"{} not exists".format(file_txt)
     assert os.path.isfile(aug_setting_path),"{} not exists".format(aug_setting_path)
     if not use_bspline:

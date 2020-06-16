@@ -1,6 +1,6 @@
 {
   "data_aug":{
-    "max_aug_num": 10,
+    "max_aug_num": 1000,
 
     "fluid_aug": {
       "fluid_mode":"aug_with_affined_data",

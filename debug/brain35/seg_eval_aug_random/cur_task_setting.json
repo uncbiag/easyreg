@@ -1,0 +1,101 @@
+{
+    "dataset": {
+        "task_type": "seg",
+        "max_num_for_loading": [
+            1,1,-1,1
+        ],
+        "img_after_resize": [
+            200,
+            240,
+            200
+        ],
+        "spacing_to_refer": [
+            1.0,1.0,1.0
+        ],
+        "seg": {
+            "patch_size": [72,72,72],
+            "interested_label_list": [-1],
+            "use_whole_img_as_input": false,
+            "num_crop_per_class_per_train_img": -1,
+            "partition": {
+              "mode": "pred",
+              "overlap_size": [
+                16,
+                16,
+                16
+              ],
+                "padding_mode": "reflect"
+            },
+              "transform": {
+                "my_bal_rand_crop": {
+                  "bg_th_ratio": 0.5,
+                  "scale_ratio": 0.1
+                },
+                "transform_seq": [
+                  "my_balanced_random_crop"
+                ]
+            }
+        }
+    },
+    "tsk_set": {
+        "batch_sz": [4,1,1,1],
+        "check_best_model_period": 5,
+        "continue_train": false,
+        "continue_train_lr": 5e-04,
+        "criticUpdates": 2,
+        "epoch": 500,
+        "gpu_ids": 0,
+        "loss": {
+            "type": "ce"
+        },
+        "max_batch_num_per_epoch": [
+            400,
+            1,
+            1
+        ],
+        "model": "seg_net",
+        "model_path": "",
+        "n_in_channel": 1,
+        "method_name": "seg_unet",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 0.001,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 60
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_taking_original_image_format": false,
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "seg": {
+            "class_num": 24,
+            "ensemble_during_the_test": true,
+            "use_bn": true,
+            "seg_ensemble":{
+                "warped_pth": "/playpen-raid1/zyshen/data/brain_35/corrected/data_aug_test_random/aug",
+                "inv_phi_pth": "/playpen-raid1/zyshen/data/brain_35/corrected/data_aug_test_random/aug",
+                "warped_type": "*_image.nii.gz",
+                "inv_switcher": ["_image.nii.gz","_inv_map.nii.gz"],
+                "num_max": 20
+            }
+        },
+        "save_3d_img_on": true,
+        "save_extra_3d_img": true,
+        "save_fig_on": true,
+        "train": false,
+        "use_physical_coord": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    }
+}

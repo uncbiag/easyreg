@@ -95,14 +95,14 @@ def init_aug_env(reg_pair_list_txt,reg_name_list_txt,task_output_path,setting_fo
 
 
 
-def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_path):
+def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_path,gpu_list):
     aug_setting_path = os.path.join(setting_folder_path,"data_aug_setting.json")
     mermaid_setting_path = os.path.join(setting_folder_path,"mermaid_nonp_settings.json")
     assert os.path.isfile(aug_setting_path), "the aug setting json  {} is not found".format(aug_setting_path)
     aug_setting = pars.ParameterDict()
     aug_setting.load_JSON(aug_setting_path)
     task_type = aug_setting["data_aug"]["fluid_aug"]["task_type"]
-    num_process = 5
+    num_process = len(gpu_list)
     if task_type == "rand_sampl":
         max_aug_num = aug_setting["data_aug"]["max_aug_num"]
         max_aug_num_per_process = round(max_aug_num/num_process)
@@ -110,9 +110,9 @@ def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_p
         aug_setting_mp_path = os.path.join(setting_folder_path,"data_aug_setting_mutli_process.json")
         aug_setting.write_ext_JSON(aug_setting_mp_path)
         processes = []
-        for _ in range(num_process):
+        for i in range(num_process):
             cmd = "python gen_aug_samples.py "
-            cmd += "-t={} -n={} -as={} -ms={} -o={}\n".format(input_txt,input_name_txt,aug_setting_mp_path,mermaid_setting_path,aug_output_path)
+            cmd += "-t={} -n={} -as={} -ms={} -o={} -g={}\n".format(input_txt,input_name_txt,aug_setting_mp_path,mermaid_setting_path,aug_output_path,int(gpu_list[i]))
             p = subprocess.Popen(cmd, shell=True)
             processes.append(p)
             time.sleep(1)
@@ -126,8 +126,8 @@ def do_augmentation(input_txt, input_name_txt, setting_folder_path, aug_output_p
         processes = []
         for i in range(num_process):
             cmd = "python gen_aug_samples.py "
-            cmd += "-t={} -n={} -as={} -ms={} -o={} \n".format(sub_input_txt_list[i],sub_input_name_txt_list[i], aug_setting_path, mermaid_setting_path,
-                                                           aug_output_path)
+            cmd += "-t={} -n={} -as={} -ms={} -o={} -g={}\n".format(sub_input_txt_list[i],sub_input_name_txt_list[i], aug_setting_path, mermaid_setting_path,
+                                                           aug_output_path,int(gpu_list[i]))
             p = subprocess.Popen(cmd, shell=True)
             processes.append(p)
             time.sleep(1)
@@ -150,9 +150,9 @@ def pipeline(args):
     :return: None
     """
     setting_folder_path, reg_pair_list_txt, reg_name_list_txt=init_reg_env(args)
-    do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
+    #do_registration(reg_pair_list_txt,reg_name_list_txt, setting_folder_path,args.task_output_path,args.gpu_id_list)
     aug_input_txt,aug_name_txt, aug_output_path = init_aug_env(reg_pair_list_txt,reg_name_list_txt,args.task_output_path,setting_folder_path)
-    do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path)
+    do_augmentation(aug_input_txt,aug_name_txt,setting_folder_path, aug_output_path, args.gpu_id_list)
 
 
 if __name__ == '__main__':
@@ -195,7 +195,11 @@ if __name__ == '__main__':
              --demo_name: opt_lddmm_lpba/learnt_lddmm_oai
              --gpu_id_list/ -g: gpu_id_list to use
         other arguments:
-             --txt_path/-txt: the input txt file
+             --file_txt/-txt: the input txt recording the file path
+             --name_txt/-txt: the input txt recording the file name
+             --txt_format: aug_by_file/aug_by_line
+             --max_size_of_target_set_to_reg: max size of the target set for each source image, set -1 if there is no constraint
+             --max_size_of_pair_to_reg: max size of pair for registration, set -1 if there is no constraint, in that case the potential pair  number would be N*(N-1) if txt_format is set as aug_by_file
              --setting_folder_path/-ts :path of the folder where settings are saved
              --task_output_path/ -o: the path of output folder
 
@@ -209,14 +213,14 @@ if __name__ == '__main__':
     # ---------------------------------------------------------------------------------------------------------------------------
     parser.add_argument('-ts', '--setting_folder_path', required=False, type=str,
                         default="",
-                        help='path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings(optional) and mermaid_nonp_settings(optional)')
+                        help='path of the folder where settings are saved,should include cur_task_setting.json,data_aug_setting, mermaid_affine_settings(optional) and mermaid_nonp_settings(optional)')
     parser.add_argument('-t','--file_txt',  required=False, default="", type=str,
                         help='the txt file recording the file to augment')
     parser.add_argument('-n', '--name_txt', required=False, default=None, type=str,
                         help='the txt file recording the corresponding file name')
     parser.add_argument('-f','--txt_format',  required=False, default="aug_by_file", type=str,
                         help='txt format, aug_by_line/aug_by_file')
-    parser.add_argument('-mt','--max_size_of_target_set_to_reg',  required=False, default=5, type=int,
+    parser.add_argument('-mt','--max_size_of_target_set_to_reg',  required=False, default=10, type=int,
                         help='max size of the target set for each source image, set -1 if there is no constraint')
     parser.add_argument('-ma','--max_size_of_pair_to_reg', required=False, default=-1, type=int,
                         help='max size of pair for registration, set -1 if there is no constraint, in that case the potential pair  number would be N*(N-1) if txt_format is set as aug_by_file')

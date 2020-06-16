@@ -1,0 +1,17 @@
+{
+  "data_aug":{
+    "max_aug_num": 200,
+
+    "fluid_aug": {
+      "fluid_mode":"aug_with_random_momentum",
+      "compute_inverse": true,
+      "rand_sampl": {
+            "t_range": [-1,2]
+      },
+      "aug_with_random_momentum": {
+            "rand_momentum_shrink_factor": 8,
+            "magnitude": 1.5
+      }
+    }
+  }
+}

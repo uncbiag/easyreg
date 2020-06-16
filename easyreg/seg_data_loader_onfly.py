@@ -218,15 +218,14 @@ class SegmentationDataset(Dataset):
             img_label_dic = manager.dict()
             img_label_path_dic = {}
             img_name_list = []
-            for fps in self.path_list:
-                fp = fps[0]
-                fn = get_file_name(fp)
+            for i,fps in enumerate(self.path_list):
+                fn = self.name_list[i]
                 if fn not in img_label_path_dic:
                     if self.has_label:
                         img_label_path_dic[fn] = {'image':fps[0], 'label':fps[1]}
                     else:
                         img_label_path_dic[fn] = {'image':fps[0]}
-                img_name_list.append(get_file_name(fps[0]))
+                img_name_list.append(fn)
             num_of_workers = 4
             num_of_workers = num_of_workers if len(self.name_list)>12 else 2
             split_dict = self.__split_dict(img_label_path_dic,num_of_workers)
@@ -246,15 +245,14 @@ class SegmentationDataset(Dataset):
             img_label_dic=dict()
             img_label_path_dic = {}
             img_name_list = []
-            for fps in self.path_list:
-                fp = fps[0]
-                fn = get_file_name(fp)
+            for i,fps in enumerate(self.path_list):
+                fn = self.name_list[i]
                 if fn not in img_label_path_dic:
                     if self.has_label:
                         img_label_path_dic[fn] = {'image': fps[0], 'label': fps[1]}
                     else:
                         img_label_path_dic[fn] = {'image': fps[0]}
-                img_name_list.append(get_file_name(fps[0]))
+                img_name_list.append(fn)
             self.__read_img_label_into_zipnp(img_label_path_dic, img_label_dic) #todo dels
 
         self.get_organize_structure(img_label_dic,img_name_list)
