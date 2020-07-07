@@ -2,7 +2,7 @@
 
 A friendly tutorial on fluid based registration and augmentation will come soon :)
 
-The EasyReg is a image registration package, that supports a series of mainstream methods.\
+The EasyReg is a image processing package, that supports a series of mainstream methods.\
 We list a few properties:
 1) A simple interface for learning/optimization based image registration tools, e.g., [Mermaid](https://github.com/uncbiag/mermaid) and other popular registration
 packages<sup>*</sup>.
