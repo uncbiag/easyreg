@@ -23,7 +23,6 @@ class SegModelBase():
         self.save_dir = opt['tsk_set']['path']['check_point_path']
         self.record_path = opt['tsk_set']['path']['record_path']
         self.spacing = None
-        self.use_physical_coord = self.opt['tsk_set'][('use_physical_coord',False,"Keep physical spacing")]
         self.continue_train = opt['tsk_set'][('continue_train',False,"for network training method, continue training the model loaded from model_path")]
         self.criticUpdates = opt['tsk_set'][('criticUpdates',1,"for network training method, the num determines gradient update every # iter")]
         self.n_in_channel = opt['tsk_set'][('n_in_channel',1,"for network training method, the color channel typically set to 1")]

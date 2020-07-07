@@ -150,12 +150,17 @@ For NiftyReg installation instructions please refer to [NiftyReg Installation](h
 
 If you find EasyReg is helpful, please cite (see [bibtex](citations.bib)):
 
+Anatomical Data Augmentation via Fluid-based Image Registration [[link]](https://arxiv.org/pdf/2007.02447.pdf)\
+Zhengyang Shen, Zhenlin Xu, Sahin Olut, Marc Niethammer. MICCAI 2020.
+
+Region-specific Diffeomorphic Metric Mapping [[link]](https://arxiv.org/pdf/1906.00139.pdf)\
+Zhengyang Shen, François-Xavier Vialard, Marc Niethammer. NeurIPS 2019.
+
 Networks for Joint Affine and Non-parametric Image Registration [[link]](https://arxiv.org/pdf/1903.08811.pdf)\
 Zhengyang Shen, Xu Han, Zhenlin Xu, Marc Niethammer. CVPR 2019.
 
 
-Region-specific Diffeomorphic Metric Mapping [[link]](https://arxiv.org/pdf/1906.00139.pdf)\
-Zhengyang Shen, François-Xavier Vialard, Marc Niethammer. NeurIPS 2019.
+
 
 
 
