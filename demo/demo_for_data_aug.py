@@ -235,7 +235,7 @@ if __name__ == '__main__':
     txt_format = args.txt_format
 
     if run_demo:
-        assert demo_name in ["opt_lddmm_lpba","learnt_lddmm_oai"]
+        assert demo_name in ["opt_lddmm_lpba","learnt_lddmm_oai","learnt_lddmm_oai_interpolation"]
     assert os.path.isfile(file_txt) or run_demo,"file not exist"
     assert txt_format in ["aug_by_line","aug_by_file"]
     pipeline(args)

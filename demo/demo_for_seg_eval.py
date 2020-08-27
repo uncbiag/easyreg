@@ -165,7 +165,6 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='An easy interface for evaluate various segmentation methods')
-
     parser.add_argument('-ts', '--setting_folder_path', required=False, type=str,
                         default=None,
                         help='path of the folder where settings are saved,should include cur_task_setting.json')

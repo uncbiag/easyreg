@@ -283,7 +283,7 @@ class FluidAffined(FluidAug):
                 for t_aug in t_aug_list:
                     for weight in weight_list:
                         momentum = torch.zeros_like(momentum_list[0])
-                        fname = moving_name + '_to_'
+                        fname = moving_name + '_'
                         suffix =""
                         for k in range(K):
                             momentum += weight[k] * momentum_list[selected_index[k]]
@@ -373,7 +373,8 @@ class FluidNonAffined(FluidAug):
                     t_aug_list = [random.random() * t_span + t_range[0]]
                     selected_index = random.sample(list(range(num_momentum)), K)
                 else:
-                    assert num_momentum ==1,"for non-affined image and for data_interp mode, the size of the momentum set should be 1"
+                    if num_momentum >1:
+                        print("for non-affined image and for data_interp mode, the size of the momentum set should be 1")
                     t_aug_list = self.t_aug_list
                     selected_index = [0]
 
@@ -381,7 +382,7 @@ class FluidNonAffined(FluidAug):
                     momentum  = momentum_list[selected_index[0]]
                     affine = affine_list[selected_index[0]]
                     inverse_affine = inverse_affine_list[selected_index[0]]
-                    fname = moving_name + "_to_" + target_name_list[selected_index[0]] + '_t_{:.2f}'.format(t_aug)
+                    fname = moving_name + "_" + target_name_list[selected_index[0]] + '_t_{:.2f}'.format(t_aug)
 
                     fname = fname.replace('.', 'd')
                     init_weight = None
@@ -695,8 +696,8 @@ if __name__ == '__main__':
     
         
     For the input txt file, 
-    for fluid augmentation (fluid_mode: aug_with_affined_data/aug_with_nonaffined_data) : each line include a source image path, source label path (None if not exist), N momentum paths that register to N target images
-    for fluid augmentation (fluid_mode: aug_with_atlas and aug_with_random_momentum): each line include a source image path, source_label path (None if not exist)
+    for fluid augmentation (fluid_mode: aug_with_affined_data / aug_with_nonaffined_data) : each line include a source image path, source label path (None if not exist), N momentum paths that register to N target images
+    for fluid augmentation (fluid_mode: aug_with_atlas / aug_with_random_momentum): each line include a source image path, source_label path (None if not exist)
     for bspline augmentation : each line include a source image path, source_label path (None if not exist)
     
     the name_txt (optional, will use the filename if not provided) include the fname for each image ( to avoid confusion of source images with the same filename)

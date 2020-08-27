@@ -322,18 +322,21 @@ class SegmentationDataset(Dataset):
             img_resampled = img
         return img_resampled, resize_factor
 
-    def normalize_intensity(self, img, linear_clip=False):
+    def normalize_intensity(self, img, percen_clip=False,range_clip=None):
         """
         a numpy image, normalize into intensity [-1,1]
         (img-img.min())/(img.max() - img.min())
         :param img: image
-        :param linear_clip:  Linearly normalized image intensities so that the 95-th percentile gets mapped to 0.95; 0 stays 0
-        :return:
+        :param percen_clip:  Linearly normalized image intensities so that the 95-th percentile gets mapped to 0.95; 0 stays 0
+        :param range_clip:  Linearly normalized image intensities from (range_clip[0], range_clip[1]) to 0,1
+        :return
         """
-        if linear_clip:
+        if percen_clip:
             img = img - img.min()
             normalized_img = img / np.percentile(img, 95) * 0.95
         else:
+            if range_clip:
+                img = np.clip(img,a_min=range_clip[0], a_max=range_clip[1])
             min_intensity = img.min()
             max_intensity = img.max()
             normalized_img = (img - img.min()) / (max_intensity - min_intensity)

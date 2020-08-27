@@ -61,7 +61,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
                     continue
                 i = i - running_range[0]
 
-            batch_size =  len(data[0]['image'])
+            batch_size = len(data[0]['image'])
             is_train = False
             if model.network is not None:
                 model.network.train(False)

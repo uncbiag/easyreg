@@ -10,7 +10,7 @@ from .losses import NCCLoss
 
 
 
-class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+class AffineNetSym(nn.Module):
     """
     A multi-step symmetirc -force affine network
 
