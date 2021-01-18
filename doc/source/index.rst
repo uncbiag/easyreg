@@ -14,6 +14,7 @@ Author: Zhengyang Shen, zyshen@cs.unc.edu
    :maxdepth: 1
    :caption: Notes
 
+   notes/train_segmentation_model.rst
    notes/prepare_data.rst
    notes/walk_through_demos.rst
    notes/train_your_own_model.rst
