@@ -55,7 +55,7 @@ __________________________
 Here, we provide an step-by-step tutorial on how to train a vSVF model on OAI dataset.
 A "training_on_3_cases" demo is provided here for demonstration purpose.
 
-The demo trains a affine network first and then ,with the affine part fixed, trains a momentum network (for vSVF).
+The demo trains a affine network first and then, with the affine part fixed, trains a momentum network (for vSVF).
 
 
 
@@ -97,8 +97,7 @@ The pair_name_list.txt (optional) reads like:
     pair_3_4
     pair_5_6
 
-The pair_path_list.txt reads like:
-
+The pair_path_list.txt reads like the following, source, target, source mask and the target mask, respectively:
 .. code:: shell
 
     ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz     ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz     ./oai_examples/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_label_all.nii.gz     ./oai_examples/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_label_all.nii.gz
@@ -125,7 +124,7 @@ Since Mermaid has its own tutorial on setting, we would focus on ``cur_task_sett
 
 
 
-Here is an example from **training_on_3_cases**, which can be found in ``./demo/demo_settins/training_on_3_cases``.
+Here is an example from **training_on_3_cases**, which can be found in ``./demo/demo_settings/training_on_3_cases``.
 
 The detailed settings should can be referred from :ref:`training-settings-label`.
 

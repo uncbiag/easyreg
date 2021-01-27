@@ -1,4 +1,4 @@
-.. pytorchRegistration documentation master file, created by
+.. Registration documentation master file, created by
    sphinx-quickstart on Sat Jul 29 08:41:36 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -17,7 +17,9 @@ Author: Zhengyang Shen, zyshen@cs.unc.edu
    notes/train_segmentation_model.rst
    notes/prepare_data.rst
    notes/walk_through_demos.rst
+   notes/train_lpba.rst
    notes/train_your_own_model.rst
+   notes/get_results.rst
 
 .. toctree::
    :maxdepth: 2
