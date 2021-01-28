@@ -141,6 +141,13 @@ for mode in ['train', 'test', 'val']:
 
 
 
+for mode in ['train', 'test', 'val']:
+    with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
+        for img, label in zip(file_names[mode]['images'], file_names[mode]['labels']):
+            f.write('img_{}\n'.format(img.split('.')[0].split('/')[-1]))
+
+
+
 
 
 
