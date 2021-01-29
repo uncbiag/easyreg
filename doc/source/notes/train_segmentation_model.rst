@@ -100,13 +100,13 @@ For training, we can also utilize data augmentation for better segmentation scor
 Also, this segmentation network is derivate of UNet, which uses residual connections and patch based training. Thus, it is important to set the `patch_size` parameter in the training settings.
 If you would like to classify specific labels, you can determine that as well, using `interested_label_list` in the JSON file for settings.
 
-It is possible to replicate our training process using our setting, which can be found under demo_settings/segmentation_lpba/curr_task_settings.json
+It is possible to replicate our training process using our setting, which can be found under `scripts/settings_for_lpba/seg_train/curr_task_settings.json`.
 
 In order to start training, you need to execute the following script:
 
 .. code-block:: shell
 
-    python start_segmentation_training.py -ts demo_settings/segmentation_lpba/curr_task_settings.json --output_root_path lpba_segmentation --data_task_name lpba --task_name segmentation_with_unet
+    python train_seg.py -ts settings_for_lpba/seg_train/curr_task_settings.json --output_root_path lpba_segmentation --data_task_name lpba --task_name segmentation_with_unet
 
 
 Resume the training
@@ -122,11 +122,11 @@ To do this, we need to change a few parameters in our settings JSON, which can b
 
 ..  code:: shell
 
-    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases_resume -ts=./demo_settings/mermaid/training_on_3_cases  -g=0
+    python train_seg.py -ts settings_for_lpba/seg_train/curr_task_settings.json --output_root_path lpba_segmentation --data_task_name lpba --task_name segmentation_with_unet_resumed
 
 
 Tracking the training
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-We can observe the training under output_root_path/logs
+We can observe the training under output_root_path/data_task_name/task_name, which can be import to Tensorboard, as it saves in the .tfevents format.
 
