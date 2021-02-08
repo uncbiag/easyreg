@@ -4,6 +4,10 @@ import numpy as np
 import random
 parser = argparse.ArgumentParser(description='Data Organizer and Preprocessor')
 parser.add_argument('--dataset_path', required=True, help='path to the root of the dataset')
+parser.add_argument('--im2im', action='store_true')
+parser.add_argument('--atlas', action='store_true')
+parser.add_argument('--atlas_name', type=str, help='the name for the atlas file, needs to be included under images/')
+parser.add_argument('--task_type', type=str, help='type of the task, can be either reg or seg', required=True)
 parser.add_argument('--preprocess', action='store_true')
 parser.add_argument('--keep_current', action='store_true')
 parser.add_argument('--train_size', type=int, default=70)
@@ -42,6 +46,9 @@ def check_if_equal_label_pairs(dataset_path, mode=''):
         return True
     return False    
 
+if opt.task_type != 'seg' or opt.task_type != 'reg':
+    print("Invalid task type {}, it can be either seg or reg".format(opt.task_type))
+    exit(1)
 
 if opt.train_size + opt.test_size + opt.val_size != 100:
     print('Train, test, val split sum is {}%, returning error'.format(opt.train_size + opt.test_size + opt.val_size))
@@ -96,7 +103,6 @@ else:
 # We are splitting
 # Assumption, when we sort, the labels and the images are matching.
 if not already_splitted:
-    print('hello2')
     file_names['all']['images'] = np.array(sorted(os.listdir(os.path.join(opt.dataset_path, 'images'))))
     file_names['all']['labels'] = np.array(sorted(os.listdir(os.path.join(opt.dataset_path, 'labels'))))
     indices = list(range(len(file_names['all']['images'])))
@@ -121,30 +127,73 @@ if not already_splitted:
 
 
 else:
-    print('hello3')
     for mode in ['train', 'test', 'val']:
         file_names[mode]['images'] = [os.path.join(opt.dataset_path, mode, 'images', path) for path in sorted(os.listdir(os.path.join(opt.dataset_path, mode, 'images')))]
         file_names[mode]['labels'] = [os.path.join(opt.dataset_path, mode, 'labels', path) for path in sorted(os.listdir(os.path.join(opt.dataset_path, mode, 'labels')))]
     
 
-
-print(curr_dir)
-
-# Create files
-for mode in ['train', 'test', 'val']:
-    with open(os.path.join(file_list_paths, mode, 'pair_path_list.txt'), 'w+') as f:
-        for img, label in zip(file_names[mode]['images'], file_names[mode]['labels']):
-            f.write('{} {}\n'.format(img, label))
+if opt.atlas:
+    atlas_id =  file_names['train']['images'].index(opt.atlas_name)
+    del file_names['train']['images'][atlas_id]
+    del file_names['train']['labels'][atlas_id]
 
 
 
 
 
 
-for mode in ['train', 'test', 'val']:
-    with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
-        for img, label in zip(file_names[mode]['images'], file_names[mode]['labels']):
-            f.write('img_{}\n'.format(img.split('.')[0].split('/')[-1]))
+if opt.task_type == 'seg':
+    # Create files
+    for mode in ['train', 'test', 'val']:
+        with open(os.path.join(file_list_paths, mode, 'pair_path_list.txt'), 'w+') as f:
+            for img, label in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                f.write('{} {}\n'.format(img, label))
+
+
+
+
+
+
+    for mode in ['train', 'test', 'val']:
+        with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
+            for img, label in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                f.write('img_{}\n'.format(img.split('.')[0].split('/')[-1]))
+
+elif opt.task_type == 'reg':
+    if not opt.atlas:
+        for mode in ['train', 'test', 'val']:
+            with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
+                for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                    for img2, label2 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                        if img1 == img2:
+                            continue
+                        f.write('{} {} {} {}\n'.format(img1, img2, label1, label2))
+
+        for mode in ['train', 'test', 'val']:
+            with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
+                for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                    for img2, label2 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                        if img1 == img2:
+                            continue
+                        f.write('{}_{}\n'.format(img1.split('.')[0].split('/')[-1], img2.split('.')[0].split('/')[-1]))
+                        
+    else:
+        for mode in ['train', 'test', 'val']:
+            with open(os.path.join(file_list_paths, mode, 'pair_path_list.txt'), 'w+') as f:
+                for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                    for img2, label2 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                        if img1 == img2:
+                            continue
+                        f.write('{} {} {} {}\n'.format(img1, img2, label1, label2))
+
+        for mode in ['train', 'test', 'val']:
+            with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
+                for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
+                    img2, label2 = file_names[mode]['images'][atlas_id], file_names[mode]['labels'][atlas_id]
+                    f.write('{}_{}\n'.format(img1.split('.')[0].split('/')[-1], img2.split('.')[0].split('/')[-1]))
+        
+
+
 
 
 
