@@ -99,7 +99,9 @@ Below are the command line arguments that *reg_train.py* accepts.
 
 **
 
-Also, this registration network (default setting) is derivate of VoxelMorph, where we predict the downscaled displacement field using U-Net. By the construction, it does not guarantee folding-free solution, however there is another models included in the framework with folding-free guarantees. One of which is the derivate of the VoxelMorph method [ref], that uses VAE-like model and step-by-step refinement for the displacement map that replicates the integration scheme. We also further provide LDDMM and momentum based models, the example settings could be found under `settings_for_lpba/reg_train`. Currently, we have limited support for LDDMM models but we will support it too.
+Also, this registration network (default setting) is derivate of VoxelMorph [ref], where we predict the down-scaled displacement field using U-Net. By the construction, it does not guarantee folding-free solution, however there is another models included in the framework with folding-free guarantees. One of which is the derivate of the VoxelMorph method [ref], that uses VAE-like model and step-by-step refinement for the displacement map that replicates the integration scheme. We also further provide LDDMM and momentum based models, the example settings could be found under `settings_for_lpba/reg_train`. Currently, we have limited support for LDDMM models but we will support it too.
+It is really important to babysit the training if a new dataset is used, and the records can be found under `output_root_path/data_task_name/task_name/records`, we recommend to try different loss measures, such as Localized Cross Correlation, with different factors for regularization. The coefficient for similarity loss is set to 1, so you can tune the registration loss coefficient and the learning rate to tune the training.
+Further, if labels for the dataset is provided, we measure the performance in terms of Dice and Jacobi distances with respect to registered labels.
 It is possible to replicate our training process using our setting, which can be found under `scripts/settings_for_lpba/reg_train/curr_task_settings.json`.
 
 In order to start training, you need to execute the following script:
@@ -107,6 +109,11 @@ In order to start training, you need to execute the following script:
 .. code-block:: shell
 
     python train_reg.py -ts settings_for_lpba/reg_train/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet
+
+
+Pre-alignment with affine network
+^^^^^^^^^^^^^^^^^^^^^^^
+You can pre-align images using affine transformations, which can be enabled from settings. The affine transformations are predicted by a small neural network. It is handy and recommended for atlas-based registration, especially when an atlas from another dataset is utilized.
 
 
 Resume the training
@@ -128,5 +135,5 @@ To do this, we need to change a few parameters in our settings JSON, which can b
 Tracking the training
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-We can observe the training under output_root_path/data_task_name/task_name, which can be import to Tensorboard, as it saves in the .tfevents format.
+We can observe the training under output_root_path/data_task_name/task_name, which can be import to Tensorboard, as it saves in the .tfevents format. Also, it is recommended to check `output_root_path/data_task_name/task_name/records` folder to see intermediate result for specific images.
 
