@@ -40,13 +40,23 @@ parser.add_argument('--seed', type=int, default=1773)
 # dataset_path / val / labels
 
 opt = parser.parse_args()
+def clean_ds_store(dataset_path, mode=''):
+    os.remove(os.path.join(opt.dataset_path, mode, 'images', '.DS_Store'))
+    os.remove(os.path.join(opt.dataset_path, mode, 'labels', '.DS_Store'))
 
 def check_if_equal_label_pairs(dataset_path, mode=''):
+    try:
+        print("Trying to clean up DS.Store files")
+        clean_ds_store(dataset_path, mode)
+    except:
+        print("No DS.Store file found")
     if len(os.listdir(os.path.join(opt.dataset_path, mode, 'images'))) == len(os.listdir(os.path.join(opt.dataset_path, mode, 'labels'))):
         return True
     return False    
 
-if opt.task_type != 'seg' or opt.task_type != 'reg':
+
+
+if opt.task_type != 'seg' and opt.task_type != 'reg':
     print("Invalid task type {}, it can be either seg or reg".format(opt.task_type))
     exit(1)
 
@@ -72,7 +82,6 @@ already_splitted = False
 # We do the split
 if 'images' in os.listdir(opt.dataset_path) and 'labels' in os.listdir(opt.dataset_path):
     if not check_if_equal_label_pairs(opt.dataset_path):
-        print('hello')
         print('Unequal number of labels and images in dataset!')
         exit(1)
 
