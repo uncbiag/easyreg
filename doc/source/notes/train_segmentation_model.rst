@@ -6,7 +6,7 @@ Training a Segmentation model
 
 
 We will walk you through for training segmentation models.
-All of the scripts that we refer can be found under `/demo` folder. You can refer to *seg_train.py* script, however, it is totally optional.
+All of the scripts that we refer can be found under `scripts/` folder. You can refer to *seg_train.py* script, however, it is totally optional.
 
 1) Data Preprocessing & Data Organization   
 ########

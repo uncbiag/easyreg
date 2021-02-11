@@ -6,7 +6,7 @@ Training a Registration model
 
 
 We will walk you through for training registration models.
-All of the scripts that we refer can be found under `/demo` folder. You can refer to *seg_train.py* script, however, it is totally optional.
+All of the scripts that we refer can be found under `scripts/` folder. You can refer to *seg_train.py* script, however, it is totally optional.
 
 1) Data Preprocessing & Data Organization   
 ########
@@ -28,8 +28,8 @@ Our framework requires files to be organized in a specific structure. However, i
         --data_task_name : data task name i.e. lung_reg_task , oai_reg_task
         --output_root_path  : task name i.e. run_training_rdmm_task
         --preprocess : path of the folder where settings are saved,should include cur_task_setting.json
+        --task_type: seg or reg
         --seed: seed that you would like to use
-        --im2im: enables the flag for image-to-image (pairwise) registration
         --atlas: enables the flag for image-to-atlas registration
         --atlas_name: if you want to use one image as an atlas, example could be s1.nii.gz, which sets s1.nii.gz as atlas.
         --train_size: percentage size for train set, if it is not pre-splitted
@@ -79,7 +79,7 @@ Example script can be run as following,
 
 .. code-block:: shell
 
-  python prep_data.py --dataset_path DATASET_LOCATION --output_root_path reg_work --data_task_name lpba_reg
+  python prep_data.py --dataset_path DATASET_LOCATION --output_root_path reg_work --data_task_name lpba_reg --task_type reg 
 
 
 2) Registration Training Script and Settings
@@ -99,21 +99,37 @@ Below are the command line arguments that *reg_train.py* accepts.
 
 **
 
-Also, this registration network (default setting) is derivate of VoxelMorph [ref], where we predict the down-scaled displacement field using U-Net. By the construction, it does not guarantee folding-free solution, however there is another models included in the framework with folding-free guarantees. One of which is the derivate of the VoxelMorph method [ref], that uses VAE-like model and step-by-step refinement for the displacement map that replicates the integration scheme. We also further provide LDDMM and momentum based models, the example settings could be found under `settings_for_lpba/reg_train`. Currently, we have limited support for LDDMM models but we will support it too.
+Also, this registration network (default setting) is derivate of VoxelMorph [ref], where we predict the down-scaled displacement field using U-Net. By the construction, it does not guarantee folding-free solution, however there is another models included in the framework with folding-free guarantees. One of which is the derivate of the VoxelMorph method [ref], that uses VAE-like model and step-by-step refinement for the displacement map that replicates the integration scheme. We also further provide LDDMM and momentum based models, the example settings could be found under `settings_for_lpba/reg_train`.
 It is really important to babysit the training if a new dataset is used, and the records can be found under `output_root_path/data_task_name/task_name/records`, we recommend to try different loss measures, such as Localized Cross Correlation, with different factors for regularization. The coefficient for similarity loss is set to 1, so you can tune the registration loss coefficient and the learning rate to tune the training.
 Further, if labels for the dataset is provided, we measure the performance in terms of Dice and Jacobi distances with respect to registered labels.
-It is possible to replicate our training process using our setting, which can be found under `scripts/settings_for_lpba/reg_train/curr_task_settings.json`.
+It is possible to replicate our training process using our setting, which can be found under `scripts/settings_for_lpba/reg_train/curr_task_settings.json`. Moreover, it is possible to use momentum based methods, such as sVSF and LDDMM, which has a deep learning part for momentum generation and affine alignment.
 
 In order to start training, you need to execute the following script:
 
 .. code-block:: shell
 
-    python train_reg.py -ts settings_for_lpba/reg_train/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet
+    python train_reg.py -ts settings_for_lpba/reg_train_voxelmorph/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet
 
 
 Pre-alignment with affine network
 ^^^^^^^^^^^^^^^^^^^^^^^
-You can pre-align images using affine transformations, which can be enabled from settings. The affine transformations are predicted by a small neural network. It is handy and recommended for atlas-based registration, especially when an atlas from another dataset is utilized.
+You can pre-align images using affine transformations, which can be enabled from settings. The affine transformations are predicted by a small neural network. It is handy and recommended for atlas-based registration, especially when an atlas from another dataset is utilized. In order to enable it, you need to set `using_affine_init` to `True`, under the `reg` object. We provide two different affine models, modified by `using_complex_net`, `True`. An example affine network setting could be like following:
+
+..  code:: javascript
+
+        "affine_net": {
+            "acc_multi_step_loss": false,
+            "affine_net_iter": 3,
+            "epoch_activate_extern_loss": 20,
+            "epoch_activate_multi_step": 30,
+            "epoch_activate_sym": 40,
+            "epoch_activate_sym_loss": 40,
+            "initial_reg_factor": 10,
+            "min_reg_factor": 1e-3,
+            "sym_factor": 0.01,
+            "reset_lr_for_multi_step": false,
+            "using_complex_net": true
+      },
 
 
 Resume the training
@@ -130,6 +146,23 @@ To do this, we need to change a few parameters in our settings JSON, which can b
 ..  code:: shell
 
     python train_reg.py -ts settings_for_lpba/reg_train/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet_resumed
+
+
+Momentum-based models
+^^^^^^^^^^^^^^^^^^^^^^^
+We support a wide array of models, both parametric and non-parametric methods. Our framework is integrated with *Mermaid* framework, which supports various registration models such as LDDMM and vSF. Furthermore, it provides deep-network accelerated versions for momentum-based registration, where it generates the initial momentum via deep networks.
+In order to start a momentum based model, you need to have the settings for mermaid as well. An example mermaid setting file can be found under settings. One important note is the path we set in task setting should be absolute path to mermaid settings.
+`"mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json"` should be set under *mermaid_net* object.
+
+
+
+Loss measures to use
+^^^^^^^^^^^^^^^^^^^^^^^
+We support mean squared error (MSE), normalized cross correlation (ncc), localized normalized cross correlation (lncc), absolute difference (L1).
+
+
+Advanced settings for training
+^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Tracking the training
