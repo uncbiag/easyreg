@@ -40,34 +40,34 @@ Our framework requires files to be organized in a specific structure. However, i
 This script requires to have data splitted under dataset_path/train, dataset_path/test, dataset_path/val and in each subfolder, we need to have two folders, images and labels.
 In specific, below is the desired structure, if the user wants to use their split:
 ::
-     dataset_path
-     ├── train          
-     │   ├── images
-     |   |    └── image1.nii.gz
-     │   └── labels
-     |        └── label1.nii.gz
-     ├── test          
-     │   ├── images
-     |   |     └── image2.nii.gz
-     │   └── labels
-     |         └── label2.nii.gz
-     ├── val          
-     │   ├── images
-     |   |     └── image3.nii.gz
-     │   └── labels
-     |         └── label3.nii.gz
+    dataset_path
+    ├── train          
+    │   ├── images
+    |   |    └── image1.nii.gz
+    │   └── labels
+    |        └── label1.nii.gz
+    ├── test          
+    │   ├── images
+    |   |     └── image2.nii.gz
+    │   └── labels
+    |         └── label2.nii.gz
+    ├── val          
+    │   ├── images
+    |   |     └── image3.nii.gz
+    │   └── labels
+    |         └── label3.nii.gz
 
 
 
 Alternatively, you can also decide to leave splitting to our end, in which case you need to have the following structure:
 ::
-     dataset_path
-     ├── images          
-     │   ├── image1.nii.gz
-     │   └── image2.nii.gz
-     ├── labels          
-     │   ├── label1.nii.gz
-     │   └── label2.nii.gz
+    dataset_path
+    ├── images          
+    │   ├── image1.nii.gz
+    │   └── image2.nii.gz
+    ├── labels          
+    │   ├── label1.nii.gz
+    │   └── label2.nii.gz
   
 
 **IMPORTANT: In order to match the labels with correct images, when their names are sorted, they should be in the same order, if they have same names, it will make them ordered exactly same.** 
@@ -102,13 +102,13 @@ Below are the command line arguments that *reg_train.py* accepts.
 Also, this registration network (default setting) is derivate of VoxelMorph [ref], where we predict the down-scaled displacement field using U-Net. By the construction, it does not guarantee folding-free solution, however there is another models included in the framework with folding-free guarantees. One of which is the derivate of the VoxelMorph method [ref], that uses VAE-like model and step-by-step refinement for the displacement map that replicates the integration scheme. We also further provide LDDMM and momentum based models, the example settings could be found under `settings_for_lpba/reg_train`.
 It is really important to babysit the training if a new dataset is used, and the records can be found under `output_root_path/data_task_name/task_name/records`, we recommend to try different loss measures, such as Localized Cross Correlation, with different factors for regularization. The coefficient for similarity loss is set to 1, so you can tune the registration loss coefficient and the learning rate to tune the training.
 Further, if labels for the dataset is provided, we measure the performance in terms of Dice and Jacobi distances with respect to registered labels.
-It is possible to replicate our training process using our setting, which can be found under `scripts/settings_for_lpba/reg_train/curr_task_settings.json`. Moreover, it is possible to use momentum based methods, such as sVSF and LDDMM, which has a deep learning part for momentum generation and affine alignment.
+It is possible to replicate our training process using our setting, which can be found under `scripts/settings_for_lpba/reg_lddmm_train/curr_task_settings.json`. Moreover, it is possible to use momentum based methods, such as sVSF and LDDMM, which has a deep learning part for momentum generation and affine alignment.
 
 In order to start training, you need to execute the following script:
 
 .. code-block:: shell
 
-    python train_reg.py -ts settings_for_lpba/reg_train_voxelmorph/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet
+    python train_reg.py -ts scripts/settings_for_lpba/reg_voxelmorph_train/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet
 
 
 Pre-alignment with affine network
@@ -145,14 +145,14 @@ To do this, we need to change a few parameters in our settings JSON, which can b
 
 ..  code:: shell
 
-    python train_reg.py -ts settings_for_lpba/reg_train/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet_resumed
+    python train_reg.py -ts settings_for_lpba/reg_voxelmorph_train/curr_task_settings.json --output_root_path lpba_reg --data_task_name lpba --task_name reg_with_unet_resumed
 
 
 Momentum-based models
 ^^^^^^^^^^^^^^^^^^^^^^^
 We support a wide array of models, both parametric and non-parametric methods. Our framework is integrated with *Mermaid* framework, which supports various registration models such as LDDMM and vSF. Furthermore, it provides deep-network accelerated versions for momentum-based registration, where it generates the initial momentum via deep networks.
 In order to start a momentum based model, you need to have the settings for mermaid as well. An example mermaid setting file can be found under settings. One important note is the path we set in task setting should be absolute path to mermaid settings.
-`"mermaid_net_json_pth": "./demo_settings/mermaid/training_network_vsvf/mermaid_nonp_settings.json"` should be set under *mermaid_net* object.
+`"mermaid_net_json_pth:" "scripts/settings_for_lpba/reg_lddmm_train/mermaid_nonp_settings.json"` should be set under *mermaid_net* object.
 
 
 
@@ -163,7 +163,12 @@ We support mean squared error (MSE), normalized cross correlation (ncc), localiz
 
 Advanced settings for training
 ^^^^^^^^^^^^^^^^^^^^^^^
-The regularization is mainly controlled by the smoother applied on an initial momentum, which is controlled by Mermaid settings. The smoother is generally a multi-gaussian, with set standard deviations and 
+The regularization is mainly controlled by the smoother applied on an initial momentum, which is controlled by Mermaid settings. The smoother is generally a multi-gaussian, with standard deviations and their corresponding weights. If you would like to see less regular deformations, you can use weights like `0.25, 0.25, 0.1, 0.15 0.25`. Default weights should produce mild results in the most cases.
+
+
+vSVF vs LDDMM
+^^^^^^^^^^^^^^^^^^^^^^^
+TODO
 
 Tracking the training
 ^^^^^^^^^^^^^^^^^^^^^^^
