@@ -163,7 +163,7 @@ We support mean squared error (MSE), normalized cross correlation (ncc), localiz
 
 Advanced settings for training
 ^^^^^^^^^^^^^^^^^^^^^^^
-
+The regularization is mainly controlled by the smoother applied on an initial momentum, which is controlled by Mermaid settings. The smoother is generally a multi-gaussian, with set standard deviations and 
 
 Tracking the training
 ^^^^^^^^^^^^^^^^^^^^^^^
