@@ -11,6 +11,7 @@ All of the scripts that we refer can be found under `scripts/` folder. You can r
 1) Data Preprocessing & Data Organization   
 ########
 
+**The sizes of images should be the factor of 16, if not, it can be set by settings, `img_after_resize`.**
 
 The framework takes 3 names to give a unique identifier, namely --data_task_name, --output_root_path, --task_name.
 
@@ -19,7 +20,7 @@ The framework takes 3 names to give a unique identifier, namely --data_task_name
 * -- data_task_name defines the name of the dataset you are using, example could be "LPBA" 
 * -- task_name defines the specific name of the experiment, example could be "reg_initial_task"
 
-Our framework requires files to be organized in a specific structure. However, it is possible to use the **prep_data.py** script in order to generate the appropriate folders and file lists. **prep_data.py** takes the following arguments:
+Our framework requires files to be organized in a specific structure. However, it is possible to use the **prepare_data.py** script in order to generate the appropriate folders and file lists. **prepare_data.py** takes the following arguments:
 
 .. code:: shell
 
@@ -31,7 +32,8 @@ Our framework requires files to be organized in a specific structure. However, i
         --task_type: seg or reg
         --seed: seed that you would like to use
         --atlas: enables the flag for image-to-atlas registration
-        --atlas_name: if you want to use one image as an atlas, example could be s1.nii.gz, which sets s1.nii.gz as atlas.
+        --atlas_image_path: if you want to use one image as an atlas the absolute path to atlas image
+        --atlas_label_path: if you want to use atlas, the absolute path to labeled atlas
         --train_size: percentage size for train set, if it is not pre-splitted
         --test_size: percentage size for test set, if it is not pre-splitted
         --val_size: percentage size for val set, if it is not pre-splitted
@@ -79,7 +81,7 @@ Example script can be run as following,
 
 .. code-block:: shell
 
-  python prep_data.py --dataset_path DATASET_LOCATION --output_root_path reg_work --data_task_name lpba_reg --task_type reg 
+  python prepare_data.py --dataset_path DATASET_LOCATION --output_root_path reg_work --data_task_name lpba_reg --task_type reg 
 
 
 2) Registration Training Script and Settings
@@ -174,4 +176,8 @@ Tracking the training
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 We can observe the training under output_root_path/data_task_name/task_name, which can be import to Tensorboard, as it saves in the .tfevents format. Also, it is recommended to check `output_root_path/data_task_name/task_name/records` folder to see intermediate result for specific images.
+
+
+3) Evaluation of Registration Network
+########
 

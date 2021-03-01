@@ -11,6 +11,7 @@ All of the scripts that we refer can be found under `scripts/` folder. You can r
 1) Data Preprocessing & Data Organization   
 ########
 
+**The sizes of images should be the factor of 16, if not, it can be set by settings, `img_after_resize`.**
 
 The framework takes 3 names to give a unique identifier, namely --data_task_name, --output_root_path, --task_name.
 
@@ -19,7 +20,7 @@ The framework takes 3 names to give a unique identifier, namely --data_task_name
 * -- data_task_name defines the name of the dataset you are using, example could be "LPBA" 
 * -- task_name defines the specific name of the experiment, example could be "segmentation_initial_task"
 
-Our framework requires files to be organized in a specific structure. However, it is possible to use the **prep_data.py** script in order to generate the appropriate folders and file lists. **prep_data.py** takes the following arguments:
+Our framework requires files to be organized in a specific structure. However, it is possible to use the **prepare_data.py** script in order to generate the appropriate folders and file lists. **prepare_data.py** takes the following arguments:
 
 .. code:: shell
 
@@ -28,6 +29,7 @@ Our framework requires files to be organized in a specific structure. However, i
         --data_task_name : data task name i.e. lung_reg_task , oai_reg_task
         --output_root_path  : task name i.e. run_training_rdmm_task
         --preprocess : path of the folder where settings are saved,should include cur_task_setting.json
+        --task_type: either reg or seg, should be seg 
         --seed: seed that you would like to use, 
         --train_size: percentage size for train set, if it is not pre-splitted
         --test_size: percentage size for test set, if it is not pre-splitted
@@ -76,7 +78,7 @@ Example script can be run as following,
 
 .. code-block:: shell
 
-  python prep_data.py --dataset_path DATASET_LOCATION --output_root_path segmentation_work --data_task_name lpba_segmentation
+  python prepare_data.py --dataset_path DATASET_LOCATION --output_root_path segmentation_work --data_task_name lpba_segmentation --task_type seg
 
 
 2) Segmentation Training Script and Settings
