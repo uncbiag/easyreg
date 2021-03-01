@@ -21,6 +21,7 @@ Author: Zhengyang Shen, zyshen@cs.unc.edu
    notes/train_your_own_model.rst
    notes/get_results.rst
    notes/train_reg_model.rst
+   notes/install.rst
 
 .. toctree::
    :maxdepth: 2
