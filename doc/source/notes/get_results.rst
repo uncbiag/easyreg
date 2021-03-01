@@ -1,4 +1,4 @@
-Obtaining results from trained model
+Evaluate a trained model
 ========================================
 
 .. _get_results:

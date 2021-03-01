@@ -3,8 +3,6 @@ Prepare Data
 
 For all methods, SimpleITK is used as the image IO and our test is based on "nii.gz" format.
 
-\*TODO, SimpleITK will be replaced by ITK in the future release.\*
-
 
 
 .. _prepare-data-non-training-label:
@@ -36,17 +34,16 @@ Example:
 
 Training Registration Tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-we assume there is three level folder, **output_root_path**/ **data_task_folder**/ **task_folder**
+We assume there is three level folder, **output_root_path**/ **data_task_folder**/ **task_folder**. Our *prepare_data.py* script is capable of generating corresponding directory structure, just using it will be enough.
 
-* In **data_task_folder**, each folder refer to different preprocessing strategies or different datasets, i.e. lung tasks and brain tasks.
-* In **task_folder**, each folder refer to a specific setting
-
-so the folders would be created as *output_root_path/data_task_folder/your_current_task_name*
+* In **data_task_folder**, each folder refer to different preprocessing strategies or different datasets, i.e. lung tasks and brain tasks. It might as well could be different splits of the data too.
+* In **task_folder**, each folder refer to a specific setting, for a specific dataset setting.
+Thus, the folders will be created as *output_root_path/data_task_folder/your_current_task_name*.
 
 For training tasks, the data should be organized as following:
 
 * **train**, **val**,  **test**, **debug** (subset of train data, to check overfit)  folder should be put under **output_root_path/data_task_folder**, each of the folder should  include **pair_path_list.txt** and **pair_name_list.txt**
-* **pair_path_list.txt**: each line of the txt include 4 terms: s_pth t_pth ls_path lt_path
+* **pair_path_list.txt**: each line of the txt include 4 terms: source_path, target_path, labels_for_source_image_path, labels_for_target_image_path
 * **pair_name_list.txt**: each line of the txt include 1 term: the pair name  the file is line to line corresponded with pair_path_list.txt
 
 
