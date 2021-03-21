@@ -30,7 +30,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
     if model.network is not None and gpu_id>=0:
         model.network = model.network.cuda()
     save_fig_on = opt['tsk_set'][('save_fig_on', True, 'saving fig')]
-    save_3d_img_on = opt['tsk_set'][('save_3d_img_on', True, 'saving fig')]
+    save_running_resolution_3d_img = opt['tsk_set'][('save_running_resolution_3d_img', True, 'saving fig')]
     output_taking_original_image_format = opt['tsk_set'][('output_taking_original_image_format', False, 'output follows the same sz and physical format of the original image (input by command line or txt)')]
 
     phases = ['test'] #['val','test']  ###################################3
@@ -75,7 +75,7 @@ def __test_model(opt,model,dataloaders, model_path,task_name=''):
             records_time_np[i] = batch_time
             if save_fig_on:
                 model.save_fig('debug_model_'+phase)
-            if save_3d_img_on:
+            if save_running_resolution_3d_img:
                 model.save_fig_3D(phase='test')
                 if task_type == 'reg':
                     model.save_deformation()

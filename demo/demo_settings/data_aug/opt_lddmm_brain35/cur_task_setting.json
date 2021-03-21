@@ -26,8 +26,8 @@
                 "mermaid_nonp_json": ""
             }
         },
-        "save_3d_img_on": true,
-        "save_extra_3d_img": true,
+        "save_running_resolution_3d_img": true,
+        "save_extra_running_resolution_3d_img": true,
         "save_fig_on": true,
         "train": false,
         "use_physical_coord": false

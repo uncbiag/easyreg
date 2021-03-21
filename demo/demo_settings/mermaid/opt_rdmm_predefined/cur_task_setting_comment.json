@@ -23,8 +23,8 @@
                 "weights_for_fg": "regularizer weight for the foregound area, this should be got from the mermaid_json file"
             }
         },
-        "save_3d_img_on": "saving fig",
-        "save_extra_3d_img": "save extra image",
+        "save_running_resolution_3d_img": "saving fig",
+        "save_extra_running_resolution_3d_img": "save extra image",
         "save_fig_on": "saving fig",
         "train": "True, take the train mode",
         "use_physical_coord": "Keep physical spacing"

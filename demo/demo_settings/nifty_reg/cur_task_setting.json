@@ -15,7 +15,7 @@
                 "nifty_reg_cmd": " -sx -10 --lncc 40 -pad 0 -jl 0.01"
             }
         },
-        "save_3d_img_on": false,
+        "save_running_resolution_3d_img": false,
         "save_fig_on": true,
         "train": false,
         "use_physical_coord": false

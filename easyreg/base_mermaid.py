@@ -24,7 +24,7 @@ class MermaidBase(RegModelBase):
         self.affine_on = False
         self.nonp_on = False
         self.afimg_or_afparam = None
-        self.save_extra_3d_img = opt['tsk_set'][('save_extra_3d_img', False, 'save extra image')]
+        self.save_extra_running_resolution_3d_img = opt['tsk_set'][('save_extra_running_resolution_3d_img', False, 'save extra image')]
         self.save_original_resol_by_type = opt['tsk_set'][(
             'save_original_resol_by_type', [True, True, True, True, True, True, True, True],
             'save_original_resol_by_type, save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra')]
@@ -178,7 +178,7 @@ class MermaidBase(RegModelBase):
         extra_title = 'disp'
         extraImage, extraName = self.get_extra_to_plot()
 
-        if self.save_extra_3d_img and extraImage is not None:
+        if self.save_extra_running_resolution_3d_img and extraImage is not None:
             self.save_extra_img(extraImage, extraName)
 
         if self.afimg_or_afparam is not None and len(self.afimg_or_afparam.shape) > 2 and not self.nonp_on:

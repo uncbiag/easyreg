@@ -232,8 +232,8 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
                     "using_complex_net": true
                 }
             },
-            "save_3d_img_on": false,
-            "save_extra_3d_img": true,
+            "save_running_resolution_3d_img": false,
+            "save_extra_running_resolution_3d_img": true,
             "save_fig_on": true,
             "train": true,
             "use_physical_coord": false,
@@ -387,8 +387,8 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                     "using_complex_net": "using complex version of momentum generation network"
                 }
             },
-            "save_3d_img_on": "saving fig",
-            "save_extra_3d_img": "save extra image",
+            "save_running_resolution_3d_img": "saving fig",
+            "save_extra_running_resolution_3d_img": "save extra image",
             "save_fig_on": "saving fig",
             "train": "if is in train mode",
             "use_physical_coord": "Keep physical spacing",
