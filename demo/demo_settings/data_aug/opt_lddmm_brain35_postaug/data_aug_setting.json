@@ -5,7 +5,7 @@
     "fluid_aug": {
       "fluid_mode":"aug_with_affined_data",
       "task_type": "rand_sampl",
-      "K": 2,
+      "K": 1,
       "compute_inverse": true,
       "rand_sampl": {
             "t_range": [-1,2]

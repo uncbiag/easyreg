@@ -67,7 +67,7 @@ class VoxelMorphCVPR2018(nn.Module):
     :param enc_nf: list of encoder filters. right now it needs to be 1x4.
            e.g. [16,32,32,32]
     :param dec_nf: list of decoder filters. right now it must be 1x6 (like voxelmorph-1) or 1x7 (voxelmorph-2)
-    :return: the keras reg_model
+    :return: the reg_model
     """
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphCVPR2018, self).__init__()
@@ -272,7 +272,7 @@ class VoxelMorphMICCAI2019(nn.Module):
     :param enc_nf: list of encoder filters. right now it needs to be 1x4.
            e.g. [16,32,32,32]
     :param dec_nf: list of decoder filters. right now it must be 1x6 (like voxelmorph-1) or 1x7 (voxelmorph-2)
-    :return: the keras reg_model
+    :return: the reg_model
     """
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphMICCAI2019, self).__init__()

@@ -1,9 +1,9 @@
 {
     "dataset": {
         "img_after_resize": [
-            80,
-            192,
-            192
+            160,
+            384,
+            384
         ]
     },
     "tsk_set": {
@@ -11,7 +11,7 @@
         "method_name": "bspline",
         "reg": {
             "nifty_reg": {
-                "nifty_bin": "/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin",
+                "nifty_bin": "/playpen-raid/zyshen/package/niftyreg-git/niftyreg_install/bin",
                 "nifty_reg_cmd": " -sx -10 --lncc 40 -pad 0 -jl 0.01"
             }
         },

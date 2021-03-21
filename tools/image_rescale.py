@@ -77,26 +77,36 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(1.0,1.0,1.0), i
         return fpth
 
 
+
+
+
 def resample_warped_phi_and_image(source_path_list,l_source_path_list, phi,spacing):
-    num_s = len(source_path_list)
-    s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source_path_list]
-    sz = [num_s,1]+list(s[0].shape)
-    source = np.stack(s,axis=0)
-    source = source.reshape(*sz)
-    source = MyTensor(source)
+    new_phi = None
+    warped = None
+    l_warped = None
+    new_spacing = None
+    if source_path_list is not None:
+        num_s = len(source_path_list)
+        s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source_path_list]
+        sz = [num_s,1]+list(s[0].shape)
+        source = np.stack(s,axis=0)
+        source = source.reshape(*sz)
+        source = MyTensor(source)
+        new_phi, new_spacing = resample_image(phi, spacing, sz, 1, zero_boundary=True)
+        warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
+
 
     if l_source_path_list is not None:
+        num_s = len(l_source_path_list)
         ls = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in l_source_path_list]
         sz = [num_s, 1] + list(ls[0].shape)
         l_source = np.stack(ls, axis=0)
         l_source = l_source.reshape(*sz)
         l_source = MyTensor(l_source)
-
-    new_phi,new_spacing = resample_image( phi, spacing, sz, 1, zero_boundary=True)
-    warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
-    l_warped = None
-    if l_source_path_list is not None:
+        if new_phi is None:
+            new_phi, new_spacing = resample_image(phi, spacing, sz, 1, zero_boundary=True)
         l_warped = py_utils.compute_warped_image_multiNC(l_source, new_phi, new_spacing, 0, zero_boundary=True)
+
     return new_phi, warped,l_warped, new_spacing
 
 def save_transform_with_reference(transform, spacing,moving_reference_list, target_reference_list, path=None, fname_list=None,save_disp_into_itk_format=True):

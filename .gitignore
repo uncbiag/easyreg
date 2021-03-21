@@ -23,3 +23,4 @@ backup/llf
 /training_atlas/
 ./RELEASE-VERSION
 ./debug/*
+/debug/

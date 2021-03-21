@@ -42,7 +42,7 @@ def plot_box(data_list,name_list,label = 'Dice Score'):
     fig1 = plt.gcf()
     plt.show()
     plt.draw()
-    fig1.savefig('/playpen/zyshen/plots/box_plot_intra.png',dpi=300)
+    fig1.savefig('/playpen-raid/zyshen/plots/box_plot_intra.png',dpi=300)
     #plt.clf()
 
 
@@ -57,7 +57,7 @@ def plot_trendency(data_list,name_list):
     plt.ylabel('Dice Score')
     plt.show()
     plt.draw() 
-    fig1.savefig('/playpen/zyshen/plots/trendency_intra.png',dpi=300)
+    fig1.savefig('/playpen-raid/zyshen/plots/trendency_intra.png',dpi=300)
     #plt.clf()
 
 def compute_std(data_list,name_list):
@@ -138,31 +138,31 @@ def get_df_from_double_list(name_list, data_list1,data_list2):
 def get_res_dic():
     data_dic = {}
 
-    #data_dic['af_ants'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_affine_bi/records/records.npy')
-    data_dic['affine_NiftyReg'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_affine_jacobi/records/records_detail.npy')
-    data_dic['affine_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_affine_recbi/records/records_detail.npy')
-    #data_dic['affine_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_single_recbi/records/records_detail.npy')
-    #data_dic['affine_cycle_step3'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_step3_recbi/records/records_detail.npy')
-    #data_dic['affine_cycle_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_recbi/records/records_detail.npy')
-    #data_dic['affine_sym_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_recbi/records/records_detail.npy')
-    data_dic['affine_net'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_from_intra_recbi/records/records_detail.npy')
+    #data_dic['af_ants'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_affine_bi/records/records.npy')
+    data_dic['affine_NiftyReg'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_affine_jacobi/records/records_detail.npy')
+    data_dic['affine_opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_affine_recbi/records/records_detail.npy')
+    #data_dic['affine_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_single_recbi/records/records_detail.npy')
+    #data_dic['affine_cycle_step3'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_step3_recbi/records/records_detail.npy')
+    #data_dic['affine_cycle_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_cycle_recbi/records/records_detail.npy')
+    #data_dic['affine_sym_ncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_recbi/records/records_detail.npy')
+    data_dic['affine_net'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_affine_net_sym_from_intra_recbi/records/records_detail.npy')
 
-    data_dic['Demons'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_en2en1p2_jacobi/records/records_detail.npy')
-    data_dic['SyN'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_ncc/records/records_detail.npy')
-    data_dic['NiftyReg_NMI'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_detail.npy')
-    #data_dic['niftyreg_improve'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv20_bi/records/records.npy')
-    data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_detail.npy')
-    data_dic['vSVF-opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_detail.npy')
-    data_dic['LDDMM-opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/lddmm_accumiter_absw_maskm_b2_fixed/reg/res/records/records_detail.npy')
-    data_dic['RDMM-opt'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/rdmm_iter_wkw_formul_025_1_omt_2step_200sym_minstd_005_allinterp_maskv_epdffix/reg/res/records/records_detail.npy')
-    data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_detail.npy')
-    data_dic['vSVF-net'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_detail.npy')
-    data_dic['LDDMM-net'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/reg_lddmm_2step_sym500/reg/res/records/records_detail.npy')
-    data_dic['RDMM-net'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/rdmm_learn_sm006_sym_500_thisis_std005/reg/res/records/records_detail.npy')
-    #data_dic['AVSM (3step)'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_detail.npy')
-    #data_dic['VoxelMorph(w/o aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_withoutaffine_symjacobi/reg/res/records/records_detail.npy')
-    #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_sym_lncc_recbi/records/records_detail.npy')
-    #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
+    data_dic['Demons'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_en2en1p2_jacobi/records/records_detail.npy')
+    data_dic['SyN'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_ncc/records/records_detail.npy')
+    data_dic['NiftyReg_NMI'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_detail.npy')
+    #data_dic['niftyreg_improve'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_interv20_bi/records/records.npy')
+    data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_detail.npy')
+    data_dic['vSVF-opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_detail.npy')
+    data_dic['LDDMM-opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/lddmm_accumiter_absw_maskm_b2_fixed/reg/res/records/records_detail.npy')
+    data_dic['RDMM-opt'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/rdmm_iter_wkw_formul_025_1_omt_2step_200sym_minstd_005_allinterp_maskv_epdffix/reg/res/records/records_detail.npy')
+    data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_detail.npy')
+    data_dic['vSVF-net'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_detail.npy')
+    data_dic['LDDMM-net'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/reg_lddmm_2step_sym500/reg/res/records/records_detail.npy')
+    data_dic['RDMM-net'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/rdmm_learn_sm006_sym_500_thisis_std005/reg/res/records/records_detail.npy')
+    #data_dic['AVSM (3step)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_detail.npy')
+    #data_dic['VoxelMorph(w/o aff)'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_withoutaffine_symjacobi/reg/res/records/records_detail.npy')
+    #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_mermaid_net_reisd_sym_lncc_recbi/records/records_detail.npy')
+    #data_dic['affine_svf_sym_lncc'] = get_experiment_data_from_record_detail(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_intra/run_baseline_svf_lncc_bilncc/records/records_detail.npy')
 
     return data_dic
 
@@ -171,26 +171,26 @@ def get_res_dic():
 
 def get_jacobi_dic():
     data_dic = {}
-    data_dic['Demons'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_en2en1p2_jacobi/records/records_jacobi.npy')
-    data_dic['SyN'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_ncc/records/records_jacobi.npy')
-    data_dic['NiftyReg_NMI'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi.npy')
-    data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_jacobi.npy')
+    data_dic['Demons'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_demons_en2en1p2_jacobi/records/records_jacobi.npy')
+    data_dic['SyN'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_ants_ncc/records/records_jacobi.npy')
+    data_dic['NiftyReg_NMI'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_nmi_10_jacobi_save_img/records/records_jacobi.npy')
+    data_dic['NiftyReg_LNCC'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_niftyreg_bspline_bpsline_10_constrain_jacobi_save_img/records/records_jacobi.npy')
     data_dic['vSVF-opt'] = get_experiment_data_from_record(inc(),
-                                                                 '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_jacobi.npy')
+                                                                 '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/run_baseline_svf_jacobi_more_iter_save_def_fixed/records/records_jacobi.npy')
     data_dic['LDDMM-opt'] = get_experiment_data_from_record(inc(),
-                                                                   '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/lddmm_accumiter_absw_maskm_b2_fixed/reg/res/records/records_jacobi.npy')
+                                                                   '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/lddmm_accumiter_absw_maskm_b2_fixed/reg/res/records/records_jacobi.npy')
     data_dic['RDMM-opt'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/rdmm_iter_wkw_formul_025_1_omt_2step_200sym_minstd_005_allinterp_maskv_epdffix/reg/res/records/records_jacobi.npy')
+                                                                  '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/rdmm_iter_wkw_formul_025_1_omt_2step_200sym_minstd_005_allinterp_maskv_epdffix/reg/res/records/records_jacobi.npy')
     data_dic['VoxelMorph(with aff)'] = get_experiment_data_from_record(inc(),
-                                                                              '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_jacobi.npy')
+                                                                              '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/vm_miccal_setting_zeroboundary_withbothlambda100sigma002withenlargedflowreg_symjacobi/reg/res/records/records_jacobi.npy')
     data_dic['vSVF-net'] = get_experiment_data_from_record(inc(),
-                                                                 '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_jacobi.npy')
+                                                                 '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_jacobi/records/records_jacobi.npy')
     data_dic['LDDMM-net'] = get_experiment_data_from_record(inc(),
-                                                                   '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/reg_lddmm_2step_sym500/reg/res/records/records_jacobi.npy')
+                                                                   '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/reg_lddmm_2step_sym500/reg/res/records/records_jacobi.npy')
     data_dic['RDMM-net'] = get_experiment_data_from_record(inc(),
-                                                                  '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/reg_adpt_lddamm_wkw_formul_05_1_omt_2step_200sym_minstd_005_sm008_allinterp_maskv_epdffix/reg/res/records/records_jacobi.npy')
+                                                                  '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/reg_adpt_lddamm_wkw_formul_05_1_omt_2step_200sym_minstd_005_sm008_allinterp_maskv_epdffix/reg/res/records/records_jacobi.npy')
     # data_dic['AVSM (3step)'] = get_experiment_data_from_record(inc(),
-    #                                                    '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_jacobi.npy')
+    #                                                    '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/test_intra_mermaid_net_500thisinst_10reg_double_loss_step3_jacobi/records/records_jacobi.npy')
 
     return data_dic
 
@@ -200,12 +200,12 @@ def get_jacobi_dic():
 
 def get_syth_dice():
     data_dic = {}
-    # data_dic['svf'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/syn_data/rdmm_comparison/svf_reg1_range10_10_lncc_nomask_epdffix/svf_reg1_range10_10_lncc_nomask_epdffix/score/score.npy')
-    # data_dic['lddmm'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/syn_data/rdmm_comparison/lddmm_reg10_range10_10_lncc_nomask/lddmm_reg10_range10_10_lncc_nomask/score/score.npy')
-    # data_dic['rdmm'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/syn_data/rdmm_comparison/rddmm_maxstd008_omt_03_200iter_abs_reg10_range10_10_200/score/score.npy')
-    data_dic['vSVF'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/syn_data/svf_400/score/score.npy')
-    data_dic['LDDMM'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/syn_data/lddmm_400/score/score.npy')
-    data_dic['RDMM'] = get_experiment_data_from_record(inc(),'/playpen/zyshen/data/syn_data/rdmm_400/score/score.npy')
+    # data_dic['svf'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/syn_data/rdmm_comparison/svf_reg1_range10_10_lncc_nomask_epdffix/svf_reg1_range10_10_lncc_nomask_epdffix/score/score.npy')
+    # data_dic['lddmm'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/syn_data/rdmm_comparison/lddmm_reg10_range10_10_lncc_nomask/lddmm_reg10_range10_10_lncc_nomask/score/score.npy')
+    # data_dic['rdmm'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/syn_data/rdmm_comparison/rddmm_maxstd008_omt_03_200iter_abs_reg10_range10_10_200/score/score.npy')
+    data_dic['vSVF'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/syn_data/svf_400/score/score.npy')
+    data_dic['LDDMM'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/syn_data/lddmm_400/score/score.npy')
+    data_dic['RDMM'] = get_experiment_data_from_record(inc(),'/playpen-raid/zyshen/data/syn_data/rdmm_400/score/score.npy')
 
     return data_dic
 
@@ -229,7 +229,7 @@ def get_omt_dice_dic(draw_intra, draw_trendency):
     omt_list = list(np.array(range(1,10))/10) +[2,5,10]
     omt_key_list = [str(term) for term in omt_list]
     omt_expr_list = [str(term).replace('.','') for term in omt_key_list]
-    expri_path = '/playpen/zyshen/data/syn_data/rdmm_expri_'
+    expri_path = '/playpen-raid/zyshen/data/syn_data/rdmm_expri_'
     for i,term in enumerate(omt_list):
         data_dic[omt_key_list[i]] = get_experiment_data_from_record(inc(),expri_path+omt_expr_list[i]+'.npy')
     return data_dic
@@ -239,7 +239,7 @@ def get_omt_average_jacobi_dic(draw_intra, draw_trendency):
     omt_list = list(np.array(range(1,10))/10) +[2,5,10]
     omt_key_list = [str(term) for term in omt_list]
     omt_expr_list = [str(term).replace('.','') for term in omt_key_list]
-    expri_path = '/playpen/zyshen/data/syn_data/rdmm_expri_'
+    expri_path = '/playpen-raid/zyshen/data/syn_data/rdmm_expri_'
     for i,term in enumerate(omt_list):
         data_dic[omt_key_list[i]] = get_experiment_data_from_record(inc(),expri_path+omt_expr_list[i]+'.npy')
     return data_dic
@@ -419,15 +419,15 @@ label = "Dice Score"
 # fpth=None
 # draw_boxplot = True
 #
-# os.makedirs('/playpen/zyshen/debugs/rdmm_res',exist_ok=True)
-# fpth = '/playpen/zyshen/debugs/rdmm_res/syth_boxplot.png'
+# os.makedirs('/playpen-raid/zyshen/debugs/rdmm_res',exist_ok=True)
+# fpth = '/playpen-raid/zyshen/debugs/rdmm_res/syth_boxplot.png'
 # draw_single_boxplot(name_list,data_list1,label=label,fpth=fpth,data_name='synth',title="Average Dice on Synthesis Data")
 
 order = -1
 data_list1, name_list = get_list_from_dic(get_res_dic(),use_perc=True)
 order = -1
 
-fpth='/playpen/zyshen/debugs/rdmm_res/oai_per.png'
+fpth='/playpen-raid/zyshen/debugs/rdmm_res/oai_per.png'
 draw_single_boxplot(name_list,data_list1,label=label,fpth=fpth,data_name='synth',title='Performance on OAI')
 
 compute_std(data_list1, name_list)
@@ -487,7 +487,7 @@ order = -1
 # data_dic ={}
 # jacobi_name_list=['step_6']
 # data_dic['step6'] = get_experiment_data_from_record(inc(),
-#                                                     '/playpen/zyshen/data/reg_debug_labeled_oai_reg_inter/visualize_jacobi/records/records_jacobi.npy')
+#                                                     '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter/visualize_jacobi/records/records_jacobi.npy')
 # jacobi_list2, _ = get_list_from_dic(data_dic)
 # #sort_jacobi_info(jacobi_list1, jacobi_name_list,7)
 # print( "now compute the cross subject ")

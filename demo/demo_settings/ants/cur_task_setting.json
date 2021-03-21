@@ -1,9 +1,9 @@
 {
     "dataset": {
         "img_after_resize": [
-            80,
-            192,
-            192
+            160,
+            384,
+            384
         ]
     },
     "tsk_set": {

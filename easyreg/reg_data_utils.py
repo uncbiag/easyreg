@@ -369,7 +369,7 @@ def get_file_name(file_path,last_ocur=True):
 def generate_pair_name(pair_path,detail=False):
     source_path, target_path = pair_path
     f = lambda x: os.path.split(x)
-    assert source_path != target_path,"the source image should be different to the target image"
+    #assert source_path != target_path,"the source image should be different to the target image"
     while True:
         s = get_file_name(f(source_path)[-1])
         t = get_file_name(f(target_path)[-1])

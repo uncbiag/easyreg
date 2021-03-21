@@ -395,7 +395,7 @@ class ImageViewer3D_Sliced(ImageViewer3D):
         # divider = make_axes_locatable(self.ax)
         # cax = divider.append_axes('right', size='5%', pad=0.01)
         # plt.gcf().colorbar(cim, cax=cax, orientation='vertical').ax.tick_params(labelsize=30)
-        # self.display_title()
+        self.display_title()
 
 
 class ImageViewer3D_Sliced_Contour(ImageViewer3D_Sliced):

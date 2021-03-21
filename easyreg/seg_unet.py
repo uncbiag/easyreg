@@ -52,7 +52,7 @@ class SegUnet(nn.Module):
         self.print_count += 1
         return output
 
-    def get_assemble_pred(self, input, split_size=8):
+    def get_assemble_pred(self, input, split_size=6):
         output = []
         input_split = torch.split(input, split_size)
         for input_sub in input_split:
@@ -71,7 +71,7 @@ class SegUnet(nn.Module):
         self.fname = fname
 
 
-    def get_assemble_pred_for_ensemble(self, input, split_size=8):
+    def get_assemble_pred_for_ensemble(self, input, split_size=6):
         output = []
         input_split = torch.split(input, split_size)
         for input_sub in input_split:
@@ -101,7 +101,7 @@ class SegUnet(nn.Module):
         overlap_sz_itk = list(np.flipud(np.array(overlap_sz)))
         corr_partition_pool = deepcopy(partition(option_p, patch_sz_itk, overlap_sz_itk))
 
-        def compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=50,weight_for_orig_img=0):
+        def compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=50,weight_for_orig_img=0,nomralize_type="same_as_refer"):
             warped_pth_list = glob(os.path.join(warped_pth, warped_type))
             num_max = min(len(warped_pth_list),num_max)
             inv_phi_pth_list = [pth.replace(warped_pth,inv_phi_pth).replace(*inv_switcher) for pth in warped_pth_list]
@@ -117,7 +117,7 @@ class SegUnet(nn.Module):
             inv_phi_list = [f(pth) for pth in inv_phi_sub_list]
             warped_img = np.stack(warped_list, 0)[:,None]
             #warped_img = torch.Tensor(warped_img)*2-1.
-            warped_img = self.normalize_input(warped_img,None)#self.file_path[0][0])
+            warped_img = self.normalize_input(warped_img,nomralize_type,None)#self.file_path[0][0])
             warped_img = torch.Tensor(warped_img)
             inv_phi = np.stack(inv_phi_list, 0)
             inv_phi = np.transpose(inv_phi, (0, 4, 3, 2, 1))
@@ -155,21 +155,30 @@ class SegUnet(nn.Module):
             return res[None]
         seg_ensemble_opt = self.opt['tsk_set']['seg'][("seg_ensemble",{},"settings of test phase data ensemble")]
         warped_pth = seg_ensemble_opt[("warped_pth", None,"the folder path containing the warped image from the original image")]
-        inv_phi_pth = seg_ensemble_opt[("inv_phi_pth",None,"the folder path containing the inverse transformation")]
         warped_type = seg_ensemble_opt[("warped_type","*_warped.nii.gz","the suffix of the augmented data")]
+        inv_phi_pth = seg_ensemble_opt[("inv_phi_pth",None,"the folder path containing the inverse transformation")]
         inv_switcher = seg_ensemble_opt[("inv_switcher",["_warped.nii.gz","_inv_phi.nii.gz"],"the fname switcher from warped image to inverse transformation map")]
         num_max =  seg_ensemble_opt[("num_max",20,"max num of augmentation for per test image")]
         weight_for_orig_img = seg_ensemble_opt[("weight_for_orig_img",0.0,"the weight of original image")]
+        nomralize_type = seg_ensemble_opt[("nomralize_type","same_as_refer","'same_as_refer'/'same_as_loader")]
 
-        output_np = compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=num_max,weight_for_orig_img=weight_for_orig_img)
+        output_np = compute_warped_image_label(input, warped_pth, warped_type,inv_phi_pth,inv_switcher,num_max=num_max,weight_for_orig_img=weight_for_orig_img, nomralize_type=nomralize_type)
         return output_np
 
 
 
 
+    def normalize_input(self,img,nomralize_type,refer_img_path):
+        if nomralize_type == "same_as_refer":
+            return self.normalize_from_reference(img,refer_img_path)
+        if nomralize_type == "same_as_loader":
+            return self.normalize_as_dataloader(img)
+        else:
+            raise ValueError(
+                "the testing phase augmentation normalize type should be either 'same_as_refer'/'same_as_loader'")
 
 
-    def normalize_input(self,img,refer_img_path):
+    def normalize_from_reference(self,img,refer_img_path):
         import SimpleITK as sitk
         if refer_img_path is not None:
             refer_img =  sitk.GetArrayFromImage(sitk.ReadImage(refer_img_path))
@@ -178,6 +187,32 @@ class SegUnet(nn.Module):
         min_intensity = refer_img.min()
         max_intensity = refer_img.max()
         normalized_img = (img - refer_img.min()) / (max_intensity - min_intensity)
+        normalized_img = normalized_img * 2 - 1
+        return normalized_img
+
+    def normalize_as_dataloader(self, img):
+        """
+        a numpy image, normalize into intensity [-1,1]
+        (img-img.min())/(img.max() - img.min())
+        :param img: image
+        :param percen_clip:  Linearly normalized image intensities so that the 95-th percentile gets mapped to 0.95; 0 stays 0
+        :param range_clip:  Linearly normalized image intensities from (range_clip[0], range_clip[1]) to 0,1
+        :return
+        """
+        dataset_opt = self.opt["dataset"]
+        normalize_via_percentage_clip = dataset_opt[('normalize_via_percentage_clip',-1,"normalize the image via percentage clip, the given value is in [0-1]")]
+        normalize_via_range_clip = dataset_opt[
+            ('normalize_via_range_clip', (-1, -1), "normalize the image via range clip")]
+        if normalize_via_percentage_clip>0:
+            img = img - img.min()
+            normalized_img = img / np.percentile(img, 95) * 0.95
+        else:
+            range_clip = normalize_via_range_clip
+            if range_clip[0]<range_clip[1]:
+                img = np.clip(img,a_min=range_clip[0], a_max=range_clip[1])
+            min_intensity = img.min()
+            max_intensity = img.max()
+            normalized_img = (img - img.min()) / (max_intensity - min_intensity)
         normalized_img = normalized_img * 2 - 1
         return normalized_img
 

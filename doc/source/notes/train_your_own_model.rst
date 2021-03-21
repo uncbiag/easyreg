@@ -346,7 +346,7 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                 }
             },
             "output_taking_original_image_format": "output follows the same sz and physical format of the original image (input by command line or txt)",
-            "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra",
+            "save_original_resol_by_type": "save_original_resol_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra",
             "path": {
                 "__doc__": "record paths"
             },
