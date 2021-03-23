@@ -6,52 +6,16 @@ import os, sys
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../easy_reg'))
-# sys.path.insert(0,os.path.abspath('../mermaid'))
+
 import tools.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from easyreg.piplines import run_one_task
 from easyreg.reg_data_utils import write_list_into_txt, get_file_name, read_txt_into_list
 import torch
+from task import ModelTask, DataTask
 torch.backends.cudnn.benchmark=True
 
 
-class BaseTask():
-    __metaclass__ = ABCMeta
-
-    def __init__(self, name):
-        self.name = name
-
-    @abstractmethod
-    def save(self):
-        pass
-
-
-class DataTask(BaseTask):
-    """
-    base module for data setting files (.json)
-    """
-
-    def __init__(self, name, path='../settings/base_data_settings.json'):
-        super(DataTask, self).__init__(name)
-        self.data_par = pars.ParameterDict()
-        self.data_par.load_JSON(path)
-
-    def save(self, path='../settings/data_settings.json'):
-        self.data_par.write_ext_JSON(path)
-
-
-class ModelTask(BaseTask):
-    """
-    base module for task setting files (.json)
-    """
-
-    def __init__(self, name, path='../settings/base_task_settings.json'):
-        super(ModelTask, self).__init__(name)
-        self.task_par = pars.ParameterDict()
-        self.task_par.load_JSON(path)
-
-    def save(self, path='../settings/task_settings.json'):
-        self.task_par.write_ext_JSON(path)
 
 
 def force_test_setting(dm, tsm, output_path):
@@ -127,9 +91,14 @@ def do_segmentation_eval(args, segmentation_file_list):
     task_output_path = args.task_output_path
     os.makedirs(task_output_path, exist_ok=True)
     setting_folder_path = args.setting_folder_path
-    file_txt_path = args.file_txt_path
-    fname_txt_path = file_txt_path.replace("file_path_list.txt","file_name_list.txt")
-    fname_list = read_txt_into_list(fname_txt_path) if os.path.isfile(fname_txt_path) else None
+    file_txt_path = ''
+    if args.file_txt_path:
+        file_txt_path = args.file_txt_path
+        fname_txt_path = file_txt_path.replace("file_path_list.txt", "file_name_list.txt")
+        fname_list = read_txt_into_list(fname_txt_path) if os.path.isfile(fname_txt_path) else None
+    else:
+        print(segmentation_file_list)
+        fname_list = [[f.split('/')[-1].split('.')[0] for f in segmentation_file_list[0]]]*2
     dm, tsm = init_test_env(setting_folder_path, task_output_path, segmentation_file_list, fname_list)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
     model_path= args.model_path
@@ -190,8 +159,14 @@ if __name__ == '__main__':
     assert file_txt_path is None or image_list is None, " file_txt_path and source/target_list cannot be both provided"
     if file_txt_path is not None:
         image_label_list = read_txt_into_list(file_txt_path)
-
+    
     if limage_list is not None:
         assert len(image_list) == len(limage_list), "the image_list and limage_list should be the same length"
-        image_label_list = [image_list, limage_list]
+        with open('file_path_list.txt', 'w+') as f:
+            f.write('{}\t{}'.format(image_list[0], limage_list[0]))
+        args.file_txt_path = 'file_path_list.txt'
+        image_label_list = read_txt_into_list('file_path_list.txt')
+        args.image_list = None
+        args.limage_list = None
+
     do_segmentation_eval(args, image_label_list)
