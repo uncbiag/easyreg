@@ -1,28 +1,24 @@
--f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 # pip requirements file
-numpy>=1.17
-scipy
-matplotlib
+
+
 cffi
-itk
+
 sphinx-gallery==0.3.1
 sphinx
 nbsphinx
 pynrrd
 progressbar2
 h5py
-scikit-image
-SimpleITK
-tensorboardX
+
 future
 pandas
 openpyxl
 blosc
 ants
-nibabel
+
 webcolors
-torch_nightly
-torchvision
-sklearn
+
+
+
 gdown
 
