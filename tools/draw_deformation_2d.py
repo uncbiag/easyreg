@@ -1,14 +1,9 @@
-import numpy as np
-import sys,os
+import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ''
-from easyreg.viewers_tomv import *
+from tools.draw_deformation_viewers import *
 from mermaid.utils import *
 from mermaid.data_utils import *
-import SimpleITK as sitk
 from glob import glob
-import os
-
-
 
 sz  = [160,200,200]
 def get_image_list_to_draw(refer_folder,momentum_folder,img_type,source_target_folder,t_list):

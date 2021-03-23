@@ -84,8 +84,8 @@
                 "lambda_mean_factor_in_vmr": 50
             }
         },
-        "save_3d_img_on": false,
-        "save_extra_3d_img": false,
+        "save_running_resolution_3d_img": false,
+        "save_extra_running_resolution_3d_img": false,
         "save_fig_on": true,
         "train": true,
         "use_physical_coord": false,

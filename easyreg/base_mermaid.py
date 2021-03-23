@@ -24,8 +24,12 @@ class MermaidBase(RegModelBase):
         self.affine_on = False
         self.nonp_on = False
         self.afimg_or_afparam = None
-        self.save_extra_3d_img = opt['tsk_set'][('save_extra_3d_img', False, 'save extra image')]
-        self.save_original_image_by_type = opt['tsk_set'][('save_original_image_by_type', [True, True, True, True, True, True, True, True], 'save_original_image_by_type, save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra')]
+        self.save_extra_running_resolution_3d_img = opt['tsk_set'][('save_extra_running_resolution_3d_img', False, 'save extra image')]
+        self.save_original_resol_by_type = opt['tsk_set'][(
+            'save_original_resol_by_type', [True, True, True, True, True, True, True, True],
+            'save_original_resol_by_type, save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra')]
+        self.eval_metric_at_original_resol = opt['tsk_set'][
+            ('eval_metric_at_original_resol', False, "evaluate the metric at original resolution")]
         self.use_01 = True
 
     def get_warped_label_map(self, label_map, phi, sched='nn', use_01=False):
@@ -48,7 +52,8 @@ class MermaidBase(RegModelBase):
             warped_label_map = compute_warped_image_multiNC(label_map, phi, self.spacing, spline_order=0,
                                                             zero_boundary=True, use_01_input=use_01)
             # check if here should be add assert
-            assert abs(torch.sum(warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
+            assert abs(torch.sum(
+                warped_label_map.detach() - warped_label_map.detach().round())) < 0.1, "nn interpolation is not precise"
         else:
             raise ValueError(" the label warpping method is not implemented")
         return warped_label_map
@@ -65,18 +70,32 @@ class MermaidBase(RegModelBase):
         self.warped_label_map = None
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi, use_01=self.use_01)
-            print("Not take IO cost into consideration, the testing time cost is {}".format(time() - s1))
-            warped_label_map_np = self.warped_label_map.detach().cpu().numpy()
-            l_target_np = self.l_target.detach().cpu().numpy()
+            if not self.eval_metric_at_original_resol:
+                print("Not take IO cost into consideration, the testing time cost is {}".format(time() - s1))
+                warped_label_map_np = self.warped_label_map.detach().cpu().numpy()
+                l_target_np = self.l_target.detach().cpu().numpy()
+            else:
+                moving_l_reference_list = self.pair_path[2]
+                target_l_reference_list = self.pair_path[3]
+                num_s = len(target_l_reference_list)
 
-            self.val_res_dic = get_multi_metric(warped_label_map_np,l_target_np, rm_bg=False)
+                phi = (self.phi + 1) / 2. if not self.use_01 else self.phi
+                _, _, warped_label_map_np, _ = ires.resample_warped_phi_and_image(None, moving_l_reference_list,
+                                                                       phi,
+                                                                       self.spacing)
+                warped_label_map_np  = warped_label_map_np.detach().cpu().numpy()
+                lt = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in target_l_reference_list]
+                sz = [num_s, 1] + list(lt[0].shape)
+                l_target_np= np.stack(lt, axis=0)
+                l_target_np = l_target_np.reshape(*sz).astype(np.float32)
+            self.val_res_dic = get_multi_metric(warped_label_map_np, l_target_np, rm_bg=False)
         else:
-            self.val_res_dic={}
+            self.val_res_dic = {}
         self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True,
                                                   use_01=self.use_01)
         print("current batch jacobi is {}".format(self.jacobi_val))
 
-    def compute_jacobi_map(self, map, crop_boundary=True, use_01=False,save_jacobi_map=False, appendix='3D'):
+    def compute_jacobi_map(self, map, crop_boundary=True, use_01=False, save_jacobi_map=False, appendix='3D'):
         """
         compute determinant jacobi on transformatiomm map,  the coordinate should be canonical.
 
@@ -119,8 +138,8 @@ class MermaidBase(RegModelBase):
                 jacobi_neg_img = sitk.GetImageFromArray(jacobi_neg_map[i])
                 jacobi_img.SetSpacing(np.flipud(self.spacing))
                 jacobi_neg_img.SetSpacing(np.flipud(self.spacing))
-                jacobi_saving = os.path.join(self.record_path,appendix)
-                os.makedirs(jacobi_saving,exist_ok=True)
+                jacobi_saving = os.path.join(self.record_path, appendix)
+                os.makedirs(jacobi_saving, exist_ok=True)
                 pth = os.path.join(jacobi_saving,
                                    self.fname_list[i] + "_iter_" + str(self.iter_count) + '_jacobi_img.nii')
                 n_pth = os.path.join(jacobi_saving,
@@ -159,7 +178,7 @@ class MermaidBase(RegModelBase):
         extra_title = 'disp'
         extraImage, extraName = self.get_extra_to_plot()
 
-        if self.save_extra_3d_img and extraImage is not None:
+        if self.save_extra_running_resolution_3d_img and extraImage is not None:
             self.save_extra_img(extraImage, extraName)
 
         if self.afimg_or_afparam is not None and len(self.afimg_or_afparam.shape) > 2 and not self.nonp_on:
@@ -188,18 +207,20 @@ class MermaidBase(RegModelBase):
         :param use_01: indicate the transformation use [0,1] coord or [-1,1] coord
         :return:
         """
-        save_original_image_by_type = self.save_original_image_by_type
-        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra_not_used_here = save_original_image_by_type
+        save_original_resol_by_type = self.save_original_resol_by_type
+        save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra_not_used_here = save_original_resol_by_type
         spacing = self.spacing
         moving_reference_list = pair_path[0]
         target_reference_list = pair_path[1]
-        moving_l_reference_list  = None
+        moving_l_reference_list = None
         target_l_reference_list = None
-        if len(pair_path)==4:
+        if len(pair_path) == 4:
             moving_l_reference_list = pair_path[2]
             target_l_reference_list = pair_path[3]
         phi = (phi + 1) / 2. if not use_01 else phi
-        new_phi, warped, warped_l, new_spacing = ires.resample_warped_phi_and_image(moving_reference_list, moving_l_reference_list, phi, spacing)
+        new_phi, warped, warped_l, new_spacing = ires.resample_warped_phi_and_image(moving_reference_list,
+                                                                                    moving_l_reference_list, phi,
+                                                                                    spacing)
         saving_original_sz_path = os.path.join(self.record_path, 'original_sz')
         os.makedirs(saving_original_sz_path, exist_ok=True)
         if save_phi:
@@ -223,26 +244,29 @@ class MermaidBase(RegModelBase):
             ires.save_image_with_given_reference(None, target_l_reference_list, saving_original_sz_path, fname_list)
         if inverse_phi is not None:
             inverse_phi = (inverse_phi + 1) / 2. if not use_01 else inverse_phi
-            new_inv_phi, inv_warped, inv_warped_l, new_spacing = ires.resample_warped_phi_and_image(target_reference_list,target_l_reference_list, inverse_phi, spacing)
+            new_inv_phi, inv_warped, inv_warped_l, new_spacing = ires.resample_warped_phi_and_image(
+                target_reference_list, target_l_reference_list, inverse_phi, spacing)
             if save_phi_inv:
                 fname_list = [fname + '_inv' for fname in self.fname_list]
                 ires.save_transfrom(new_inv_phi, new_spacing, saving_original_sz_path, fname_list)
             if save_w_inv:
                 fname_list = [fname + '_inv_warped' for fname in self.fname_list]
-                ires.save_image_with_given_reference(inv_warped, moving_reference_list, saving_original_sz_path, fname_list)
+                ires.save_image_with_given_reference(inv_warped, moving_reference_list, saving_original_sz_path,
+                                                     fname_list)
                 fname_list = [fname + '_inv_warped_l' for fname in self.fname_list]
                 ires.save_image_with_given_reference(inv_warped_l, moving_l_reference_list, saving_original_sz_path,
                                                      fname_list)
             if save_disp:
                 fname_list = [fname + '_inv_disp' for fname in self.fname_list]
-                id_map =  gen_identity_map( warped.shape[2:], resize_factor=1., normalized=True).cuda()
-                id_map = (id_map[None]+1)/2.
-                inv_disp = new_inv_phi -id_map
-                ires.save_transform_with_reference(inv_disp, new_spacing, target_reference_list,moving_reference_list, path=saving_original_sz_path, fname_list=fname_list,
-                                              save_disp_into_itk_format=True)
+                id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
+                id_map = (id_map[None] + 1) / 2.
+                inv_disp = new_inv_phi - id_map
+                ires.save_transform_with_reference(inv_disp, new_spacing, target_reference_list, moving_reference_list,
+                                                   path=saving_original_sz_path, fname_list=fname_list,
+                                                   save_disp_into_itk_format=True)
                 fname_list = [fname + '_disp' for fname in self.fname_list]
                 disp = new_phi - id_map
-                ires.save_transform_with_reference(disp, new_spacing, moving_reference_list,target_reference_list,
+                ires.save_transform_with_reference(disp, new_spacing, moving_reference_list, target_reference_list,
                                                    path=saving_original_sz_path, fname_list=fname_list,
                                                    save_disp_into_itk_format=True)
 
@@ -261,11 +285,12 @@ class MermaidBase(RegModelBase):
         import nibabel as nib
         num_img = img.shape[0]
         assert (num_img == len(self.fname_list))
-        input_img_sz = self.input_img_sz if not self.save_original_image_by_type[-1] else self.original_im_sz[0].cpu().numpy().tolist()  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
-        #img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
+        input_img_sz = self.input_img_sz if not self.save_original_resol_by_type[-1] else self.original_im_sz[
+            0].cpu().numpy().tolist()  # [int(self.img_sz[i] * self.input_resize_factor[i]) for i in range(len(self.img_sz))]
+        # img = get_resampled_image(img, self.spacing, desiredSize=[num_img, 1] + input_img_sz, spline_order=1)
         img_np = img.cpu().numpy()
         for i in range(num_img):
-            if img_np.shape[1]==1:
+            if img_np.shape[1] == 1:
                 img_to_save = img_np[i, 0]
                 fpath = os.path.join(self.record_path,
                                      self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + title + '.nii.gz')
@@ -274,10 +299,9 @@ class MermaidBase(RegModelBase):
                 sitk.WriteImage(img_to_save, fpath)
             else:
                 multi_ch_img = nib.Nifti1Image(img_np[i], np.eye(4))
-                fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(self.cur_epoch + 1) + "_"+title + '.nii.gz')
+                fpath = os.path.join(self.record_path, self.fname_list[i] + '_{:04d}'.format(
+                    self.cur_epoch + 1) + "_" + title + '.nii.gz')
                 nib.save(multi_ch_img, fpath)
-
-
 
     def save_deformation(self):
         """

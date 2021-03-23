@@ -32,6 +32,8 @@ class SegmentationDataset(Dataset):
         self.get_file_list()
         self.seg_option = option['seg']
         self.img_after_resize = option[('img_after_resize', [-1, -1, -1], "resample the image into desired size")]
+        self.normalize_via_percentage_clip = option[('normalize_via_percentage_clip',-1,"normalize the image via percentage clip, the given value is in [0-1]")]
+        self.normalize_via_range_clip = option[('normalize_via_range_clip',(-1,-1),"normalize the image via range clip")]
         self.img_after_resize = None if any([sz == -1 for sz in self.img_after_resize]) else self.img_after_resize
         self.patch_size =  self.seg_option['patch_size']
         self.interested_label_list = self.seg_option['interested_label_list',[-1],"the label to be evaluated, the label not in list will be turned into 0 (background)"]
@@ -322,18 +324,22 @@ class SegmentationDataset(Dataset):
             img_resampled = img
         return img_resampled, resize_factor
 
-    def normalize_intensity(self, img, linear_clip=False):
+    def normalize_intensity(self, img):
         """
         a numpy image, normalize into intensity [-1,1]
         (img-img.min())/(img.max() - img.min())
         :param img: image
-        :param linear_clip:  Linearly normalized image intensities so that the 95-th percentile gets mapped to 0.95; 0 stays 0
-        :return:
+        :param percen_clip:  Linearly normalized image intensities so that the 95-th percentile gets mapped to 0.95; 0 stays 0
+        :param range_clip:  Linearly normalized image intensities from (range_clip[0], range_clip[1]) to 0,1
+        :return
         """
-        if linear_clip:
+        if self.normalize_via_percentage_clip>0:
             img = img - img.min()
             normalized_img = img / np.percentile(img, 95) * 0.95
         else:
+            range_clip = self.normalize_via_range_clip
+            if range_clip[0]<range_clip[1]:
+                img = np.clip(img,a_min=range_clip[0], a_max=range_clip[1])
             min_intensity = img.min()
             max_intensity = img.max()
             normalized_img = (img - img.min()) / (max_intensity - min_intensity)

@@ -271,40 +271,40 @@ class RegistrationDataset(object):
         return len(self.name_list)  #############################3
 
 
-# data_path = '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter'
-# phase_list = ['test']
-# """ path for saving the pair_path_list, pair_name_list"""
-# task_output_path = '/playpen-raid/zyshen/for_llf/reg_debug_labeled_oai_reg_inter'#'/playpen-raid/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
-# """ path for where to read the image during running the tasks"""
-# running_read_path = '/pine/scr/z/y/zyshen/reg_debug_labeled_oai_reg_inter/data'#'/playpen-raid/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
-# """ path for where to save the data"""
-# data_output_path = '/playpen-raid/zyshen/oai_data/reg_debug_labeled_oai_reg_inter/data'
-# """ img path need to be replaced with running_read_img_path"""
-# real_img_path = '/playpen-raid/zyshen/oai_data/Nifti_rescaled' #'/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
-# """ label path need to be replaced with runing_read_label_path """
-# real_label_path = ['/playpen-raid/zyshen/oai_data/Nifti_rescaled']
-#     #['/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
-#     #               '/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
-# resize_factor = [1,1,1]#[80./160.,192./384.,192./384]
-# shared_label_set=None
-
-
-
-data_path = '/playpen-raid/zyshen/data/reg_debug_3000_pair_oai_reg_intra'
-phase_list = ['train','val','debug']
+data_path = '/playpen-raid/zyshen/data/reg_debug_labeled_oai_reg_inter'
+phase_list = ['test']
 """ path for saving the pair_path_list, pair_name_list"""
-task_output_path = '/playpen-raid/zyshen/data/reg_debug_3000_pair_oai_reg_intra'
+task_output_path = '/playpen-raid/zyshen/for_llf/reg_debug_labeled_oai_reg_inter'#'/playpen-raid/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to read the image during running the tasks"""
-running_read_path = '/playpen-raid/zyshen/oai_data/reg_debug_labeled_oai_reg_intra/data'
+running_read_path = '/pine/scr/z/y/zyshen/reg_debug_labeled_oai_reg_inter/data'#'/playpen-raid/zyshen/data/croped_for_reg_debug_3000_pair_oai_reg_inter'
 """ path for where to save the data"""
-data_output_path = '/playpen-raid/zyshen/oai_data/reg_debug_labeled_oai_reg_intra/data'
+data_output_path = '/playpen-raid/zyshen/oai_data/reg_debug_labeled_oai_reg_inter/data'
 """ img path need to be replaced with running_read_img_path"""
-real_img_path = '/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
+real_img_path = '/playpen-raid/zyshen/oai_data/Nifti_rescaled' #'/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
 """ label path need to be replaced with runing_read_label_path """
-real_label_path = ['/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
-                   '/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
-resize_factor = [80./160.,192./384.,192./384]
+real_label_path = ['/playpen-raid/zyshen/oai_data/Nifti_rescaled']
+    #['/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
+    #               '/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
+resize_factor = [1,1,1]#[80./160.,192./384.,192./384]
 shared_label_set=None
+
+
+
+# data_path = '/playpen-raid/zyshen/data/reg_debug_3000_pair_oai_reg_intra'
+# phase_list = ['train','val','debug']
+# """ path for saving the pair_path_list, pair_name_list"""
+# task_output_path = '/playpen-raid/zyshen/data/reg_debug_3000_pair_oai_reg_intra'
+# """ path for where to read the image during running the tasks"""
+# running_read_path = '/playpen-raid/zyshen/oai_data/reg_debug_labeled_oai_reg_intra/data'
+# """ path for where to save the data"""
+# data_output_path = '/playpen-raid/zyshen/oai_data/reg_debug_labeled_oai_reg_intra/data'
+# """ img path need to be replaced with running_read_img_path"""
+# real_img_path = '/playpen-raid/zhenlinx/Data/OAI_segmentation/Nifti_6sets_rescaled'
+# """ label path need to be replaced with runing_read_label_path """
+# real_label_path = ['/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_right/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038',
+#                    '/playpen-raid/zhenlinx/Data/OAI_segmentation/segmentations/images_6sets_left/Cascaded_2_AC_residual-1-s1_end2end_multi-out_UNet_bias_Nifti_rescaled_train1_patch_128_128_32_batch_2_sample_0.01-0.02_cross_entropy_lr_0.0005_scheduler_multiStep_02262018_013038']
+# resize_factor = [80./160.,192./384.,192./384]
+# shared_label_set=None
 
 
 # data_path = '/playpen-raid1/zyshen/data/reg_oai_aug'

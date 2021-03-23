@@ -19,7 +19,7 @@
         ]
     },
     "tsk_set": {
-        "batch_sz": 1,
+        "batch_sz": 2,
         "check_best_model_period": 5,
         "continue_train": false,
         "continue_train_lr": 5e-05,
@@ -35,7 +35,7 @@
             4
         ],
         "model": "reg_net",
-        "model_path": "./demo_saved_models/mermaid/eval_network_rdmm/model",
+        "model_path": "./demo_saved_models/mermaid/eval_network_lddmm/model",
         "n_in_channel": 1,
         "method_name": "mermaid",
         "optim": {
@@ -52,7 +52,8 @@
             },
             "optim_type": "adam"
         },
-        "output_taking_original_image_format": false,
+        "output_taking_original_image_format": true,
+        "save_original_resol_by_type": [false, false, false, false, false, false,false, false],
         "print_step": [
             10,
             4,
@@ -72,7 +73,7 @@
                 "reset_lr_for_multi_step": true,
                 "using_complex_net": true
             },
-            "compute_inverse_map": false,
+            "compute_inverse_map": true,
             "low_res_factor": 0.5,
             "mermaid_net": {
                 "affine_init_path": "",
@@ -82,8 +83,8 @@
                 "epoch_activate_multi_step": 100,
                 "epoch_activate_sym": 200,
                 "load_trained_affine_net": true,
-                "mermaid_net_json_pth": "./demo_settings/mermaid/eval_network_rdmm/mermaid_nonp_settings.json",
-                "num_step": 2,
+                "mermaid_net_json_pth": "",
+                "num_step": 1,
                 "optimize_momentum_network": false,
                 "reset_lr_for_multi_step": true,
                 "sym_factor": 500,
@@ -92,9 +93,9 @@
                 "using_complex_net": true
             }
         },
-        "save_running_resolution_3d_img": false,
-        "save_extra_running_resolution_3d_img": false,
-        "save_fig_on": false,
+        "save_running_resolution_3d_img": true,
+        "save_extra_running_resolution_3d_img": true,
+        "save_fig_on": true,
         "train": false,
         "use_physical_coord": false,
         "val_period": 10,

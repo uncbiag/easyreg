@@ -9,7 +9,7 @@ from tools.image_rescale import resize_input_img_and_save_it_as_tmp
 from functools import partial
 
 num_c = 10
-
+number_of_workers= 6
 
 class BaseSegDataSet(object):
 
@@ -67,7 +67,6 @@ class BaseSegDataSet(object):
         return label_index_list
 
     def get_shared_label_index(self, label_path_list):
-        number_of_workers = 6
         file_patitions = np.array_split(label_path_list, number_of_workers)
         with Pool(processes=number_of_workers) as pool:
             label_index_sub_list = pool.map(self._get_label_index_per_img, file_patitions)
@@ -117,7 +116,6 @@ class BaseSegDataSet(object):
 
 
     def filter_and_save_label(self, label_path_list):
-        number_of_workers = 6
         file_patitions = np.array_split(label_path_list, number_of_workers)
         saving_path = os.path.join(self.output_path,"label_filtered")
         os.makedirs(saving_path,exist_ok=True)
@@ -144,7 +142,6 @@ class BaseSegDataSet(object):
             saving_path_label = os.path.join(self.output_path,"resized_label")
             os.makedirs(saving_path_img,exist_ok=True)
             os.makedirs(saving_path_label, exist_ok=True)
-            number_of_workers = 6
             idx_partitions = np.array_split(list(range(len(file_path_list))), number_of_workers)
             resize_func = partial(self._resize_img_label, file_path_list=file_path_list, label_path_list=label_path_list, saving_path_img=saving_path_img, saving_path_label=saving_path_label)
 
@@ -154,6 +151,10 @@ class BaseSegDataSet(object):
             self.data_path = saving_path_img
             self.label_path = saving_path_label
             self.get_file_name = get_file_name
+            file_path_list = get_file_path_list(self.data_path, ["*.nii.gz"])
+            label_path_list = find_corr_map(file_path_list, self.label_path)
+        return file_path_list, label_path_list
+
 
 
 
@@ -167,9 +168,8 @@ class BaseSegDataSet(object):
         file_path_list = get_file_path_list(self.data_path, self.file_type_list)
         #random.shuffle(file_path_list)
         label_path_list = self.find_corr_label(file_path_list, self.label_path, self.label_switch)
-        self.resize_img_label(file_path_list,label_path_list)
-        file_path_list = get_file_path_list(self.data_path, ["*.nii.gz"])
-        label_path_list = find_corr_map(file_path_list, self.label_path)
+        file_path_list, label_path_list = self.resize_img_label(file_path_list,label_path_list)
+
         self.get_shared_label_index(label_path_list)
         self.filter_and_save_label(label_path_list)
         label_path_list = find_corr_map(file_path_list, self.label_path)
@@ -335,35 +335,35 @@ if __name__ == "__main__":
 
 
 
-    num_c_list = [10, 20, 30, 40,60,80,100]
-    sever_on = True
-    cur_path = '/pine/scr/z/y' if sever_on else '/playpen-raid'
-    for num_c in num_c_list:
-        oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*_image.nii.gz'])
-
-        label_switch = ('_image.nii.gz', '_label.nii.gz')
-        sever_switch=('/playpen-raid','/pine/scr/z/y')
-        #sever_switch=None
-
-        # data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-        # label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
-        data_path = "{}/zyshen/data/oai_seg/baseline/aug/gen_lresol_atlas/{}case".format(cur_path,num_c)
-        label_path = data_path
-        output_path = "{}/zyshen/data/oai_seg/baseline/aug/sever/gen_lresol_atlas/{}case".format(cur_path,num_c)
-        divided_ratio = (1,0,0)
-        oai.label_switch = label_switch
-        oai.sever_switch = sever_switch if sever_on else None
-        oai.set_data_path(data_path)
-        oai.set_label_path(label_path)
-        oai.set_output_path(output_path)
-        oai.set_divided_ratio(divided_ratio)
-        oai.img_after_resize = (160,200,200)
-        oai.prepare_data()
-        import subprocess
-
-        cmd = "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/val ".format(cur_path,num_c) + output_path
-        cmd += "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/test ".format(cur_path,num_c) + output_path
-        cmd += "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/debug ".format(cur_path,num_c) + output_path
-        process = subprocess.Popen(cmd, shell=True)
-        process.wait()
+    # num_c_list = [10, 20, 30, 40,60,80,100]
+    # sever_on = True
+    # cur_path = '/pine/scr/z/y' if sever_on else '/playpen-raid'
+    # for num_c in num_c_list:
+    #     oai = SegDatasetPool().create_dataset(dataset_name='oai', file_type_list=['*_image.nii.gz'])
+    #
+    #     label_switch = ('_image.nii.gz', '_label.nii.gz')
+    #     sever_switch=('/playpen-raid','/pine/scr/z/y')
+    #     #sever_switch=None
+    #
+    #     # data_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    #     # label_path = "/playpen-raid/olut/Nifti_resampled_rescaled_2Left_Affine2atlas"
+    #     data_path = "{}/zyshen/data/oai_seg/baseline/aug/gen_lresol_atlas/{}case".format(cur_path,num_c)
+    #     label_path = data_path
+    #     output_path = "{}/zyshen/data/oai_seg/baseline/aug/sever/gen_lresol_atlas/{}case".format(cur_path,num_c)
+    #     divided_ratio = (1,0,0)
+    #     oai.label_switch = label_switch
+    #     oai.sever_switch = sever_switch if sever_on else None
+    #     oai.set_data_path(data_path)
+    #     oai.set_label_path(label_path)
+    #     oai.set_output_path(output_path)
+    #     oai.set_divided_ratio(divided_ratio)
+    #     oai.img_after_resize = (160,200,200)
+    #     oai.prepare_data()
+    #     import subprocess
+    #
+    #     cmd = "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/val ".format(cur_path,num_c) + output_path
+    #     cmd += "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/test ".format(cur_path,num_c) + output_path
+    #     cmd += "\n cp -r {}/zyshen/data/oai_seg/baseline/{}case/debug ".format(cur_path,num_c) + output_path
+    #     process = subprocess.Popen(cmd, shell=True)
+    #     process.wait()
 

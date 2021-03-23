@@ -10,7 +10,7 @@ from .losses import NCCLoss
 
 
 
-class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+class AffineNetSym(nn.Module):
     """
     A multi-step symmetirc -force affine network
 
@@ -212,7 +212,7 @@ class AffineNetSym(nn.Module):   # is not implemented, need to be done!!!!!!!!!!
         ap_ts = ap_ts.view(-1, 4, 3)
         ac = None
         ad_b = None
-        ################################################ check if ad_b is right
+        #########  check if ad_b is right  #####
         if self.dim == 3:
             ac = torch.matmul(ap_st[:, :3, :], ap_ts[:, :3, :])
             ad_b = ap_st[:, 3, :] + torch.squeeze(

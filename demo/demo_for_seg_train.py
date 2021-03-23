@@ -29,7 +29,7 @@ def init_train_env(setting_path,output_root_path, task_name, data_task_name=None
     """
     dm_json_path = os.path.join(setting_path, 'cur_data_setting.json')
     tsm_json_path = os.path.join(setting_path, 'cur_task_setting.json')
-    assert os.path.isfile(tsm_json_path),"task setting not exists"
+    assert os.path.isfile(tsm_json_path),"task setting {} not exists".format(tsm_json_path)
     dm = DataTask('task_reg',dm_json_path) if os.path.isfile(dm_json_path) else None
     tsm = ModelTask('task_reg',tsm_json_path)
     data_task_name =  data_task_name if len(data_task_name) else 'custom'

@@ -39,6 +39,7 @@ class RegModelBase():
         self.network =None
         self.val_res_dic = {}
         self.fname_list = None
+        self.pair_path = None
         self.moving = None
         self.target = None
         self.output = None

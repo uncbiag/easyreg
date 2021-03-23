@@ -1,0 +1,40 @@
+{
+  "data_aug":{
+    "max_aug_num": "the max num of rand aug, only set when in aug_with_random_momentum mode",
+
+    "fluid_aug": {
+      "fluid_mode":"aug_with_affined_data/aug_with_nonaffined_data/aug_with_atlas/aug_with_random_momentum",
+      "task_type": "rand_sampl/data_interp,  rand_sampl: random sampling from the geodesic space, typically for dataset augmentation; data_interp: interpolation between source and the target set with given time point and given weight",
+      "K": "the dimension of the geodeisc subspace",
+      "compute_inverse": "compute the inverse map",
+      "save_tf_map": "save the forward and inverse transformation map, set true if taking testing phase augmentation",
+      "rand_sampl": {
+            "t_range": "the range of t inter-/extra-polation, the registration completes in unit time [0,1]"
+      },
+      "data_interp": {
+            "t_aug_list": "list of number, the time points for inter-/extra-polation",
+            "weight_list": "list of list, the weight for each target image, set in data_interp mode"
+      },
+      "aug_with_random_momentum": {
+            "rand_momentum_shrink_factor": "the size of random momentum is 1/rand_momentum_shrink_factor of the original image sz",
+            "magnitude": "the magnitude of the random momentum"
+      },
+      "aug_with_nonaffined_data": {
+        "affine_back_to_original_postion": "whether transform the new image to the original postion"
+      },
+      "aug_with_atlas": {
+        "to_atlas_folder": "the folder containing the image to atlas transformation",
+        "atlas_to_folder": "",
+        "to_atlas_mermaid_setting": "the folder containing the atlas to image momentum"
+      }
+    },
+
+    "bspline_aug": {
+      "mesh_size_list": "list of mesh size, e.g., [[10,10,10],[20,20,20]], for each augmentation, a setting will be sampled from the two",
+      "deform_scale_list":"list of mesh size, e.g., [2,3], should has one-to-one correspondence with the mesh_size_list for each augmentation, a setting will be sampled from the two",
+      "aug_ratio": "chance to deform the image, i.e., 0.5 refers to ratio of the deformed images and the non-deformed (original) image"
+
+    }
+
+  }
+}

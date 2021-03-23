@@ -1,9 +1,9 @@
 {
     "dataset": {
         "img_after_resize": [
-            80,
-            192,
-            192
+            160,
+            384,
+            384
         ]
     },
     "tsk_set": {
@@ -12,11 +12,11 @@
         "reg": {
             "demons": {
                 "iter": 500,
-                "nifty_bin": "/playpen/zyshen/package/niftyreg-git/niftyreg_install/bin",
-                "std": 1.5
+                "nifty_bin": "/playpen-raid/zyshen/package/niftyreg-git/niftyreg_install/bin",
+                "std": 1.2
             }
         },
-        "save_3d_img_on": false,
+        "save_running_resolution_3d_img": false,
         "save_fig_on": true,
         "train": false,
         "use_physical_coord": false

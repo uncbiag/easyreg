@@ -7,8 +7,8 @@ sys.path.insert(0,os.path.abspath('../easyreg'))
 import numpy as np
 import glob
 from  easyreg.reg_data_utils import write_list_into_txt
-from tools.image_rescale import resize_input_img_and_save_it_as_tmp
 from multiprocessing import Process
+h5_path = "/playpen-raid1/Data/UNC_Registration.h5"
 output_path = "/playpen-raid1/Data/Lung_Registration_clamp_normal"
 os.makedirs(output_path,exist_ok=True)
 #['Expiration_CT', 'Expiration_CT.key', 'Expiration_CT.missing',
@@ -60,7 +60,6 @@ def process_image(img, fname, is_label=False):
 
 
 def process_lung_data(index_list):
-    h5_path = "/playpen-raid1/Data/UNC_Registration.h5"
     f = h5py.File(h5_path, 'r')
     modaility = ['Expiration_CT','Expiration_labelmap','Inspiration_CT','Inspiration_labelmap','Inspiration_local_histogram_lm']
     mod_suffix = ['_img','_label','_img','_label','_hist']
@@ -114,10 +113,10 @@ for p in procs:
     p.join()
 
 #
-# output_path = "/playpen-raid1/zyshen/data/lung_new_reg"
-# os.makedirs(output_path,exist_ok=True)
-# output_txt = os.path.join(output_path,"pair_path_list.txt")
-# get_input_file(output_path,output_txt)
+txt_output_path = "/playpen-raid1/zyshen/data/lung_new_reg"
+os.makedirs(txt_output_path,exist_ok=True)
+output_txt = os.path.join(txt_output_path,"pair_path_list.txt")
+get_input_file(txt_output_path,output_txt)
 
 
 

@@ -1,8 +1,10 @@
 import os
-import numpy as np
-import unittest
-import numpy.testing as npt
 import subprocess
+import unittest
+
+import numpy as np
+import numpy.testing as npt
+
 
 class Test_Networks(unittest.TestCase):
 

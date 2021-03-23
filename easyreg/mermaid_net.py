@@ -206,7 +206,7 @@ class MermaidNet(nn.Module):
 
     def init_mermaid_env(self):
         """
-        setup the mermaid environemnt
+        setup the mermaid environment
         * saving the settings into record folder
         * initialize model from model, criterion and related variables
 
@@ -321,7 +321,6 @@ class MermaidNet(nn.Module):
         else:
             sym_energy = self.__cal_sym_loss(self.rec_phiWarped)
             sym_factor = self.sym_factor  # min(sigmoid_explode(cur_epoch,static=1, k=8)*0.01*gl_sym_factor,1.*gl_sym_factor) #static=5, k=4)*0.01,1) static=10, k=10)*0.01
-            loss_overall_energy = loss_overall_energy + sym_factor * sym_energy
             loss_overall_energy = loss_overall_energy + sym_factor * sym_energy
             if self.print_count % self.print_loss_every_n_iter == 0 and cur_epoch >= 0:
                 print('the loss_over_all:{} sim_energy:{},sym_factor: {} sym_energy: {} reg_energy:{}'.format(

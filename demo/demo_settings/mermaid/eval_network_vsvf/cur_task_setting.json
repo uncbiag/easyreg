@@ -52,8 +52,9 @@
             },
             "optim_type": "adam"
         },
-        "output_taking_original_image_format": true,
-        "save_original_image_by_type": [false, false, false, false, false, false,true,false],
+        "eval_metric_at_original_resol": true,
+        "output_taking_original_image_format": false,
+        "save_original_resol_by_type": [false, false, false, false, false, false,true,false],
         "print_step": [
             10,
             4,
@@ -93,8 +94,8 @@
                 "using_complex_net": true
             }
         },
-        "save_3d_img_on": false,
-        "save_extra_3d_img": true,
+        "save_running_resolution_3d_img": false,
+        "save_extra_running_resolution_3d_img": true,
         "save_fig_on": true,
         "train": false,
         "use_physical_coord": false,

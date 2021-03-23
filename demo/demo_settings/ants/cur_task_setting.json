@@ -1,9 +1,9 @@
 {
     "dataset": {
         "img_after_resize": [
-            80,
-            192,
-            192
+            160,
+            384,
+            384
         ]
     },
     "tsk_set": {
@@ -12,7 +12,7 @@
         "reg": {
             "ants": {}
         },
-        "save_3d_img_on": false,
+        "save_running_resolution_3d_img": false,
         "save_fig_on": true,
         "train": false,
         "use_physical_coord": false

@@ -102,6 +102,98 @@ class FluidAug(DataAug):
         pass
 
 
+    #
+    #
+    # def generate_single_res(self,moving, l_moving, momentum, init_weight, initial_map, initial_inverse_map, fname, t_aug, output_path, moving_path):
+    #     """
+    #     here we generate a deformed image,  this function takes the full resolution map with highest precision
+    #     if memory is not allowed, try the same function (commented) below that forwards the half resolution map
+    #     :param moving:
+    #     :param l_moving:
+    #     :param momentum:
+    #     :param init_weight:
+    #     :param initial_map:
+    #     :param initial_inverse_map:
+    #     :param fname:
+    #     :param t_aug:
+    #     :param output_path:
+    #     :param moving_path:
+    #     :return:
+    #     """
+    #     params = self.mermaid_setting
+    #     params['model']['registration_model']['forward_model']['tTo'] = t_aug
+    #
+    #     # here we assume the momentum is computed at low_resol_factor=0.5
+    #     resize_flag = self.resize_output != [-1, -1, -1]
+    #     org_spacing = 1.0 / (np.array(moving.shape[2:]) - 1)
+    #     input_spacing = 1.0 / (np.array(self.resize_output) - 1) if resize_flag else org_spacing
+    #     input_img_sz = [1,1] + self.resize_output if resize_flag else list(moving.shape)
+    #
+    #     size_diff = not input_img_sz == list(moving.shape)
+    #     if size_diff:
+    #         input_img, _ = resample_image(moving, org_spacing, input_img_sz)
+    #     else:
+    #         input_img = moving
+    #
+    #     if momentum is not None:
+    #         mom_spacing = 1./(np.array(momentum.shape[2:])-1)
+    #         momentum_sz = [1, 3] + [int(dim) for dim in input_img_sz[2:]]
+    #         momentum, _ = resample_image(momentum, mom_spacing, momentum_sz, spline_order=1, zero_boundary=True)
+    #     else:
+    #         input_img_sz = list(moving.shape)
+    #         momentum_sz_low = [1, 3] + [int(dim /self.rand_momentum_shrink_factor) for dim in input_img_sz[2:]]
+    #         momentum_sz = [1, 3] + [int(dim) for dim in input_img_sz[2:]]
+    #         momentum = (np.random.rand(*momentum_sz_low) * 2 - 1) * self.magnitude
+    #         mom_spacing = 1./(np.array(momentum_sz_low[2:])-1)
+    #         momentum = torch.Tensor(momentum).to(moving.device)
+    #         momentum, _ = resample_image(momentum,mom_spacing,momentum_sz,spline_order=1,zero_boundary=True)
+    #
+    #     if initial_map is not None:
+    #         initial_map, _ = resample_image(initial_map, input_spacing, [1, 3] + list(momentum.shape[2:]))
+    #     if initial_inverse_map is not None:
+    #         initial_inverse_map, _ = resample_image(initial_inverse_map, input_spacing, [1, 3] + list(momentum.shape[2:]))
+    #     individual_parameters = dict(m=momentum, local_weights=init_weight)
+    #     sz = np.array(input_img.shape)
+    #     extra_info = None
+    #     visual_param = None
+    #     res = evaluate_model(input_img, input_img, sz, input_spacing,
+    #                          use_map=True,
+    #                          compute_inverse_map=self.compute_inverse,
+    #                          map_low_res_factor=1.0,
+    #                          compute_similarity_measure_at_low_res=False,
+    #                          spline_order=1,
+    #                          individual_parameters=individual_parameters,
+    #                          shared_parameters=None, params=params, extra_info=extra_info, visualize=False,
+    #                          visual_param=visual_param, given_weight=False,
+    #                          init_map=initial_map,
+    #                          init_inverse_map=initial_inverse_map)
+    #     phi = res[1]
+    #     phi_new = phi
+    #     warped = compute_warped_image_multiNC(moving, phi_new, org_spacing, spline_order=1, zero_boundary=True) # input sz
+    #     if initial_inverse_map is not None and self.affine_back_to_original_postion:
+    #         # here we take zero boundary boundary which need two step image interpolation
+    #         warped = compute_warped_image_multiNC(warped, initial_inverse_map, org_spacing, spline_order=1, zero_boundary=True) #  input sz
+    #         phi_new = compute_warped_image_multiNC(phi_new, initial_inverse_map, org_spacing, spline_order=1) # input sz
+    #     save_image_with_given_reference(warped, [moving_path], output_path, [fname + '_image'])
+    #     if l_moving is not None:
+    #         # we assume the label doesnt lie at the boundary
+    #         l_warped = compute_warped_image_multiNC(l_moving, phi_new, org_spacing, spline_order=0, zero_boundary=True) # input sz
+    #         save_image_with_given_reference(l_warped, [moving_path], output_path, [fname + '_label'])
+    #
+    #     if self.save_tf_map:
+    #         save_deformation(phi_new, output_path, [fname + '_phi_map'])
+    #         if self.compute_inverse:
+    #             phi_inv = res[2]
+    #             inv_phi_new = phi_inv
+    #             if self.affine_back_to_original_postion:
+    #                 print("Cannot compute the inverse map when affine back to the source image position")
+    #                 return
+    #             save_deformation(inv_phi_new, output_path, [fname + '_inv_map'])
+    #             inverse_warped = compute_warped_image_multiNC(warped, inv_phi_new, input_spacing, spline_order=1,
+    #                                                   zero_boundary=True)  # input sz
+    #             save_image_with_given_reference(inverse_warped, [moving_path], output_path, [fname + '_image_inversed'])
+
+
     def generate_single_res(self,moving, l_moving, momentum, init_weight, initial_map, initial_inverse_map, fname, t_aug, output_path, moving_path):
         params = self.mermaid_setting
         params['model']['registration_model']['forward_model']['tTo'] = t_aug
@@ -110,7 +202,7 @@ class FluidAug(DataAug):
         if momentum is not None:
             input_img_sz = [1, 1] + [int(sz * 2) for sz in momentum.shape[2:]]
         else:
-            input_img_sz = list(moving.shape)
+            input_img_sz = [1, 1] + [int(sz/2)*2 for sz in moving.shape[2:]]
             momentum_sz_low = [1, 3] + [int(dim /self.rand_momentum_shrink_factor) for dim in input_img_sz[2:]]
             momentum_sz = [1, 3] + [int(dim / 2) for dim in input_img_sz[2:]]
             momentum = (np.random.rand(*momentum_sz_low) * 2 - 1) * self.magnitude
@@ -283,7 +375,7 @@ class FluidAffined(FluidAug):
                 for t_aug in t_aug_list:
                     for weight in weight_list:
                         momentum = torch.zeros_like(momentum_list[0])
-                        fname = moving_name + '_to_'
+                        fname = moving_name + '_'
                         suffix =""
                         for k in range(K):
                             momentum += weight[k] * momentum_list[selected_index[k]]
@@ -373,7 +465,8 @@ class FluidNonAffined(FluidAug):
                     t_aug_list = [random.random() * t_span + t_range[0]]
                     selected_index = random.sample(list(range(num_momentum)), K)
                 else:
-                    assert num_momentum ==1,"for non-affined image and for data_interp mode, the size of the momentum set should be 1"
+                    if num_momentum >1:
+                        print("for non-affined image and for data_interp mode, the size of the momentum set should be 1")
                     t_aug_list = self.t_aug_list
                     selected_index = [0]
 
@@ -381,7 +474,7 @@ class FluidNonAffined(FluidAug):
                     momentum  = momentum_list[selected_index[0]]
                     affine = affine_list[selected_index[0]]
                     inverse_affine = inverse_affine_list[selected_index[0]]
-                    fname = moving_name + "_to_" + target_name_list[selected_index[0]] + '_t_{:.2f}'.format(t_aug)
+                    fname = moving_name + "_" + target_name_list[selected_index[0]] + '_t_{:.2f}'.format(t_aug)
 
                     fname = fname.replace('.', 'd')
                     init_weight = None
@@ -695,8 +788,8 @@ if __name__ == '__main__':
     
         
     For the input txt file, 
-    for fluid augmentation (fluid_mode: aug_with_affined_data/aug_with_nonaffined_data) : each line include a source image path, source label path (None if not exist), N momentum paths that register to N target images
-    for fluid augmentation (fluid_mode: aug_with_atlas and aug_with_random_momentum): each line include a source image path, source_label path (None if not exist)
+    for fluid augmentation (fluid_mode: aug_with_affined_data / aug_with_nonaffined_data) : each line include a source image path, source label path (None if not exist), N momentum paths that register to N target images
+    for fluid augmentation (fluid_mode: aug_with_atlas / aug_with_random_momentum): each line include a source image path, source_label path (None if not exist)
     for bspline augmentation : each line include a source image path, source_label path (None if not exist)
     
     the name_txt (optional, will use the filename if not provided) include the fname for each image ( to avoid confusion of source images with the same filename)

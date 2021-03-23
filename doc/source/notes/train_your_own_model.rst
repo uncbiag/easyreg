@@ -232,8 +232,8 @@ Here, we list some of the most important parameters in ``cur_task_setting.json``
                     "using_complex_net": true
                 }
             },
-            "save_3d_img_on": false,
-            "save_extra_3d_img": true,
+            "save_running_resolution_3d_img": false,
+            "save_extra_running_resolution_3d_img": true,
             "save_fig_on": true,
             "train": true,
             "use_physical_coord": false,
@@ -345,7 +345,7 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                 }
             },
             "output_taking_original_image_format": "output follows the same sz and physical format of the original image (input by command line or txt)",
-            "save_original_image_by_type": "save_original_image_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra",
+            "save_original_resol_by_type": "save_original_resol_by_type, should be a bool list to refer which image needs to be saved, each elements should refer to save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra",
             "path": {
                 "__doc__": "record paths"
             },
@@ -387,8 +387,8 @@ The detailed comments on EasyReg settings can be found in ``cur_task_setting_com
                     "using_complex_net": "using complex version of momentum generation network"
                 }
             },
-            "save_3d_img_on": "saving fig",
-            "save_extra_3d_img": "save extra image",
+            "save_running_resolution_3d_img": "saving fig",
+            "save_extra_running_resolution_3d_img": "save extra image",
             "save_fig_on": "saving fig",
             "train": "if is in train mode",
             "use_physical_coord": "Keep physical spacing",

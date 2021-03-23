@@ -16,7 +16,7 @@
         "n_in_channel": 1,
         "method_name": "nonp",
         "output_taking_original_image_format": false,
-        "save_original_image_by_type": [false, false, false, false, false, false, false, false],
+        "save_original_resol_by_type": [false, false, false, false, false, false, false, false],
         "reg": {
             "compute_inverse_map": true,
             "mermaid_iter": {
@@ -27,7 +27,7 @@
                 "mermaid_nonp_json": ""
             }
         },
-        "save_3d_img_on": false,
+        "save_running_resolution_3d_img": false,
         "save_fig_on": true,
         "train": false,
         "use_physical_coord": false

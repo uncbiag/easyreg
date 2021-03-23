@@ -72,8 +72,8 @@
             "low_res_factor": 0.5
         },
         "reset_train_epoch": false,
-        "save_3d_img_on": false,
-        "save_extra_3d_img": false,
+        "save_running_resolution_3d_img": false,
+        "save_extra_running_resolution_3d_img": false,
         "save_fig_on": true,
         "task_name": "color",
         "train": true,
