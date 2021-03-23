@@ -48,6 +48,7 @@ As our package is not available at PyPI, it is best to refer our repository to d
 We further need to download .. _Mermaid: https://mermaid.readthedocs.io/ as our framework heavily depends on the primitives built in Mermaid library.
 
 .. code:: shell
+
     cd easyreg
     git clone https://github.com/uncbiag/mermaid.git
 
