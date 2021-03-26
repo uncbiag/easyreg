@@ -178,6 +178,3 @@ Tracking the training
 We can observe the training under output_root_path/data_task_name/task_name, which can be import to Tensorboard, as it saves in the .tfevents format. Also, it is recommended to check `output_root_path/data_task_name/task_name/records` folder to see intermediate result for specific images.
 
 
-3) Evaluation of Registration Network
-########
-
