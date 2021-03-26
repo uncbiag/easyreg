@@ -52,6 +52,7 @@ class Affine_unet(nn.Module):
 class Affine_unet_im(nn.Module):
 
     def __init__(self, use_identity=False, fc_size=4*6*6*5):
+        super(Affine_unet_im,self).__init__()
 
         self.down_path_1 = conv_bn_rel(1, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False)
 
@@ -75,14 +76,14 @@ class Affine_unet_im(nn.Module):
         self.identityMap = None
     def forward(self, m,t):
 
-        if self.identityMap is None:
-            self.identityMap = torch.zeros(12).cuda()
-            self.identityMap[0] = 1.
-            self.identityMap[4] = 1.
-            self.identityMap[8] = 1.
-
-
-        return torch.cat([self.identityMap.unsqueeze(0)]*m.shape[0], dim=0)
+        # if self.identityMap is None:
+        #     self.identityMap = torch.zeros(12).cuda()
+        #     self.identityMap[0] = 1.
+        #     self.identityMap[4] = 1.
+        #     self.identityMap[8] = 1.
+        #
+        #
+        # return torch.cat([self.identityMap.unsqueeze(0)]*m.shape[0], dim=0)
 
 
         d1_m = self.down_path_1(m)
@@ -92,7 +93,6 @@ class Affine_unet_im(nn.Module):
         d32 = self.down_path_4_t_32(d4)
         fc1 = self.fc_1(d32.view(d32.shape[0],-1))
         fc2 = self.fc_2(fc1).view((d32.shape[0],-1))
-        print(fc2.shape)
         return fc2
 
 

@@ -229,19 +229,22 @@ class MermaidBase(RegModelBase):
         if save_w:
             fname_list = [fname + '_warped' for fname in self.fname_list]
             ires.save_image_with_given_reference(warped, target_reference_list, saving_original_sz_path, fname_list)
-            fname_list = [fname + '_warped_l' for fname in self.fname_list]
-            ires.save_image_with_given_reference(warped_l, target_l_reference_list, saving_original_sz_path, fname_list)
+            if warped_l is not None:
+                fname_list = [fname + '_warped_l' for fname in self.fname_list]
+                ires.save_image_with_given_reference(warped_l, target_l_reference_list, saving_original_sz_path, fname_list)
 
         if save_s:
             fname_list = [fname + '_moving' for fname in self.fname_list]
             ires.save_image_with_given_reference(None, moving_reference_list, saving_original_sz_path, fname_list)
-            fname_list = [fname + '_moving_l' for fname in self.fname_list]
-            ires.save_image_with_given_reference(None, moving_l_reference_list, saving_original_sz_path, fname_list)
+            if moving_l_reference_list is not None:
+                fname_list = [fname + '_moving_l' for fname in self.fname_list]
+                ires.save_image_with_given_reference(None, moving_l_reference_list, saving_original_sz_path, fname_list)
         if save_t:
             fname_list = [fname + '_target' for fname in self.fname_list]
             ires.save_image_with_given_reference(None, target_reference_list, saving_original_sz_path, fname_list)
-            fname_list = [fname + '_target_l' for fname in self.fname_list]
-            ires.save_image_with_given_reference(None, target_l_reference_list, saving_original_sz_path, fname_list)
+            if target_l_reference_list is not None:
+                fname_list = [fname + '_target_l' for fname in self.fname_list]
+                ires.save_image_with_given_reference(None, target_l_reference_list, saving_original_sz_path, fname_list)
         if inverse_phi is not None:
             inverse_phi = (inverse_phi + 1) / 2. if not use_01 else inverse_phi
             new_inv_phi, inv_warped, inv_warped_l, new_spacing = ires.resample_warped_phi_and_image(
@@ -253,9 +256,10 @@ class MermaidBase(RegModelBase):
                 fname_list = [fname + '_inv_warped' for fname in self.fname_list]
                 ires.save_image_with_given_reference(inv_warped, moving_reference_list, saving_original_sz_path,
                                                      fname_list)
-                fname_list = [fname + '_inv_warped_l' for fname in self.fname_list]
-                ires.save_image_with_given_reference(inv_warped_l, moving_l_reference_list, saving_original_sz_path,
-                                                     fname_list)
+                if moving_l_reference_list is not None:
+                    fname_list = [fname + '_inv_warped_l' for fname in self.fname_list]
+                    ires.save_image_with_given_reference(inv_warped_l, moving_l_reference_list, saving_original_sz_path,
+                                                         fname_list)
             if save_disp:
                 fname_list = [fname + '_inv_disp' for fname in self.fname_list]
                 id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()

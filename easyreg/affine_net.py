@@ -55,7 +55,7 @@ class AffineNetSym(nn.Module):
             'affine_fc_size', 720, 'size of the full connected layer, changes depending on input size')]
 
         """epoch to activate the external loss which will replace the default ncc loss"""
-        self.affine_gen = Affine_unet_im(affine_fc_size=self.affine_fc_size) if self.using_complex_net else Affine_unet()
+        self.affine_gen = Affine_unet_im(fc_size=self.affine_fc_size) if self.using_complex_net else Affine_unet()
 
         """ the affine network output the affine parameter"""
         self.affine_param = None

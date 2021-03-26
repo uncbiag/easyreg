@@ -61,6 +61,7 @@
         "print_val_detail": true,
         "reg": {
             "affine_net": {
+                "affine_fc_size": 432,
                 "acc_multi_step_loss": false,
                 "affine_net_iter": 3,
                 "epoch_activate_extern_loss": 20,
