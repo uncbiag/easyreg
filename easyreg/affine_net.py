@@ -50,7 +50,13 @@ class AffineNetSym(nn.Module):
         """ the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss"""
         self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate the external loss which will replace the default ncc loss')]
         """epoch to activate the external loss which will replace the default ncc loss"""
-        self.affine_gen = Affine_unet_im() if self.using_complex_net else Affine_unet()
+
+        self.affine_fc_size = opt['tsk_set']['reg']['affine_net'][(
+            'affine_fc_size', 720, 'size of the full connected layer, changes depending on input size')]
+
+        """epoch to activate the external loss which will replace the default ncc loss"""
+        self.affine_gen = Affine_unet_im(affine_fc_size=self.affine_fc_size) if self.using_complex_net else Affine_unet()
+
         """ the affine network output the affine parameter"""
         self.affine_param = None
         """ the affine parameter with the shape of Nx 12 for 3d transformation"""
