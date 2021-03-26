@@ -5,7 +5,7 @@ import torch
 import tools.image_rescale as  ires
 from easyreg.net_utils import gen_identity_map
 from easyreg.demons_utils import sitk_grid_sampling
-
+import tools.image_rescale as  ires
 
 # img_org_path = "/playpen-raid1/zyshen/debug/9352883_20051123_SAG_3D_DESS_LEFT_016610798103_image.nii.gz"
 # img_tar_path = "/playpen-raid1/zyshen/debug/9403165_20060316_SAG_3D_DESS_LEFT_016610900302_image.nii.gz"
@@ -65,15 +65,32 @@ from easyreg.demons_utils import sitk_grid_sampling
 
 ############### reconstruct the lung  ##############33
 
-moving_path ="/playpen-raid1/zyshen/data/reg_new_lung/testing_lddmm/reg/res/records/original_sz/13074Y_EXP_STD_TEM_COPD_img_13074Y_INSP_STD_TEM_COPD_img_moving.nii.gz"
-target_path ="/playpen-raid1/zyshen/data/reg_new_lung/testing_lddmm/reg/res/records/original_sz/13074Y_EXP_STD_TEM_COPD_img_13074Y_INSP_STD_TEM_COPD_img_target.nii.gz"
-disp_path ="/playpen-raid1/zyshen/data/reg_new_lung/testing_lddmm/reg/res/records/original_sz/13074Y_EXP_STD_TEM_COPD_img_13074Y_INSP_STD_TEM_COPD_img_disp.h5"
-inv_disp_path ="/playpen-raid1/zyshen/data/reg_new_lung/testing_lddmm/reg/res/records/original_sz/13074Y_EXP_STD_TEM_COPD_img_13074Y_INSP_STD_TEM_COPD_img_inv_disp.h5"
-#trans = sitk.ReadTransform(disp_path)
-inv_trans = sitk.ReadTransform(inv_disp_path)
-#warped_itk = sitk_grid_sampling(sitk.ReadImage(target_path),sitk.ReadImage(moving_path), trans)
-inv_warped_itk = sitk_grid_sampling(sitk.ReadImage(moving_path),sitk.ReadImage(target_path), inv_trans)
-#sitk.WriteImage(warped_itk,"/playpen-raid1/zyshen/debug/warped.nii.gz")
+moving_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm/reg/res/records/original_sz/13034M_EXP_STD_HPR_COPD_img_13034M_INSP_STD_HPR_COPD_img_moving.nii.gz"
+target_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm/reg/res/records/original_sz/13034M_EXP_STD_HPR_COPD_img_13034M_INSP_STD_HPR_COPD_img_target.nii.gz"
+disp_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm/reg/res/records/original_sz/13034M_EXP_STD_HPR_COPD_img_13034M_INSP_STD_HPR_COPD_img_disp.h5"
+inv_disp_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm/reg/res/records/original_sz/13034M_EXP_STD_HPR_COPD_img_13034M_INSP_STD_HPR_COPD_img_inv_disp.h5"
+mermaid_transform_path = "/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm/reg/res/records/original_sz/13034M_EXP_STD_HPR_COPD_img_13034M_INSP_STD_HPR_COPD_img_phi.nii.gz"
+mermaid_inv_transform_path = "/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm/reg/res/records/original_sz/13034M_EXP_STD_HPR_COPD_img_13034M_INSP_STD_HPR_COPD_img_inv_phi.nii.gz"
+
+moving_itk = sitk.ReadImage(moving_path)
+target_itk = sitk.ReadImage(target_path)
+trans_itk = sitk.ReadTransform(disp_path)
+inv_trans_itk = sitk.ReadTransform(inv_disp_path)
+warped_itk = sitk_grid_sampling(target_itk,moving_itk, trans_itk)
+inv_warped_itk = sitk_grid_sampling(moving_itk,target_itk, inv_trans_itk)
+
+moving_np = sitk.GetArrayFromImage(moving_itk)
+target_np = sitk.GetArrayFromImage(target_itk)
+mermaid_phi = sitk.GetArrayFromImage(sitk.ReadImage(mermaid_transform_path)).transpose(3, 2, 1,0)
+mermaid_inv_phi = sitk.GetArrayFromImage(sitk.ReadImage(mermaid_inv_transform_path)).transpose(3, 2, 1,0)
+img_sz = np.array(moving_np.shape)
+spacing = 1./(np.array(img_sz)-1)
+warped_mermaid = compute_warped_image_multiNC(torch.Tensor(moving_np[None][None]),torch.Tensor(mermaid_phi[None]),spacing,spline_order=1,zero_boundary=True)
+inv_warped_mermaid = compute_warped_image_multiNC(torch.Tensor(target_np[None][None]),torch.Tensor(mermaid_inv_phi[None]),spacing,spline_order=1,zero_boundary=True)
+sitk.WriteImage(warped_itk,"/playpen-raid1/zyshen/debug/warped.nii.gz")
 sitk.WriteImage(inv_warped_itk,"/playpen-raid1/zyshen/debug/inv_warped.nii.gz")
+ires.save_image_with_given_reference(warped_mermaid,reference_list=[target_path],path="/playpen-raid1/zyshen/debug",fname=["warped_mermaid"])
+ires.save_image_with_given_reference(inv_warped_mermaid,reference_list=[moving_path],path="/playpen-raid1/zyshen/debug",fname=["inv_warped_mermaid"])
+
 
 

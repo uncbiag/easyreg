@@ -190,6 +190,14 @@ def save_transfrom(transform,spacing, path=None, fname=None,using_affine=False):
 
 
 def save_image_with_given_reference(img=None,reference_list=None,path=None,fname=None):
+    """
+
+    :param img: Nx1xDxHxW
+    :param reference_list: N list
+    :param path: N list
+    :param fname: N list
+    :return:
+    """
 
     num_img = len(fname) if fname is not None else 0
     os.makedirs(path,exist_ok=True)
