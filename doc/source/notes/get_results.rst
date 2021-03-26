@@ -58,4 +58,8 @@ Registration models can be forward pass only by using the following commands:
 
 .. code:: shell
 
-    python demo_for_easyreg_eval.py -o outputs3 -ts demo_settings/mermaid/eval_network_lddmm -s /playpen-raid/zyshen/data/lpba_seg_resize/resized_img/s12.nii.gz -t /playpen-raid/zyshen/data/lpba_seg_resize/resized_img/s1.nii.gz -ls /playpen-raid/zyshen/data/lpba_seg_resize/label_filtered/s12.nii.gz -lt /playpen-raid/zyshen/data/lpba_seg_resize/label_filtered/s11.nii.gz  -m outputs/pairwise/lddmm_test3/checkpoints/epoch_590_
+    python eval_seg.py -o outputs3 -ts settings_for_lpba/eval_network_lddmm -s /playpen-raid/zyshen/data/lpba_seg_resize/resized_img/s12.nii.gz -t /playpen-raid/zyshen/data/lpba_seg_resize/resized_img/s1.nii.gz -ls /playpen-raid/zyshen/data/lpba_seg_resize/label_filtered/s12.nii.gz -lt /playpen-raid/zyshen/data/lpba_seg_resize/label_filtered/s11.nii.gz  -m outputs/pairwise/lddmm_test3/checkpoints/epoch_590_
+
+
+
+{output_directory_path}/reg/res/records/3D contains registered image, jacobi map in Nifti format, as well as the warped labels.
