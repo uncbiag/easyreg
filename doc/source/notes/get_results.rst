@@ -3,7 +3,8 @@ Evaluate a trained model
 
 .. _get_results:
 
-## Segmentation Model
+Segmentation Model
+#########
 
 After training a model or obtaining a trained model, we can readily get our model to be used for forward pass. For this matter, we provide a script to get the results for a trained model.
 We provide an example brain segmentation model for LPBA40 dataset in the following link:
@@ -37,7 +38,8 @@ An example arguments could be as following:
 
 
 
-## Registration Model
+Registration Model
+#########
 
 Registration models can be forward pass only by using the following commands:
 

@@ -54,6 +54,7 @@ In order to start training, you need to execute the following script:
 
 
 3) Registration Training Script and Settings
+########
 
 Below are the command line arguments that *train_reg.py* accepts. 
 
