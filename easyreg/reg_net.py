@@ -225,7 +225,7 @@ class RegNet(MermaidBase):
         :return:
         """
         inverse_phi = self.network.get_inverse_map(use_01=self.use_01)
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phi=inverse_phi,
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phis=inverse_phi,
                                                                use_01=self.use_01)
 
     def get_extra_to_plot(self):

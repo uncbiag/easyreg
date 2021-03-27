@@ -197,18 +197,20 @@ class MermaidBase(RegModelBase):
                             vizImages=disp, vizName=extra_title, phiWarped=self.phi,
                             visual_param=visual_param, extraImages=extraImage, extraName=extraName)
 
-    def _save_image_into_original_sz_with_given_reference(self, pair_path, phi, inverse_phi=None, use_01=False):
+    def _save_image_into_original_sz_with_given_reference(self, pair_path, phis, inverse_phis=None, use_01=False):
         """
         the images (moving, target, warped, transformation map, inverse transformation map world coord[0,1] ) are saved in record_path/original_sz
 
         :param pair_path: list, moving image path, target image path
-        :param phi: transformation map BDXYZ
+        :param phis: transformation map BDXYZ
         :param inverse_phi: inverse transformation map BDXYZ
         :param use_01: indicate the transformation use [0,1] coord or [-1,1] coord
         :return:
         """
         save_original_resol_by_type = self.save_original_resol_by_type
         save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra_not_used_here = save_original_resol_by_type
+        if save_disp:
+            save_phi_inv =True
         spacing = self.spacing
         moving_reference_list = pair_path[0]
         target_reference_list = pair_path[1]
@@ -217,62 +219,80 @@ class MermaidBase(RegModelBase):
         if len(pair_path) == 4:
             moving_l_reference_list = pair_path[2]
             target_l_reference_list = pair_path[3]
-        phi = (phi + 1) / 2. if not use_01 else phi
-        new_phi, warped, warped_l, new_spacing = ires.resample_warped_phi_and_image(moving_reference_list,
-                                                                                    moving_l_reference_list, phi,
-                                                                                    spacing)
+        phis = (phis + 1) / 2. if not use_01 else phis
         saving_original_sz_path = os.path.join(self.record_path, 'original_sz')
         os.makedirs(saving_original_sz_path, exist_ok=True)
-        if save_phi:
-            fname_list = list(self.fname_list)
-            ires.save_transfrom(new_phi, new_spacing, saving_original_sz_path, fname_list)
-        if save_w:
-            fname_list = [fname + '_warped' for fname in self.fname_list]
-            ires.save_image_with_given_reference(warped, target_reference_list, saving_original_sz_path, fname_list)
-            if warped_l is not None:
-                fname_list = [fname + '_warped_l' for fname in self.fname_list]
-                ires.save_image_with_given_reference(warped_l, target_l_reference_list, saving_original_sz_path, fname_list)
+        for i in range(len(moving_reference_list)):
+            moving_reference = moving_reference_list[i]
+            target_reference = target_reference_list[i]
+            moving_l_reference = moving_l_reference_list[i] if moving_l_reference_list else None
+            target_l_reference = target_l_reference_list[i] if target_l_reference_list else None
+            fname = self.fname_list[i]
+            phi = phis[i:i+1]
+            inverse_phi = inverse_phis[i:i+1] if inverse_phis is not None else None
 
-        if save_s:
-            fname_list = [fname + '_moving' for fname in self.fname_list]
-            ires.save_image_with_given_reference(None, moving_reference_list, saving_original_sz_path, fname_list)
-            if moving_l_reference_list is not None:
-                fname_list = [fname + '_moving_l' for fname in self.fname_list]
-                ires.save_image_with_given_reference(None, moving_l_reference_list, saving_original_sz_path, fname_list)
-        if save_t:
-            fname_list = [fname + '_target' for fname in self.fname_list]
-            ires.save_image_with_given_reference(None, target_reference_list, saving_original_sz_path, fname_list)
-            if target_l_reference_list is not None:
-                fname_list = [fname + '_target_l' for fname in self.fname_list]
-                ires.save_image_with_given_reference(None, target_l_reference_list, saving_original_sz_path, fname_list)
-        if inverse_phi is not None:
-            inverse_phi = (inverse_phi + 1) / 2. if not use_01 else inverse_phi
-            new_inv_phi, inv_warped, inv_warped_l, new_spacing = ires.resample_warped_phi_and_image(
-                target_reference_list, target_l_reference_list, inverse_phi, spacing)
-            if save_phi_inv:
-                fname_list = [fname + '_inv' for fname in self.fname_list]
-                ires.save_transfrom(new_inv_phi, new_spacing, saving_original_sz_path, fname_list)
-            if save_w_inv:
-                fname_list = [fname + '_inv_warped' for fname in self.fname_list]
-                ires.save_image_with_given_reference(inv_warped, moving_reference_list, saving_original_sz_path,
-                                                     fname_list)
-                if moving_l_reference_list is not None:
-                    fname_list = [fname + '_inv_warped_l' for fname in self.fname_list]
-                    ires.save_image_with_given_reference(inv_warped_l, moving_l_reference_list, saving_original_sz_path,
-                                                         fname_list)
-            if save_disp:
-                fname_list = [fname + '_inv_disp' for fname in self.fname_list]
-                id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
-                id_map = (id_map[None] + 1) / 2.
-                inv_disp = new_inv_phi - id_map
-                ires.save_transform_with_reference(inv_disp, new_spacing, target_reference_list, moving_reference_list,
-                                                   path=saving_original_sz_path, fname_list=fname_list,
-                                                   save_disp_into_itk_format=True)
-                fname_list = [fname + '_disp' for fname in self.fname_list]
-                disp = new_phi - id_map
-                ires.save_transform_with_reference(disp, new_spacing, moving_reference_list, target_reference_list,
-                                                   path=saving_original_sz_path, fname_list=fname_list,
-                                                   save_disp_into_itk_format=True)
+            # new_phi, warped, warped_l, new_spacing = ires.resample_warped_phi_and_image(moving_reference, target_reference,
+            #                                                                             moving_l_reference,target_l_reference, phi, spacing)
+            new_phi, warped, warped_l, new_spacing = ires.resample_warped_phi_and_image(moving_reference,target_reference,
+                                                                                        moving_l_reference,
+                                                                                        target_l_reference, phi,
+                                                                                        spacing)
+            if save_phi:
+                ires.save_transfrom(new_phi, new_spacing, saving_original_sz_path, [fname])
+                if save_disp:
+                    cur_fname = fname + '_disp'
+                    id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
+                    id_map = (id_map[None] + 1) / 2.
+                    disp = new_phi - id_map
+                    ires.save_transform_with_reference(disp, new_spacing, [moving_reference], [target_reference],
+                                                       path=saving_original_sz_path, fname_list=[cur_fname],
+                                                       save_disp_into_itk_format=True)
+                del id_map, disp
+            del new_phi, phi
+            if save_w:
+                cur_fname = fname + '_warped'
+                ires.save_image_with_given_reference(warped, [target_reference], saving_original_sz_path, [cur_fname])
+                if warped_l is not None:
+                    cur_fname = fname + '_warped_l'
+                    ires.save_image_with_given_reference(warped_l, [target_l_reference], saving_original_sz_path, [cur_fname])
+            del warped
+            if save_s:
+                cur_fname = fname + '_moving'
+                ires.save_image_with_given_reference(None, [moving_reference], saving_original_sz_path, [cur_fname])
+                if moving_l_reference is not None:
+                    cur_fname = fname + '_moving_l'
+                    ires.save_image_with_given_reference(None, [moving_l_reference], saving_original_sz_path, [cur_fname])
+            if save_t:
+                cur_fname = fname + '_target'
+                ires.save_image_with_given_reference(None, [target_reference], saving_original_sz_path, [cur_fname])
+                if target_l_reference is not None:
+                    cur_fname = fname + '_target_l'
+                    ires.save_image_with_given_reference(None, [target_l_reference], saving_original_sz_path, [cur_fname])
+            if inverse_phi is not None:
+                inverse_phi = (inverse_phi + 1) / 2. if not use_01 else inverse_phi
+                new_inv_phi, inv_warped, inv_warped_l, new_spacing = ires.resample_warped_phi_and_image(
+                    target_reference,moving_reference, target_l_reference, moving_l_reference,inverse_phi, spacing)
+                if save_phi_inv:
+                    cur_fname = fname + '_inv'
+                    ires.save_transfrom(new_inv_phi, new_spacing, saving_original_sz_path, [cur_fname])
+                if save_w_inv:
+                    cur_fname = fname + '_inv_warped'
+                    ires.save_image_with_given_reference(inv_warped, [moving_reference], saving_original_sz_path,
+                                                         [cur_fname])
+                    if moving_l_reference is not None:
+                        cur_fname = fname + '_inv_warped_l'
+                        ires.save_image_with_given_reference(inv_warped_l, [moving_l_reference], saving_original_sz_path,
+                                                             [cur_fname])
+                if save_disp:
+                    cur_fname = fname + '_inv_disp'
+                    id_map = gen_identity_map(inv_warped.shape[2:], resize_factor=1., normalized=True).cuda()
+                    id_map = (id_map[None] + 1) / 2.
+                    inv_disp = new_inv_phi - id_map
+                    ires.save_transform_with_reference(inv_disp, new_spacing, [target_reference], [moving_reference],
+                                                       path=saving_original_sz_path, fname_list=[cur_fname],
+                                                       save_disp_into_itk_format=True)
+                    del id_map, inv_disp
+                del new_inv_phi, inv_warped, inverse_phi
 
     def save_extra_img(self, img, title):
         """

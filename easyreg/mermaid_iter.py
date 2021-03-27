@@ -182,7 +182,7 @@ class MermaidIter(MermaidBase):
         :return:
         """
         # the original image sz in one batch should be the same
-        self._save_image_into_original_sz_with_given_reference(self.pair_path,self.phi, inverse_phi=self.inversed_map, use_01=self.use_01)
+        self._save_image_into_original_sz_with_given_reference(self.pair_path,self.phi, inverse_phis=self.inversed_map, use_01=self.use_01)
 
 
 

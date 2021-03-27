@@ -80,34 +80,59 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(1.0,1.0,1.0), i
 
 
 
-def resample_warped_phi_and_image(source_path_list,l_source_path_list, phi,spacing):
+# def resample_warped_phi_and_image(source_path,target_path, l_source_path, l_target_path, phi,spacing):
+#     new_phi = None
+#     warped = None
+#     l_warped = None
+#     new_spacing = None
+#     if source_path is not None:
+#         s = sitk.GetArrayFromImage(sitk.ReadImage(source_path)).astype(np.float32)
+#         t = sitk.GetArrayFromImage(sitk.ReadImage(target_path)).astype(np.float32)
+#         sz_t = [1, 1] + list(t.shape)
+#         source = torch.from_numpy(s[None][None]).to(phi.device)
+#         new_phi, new_spacing = resample_image(phi, spacing, sz_t, 1, zero_boundary=True)
+#         warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
+#
+#
+#     if l_source_path is not None:
+#         ls = sitk.GetArrayFromImage(sitk.ReadImage(l_source_path)).astype(np.float32)
+#         lt = sitk.GetArrayFromImage(sitk.ReadImage(l_target_path)).astype(np.float32)
+#         sz_lt = [1, 1] + list(lt.shape)
+#         l_source = torch.from_numpy(ls[None][None]).to(phi.device)
+#         if new_phi is None:
+#             new_phi, new_spacing = resample_image(phi, spacing, sz_lt, 1, zero_boundary=True)
+#         l_warped = py_utils.compute_warped_image_multiNC(l_source, new_phi, new_spacing, 0, zero_boundary=True)
+#
+#     return new_phi, warped,l_warped, new_spacing
+
+
+
+def resample_warped_phi_and_image(source_path,target_path, l_source_path, l_target_path, phi,spacing):
     new_phi = None
     warped = None
     l_warped = None
     new_spacing = None
-    if source_path_list is not None:
-        num_s = len(source_path_list)
-        s = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in source_path_list]
-        sz = [num_s,1]+list(s[0].shape)
-        source = np.stack(s,axis=0)
-        source = source.reshape(*sz)
-        source = MyTensor(source)
-        new_phi, new_spacing = resample_image(phi, spacing, sz, 1, zero_boundary=True)
+    if source_path is not None:
+        s = sitk.GetArrayFromImage(sitk.ReadImage(source_path)).astype(np.float32)
+        #t = sitk.GetArrayFromImage(sitk.ReadImage(target_path)).astype(np.float32)
+        sz_t = [1, 1] + list(s.shape)
+        source = torch.from_numpy(s[None][None]).to(phi.device)
+        new_phi, new_spacing = resample_image(phi, spacing, sz_t, 1, zero_boundary=True)
         warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
 
 
-    if l_source_path_list is not None:
-        num_s = len(l_source_path_list)
-        ls = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in l_source_path_list]
-        sz = [num_s, 1] + list(ls[0].shape)
-        l_source = np.stack(ls, axis=0)
-        l_source = l_source.reshape(*sz)
-        l_source = MyTensor(l_source)
+    if l_source_path is not None:
+        ls = sitk.GetArrayFromImage(sitk.ReadImage(l_source_path)).astype(np.float32)
+        #lt = sitk.GetArrayFromImage(sitk.ReadImage(l_target_path)).astype(np.float32)
+        sz_lt = [1, 1] + list(ls.shape)
+        l_source = torch.from_numpy(ls[None][None]).to(phi.device)
         if new_phi is None:
-            new_phi, new_spacing = resample_image(phi, spacing, sz, 1, zero_boundary=True)
+            new_phi, new_spacing = resample_image(phi, spacing, sz_lt, 1, zero_boundary=True)
         l_warped = py_utils.compute_warped_image_multiNC(l_source, new_phi, new_spacing, 0, zero_boundary=True)
 
     return new_phi, warped,l_warped, new_spacing
+
+
 
 def save_transform_with_reference(transform, spacing,moving_reference_list, target_reference_list, path=None, fname_list=None,save_disp_into_itk_format=True):
     if not save_disp_into_itk_format:
