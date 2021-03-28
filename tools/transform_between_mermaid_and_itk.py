@@ -1,8 +1,9 @@
 import SimpleITK as sitk
-import numpy
-from mermaid.utils import *
+import numpy as np
+import os
+from easyreg.utils import resample_image
+from mermaid.utils import compute_warped_image_multiNC
 import torch
-import tools.image_rescale as  ires
 from easyreg.net_utils import gen_identity_map
 from easyreg.demons_utils import sitk_grid_sampling
 import tools.image_rescale as  ires
@@ -64,35 +65,47 @@ import tools.image_rescale as  ires
 
 
 ############### reconstruct the lung  ##############33
+"""
+the behavior of the itk is not clear, it would first move the source based on a displacement map with the moving size (here we assumed, maybe wrong should also check the map with target size) but apply on the target image
+"""
 
-moving_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm_new_diff_sz2/reg/res/records/original_sz/12042G_EXP_STD_USD_COPD_12042G_INSP_STD_USD_COPD_moving.nii.gz"
-target_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm_new_diff_sz2/reg/res/records/original_sz/12042G_EXP_STD_USD_COPD_12042G_INSP_STD_USD_COPD_target.nii.gz"
-disp_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm_new_diff_sz2/reg/res/records/original_sz/12042G_EXP_STD_USD_COPD_12042G_INSP_STD_USD_COPD_disp.h5"
-inv_disp_path ="/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm_new_diff_sz2/reg/res/records/original_sz/12042G_EXP_STD_USD_COPD_12042G_INSP_STD_USD_COPD_inv_disp.h5"
-mermaid_transform_path = "/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm_new_diff_sz2/reg/res/records/original_sz/12042G_EXP_STD_USD_COPD_12042G_INSP_STD_USD_COPD_phi.nii.gz"
-mermaid_inv_transform_path = "/playpen-raid1/zyshen/data/reg_new_lung/eval_lung_lddmm_new_diff_sz2/reg/res/records/original_sz/12042G_EXP_STD_USD_COPD_12042G_INSP_STD_USD_COPD_inv_phi.nii.gz"
+
+moving_path ="/playpen-raid1/zyshen/data/demo_for_lung_reg/reg/res/records/original_sz/11769X_EXP_STD_BWH_COPD_img_11769X_INSP_STD_BWH_COPD_img_moving.nii.gz"
+target_path ="/playpen-raid1/zyshen/data/demo_for_lung_reg/reg/res/records/original_sz/11769X_EXP_STD_BWH_COPD_img_11769X_INSP_STD_BWH_COPD_img_target.nii.gz"
+disp_path ="/playpen-raid1/zyshen/data/demo_for_lung_reg/reg/res/records/original_sz/11769X_EXP_STD_BWH_COPD_img_11769X_INSP_STD_BWH_COPD_img_disp.h5"
+inv_disp_path ="/playpen-raid1/zyshen/data/demo_for_lung_reg/reg/res/records/original_sz/11769X_EXP_STD_BWH_COPD_img_11769X_INSP_STD_BWH_COPD_img_inv_disp.h5"
+mermaid_transform_path = "/playpen-raid1/zyshen/data/demo_for_lung_reg/reg/res/records/original_sz/11769X_EXP_STD_BWH_COPD_img_11769X_INSP_STD_BWH_COPD_img_phi.nii.gz"
+mermaid_inv_transform_path = "/playpen-raid1/zyshen/data/demo_for_lung_reg/reg/res/records/original_sz/11769X_EXP_STD_BWH_COPD_img_11769X_INSP_STD_BWH_COPD_img_inv_phi.nii.gz"
 
 moving_itk = sitk.ReadImage(moving_path)
 target_itk = sitk.ReadImage(target_path)
 trans_itk = sitk.ReadTransform(disp_path)
-inv_trans_itk = sitk.ReadTransform(inv_disp_path)
 warped_itk = sitk_grid_sampling(target_itk,moving_itk, trans_itk)
+inv_trans_itk = sitk.ReadTransform(inv_disp_path)
 inv_warped_itk = sitk_grid_sampling(moving_itk,target_itk, inv_trans_itk)
 
 moving_np = sitk.GetArrayFromImage(moving_itk).astype(np.float32)
 target_np = sitk.GetArrayFromImage(target_itk).astype(np.float32)
 mermaid_phi = sitk.GetArrayFromImage(sitk.ReadImage(mermaid_transform_path)).transpose(3, 2, 1,0)
 mermaid_inv_phi = sitk.GetArrayFromImage(sitk.ReadImage(mermaid_inv_transform_path)).transpose(3, 2, 1,0)
-img_sz = np.array(moving_np.shape)
-spacing = 1./(np.array(img_sz)-1)
-warped_mermaid = compute_warped_image_multiNC(torch.Tensor(moving_np[None][None]),torch.Tensor(mermaid_phi[None]),spacing,spline_order=1,zero_boundary=True)
-img_sz = np.array(target_np.shape)
-spacing = 1./(np.array(img_sz)-1)
-inv_warped_mermaid = compute_warped_image_multiNC(torch.Tensor(target_np[None][None]),torch.Tensor(mermaid_inv_phi[None]),spacing,spline_order=1,zero_boundary=True)
-sitk.WriteImage(warped_itk,"/playpen-raid1/zyshen/debug/warped.nii.gz")
-sitk.WriteImage(inv_warped_itk,"/playpen-raid1/zyshen/debug/inv_warped.nii.gz")
-ires.save_image_with_given_reference(warped_mermaid,reference_list=[target_path],path="/playpen-raid1/zyshen/debug",fname=["warped_mermaid"])
-ires.save_image_with_given_reference(inv_warped_mermaid,reference_list=[moving_path],path="/playpen-raid1/zyshen/debug",fname=["inv_warped_mermaid"])
+
+phi_sz = np.array(mermaid_phi.shape)
+spacing = 1./(np.array(phi_sz[1:])-1)
+moving = torch.from_numpy(moving_np[None][None])
+mermaid_phi = torch.from_numpy(mermaid_phi[None])
+warped_mermaid = compute_warped_image_multiNC(moving, mermaid_phi, spacing, 1, zero_boundary=True)
+
+inv_phi_sz = np.array(mermaid_inv_phi.shape)
+spacing = 1./(np.array(inv_phi_sz[1:])-1)
+target = torch.from_numpy(target_np[None][None])
+mermaid_inv_phi = torch.from_numpy(mermaid_inv_phi[None])
+inv_warped_mermaid = compute_warped_image_multiNC(target, mermaid_inv_phi, spacing, 1, zero_boundary=True)
+
+output_path = "/playpen-raid1/zyshen/data/demo_for_lung_reg"
+sitk.WriteImage(warped_itk, os.path.join(output_path,"warped_itk.nii.gz"))
+ires.save_image_with_given_reference(warped_mermaid,reference_list=[target_path],path=output_path,fname=["warped_mermaid"])
+sitk.WriteImage(inv_warped_itk, os.path.join(output_path,"inv_warped_itk.nii.gz"))
+ires.save_image_with_given_reference(inv_warped_mermaid,reference_list=[moving_path],path=output_path,fname=["inv_warped_mermaid"])
 
 
 

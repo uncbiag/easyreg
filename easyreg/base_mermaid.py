@@ -78,11 +78,10 @@ class MermaidBase(RegModelBase):
                 moving_l_reference_list = self.pair_path[2]
                 target_l_reference_list = self.pair_path[3]
                 num_s = len(target_l_reference_list)
+                assert num_s==1, "when call evaluation in original resolution, the bach num should be set to 1"
 
                 phi = (self.phi + 1) / 2. if not self.use_01 else self.phi
-                _, _, warped_label_map_np, _ = ires.resample_warped_phi_and_image(None, moving_l_reference_list,
-                                                                       phi,
-                                                                       self.spacing)
+                _,_, warped_label_map_np,_ = ires.resample_warped_phi_and_image(None,None, moving_l_reference_list[0], target_l_reference_list[0], phi,self.spacing)
                 warped_label_map_np  = warped_label_map_np.detach().cpu().numpy()
                 lt = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in target_l_reference_list]
                 sz = [num_s, 1] + list(lt[0].shape)
@@ -209,8 +208,6 @@ class MermaidBase(RegModelBase):
         """
         save_original_resol_by_type = self.save_original_resol_by_type
         save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra_not_used_here = save_original_resol_by_type
-        if save_disp:
-            save_phi_inv =True
         spacing = self.spacing
         moving_reference_list = pair_path[0]
         target_reference_list = pair_path[1]

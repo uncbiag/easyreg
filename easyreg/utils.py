@@ -425,7 +425,7 @@ def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False,ide
     if identity_map is not None:
         idDes= identity_map
     else:
-        idDes = AdaptVal(torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)))
+        idDes = torch.from_numpy(py_utils.identity_map_multiN(desiredSizeNC,newspacing)).to(I.device)
     # now use this map for resampling
     ID = py_utils.compute_warped_image_multiNC(I, idDes, newspacing, spline_order,zero_boundary)
 
