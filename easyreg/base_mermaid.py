@@ -244,7 +244,7 @@ class MermaidBase(RegModelBase):
                     ires.save_transform_with_reference(disp, new_spacing, [moving_reference], [target_reference],
                                                        path=saving_original_sz_path, fname_list=[cur_fname],
                                                        save_disp_into_itk_format=True)
-                del id_map, disp
+                    del id_map, disp
             del new_phi, phi
             if save_w:
                 cur_fname = fname + '_warped'
