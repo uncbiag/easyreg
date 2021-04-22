@@ -234,8 +234,9 @@ class MermaidBase(RegModelBase):
                                                                                         moving_l_reference,
                                                                                         target_l_reference, phi,
                                                                                         spacing)
-            if save_phi:
-                ires.save_transfrom(new_phi, new_spacing, saving_original_sz_path, [fname])
+            if save_phi or save_disp:
+                if save_phi:
+                    ires.save_transfrom(new_phi, new_spacing, saving_original_sz_path, [fname])
                 if save_disp:
                     cur_fname = fname + '_disp'
                     id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
