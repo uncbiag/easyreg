@@ -1,0 +1,109 @@
+{
+    "dataset": {
+        "img_after_resize": [
+            155,
+            240,
+            240
+        ],
+        "max_num_for_loading": [
+            400,
+            4,
+            -1,
+            4
+        ],
+        "seg": {
+            "interested_label_list": [
+                -1
+            ],
+            "num_crop_per_class_per_train_img": -1,
+            "partition": {
+                "mode": "pred",
+                "overlap_size": [
+                    16,
+                    16,
+                    16
+                ],
+                "padding_mode": "reflect"
+            },
+            "patch_size": [
+                72,
+                72,
+                72
+            ],
+            "transform": {
+                "my_bal_rand_crop": {
+                    "bg_th_ratio": 0.5,
+                    "scale_ratio": 0.1
+                },
+                "transform_seq": [
+                    "my_balanced_random_crop"
+                ]
+            },
+            "use_whole_img_as_input": false
+        },
+        "spacing_to_refer": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "task_type": "seg"
+    },
+    "tsk_set": {
+        "batch_sz": [
+            4,
+            1,
+            1,
+            1
+        ],
+        "check_best_model_period": 5,
+        "continue_train": false,
+        "continue_train_lr": 0.0005,
+        "criticUpdates": 2,
+        "epoch": 500,
+        "gpu_ids": 0,
+        "loss": {
+            "type": "ce"
+        },
+        "max_batch_num_per_epoch": [
+            400,
+            4,
+            4
+        ],
+        "method_name": "seg_unet",
+        "model": "seg_net",
+        "model_path": "",
+        "n_in_channel": 1,
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 0.001,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 60
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "output_taking_original_image_format": false,
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "save_extra_running_resolution_3d_img": true,
+        "save_fig_on": true,
+        "save_running_resolution_3d_img": true,
+        "seg": {
+            "class_num": 4,
+            "use_bn": true
+        },
+        "train": false,
+        "use_physical_coord": false,
+        "val_period": 10,
+        "warmming_up_epoch": 2
+    }
+}

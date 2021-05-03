@@ -106,17 +106,8 @@ def do_registration_eval(args, registration_pair_list, pair_name_list=None):
     """
     task_output_path = args.task_output_path
     os.makedirs(task_output_path, exist_ok=True)
-    run_demo = args.run_demo
-    if run_demo:
-        demo_name = args.demo_name
-        if demo_name not in['ants','demons','nifty_reg']:
-            setting_folder_path = os.path.join('./demo_settings/mermaid',demo_name)
-        else:
-            setting_folder_path = os.path.join('./demo_settings', demo_name)
-        assert os.path.isdir(setting_folder_path), "the {} is not in supported demo list, eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg"
-        #task_output_path = os.path.join('./demo_output/mermaid',demo_name)
-    else:
-        setting_folder_path = args.setting_folder_path
+
+    setting_folder_path = args.setting_folder_path
     dm, tsm = init_test_env(setting_folder_path,task_output_path,registration_pair_list,pair_name_list)
     tsm.task_par['tsk_set']['gpu_ids'] = args.gpu_id
     model_path= args.model_path
@@ -147,9 +138,7 @@ if __name__ == '__main__':
     * opt_* : refers to optimization based methods
     
     Arguments:
-        demo related:
-             --run_demo: run the demo
-             --demo_name: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg
+
         input related:two input styles are supported,
             1. given txt
              --pair_txt_path/-txt: the txt file recording the pairs to registration
