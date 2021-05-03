@@ -7,6 +7,16 @@ For all methods, SimpleITK is used as the image IO and our test is based on "nii
 
 .. _prepare-data-non-training-label:
 
+
+Data Normalization
+^^^^^^^^^^^^^^^^^^
+If one wants to normalize their data between [0, 1] while making sure eliminating the outliers, we provide `normalize_data.sh` script. It will require to define two paths, it can be used like the following:
+.. code:: shell
+
+    sh normalize_data.sh INPUT_PATH=<FOLDER_FOR_INPUTS> OUTPUT_PATH=<FOLDER_FOR_OUTPUTS> 
+
+
+
 Non-Training Registration Tasks
 ^^^^^^^^^^^^^^^^^^
 

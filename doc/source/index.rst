@@ -17,6 +17,8 @@ Author: Zhengyang Shen, zyshen@cs.unc.edu
    notes/train_segmentation_model.rst
    notes/prepare_data.rst
    notes/train_lpba.rst
+   notes/train_oasis.rst
+
    notes/get_results.rst
    notes/train_reg_model.rst
    notes/install.rst
