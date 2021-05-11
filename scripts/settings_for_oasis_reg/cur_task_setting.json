@@ -1,6 +1,6 @@
 {
     "dataset": {
-      "img_after_resize": [192, 192, 160],
+      "img_after_resize": [240, 240, 160],
       "load_training_data_into_memory": true,
       "max_num_for_loading": [-1, -1, -1, -1],
       "spacing_to_refer": [1, 1, 1]
@@ -12,7 +12,7 @@
       "continue_train_lr": 5e-5,
       "criticUpdates": 2,
       "epoch": 600,
-      "gpu_ids": 0,
+      "gpu_ids": -1,
       "loss": {
         "type": "ncc"
       },
@@ -50,8 +50,7 @@
           "min_reg_factor": 1e-3,
           "sym_factor": 0.01,
           "reset_lr_for_multi_step": false,
-          "using_complex_net": true,
-          "affine_fc_size": 720
+          "using_complex_net": true
         },
         "compute_inverse_map": false,
         "low_res_factor": 0.5,
@@ -64,7 +63,7 @@
           "epoch_activate_multi_step": 100,
           "epoch_activate_sym": 200,
           "load_trained_affine_net": false,
-          "mermaid_net_json_pth": "./settings_for_lpba/reg_lddmm_train/mermaid_nonp_settings.json",
+          "mermaid_net_json_pth": "./demo_settings/mermaid/oasis_atlas_reg/mermaid_nonp_settings.json",
           "num_step": 2,
           "optimize_momentum_network": true,
           "reset_lr_for_multi_step": true,
@@ -74,8 +73,8 @@
           "using_complex_net": false
         }
       },
-      "save_running_resolution_3d_img": false,
-      "save_extra_running_resolution_3d_img": true,
+      "save_3d_img_on": false,
+      "save_extra_3d_img": true,
       "save_fig_on": true,
       "train": true,
       "use_physical_coord": false,
