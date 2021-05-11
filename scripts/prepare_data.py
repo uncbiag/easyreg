@@ -11,8 +11,7 @@ parser.add_argument('--atlas_image_path', type=str, help='absolute path to atlas
 parser.add_argument('--atlas_label_path', type=str, help='absolute path to atlas')
 
 parser.add_argument('--task_type', type=str, help='type of the task, can be either reg or seg', required=True)
-parser.add_argument('--preprocess', action='store_true')
-parser.add_argument('--keep_current', action='store_true')
+
 parser.add_argument('--train_size', type=int, default=70)
 parser.add_argument('--test_size', type=int, default=20)
 parser.add_argument('--val_size', type=int, default=10)

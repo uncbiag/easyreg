@@ -63,7 +63,7 @@
           "epoch_activate_multi_step": 100,
           "epoch_activate_sym": 200,
           "load_trained_affine_net": false,
-          "mermaid_net_json_pth": "./demo_settings/mermaid/oasis_atlas_reg/mermaid_nonp_settings.json",
+          "mermaid_net_json_pth": "./scripts/settings_for_oasis_reg/mermaid_nonp_settings.json",
           "num_step": 2,
           "optimize_momentum_network": true,
           "reset_lr_for_multi_step": true,
