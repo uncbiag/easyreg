@@ -48,12 +48,12 @@ Below are the command line arguments that *train_seg.py* accepts.
 **
 
 It is possible to replicate our training process using our setting, which can be found under demo_settings/segmentation_lpba/curr_task_settings.json. The detailed explanation for settings will be provided.
-For OASIS Segmentation, you can use the setting file under scripts/settings_for_oasis/ folder.
+For OASIS Segmentation, you can use the setting file under scripts/settings_for_oasis_seg/ folder.
 In order to start training, you need to execute the following script:
 
 .. code-block:: shell
 
-    python scripts/train_seg.py -ts scripts/settings_for_oasis/cur_task_settings.json --output_root_path outputs_oasis --data_task_name oasis_segmentation --task_name segmentation_first_training
+    python scripts/train_seg.py -ts scripts/settings_for_oasis_seg/cur_task_settings.json --output_root_path outputs_oasis --data_task_name oasis_segmentation --task_name segmentation_first_training
 
 
 3) Registration Training Script and Settings
@@ -76,5 +76,4 @@ Below are the command line arguments that *train_reg.py* accepts.
 Same as segmentation, it is possible to replicate our training settings with the following script:
 
 .. code-block:: shell
-
-    python train_reg.py -ts scripts/settings_for_lpba/reg_lddmm_train/curr_task_settings.json --output_root_path outputs_oasis --data_task_name oasis_registration --task_name reg_with_lddmm
+    python scripts/train_reg.py --output_root_path outputs_oasis --data_task_name oasis_registration --task_name reg_with_lddmm -ts scripts/settings_for_oasis_reg
