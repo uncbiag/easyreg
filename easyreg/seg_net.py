@@ -76,6 +76,7 @@ class SegNet(SegModelBase):
                 img_and_label['label'] = img_and_label['label'].cuda()
         input, gt = get_seg_pair(img_and_label, is_train)
         self.input = input
+        self.input_img_sz =  data[0]['image_after_resize']
         self.gt = gt
         self.spacing = data[0]['original_spacing']
 
@@ -189,7 +190,7 @@ class SegNet(SegModelBase):
 
 
     def get_evaluation(self):
-        sz =self.input_img_sz
+        sz =self.input_img_sz.squeeze().cpu().numpy().tolist()
         if hasattr(self.network, 'set_file_path'):
             self.network.set_file_path(self.img_path,self.fname_list)
 

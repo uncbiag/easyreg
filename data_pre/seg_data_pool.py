@@ -13,7 +13,7 @@ number_of_workers= 6
 
 class BaseSegDataSet(object):
 
-    def __init__(self, file_type_list, label_switch=('', ''), dim=3):
+    def __init__(self, file_type_list, label_switch=('', ''), filter_label=True,dim=3):
         """
         :param name: name of data set
         :param dataset_type: ''mixed' like oasis including inter and  intra person  or 'custom' like LPBA40, only includes inter person
@@ -26,6 +26,7 @@ class BaseSegDataSet(object):
         """path of the output directory"""
         self.label_path = None
         """path of the label directory"""
+        self.filter_label = filter_label
         self.find_corr_label = find_corr_map
         self.get_file_name  = get_file_name
         self.file_name_list = []
@@ -110,8 +111,8 @@ class BaseSegDataSet(object):
             label_filtered_sitk.SetSpacing(label_sitk.GetSpacing())
             label_filtered_sitk.SetOrigin(label_sitk.GetOrigin())
             label_filtered_sitk.SetDirection(label_sitk.GetDirection())
-            fname = os.path.split(label_path)[-1]
-            file_saving_path = os.path.join(saving_path, fname)
+            fname = get_file_name(label_path)
+            file_saving_path = os.path.join(saving_path, fname+".nii.gz")
             sitk.WriteImage(label_filtered_sitk,file_saving_path)
 
 
@@ -169,10 +170,10 @@ class BaseSegDataSet(object):
         #random.shuffle(file_path_list)
         label_path_list = self.find_corr_label(file_path_list, self.label_path, self.label_switch)
         file_path_list, label_path_list = self.resize_img_label(file_path_list,label_path_list)
-
-        self.get_shared_label_index(label_path_list)
-        self.filter_and_save_label(label_path_list)
-        label_path_list = find_corr_map(file_path_list, self.label_path)
+        if self.filter_label:
+            self.get_shared_label_index(label_path_list)
+            self.filter_and_save_label(label_path_list)
+        label_path_list = find_corr_map(file_path_list, self.label_path, self.label_switch)
         if self.sever_switch is None:
             file_label_path_list = [[file_path_list[idx], label_path_list[idx]] for idx in range(len(label_path_list))]
         else:

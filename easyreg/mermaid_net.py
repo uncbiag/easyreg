@@ -85,6 +85,7 @@ class MermaidNet(nn.Module):
         """if true load_trained_affine_net; if false, the affine network is not initialized"""
         self.affine_init_path = opt_mermaid[('affine_init_path','',"the path of trained affined network")]
         """the path of trained affined network"""
+        self.affine_resoltuion =  opt_mermaid[('affine_resoltuion',[-1,-1,-1],"the image resolution input for affine")]
         self.affine_refine_step = opt_mermaid[('affine_refine_step', 5, "the multi-step num in affine refinement")]
         """the multi-step num in affine refinement"""
         self.optimize_momentum_network = opt_mermaid[('optimize_momentum_network',True,'if true, optimize the momentum network')]
@@ -109,6 +110,7 @@ class MermaidNet(nn.Module):
 
         batch_sz = batch_sz if not self.using_sym_on  else batch_sz*2
         self.img_sz = [batch_sz, 1] + img_sz
+        self.affine_resoltuion =  [batch_sz, 1]+ self.affine_resoltuion
         self.dim = len(img_sz)
         self.standard_spacing = 1. / (np.array(img_sz) - 1)
         """ here we define the standard spacing measures the image coord from 0 to 1"""
@@ -262,6 +264,13 @@ class MermaidNet(nn.Module):
                 lowres_id = py_utils.identity_map_multiN(lowResSize, lowResSpacing)
                 self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
                 print(torch.min(self.lowResIdentityMap))
+
+            resize_affine_input = all([sz != -1 for sz in self.affine_resoltuion])
+            if resize_affine_input:
+                self.affine_spacing = get_res_spacing_from_spacing(spacing,  self.img_sz, self.affine_resoltuion)
+                affine_id = py_utils.identity_map_multiN(self.affine_resoltuion, self.affine_spacing)
+                self.affineIdentityMap = torch.from_numpy(affine_id).cuda()
+
         self.lowRes_fn = partial(get_resampled_image, spacing=spacing, desiredSize=lowResSize, zero_boundary=False,identity_map=self.lowResIdentityMap)
         self.mermaid_unit_st = model.cuda()
         self.criterion = criterion
@@ -550,7 +559,13 @@ class MermaidNet(nn.Module):
         """
         if self.using_affine_init:
             with torch.no_grad():
-                affine_img, affine_map, affine_param = self.affine_net(moving, target)
+                toaffine_moving, toaffine_target = moving, target
+                cur_resol = list(moving.shape)
+                resize_affine_input = any([sz == -1 for sz in self.affine_resoltuion])
+                if resize_affine_input:
+                    toaffine_moving = get_resampled_image(toaffine_moving, self.spacing, self.affine_resoltuion, identity_map=self.affineIdentityMap)
+                    toaffine_target = get_resampled_image(toaffine_target, self.spacing, self.affine_resoltuion, identity_map=self.affineIdentityMap)
+                affine_img, affine_map, affine_param = self.affine_net(toaffine_moving, toaffine_target)
                 self.affine_param = affine_param
                 affine_map = (affine_map + 1) / 2.
                 inverse_map = None
@@ -559,6 +574,9 @@ class MermaidNet(nn.Module):
                     # affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
                     # inverse_map = (affine_map_inverse + 1) / 2.
                     inverse_map = self.affine_net.get_inverse_map(use_01=True)
+                if resize_affine_input:
+                    affine_img = py_utils.compute_warped_image_multiNC(moving, affine_map, self.spacing, 1,
+                                                                       zero_boundary=True, use_01_input=True)
 
                 if self.using_physical_coord:
                     for i in range(self.dim):
@@ -636,7 +654,13 @@ class MermaidNet(nn.Module):
         self.step_loss = None
         if self.using_affine_init:
             with torch.no_grad():
-                affine_img, affine_map, affine_param = self.affine_net(moving, target)
+                toaffine_moving, toaffine_target = moving, target
+                cur_resol = list(moving.shape)
+                resize_affine_input = all([sz != -1 for sz in self.affine_resoltuion])
+                if resize_affine_input:
+                    toaffine_moving = get_resampled_image(toaffine_moving,self.spacing,self.affine_resoltuion,identity_map=self.affineIdentityMap)
+                    toaffine_target = get_resampled_image(toaffine_target,self.spacing,self.affine_resoltuion, identity_map=self.affineIdentityMap)
+                affine_img, affine_map, affine_param = self.affine_net(toaffine_moving, toaffine_target)
                 self.affine_param = affine_param
                 affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
                 inverse_map = None
@@ -646,6 +670,9 @@ class MermaidNet(nn.Module):
                     # inverse_map = (affine_map_inverse + 1) / 2.
                     inverse_map = self.affine_net.get_inverse_map(use_01=True)
 
+                if resize_affine_input:
+                    affine_img = py_utils.compute_warped_image_multiNC(moving, affine_map, self.spacing, 1,
+                                                                        zero_boundary=True,use_01_input=True)
 
                 if self.using_physical_coord:
                     for i in range(self.dim):

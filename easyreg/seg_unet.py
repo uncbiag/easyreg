@@ -61,7 +61,7 @@ class SegUnet(nn.Module):
                 res = res[-1]
             output.append(res.detach().cpu())
         pred_patched = torch.cat(output, dim=0)
-        pred_patched = torch.max(pred_patched.data, 1)[1]
+        pred_patched = torch.max(pred_patched, 1)[1]
         output_np = self.partition.assemble(pred_patched,image_size=self.img_sz)
         return output_np
 

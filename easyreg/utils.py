@@ -396,6 +396,10 @@ def get_res_spacing_from_spacing(spacing, sz, lowResSize):
     :return: returns spacing of low res parameterization
     """
     #todo: check that this is the correct way of doing it
+    if len(sz) == len(spacing):
+        sz = [1,1]+sz
+    if len(lowResSize)==len(spacing):
+        lowResSize = [1,1]+lowResSize
     return spacing * (np.array(sz[2::])-1) / (np.array(lowResSize[2::])-1)
 
 def _compute_low_res_image(I,spacing,low_res_size,zero_boundary=False):
@@ -413,7 +417,8 @@ def resample_image(I,spacing,desiredSize, spline_order=1,zero_boundary=False,ide
     :param desiredSize: array for the desired size (excluding B and C, i.e, 1 entry for 1D, 2 for 2D, and 3 for 3D)
     :return: returns a tuple: the downsampled image, the new spacing after downsampling
     """
-    desiredSize = desiredSize[2:]
+    if len(I.shape) != len(desiredSize)+2:
+        desiredSize = desiredSize[2:]
     sz = np.array(list(I.size()))
     # check that the batch size and the number of channels is the same
     nrOfI = sz[0]

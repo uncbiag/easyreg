@@ -453,7 +453,11 @@ def save_checkpoint(state, is_best, path, prefix, filename='checkpoint.pth.tar')
         os.mkdir(path)
     prefix_save = os.path.join(path, prefix)
     name = '_'.join([prefix_save, filename])
-    torch.save(state, name)
+    try:
+        torch.save(state, name,_use_new_zipfile_serialization=False)
+    except:
+        torch.save(state, name)
+
     if is_best:
         torch.save(state, path + '/model_best.pth.tar')
 

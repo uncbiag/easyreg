@@ -201,7 +201,7 @@ class MomentumGen_im(nn.Module):
 
 
 class MomentumGen_resid(nn.Module):
-    def __init__(self, low_res_factor=1, bn=False):
+    def __init__(self, low_res_factor=1, bn=False, adaptive_mode=False):
         super(MomentumGen_resid,self).__init__()
         self.low_res_factor = low_res_factor
         self.down_path_1 = conv_bn_rel(2, 16, 3, stride=1, active_unit='relu', same_padding=True, bn=False,group=2)

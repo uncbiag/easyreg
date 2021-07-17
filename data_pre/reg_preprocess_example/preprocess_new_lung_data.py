@@ -9,7 +9,7 @@ import glob
 from  easyreg.reg_data_utils import write_list_into_txt
 from multiprocessing import Process
 h5_path = "/playpen-raid1/Data/UNC_Registration.h5"
-output_path = "/playpen-raid1/Data/Lung_Registration_clamp_normal"
+output_path = "/playpen-raid2/Data/Lung_Registration_clamp_normal_transposed"
 os.makedirs(output_path,exist_ok=True)
 #['Expiration_CT', 'Expiration_CT.key', 'Expiration_CT.missing',
 # 'Expiration_CT.origin', 'Expiration_CT.spacing', 'Expiration_labelmap',
@@ -76,6 +76,9 @@ def process_lung_data(index_list):
             fname = f[atr_key][i][1]
             origin = f[atr_origin][i].astype(np.float64)
             spacing = f[atr_spacing][i].astype(np.float64)
+            img = np.transpose(img, (2, 1, 0))
+            origin = np.flipud(origin)
+            spacing = np.flipud(spacing)
             sitk_img = sitk.GetImageFromArray(img)
             sitk_img.SetOrigin(origin)
             sitk_img.SetSpacing(spacing)
@@ -113,7 +116,7 @@ for p in procs:
     p.join()
 
 #
-txt_output_path = "/playpen-raid1/zyshen/data/lung_new_reg"
+txt_output_path = "/playpen-raid2/zyshen/data/lung_new_reg"
 os.makedirs(txt_output_path,exist_ok=True)
 output_txt = os.path.join(txt_output_path,"pair_path_list.txt")
 get_input_file(txt_output_path,output_txt)

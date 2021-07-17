@@ -31,7 +31,7 @@ class SegmentationDataset(Dataset):
         self.has_label = False
         self.get_file_list()
         self.seg_option = option['seg']
-        self.img_after_resize = option[('img_after_resize', [-1, -1, -1], "resample the image into desired size")]
+        self.img_after_resize = option[('img_after_resize', [-1, -1, -1], "numpy coordinate, resample the image into desired size")]
         self.normalize_via_percentage_clip = option[('normalize_via_percentage_clip',-1,"normalize the image via percentage clip, the given value is in [0-1]")]
         self.normalize_via_range_clip = option[('normalize_via_range_clip',(-1,-1),"normalize the image via range clip")]
         self.img_after_resize = None if any([sz == -1 for sz in self.img_after_resize]) else self.img_after_resize
@@ -434,6 +434,7 @@ class SegmentationDataset(Dataset):
         else:
             img_np = blosc.unpack_array(zipnp_list[0])
         img_path = self.path_list[idx]
+        img_shape = img_np.shape
 
 
 
@@ -459,6 +460,7 @@ class SegmentationDataset(Dataset):
                 sample['label'] = self.transform(sample['label'])
 
         sample['spacing'] = spacing.copy()
+        sample["image_after_resize"] =np.array(img_shape)
         sample['original_sz'] = original_sz.copy()
         sample['original_spacing'] = original_spacing.copy()
         return sample, filename
