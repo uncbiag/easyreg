@@ -6,11 +6,12 @@ parser = argparse.ArgumentParser(description='Data Organizer and Preprocessor')
 parser.add_argument('--dataset_path', required=True, help='path to the root of the dataset')
 parser.add_argument('--im2im', action='store_true')
 parser.add_argument('--atlas', action='store_true')
+
 parser.add_argument('--atlas_image_path', type=str, help='absolute path to atlas')
 parser.add_argument('--atlas_label_path', type=str, help='absolute path to atlas')
+
 parser.add_argument('--task_type', type=str, help='type of the task, can be either reg or seg', required=True)
-parser.add_argument('--preprocess', action='store_true')
-parser.add_argument('--keep_current', action='store_true')
+
 parser.add_argument('--train_size', type=int, default=70)
 parser.add_argument('--test_size', type=int, default=20)
 parser.add_argument('--val_size', type=int, default=10)
@@ -142,6 +143,10 @@ else:
         file_names[mode]['labels'] = [os.path.join(opt.dataset_path, mode, 'labels', path) for path in sorted(os.listdir(os.path.join(opt.dataset_path, mode, 'labels')))]
     
 
+
+
+
+
 if opt.task_type == 'seg':
     # Create files
     for mode in ['train', 'test', 'val']:
@@ -162,7 +167,7 @@ if opt.task_type == 'seg':
 elif opt.task_type == 'reg':
     if not opt.atlas:
         for mode in ['train', 'test', 'val']:
-            with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
+            with open(os.path.join(file_list_paths, mode, 'pair_path_list.txt'), 'w+') as f:
                 for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
                     for img2, label2 in zip(file_names[mode]['images'], file_names[mode]['labels']):
                         if img1 == img2:
@@ -181,18 +186,16 @@ elif opt.task_type == 'reg':
         for mode in ['train', 'test', 'val']:
             with open(os.path.join(file_list_paths, mode, 'pair_path_list.txt'), 'w+') as f:
                 for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
-                    img2, label2 = opt.atlas_image_path, opt.atlas_label_path
-
-                    f.write('{} {} {} {}\n'.format(img1, img2, label1, label2))
+                    img2 = opt.atlas_image_path
+                    f.write('{} {} {} {}\n'.format(img1, img2, label1, label1))
 
         for mode in ['train', 'test', 'val']:
             with open(os.path.join(file_list_paths, mode, 'pair_name_list.txt'), 'w+') as f:
                 for img1, label1 in zip(file_names[mode]['images'], file_names[mode]['labels']):
                     img2 = 'atlas'
                     f.write('{}_{}\n'.format(img1.split('.')[0].split('/')[-1], img2.split('.')[0].split('/')[-1]))
+
         
-
-
 
 
 

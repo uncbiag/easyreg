@@ -12,8 +12,7 @@ torch.backends.cudnn.benchmark=True
 import tools.module_parameters as pars
 from abc import ABCMeta, abstractmethod
 from easyreg.piplines import run_one_task
-from task import DataTask, ModelTask
-
+from task import DataTask, ModelTask, BaseTask
 
 
 
@@ -134,18 +133,6 @@ def __do_registration_train(args,pipeline=None):
     return pipeline
 
 
-def set_seed_for_demo(args):
-    """ reproduce the training demo"""
-    seed = 2018
-    if args.is_demo:
-        torch.manual_seed(seed)
-        np.random.seed(seed)
-        random.seed(seed)
-        torch.cuda.manual_seed(seed)
-        torch.backends.cudnn.deterministic = True
-
-
-
 
 def do_registration_train(args):
     """
@@ -154,7 +141,6 @@ def do_registration_train(args):
     :param args: the parsed arguments
     :return: None
     """
-    set_seed_for_demo(args)
     task_name = args.task_name
     args.task_name_record = task_name
     backup_settings(args)
@@ -207,7 +193,6 @@ if __name__ == '__main__':
     parser.add_argument('--train_affine_first',required=False,action='store_true',
                         help='train affine network first, then train non-parametric network')
     parser.add_argument('-g',"--gpu_id",required=False,type=int,default=0,help='gpu_id to use')
-    parser.add_argument('--is_demo', required=False,action='store_true', help="reproduce the tutorial result")
     args = parser.parse_args()
     print(args)
     do_registration_train(args)
