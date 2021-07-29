@@ -245,14 +245,15 @@ class RegModelBase():
         l_moving = self.l_moving
         l_target = self.l_target
         l_warped = self.warped_label_map
-        if type(self.moving)==torch.Tensor:
-            moving = self.moving.detach().cpu().numpy()
-            target = self.target.detach().cpu().numpy()
-            warped = self.output.detach().cpu().numpy()
-        if self.warped_label_map is not None and type(self.warped_label_map)==torch.Tensor:
-            l_moving = self.l_moving.detach().cpu().numpy()
-            l_target = self.l_target.detach().cpu().numpy()
-            l_warped = self.warped_label_map.detach().cpu().numpy()
+        to_numpy = lambda x: x if isinstance(x, np.ndarray) else x.detach().cpu().numpy()
+        if type(self.moving) is not None:
+            moving = to_numpy(self.moving)
+            target = to_numpy(self.target)
+            warped = to_numpy(self.output)
+        if self.warped_label_map is not None:
+            l_moving = to_numpy(self.l_moving)
+            l_target = to_numpy(self.l_target)
+            l_warped = to_numpy(self.warped_label_map)
 
 
         saving_folder_path = os.path.join(self.record_path, '3D')
