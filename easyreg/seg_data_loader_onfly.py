@@ -50,6 +50,8 @@ class SegmentationDataset(Dataset):
         self.label_org_index_list = []
         self.label_converted_index_list = []
         self.label_density_list = []
+        self.origin_list = []
+
         if self.load_into_memory:
             self.init_img_pool()
             print('img pool initialized complete')
@@ -105,14 +107,14 @@ class SegmentationDataset(Dataset):
         count = 0
         for fn, img_label_path in img_label_path_dic.items():
             img_label_np_dic = {}
-            img_sitk, original_spacing, original_sz = self.__read_and_clean_itk_info(img_label_path['image'])
+            img_sitk, original_spacing, original_sz, origin = self.__read_and_clean_itk_info(img_label_path['image'])
             resized_img, resize_factor = self.resize_img(img_sitk)
             img_np = sitk.GetArrayFromImage(resized_img)
             img_np = self.normalize_intensity(img_np)
             img_label_np_dic['image'] = blosc.pack_array(img_np.astype(np.float32))
 
             if self.has_label:
-                label_sitk, _, _ = self.__read_and_clean_itk_info(img_label_path['label'])
+                label_sitk, _, _, _ = self.__read_and_clean_itk_info(img_label_path['label'])
                 resized_label,_ = self.resize_img(label_sitk,is_label=True)
                 label_np = sitk.GetArrayFromImage(resized_label)
                 label_index = list(np.unique(label_np))
@@ -125,6 +127,7 @@ class SegmentationDataset(Dataset):
             img_label_np_dic['original_spacing'] = original_spacing
             img_label_np_dic['spacing'] = normalized_spacing
             img_label_np_dic['img_sz'] = list(img_np.shape)
+            img_label_np_dic['origin'] = origin
             img_label_dic[fn] =img_label_np_dic
             count +=1
             pbar.update(count)
@@ -275,6 +278,7 @@ class SegmentationDataset(Dataset):
             self.original_spacing_list.append(img_label_dic[fname]['original_spacing'])
             self.original_sz_list.append(img_label_dic[fname]['original_sz'])
             self.spacing_list.append(img_label_dic[fname]['spacing'])
+            self.origin_list.append(img_label_dic[fname]['origin'])
             if self.has_label:
                 self.label_org_index_list.append(img_label_dic[fname]['label_org_index'])
                 self.label_converted_index_list.append(img_label_dic[fname]['label_converted_index'])
@@ -351,9 +355,10 @@ class SegmentationDataset(Dataset):
             img = sitk.ReadImage(path)
             spacing_sitk = img.GetSpacing()
             img_sz_sitk = img.GetSize()
-            return sitk.GetImageFromArray(sitk.GetArrayFromImage(img)), np.flipud(spacing_sitk), np.flipud(img_sz_sitk)
+            origin_sitk = img.GetOrigin()
+            return sitk.GetImageFromArray(sitk.GetArrayFromImage(img)), np.flipud(spacing_sitk), np.flipud(img_sz_sitk), np.flipud(origin_sitk)
         else:
-            return None, None, None
+            return None, None, None, None
 
     def __read_itk_into_np(self, path):
         return sitk.GetArrayFromImage(sitk.ReadImage(path))
@@ -429,6 +434,7 @@ class SegmentationDataset(Dataset):
         spacing = self.spacing_list[idx]
         original_spacing = self.original_spacing_list[idx]
         original_sz = self.original_sz_list[idx]
+        origin = self.origin_list[idx]
         if self.has_label:
             img_np, label_np = [blosc.unpack_array(item) for item in zipnp_list]
         else:
@@ -463,6 +469,7 @@ class SegmentationDataset(Dataset):
         sample["image_after_resize"] =np.array(img_shape)
         sample['original_sz'] = original_sz.copy()
         sample['original_spacing'] = original_spacing.copy()
+        sample['origin'] = origin.copy()
         return sample, filename
 
 

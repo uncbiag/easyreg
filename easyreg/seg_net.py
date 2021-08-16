@@ -79,6 +79,7 @@ class SegNet(SegModelBase):
         self.input_img_sz =  data[0]['image_after_resize']
         self.gt = gt
         self.spacing = data[0]['original_spacing']
+        self.origin = data[0]['origin']
 
     def init_optim(self, opt, network, warmming_up=False):
         """

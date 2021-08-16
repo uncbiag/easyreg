@@ -42,7 +42,7 @@ class SegModelBase():
         self.output = None
         self.gt = None
         self.multi_gpu_on =False # todo for now the distributed computing is not supported
-
+        self.origin = None
 
 
 
@@ -233,7 +233,7 @@ class SegModelBase():
             gt = gt.astype(np.int32)
 
         spacing = self.spacing.cpu().numpy()
-
+        origin = self.origin.cpu().numpy()
 
         saving_folder_path = os.path.join(self.record_path, '3D')
         make_dir(saving_folder_path)
@@ -243,6 +243,7 @@ class SegModelBase():
             saving_file_path = saving_folder_path + '/' + appendix + "_output.nii.gz"
             output = sitk.GetImageFromArray(output[i, 0, ...])
             output.SetSpacing(np.flipud(spacing[i]))
+            output.SetOrigin(np.flipud(origin[i]))
             sitk.WriteImage(output, saving_file_path)
             if gt is not None:
                 saving_file_path = saving_folder_path + '/' + appendix + "_gt.nii.gz"

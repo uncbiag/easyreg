@@ -115,6 +115,7 @@ git clone https://github.com/uncbiag/easyreg.git
 cd easyreg
 git clone https://github.com/uncbiag/mermaid.git
 pip install -r requirements.txt
+pip install -e .
 
 # ################download demo (optional)######
 cd demo
