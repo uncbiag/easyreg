@@ -52,35 +52,12 @@ jobs:
 #        - CXX=clang++
 
 
-install:
-  # Create a new environment
-  - conda create --yes --name test python=$TRAVIS_PYTHON_VERSION
-  # Activate it
-  - source activate test
-  # Install various dependencies
-  - conda install --yes numpy=1.17 pytest pip
 
 install:
-  - conda install --yes conda-build
-  # You can add any CONDA channels you may need here. CONDA supports
-  # both the commands add and append. The only difference is that 
-  # the add command places the channel at the front of the priority 
-  # list, while append does the opposite.
-  - conda config --add channels pytorch
-  - conda config --add channels conda-forge
-  - conda config --add channels anaconda
-  - conda config --add channels uncbiag
-  - conda install easyreg
-  
-  # Build the conda recipe for this package
-  - conda build . --python=$TRAVIS_PYTHON_VERSION --output-folder bld-dir
-  # Add the built package as a channel with highest priority
-  - conda config --add channels "file://`pwd`/bld-dir"
+    pip wheel . --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple -w dist
 
-  # Create and activate the test environment
-  - conda create --yes --name test-environment python=$TRAVIS_PYTHON_VERSION easyreg --file dev-requirements.txt
-  - source activate test-environment
-
+    pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple dist/easyreg*
+ 
 
 # command to install dependencies
 #install:
