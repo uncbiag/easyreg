@@ -54,9 +54,9 @@ jobs:
 
 
 install:
-    pip wheel . --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple -w dist
-
-    pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple dist/easyreg*
+  - which python
+  - pip wheel . --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple -w dist
+  - pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple dist/easyreg*
  
 
 # command to install dependencies
