@@ -4,11 +4,7 @@ language: python
 # git tag -a v0.2.3 -m 'This version has the new cool features X, Y, Z'
 # git push --tags
 
-matrix:
-  # This will launch a separate build for each Python version you add
-  # Feel free to add extra environment variables as needed
-  include:
-    - python: 3.7
+
 
 jobs:
   include:
