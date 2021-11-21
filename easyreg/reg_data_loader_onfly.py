@@ -26,7 +26,7 @@ class RegistrationDataset(Dataset):
         self.phase = phase
         self.transform = transform
         #self.data_type = '*.nii.gz'
-        self.inverse_reg_direction = False
+        self.inverse_reg_direction = option[('inverse_reg_direction',False,'double the data via inverse registration order')]
         """ inverse the registration order, i.e the original set is A->B, the new set would be A->B and B->A """
         ind = ['train', 'val', 'test', 'debug'].index(phase)
         max_num_for_loading=option['max_num_for_loading',(-1,-1,-1,-1),"the max number of pairs to be loaded, set -1 if there is no constraint,[max_train, max_val, max_test, max_debug]"]
@@ -229,6 +229,7 @@ class RegistrationDataset(Dataset):
         else:
             img_after_resize = np.flipud(img_sz)
         resize_factor = np.array(img_after_resize)/np.flipud(img_sz)
+        spacing_factor = (np.array(img_after_resize)-1)/(np.flipud(img_sz)-1)
         resize = not all([factor == 1 for factor in resize_factor])
         if resize:
             resampler= sitk.ResampleImageFilter()
@@ -238,9 +239,9 @@ class RegistrationDataset(Dataset):
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
             after_size = [round(img_sz[i]*factor[i]) for i in range(dimension)]
             after_size = [int(sz) for sz in after_size]
-            matrix[0, 0] =1./ factor[0]
-            matrix[1, 1] =1./ factor[1]
-            matrix[2, 2] =1./ factor[2]
+            matrix[0, 0] =1./ spacing_factor[0]
+            matrix[1, 1] =1./ spacing_factor[1]
+            matrix[2, 2] =1./ spacing_factor[2]
             affine.SetMatrix(matrix.ravel())
             resampler.SetSize(after_size)
             resampler.SetTransform(affine)

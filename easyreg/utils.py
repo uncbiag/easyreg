@@ -3,6 +3,7 @@ import numpy as np
 import skimage
 import os
 import torchvision.utils as utils
+import SimpleITK as sitk
 from skimage import color
 import mermaid.image_sampling as py_is
 from mermaid.data_wrapper import AdaptVal,MyTensor
@@ -538,3 +539,58 @@ def normalize_spacing(spacing,sz,silent_mode=False):
     return normalized_spacing
 
 
+
+
+def dfield2bspline(dfield, sp_order=3, n_nodes=50, verbose=False):
+    # BSpline configuration
+    dim = dfield.GetDimension()
+    n_nodes = np.full(dim, n_nodes)
+    mesh_sz = n_nodes - sp_order
+    physical_dim = np.array(dfield.GetSpacing()) * (np.array(dfield.GetSize()) - 1)
+
+    # This transform is used to compute the origin and spacing properly
+    bstx = sitk.BSplineTransform(sp_order)
+    bstx.SetTransformDomainOrigin(dfield.GetOrigin())
+    bstx.SetTransformDomainPhysicalDimensions(physical_dim.tolist())
+    bstx.SetTransformDomainMeshSize(mesh_sz.tolist())
+    bstx.SetTransformDomainDirection(dfield.GetDirection())
+
+    if verbose:
+        print('Adjusting BSpline to the Displacement field...')
+    Idf = sitk.GetArrayViewFromImage(dfield)
+    img_params = []
+
+    for i in range(dim):
+        # Create the image for dim i
+        dfi = sitk.GetImageFromArray(Idf[..., i])
+        dfi.SetDirection(dfield.GetDirection())
+        dfi.SetOrigin(dfield.GetOrigin())
+        dfi.SetSpacing(dfield.GetSpacing())
+        # Downsampling the image field to the desired BSpline
+        downsampler = sitk.ResampleImageFilter()
+        downsampler.SetInterpolator(sitk.sitkBSpline)
+        downsampler.SetDefaultPixelValue(0)
+        # By default the Identity is used as transform
+        downsampler.SetSize(bstx.GetCoefficientImages()[i].GetSize())
+        downsampler.SetOutputSpacing(bstx.GetCoefficientImages()[i].GetSpacing())
+        downsampler.SetOutputOrigin(bstx.GetCoefficientImages()[i].GetOrigin())
+        downsampler.SetOutputDirection(dfield.GetDirection())
+        out = downsampler.Execute(dfi)
+
+        decomp = sitk.BSplineDecompositionImageFilter()
+        decomp.SetSplineOrder(sp_order)
+
+        img_params.append(decomp.Execute(out))
+
+    bstx = sitk.BSplineTransform(img_params, sp_order)
+    return bstx
+
+
+    # dtransform = sitk.ReadTransform(df_name)
+    # # Retrive the DField from the Transform
+    # dfield = sitk.DisplacementFieldTransform(dtransform).GetDisplacementField()
+    # # Fitting a BSpline from the Deformation Field
+    # bstx = dfield2bspline(dfield, verbose=True)
+    #
+    # # Save the BSpline Transform
+    # sitk.WriteTransform(bstx, df_name.replace('_disp.h5', '_disp_bs.tfm'))

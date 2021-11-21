@@ -148,7 +148,7 @@ class VoxelMorphCVPR2018(nn.Module):
                 "The Affine model is added, but not initialized, this should only take place when a complete checkpoint (including affine model) will be loaded")
         self.affine_net.eval()
 
-    def forward(self, source, target):
+    def forward(self, source, target,source_mask=None, target_mask=None):
 
         if self.using_affine_init:
             with torch.no_grad():
@@ -212,7 +212,7 @@ class VoxelMorphCVPR2018(nn.Module):
 
     def get_sim_loss(self):
         sim_loss = self.loss_fn.get_loss(self.warped,self.target)
-        sim_loss =  sim_loss / self.warped.shape[0]
+        sim_loss = sim_loss / self.warped.shape[0]
         return sim_loss
 
     def weights_init(self):
@@ -385,7 +385,7 @@ class VoxelMorphMICCAI2019(nn.Module):
                 "The Affine model is added, but not initialized, this should only take place when a complete checkpoint (including affine model) will be loaded")
         self.affine_net.eval()
 
-    def forward(self, source, target):
+    def forward(self, source, target,source_mask=None, target_mask=None):
         self.__do_some_clean()
 
         if self.using_affine_init:

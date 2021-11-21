@@ -119,7 +119,7 @@ class TransformCVPR2019(nn.Module):
         """ set current epoch"""
         self.epoch = cur_epoch
 
-    def forward(self, source, target):
+    def forward(self, source, target,source_mask=None, target_mask=None):
         id_map = self.id_transform.clone()
 
         x_enc_0, x = self.encoders[0](torch.cat((source, target), dim=1))
@@ -263,7 +263,7 @@ class AppearanceCVPR2019(nn.Module):
         self.epoch = cur_epoch
 
 
-    def forward(self, source, target):
+    def forward(self, source, target,source_mask=None, target_mask=None):
 
         x_enc_0,x = self.encoders[0](torch.cat((source, target), dim=1))
         x_enc_1,x = self.encoders[1](x)

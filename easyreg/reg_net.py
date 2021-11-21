@@ -6,6 +6,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 from .utils import *
 from .mermaid_net import MermaidNet
 from .voxel_morph import VoxelMorphCVPR2018, VoxelMorphMICCAI2019
+from .multiscale_net import Multiscale_FlowNet
 from .brainstorm import TransformCVPR2019, AppearanceCVPR2019
 
 model_pool = {
@@ -13,6 +14,7 @@ model_pool = {
     'mermaid': MermaidNet,
     'vm_cvpr': VoxelMorphCVPR2018,
     'vm_miccai': VoxelMorphMICCAI2019,
+    'multiscale_net':Multiscale_FlowNet,
     "bs_trans": TransformCVPR2019,
     'bs_ap': AppearanceCVPR2019
 }
@@ -172,7 +174,7 @@ class RegNet(MermaidBase):
         """
         if hasattr(self.network, 'set_cur_epoch'):
             self.network.set_cur_epoch(self.cur_epoch)
-        output, phi, afimg_or_afparam = self.network.forward(self.moving, self.target)
+        output, phi, afimg_or_afparam = self.network.forward(self.moving, self.target, self.l_moving, self.l_target)
         loss = self.cal_loss()
         if not self.is_train and (self.affine_on or self.method_name=="mermaid"):
             save_affine_param_with_easyreg_custom(self.network.affine_param,self.record_path,self.fname_list)
@@ -224,8 +226,8 @@ class RegNet(MermaidBase):
 
         :return:
         """
-        inverse_phi = self.network.get_inverse_map(use_01=self.use_01)
-        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phis=inverse_phi,
+
+        self._save_image_into_original_sz_with_given_reference(self.pair_path, self.phi, inverse_phis=self.inverse_phi,
                                                                use_01=self.use_01)
 
     def get_extra_to_plot(self):

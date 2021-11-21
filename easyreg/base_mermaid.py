@@ -30,6 +30,8 @@ class MermaidBase(RegModelBase):
             'save_original_resol_by_type, save_s, save_t, save_w, save_phi, save_w_inv, save_phi_inv, save_disp, save_extra')]
         self.eval_metric_at_original_resol = opt['tsk_set'][
             ('eval_metric_at_original_resol', False, "evaluate the metric at original resolution")]
+        self.external_eval = opt['tsk_set'][
+            ('external_eval', '', "evaluate the metric using external metric but should follow easyreg format")]
         self.use_01 = True
 
     def get_warped_label_map(self, label_map, phi, sched='nn', use_01=False):
@@ -67,6 +69,7 @@ class MermaidBase(RegModelBase):
 
         s1 = time()
         self.output, self.phi, self.afimg_or_afparam, _ = self.forward()
+        self.inverse_phi = self.network.get_inverse_map()
         self.warped_label_map = None
         if self.l_moving is not None:
             self.warped_label_map = self.get_warped_label_map(self.l_moving, self.phi, use_01=self.use_01)
@@ -79,7 +82,6 @@ class MermaidBase(RegModelBase):
                 target_l_reference_list = self.pair_path[3]
                 num_s = len(target_l_reference_list)
                 assert num_s==1, "when call evaluation in original resolution, the bach num should be set to 1"
-
                 phi = (self.phi + 1) / 2. if not self.use_01 else self.phi
                 _,_, warped_label_map_np,_ = ires.resample_warped_phi_and_image(None,None, moving_l_reference_list[0], target_l_reference_list[0], phi,self.spacing)
                 warped_label_map_np  = warped_label_map_np.detach().cpu().numpy()
@@ -88,11 +90,25 @@ class MermaidBase(RegModelBase):
                 l_target_np= np.stack(lt, axis=0)
                 l_target_np = l_target_np.reshape(*sz).astype(np.float32)
             self.val_res_dic = get_multi_metric(warped_label_map_np, l_target_np, rm_bg=False)
+
         else:
             self.val_res_dic = {}
         self.jacobi_val = self.compute_jacobi_map((self.phi).detach().cpu().numpy(), crop_boundary=True,
                                                   use_01=self.use_01)
+
         print("current batch jacobi is {}".format(self.jacobi_val))
+        self.eval_extern_metric()
+
+    def eval_extern_metric(self):
+        if len(self.external_eval):
+            from data_pre.reg_preprocess_example.dirlab_eval import eval_on_dirlab
+            supported_metric = {"dirlab":eval_on_dirlab}
+            phi = (self.phi + 1) / 2. if not self.use_01 else self.phi
+            inverse_phi = (self.inverse_phi + 1) / 2. if not self.use_01 else self.inverse_phi
+            supported_metric[self.external_eval](phi, inverse_phi, self.fname_list, moving = self.moving, target=self.target, record_path= self.record_path)
+
+
+
 
     def compute_jacobi_map(self, map, crop_boundary=True, use_01=False, save_jacobi_map=False, appendix='3D'):
         """

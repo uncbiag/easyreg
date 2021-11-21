@@ -263,9 +263,8 @@ class MermaidNet(nn.Module):
                 # create a lower resolution map for the computations
                 lowres_id = py_utils.identity_map_multiN(lowResSize, lowResSpacing)
                 self.lowResIdentityMap = torch.from_numpy(lowres_id).cuda()
-                print(torch.min(self.lowResIdentityMap))
 
-            resize_affine_input = all([sz != -1 for sz in self.affine_resoltuion])
+            resize_affine_input = all([sz != -1 for sz in self.affine_resoltuion[2:]])
             if resize_affine_input:
                 self.affine_spacing = get_res_spacing_from_spacing(spacing,  self.img_sz, self.affine_resoltuion)
                 affine_id = py_utils.identity_map_multiN(self.affine_resoltuion, self.affine_spacing)
@@ -546,22 +545,11 @@ class MermaidNet(nn.Module):
         """
         return (rec_IWarped).detach(), (rec_phiWarped * 2. - 1.).detach(), ((affine_img+1.)/2.).detach()
 
-
-
-
-    def single_forward(self, moving, target=None):
-        """
-        single step mermaid registration
-
-        :param moving: moving image with intensity [-1,1]
-        :param target: target image with intensity [-1,1]
-        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
-        """
+    def affine_forward(self,moving, target=None):
         if self.using_affine_init:
             with torch.no_grad():
                 toaffine_moving, toaffine_target = moving, target
-                cur_resol = list(moving.shape)
-                resize_affine_input = any([sz == -1 for sz in self.affine_resoltuion])
+                resize_affine_input = all([sz != -1 for sz in self.affine_resoltuion[2:]])
                 if resize_affine_input:
                     toaffine_moving = get_resampled_image(toaffine_moving, self.spacing, self.affine_resoltuion, identity_map=self.affineIdentityMap)
                     toaffine_target = get_resampled_image(toaffine_target, self.spacing, self.affine_resoltuion, identity_map=self.affineIdentityMap)
@@ -570,14 +558,10 @@ class MermaidNet(nn.Module):
                 affine_map = (affine_map + 1) / 2.
                 inverse_map = None
                 if self.compute_inverse_map:
-                    # affine_inverse = get_inverse_affine_param(affine_param)
-                    # affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
-                    # inverse_map = (affine_map_inverse + 1) / 2.
                     inverse_map = self.affine_net.get_inverse_map(use_01=True)
                 if resize_affine_input:
                     affine_img = py_utils.compute_warped_image_multiNC(moving, affine_map, self.spacing, 1,
                                                                        zero_boundary=True, use_01_input=True)
-
                 if self.using_physical_coord:
                     for i in range(self.dim):
                         affine_map[:, i] = affine_map[:, i] * self.spacing[i] / self.standard_spacing[i]
@@ -592,6 +576,18 @@ class MermaidNet(nn.Module):
                 self.inverse_map = self.identityMap[:num_b].clone()
 
             affine_img = moving
+        return affine_img, affine_map
+
+
+    def single_forward(self, moving, target=None):
+        """
+        single step mermaid registration
+
+        :param moving: moving image with intensity [-1,1]
+        :param target: target image with intensity [-1,1]
+        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
+        """
+        affine_img, affine_map = self.affine_forward(moving,target)
         record_is_grad_enabled = torch.is_grad_enabled()
         if not self.optimize_momentum_network or self.epoch in self.epoch_list_fixed_momentum_network:
             torch.set_grad_enabled(False)
@@ -652,41 +648,7 @@ class MermaidNet(nn.Module):
         :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
         """
         self.step_loss = None
-        if self.using_affine_init:
-            with torch.no_grad():
-                toaffine_moving, toaffine_target = moving, target
-                cur_resol = list(moving.shape)
-                resize_affine_input = all([sz != -1 for sz in self.affine_resoltuion])
-                if resize_affine_input:
-                    toaffine_moving = get_resampled_image(toaffine_moving,self.spacing,self.affine_resoltuion,identity_map=self.affineIdentityMap)
-                    toaffine_target = get_resampled_image(toaffine_target,self.spacing,self.affine_resoltuion, identity_map=self.affineIdentityMap)
-                affine_img, affine_map, affine_param = self.affine_net(toaffine_moving, toaffine_target)
-                self.affine_param = affine_param
-                affine_map = (affine_map + 1) / 2.  # [-1,1] ->[0,1]
-                inverse_map = None
-                if self.compute_inverse_map:
-                    # affine_inverse = get_inverse_affine_param(affine_param)
-                    # affine_img_inverse, affine_map_inverse, _ = get_warped_img_map_param(affine_inverse, self.img_sz[2:], target)
-                    # inverse_map = (affine_map_inverse + 1) / 2.
-                    inverse_map = self.affine_net.get_inverse_map(use_01=True)
-
-                if resize_affine_input:
-                    affine_img = py_utils.compute_warped_image_multiNC(moving, affine_map, self.spacing, 1,
-                                                                        zero_boundary=True,use_01_input=True)
-
-                if self.using_physical_coord:
-                    for i in range(self.dim):
-                        affine_map[:, i] = affine_map[:, i] * self.spacing[i] / self.standard_spacing[i]
-                    if self.compute_inverse_map:
-                        for i in range(self.dim):
-                            inverse_map[:, i] = inverse_map[:, i] * self.spacing[i] / self.standard_spacing[i]
-                self.inverse_map = inverse_map
-        else:
-            num_b = moving.shape[0]
-            affine_map = self.identityMap[:num_b].clone()
-            if self.compute_inverse_map:
-                self.inverse_map = self.identityMap[:num_b].clone()
-            affine_img = moving
+        affine_img, affine_map = self.affine_forward(moving,target)
         warped_img = affine_img
         init_map = affine_map
         rec_IWarped = None
@@ -771,7 +733,7 @@ class MermaidNet(nn.Module):
             self.step = self.multi_step
             self.using_sym_on =  False
 
-    def forward(self, moving, target=None):
+    def forward(self, moving, target, moving_mask=None, target_mask=None):
         """
         forward the mermaid registration model
 
@@ -789,13 +751,5 @@ class MermaidNet(nn.Module):
             if not self.print_count:
                 print(" The mermaid network is in multi-step mode, with step {}".format(self.step))
             return self.mutli_step_forward(moving, target)
-        # if not self.using_sym_on:
-        #     if not self.print_count:
-        #         print(" The mermaid network is in simple mode")
-        #     return self.single_forward(moving, target)
-        # else:
-        #     if not self.print_count:
-        #         print(" The mermaid network is in symmetric mode")
-        #     return self.sym_forward(moving,target)
 
 

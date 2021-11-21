@@ -105,6 +105,10 @@ class Bilinear(Module):
         :param input2: spatial transform in BdimXYZ format
         :return: spatially transformed image in BCXYZ format
         """
+        if input1.shape[0] != input2.shape[0]:
+            n_batch = input1.shape[0]
+            input2 = input2[:n_batch]
+
         if self.using_scale:
 
             output = self.forward_stn((input1 + 1) / 2, input2)

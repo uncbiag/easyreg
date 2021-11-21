@@ -48,6 +48,7 @@ class RegModelBase():
         self.l_target = None
         self.jacobi_val = None
         self.phi = None
+        self.inverse_phi = None
         self.afimg_or_afparam = None
         self.jacobian=None
         self.multi_gpu_on =False # todo for now the distributed computing is not supported

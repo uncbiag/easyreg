@@ -1,0 +1,132 @@
+{
+    "dataset": {
+        "img_after_resize": [
+            160,
+            160,
+            160
+        ],
+        "load_training_data_into_memory": true,
+        "max_num_for_loading": [
+            -1,
+            -1,
+            -1,
+            -1
+        ],
+        "inverse_reg_direction": true,
+        "spacing_to_refer": [
+            1,
+            1,
+            1
+        ]
+    },
+    "tsk_set": {
+        "batch_sz": 2,
+        "check_best_model_period": 5,
+        "continue_train": true,
+        "continue_train_lr":1e-4,
+        "criticUpdates": 2,
+        "epoch": 300,
+        "gpu_ids": 0,
+        "loss": {
+            "type": "ncc"
+        },
+        "max_batch_num_per_epoch": [
+            400,
+            8,
+            4
+        ],
+        "model": "reg_net",
+        "model_path": "/playpen-raid2/zyshen/data/lung_reg/train_multiscale_smooth_full_both_fixed/checkpoints/epoch_75_",
+        "n_in_channel": 1,
+        "method_name": "multiscale_net",
+        "external_eval": "dirlab",
+        "optim": {
+            "adam": {
+                "beta": 0.9
+            },
+            "lr": 5e-4,
+            "lr_scheduler": {
+                "custom": {
+                    "gamma": 0.5,
+                    "step_size": 60
+                },
+                "type": "custom"
+            },
+            "optim_type": "adam"
+        },
+        "eval_metric_at_original_resol": false,
+        "output_taking_original_image_format": false,
+        "print_step": [
+            10,
+            4,
+            4
+        ],
+        "print_val_detail": true,
+        "reg": {
+            "affine_net": {
+                "affine_fc_size": 500,
+                "acc_multi_step_loss": false,
+                "affine_net_iter": 3,
+                "epoch_activate_extern_loss": 400,
+                "epoch_activate_multi_step": 200,
+                "epoch_activate_sym": 100,
+                "epoch_activate_sym_loss": 100,
+                "initial_reg_factor": 10,
+                "min_reg_factor": 0.01,
+                "reset_lr_for_multi_step": true,
+                "using_complex_net": true
+            },
+            "compute_inverse_map": false,
+            "low_res_factor": 0.5,
+            "multiscale_net": {
+                "affine_init_path": "/playpen-raid2/zyshen/data/lung_reg/train_affine_continue2/checkpoints/epoch_205_",
+                "affine_refine_step": 3,
+                "using_affine_init": true,
+                "load_trained_affine_net": true,
+                "initial_reg_factor": 10,
+                "min_reg_factor": 1,
+                "low_res_factor": 1,
+                "compute_grad_image_loss": true,
+                "compute_hess_image_loss": true,
+                "deploy_mask_during_training": false,
+                "activate_lncc_after_epoch": 1000,
+                "smoother": {
+                    "multi_gaussian_stds": [
+                        0.05,
+                        0.1,
+                        0.15,
+                        0.2,
+                        0.25
+                    ],
+                    "multi_gaussian_weights": [
+                        0.06666666666666667,
+                        0.13333333333333333,
+                        0.19999999999999998,
+                        0.26666666666666666,
+                        0.3333333333333333
+                    ],
+                    "type": "multiGaussian"
+                }
+            }
+        },
+        "save_running_resolution_3d_img": true,
+        "save_extra_running_resolution_3d_img": false,
+        "save_fig_on": true,
+        "save_original_resol_by_type": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false
+        ],
+        "train": true,
+        "reset_train_epoch": true,
+        "load_model_but_train_from_epoch": 60,
+        "use_physical_coord": false,
+        "val_period": 5,
+        "warmming_up_epoch": 2
+    }
+}

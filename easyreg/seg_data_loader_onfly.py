@@ -300,6 +300,7 @@ class SegmentationDataset(Dataset):
         else:
             img_after_resize = np.flipud(img_sz)
         resize_factor = np.array(img_after_resize) / np.flipud(img_sz)
+        spacing_factor = (np.array(img_after_resize)-1) / (np.flipud(img_sz)-1)
         resize = not all([factor == 1 for factor in resize_factor])
         if resize:
             resampler = sitk.ResampleImageFilter()
@@ -309,9 +310,9 @@ class SegmentationDataset(Dataset):
             matrix = np.array(affine.GetMatrix()).reshape((dimension, dimension))
             after_size = [round(img_sz[i] * factor[i]) for i in range(dimension)]
             after_size = [int(sz) for sz in after_size]
-            matrix[0, 0] = 1. / factor[0]
-            matrix[1, 1] = 1. / factor[1]
-            matrix[2, 2] = 1. / factor[2]
+            matrix[0, 0] = 1. / spacing_factor[0]
+            matrix[1, 1] = 1. / spacing_factor[1]
+            matrix[2, 2] = 1. / spacing_factor[2]
             affine.SetMatrix(matrix.ravel())
             resampler.SetSize(after_size)
             resampler.SetTransform(affine)

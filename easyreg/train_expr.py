@@ -73,7 +73,7 @@ def train_model(opt,model, dataloaders,writer):
                 break
             # if # = 0 or None then skip the val or debug phase
             if not max_batch_num_per_epoch[phase]:
-                break
+                continue
             if phase == 'train':
                 model.update_scheduler(epoch)
                 model.set_train()
@@ -120,7 +120,7 @@ def train_model(opt,model, dataloaders,writer):
                             model.save_fig_3D(phase='val')
                     score, detailed_scores= model.get_val_res()
                     print('val loss of batch {} is {}:'.format(model.get_image_names(),score))
-                    print('val detailed loss of batch {} is {}:'.format(model.get_image_names(),detailed_scores))
+                    print('val detailed score of batch {} is {}:'.format(model.get_image_names(),detailed_scores))
                     model.update_loss(epoch,end_of_epoch)
                     running_val_score += score
                     loss = score
@@ -136,7 +136,7 @@ def train_model(opt,model, dataloaders,writer):
                             model.save_fig_3D(phase='debug')
                     score, detailed_scores = model.get_val_res()
                     print('debug loss of batch {} is {}:'.format(model.get_image_names(),score))
-                    print('debug detailed loss of batch {} is {}:'.format(model.get_image_names(),detailed_scores))
+                    print('debug detailed score of batch {} is {}:'.format(model.get_image_names(),detailed_scores))
                     running_debug_score += score
                     loss = score
 

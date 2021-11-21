@@ -37,9 +37,12 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(1.0,1.0,1.0), i
         img_sz = img.GetSize()
         if not fixed_sz:
             factor = np.flipud(resize_factor)
+            after_size = [round(img_sz[i] * factor[i]) for i in range(dimension)]
+            spacing_factor = [(after_size[i]-1)/(img_sz[i]-1) for i in range(len(img_sz))]
         else:
             fixed_sz  = np.flipud(fixed_sz)
             factor = [fixed_sz[i]/img_sz[i] for i in range(len(img_sz))]
+            spacing_factor = [(fixed_sz[i]-1)/(img_sz[i]-1) for i in range(len(img_sz))]
         resize = not all([f == 1 for f in factor])
         if resize:
             resampler = sitk.ResampleImageFilter()
@@ -50,9 +53,9 @@ def resize_input_img_and_save_it_as_tmp(img_input,resize_factor=(1.0,1.0,1.0), i
             if fixed_sz is not None:
                 for i in range(len(fixed_sz)):
                     assert fixed_sz[i]==after_size[i]
-            matrix[0, 0] = 1. / factor[0]
-            matrix[1, 1] = 1. / factor[1]
-            matrix[2, 2] = 1. / factor[2]
+            matrix[0, 0] = 1. / spacing_factor[0]
+            matrix[1, 1] = 1. / spacing_factor[1]
+            matrix[2, 2] = 1. / spacing_factor[2]
             affine.SetMatrix(matrix.ravel())
             resampler.SetSize(after_size)
             resampler.SetTransform(affine)
@@ -181,7 +184,14 @@ def save_transform_itk(transform,spacing,moving_list,target_list, path, fname_li
         transform_physic = cur_trans +bias
 
         trans = get_transform_with_itk_format(transform_physic,target_spacing_ref, target_orig_ref,target_direc_ref)
-        sitk.WriteTransform(trans, saving_path)
+        #sitk.WriteTransform(trans, saving_path)
+        # Retrive the DField from the Transform
+        dfield = trans.GetDisplacementField()
+        # Fitting a BSpline from the Deformation Field
+        bstx = dfield2bspline(dfield, verbose=True)
+
+        # Save the BSpline Transform
+        sitk.WriteTransform(bstx, saving_path.replace('.h5', '.tfm'))
 
 def permute_trans(trans):
     trans_new = np.zeros_like(trans)

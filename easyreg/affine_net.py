@@ -340,7 +340,7 @@ class AffineNetSym(nn.Module):
 
 
 
-    def forward(self,moving, target):
+    def forward(self,moving, target,moving_mask=None, target_mask=None):
         """
         forward the affine network
 

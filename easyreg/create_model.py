@@ -18,7 +18,6 @@ def create_model(opt):
     #     torch.cuda.set_device(gpu_id[0])
     if gpu_id>=0:
         torch.cuda.set_device(gpu_id)
-
     print(model_name)
 
     ################ models for registration ########################
