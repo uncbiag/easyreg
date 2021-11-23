@@ -47,7 +47,8 @@ REQUIRED = [
     "nibabel",
     "webcolors",
     "sklearn",
-    "gdown"
+    "gdown",
+    "mermaid"
 ]
 
 # What packages are optional?
@@ -144,7 +145,7 @@ setup(
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'License :: OSI Approved :: Apache 2.0 License',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',

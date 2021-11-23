@@ -19,6 +19,9 @@
 backup/llf
 /doc/build/
 */__pycache__/*
+__pycache__/
+build/
+easyreg.egg-info/
 /training_atlas_ll3/
 /training_atlas/
 ./RELEASE-VERSION

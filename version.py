@@ -50,6 +50,7 @@ def call_git_describe(abbrev):
 
 
 def is_dirty():
+    return False
     try:
         p = Popen(["git", "diff-index", "--name-only", "HEAD"],
                   stdout=PIPE, stderr=PIPE)

@@ -1,4 +1,5 @@
 cd test_models
+which python
 # this requires GPU support
 #gdown https://drive.google.com/uc?id=1RI7YevByrLAKy1JTv6KG4RSAnHIC7ybb
 #unzip demo.zip -d .
