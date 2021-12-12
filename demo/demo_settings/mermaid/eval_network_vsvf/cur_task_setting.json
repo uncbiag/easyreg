@@ -54,7 +54,7 @@
         },
         "eval_metric_at_original_resol": true,
         "output_taking_original_image_format": false,
-        "save_original_resol_by_type": [false, false, false, false, false, false,true,false],
+        "save_original_resol_by_type": [false, false, false, false, false, true,false,false],
         "print_step": [
             10,
             4,

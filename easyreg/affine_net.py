@@ -40,12 +40,14 @@ class AffineNetSym(nn.Module):
         """epoch to activate multi-step affine"""
         self.reset_lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('reset_lr_for_multi_step',False,'if True, reset learning rate when multi-step begins')]
         """if True, reset learning rate when multi-step begins"""
-        self.lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('lr_for_multi_step',opt['tsk_set']['optim']['lr']/2,'if reset_lr_for_multi_step, reset learning rate into # when multi-step begins')]
+        self.lr_for_multi_step = opt['tsk_set']['reg']['affine_net'][('lr_for_multi_step',5e-5,'if reset_lr_for_multi_step, reset learning rate into # when multi-step begins')]
         """if reset_lr_for_multi_step, reset learning rate into # when multi-step begins"""
         self.epoch_activate_sym = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym',-1,'epoch to activate symmetric forward')]
         """epoch to activate symmetric forward"""
         self.sym_factor = opt['tsk_set']['reg']['affine_net'][('sym_factor', 1., 'the factor of symmetric loss')]
         """ the factor of symmetric loss"""
+        self.mask_input_when_compute_loss = opt['tsk_set']['reg']['affine_net'][('mask_input_when_compute_loss', False, 'mask_input_when_compute_loss')]
+        """ mask input when compute loss"""
         self.epoch_activate_sym_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_sym_loss',-1,'the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss')]
         """ the epoch to take symmetric loss into backward , only if epoch_activate_sym and epoch_activate_sym_loss"""
         self.epoch_activate_extern_loss = opt['tsk_set']['reg']['affine_net'][('epoch_activate_extern_loss',-1,'epoch to activate the external loss which will replace the default ncc loss')]
@@ -300,7 +302,7 @@ class AffineNetSym(nn.Module):
 
 
 
-    def compute_overall_loss(self, loss_fn, output, target):
+    def compute_overall_loss(self, loss_fn, output, target,affine_map,moving_mask=None,target_mask=None):
         """
         compute the overall loss for affine tranning
         overall loss = multi-step similarity loss + symmetry loss + regularization loss
@@ -310,6 +312,10 @@ class AffineNetSym(nn.Module):
         :param target:target image
         :return:overall loss
         """
+        if self.mask_input_when_compute_loss and moving_mask is not None and target_mask is not None:
+            affine_mask = Bilinear(self.zero_boundary)(moving_mask, affine_map)
+            output = output*affine_mask
+            target = target*target_mask
         sim_loss = self.sim_loss(loss_fn.get_loss,output, target)
         sym_on = self.epoch>= self.epoch_activate_sym
         affine_param = (self.affine_param[:self.n_batch], self.affine_param[self.n_batch:]) if sym_on else self.affine_param
@@ -357,15 +363,15 @@ class AffineNetSym(nn.Module):
             else:
                 self.step = 1
         if self.epoch < self.epoch_activate_sym:
-            return self.multi_step_forward(moving, target, self.compute_loss)
+            return self.multi_step_forward(moving, target,moving_mask, target_mask,compute_loss= self.compute_loss)
         else:
-            return self.sym_multi_step_forward(moving, target)
+            return self.sym_multi_step_forward(moving, target,moving_mask, target_mask)
 
 
 
 
 
-    def multi_step_forward(self,moving,target, compute_loss=True):
+    def multi_step_forward(self,moving,target, moving_mask=None, target_mask=None, compute_loss=True):
         """
         mutli-step forward, A_t is composed of A_update and A_last
 
@@ -396,13 +402,13 @@ class AffineNetSym(nn.Module):
             moving = output
             self.affine_param = affine_param
             if compute_loss and (i==self.step-1 or self.acc_multi_step_loss):
-                self.loss +=self.compute_overall_loss(self.extern_loss,output, target)
+                self.loss +=self.compute_overall_loss(self.extern_loss,output, target,affine_map,moving_mask,target_mask)
         if compute_loss and self.acc_multi_step_loss:
             self.loss = self.loss / self.step
         return output, affine_map, affine_param
 
 
-    def sym_multi_step_forward(self, moving, target):
+    def sym_multi_step_forward(self, moving, target,moving_mask=None, target_mask=None):
         """
         symmetry forward
         the "source" is concatenated by source and target, the "target" is concatenated by target and source
@@ -415,7 +421,11 @@ class AffineNetSym(nn.Module):
         self.n_batch = moving.shape[0]
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
-        output, affine_map, affine_param = self.multi_step_forward(moving_sym, target_sym)
+        moving_mask_sym, target_mask_sym = None, None
+        if moving_mask is not None and target_mask is not None:
+            moving_mask_sym = torch.cat((moving_mask,target_mask),0)
+            target_mask_sym = torch.cat((target_mask,moving_mask),0)
+        output, affine_map, affine_param = self.multi_step_forward(moving_sym, target_sym, moving_mask_sym, target_mask_sym)
         return output[:self.n_batch],affine_map[:self.n_batch], affine_param[:self.n_batch]
     def get_extra_to_plot(self):
         """

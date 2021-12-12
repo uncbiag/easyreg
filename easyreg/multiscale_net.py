@@ -213,10 +213,10 @@ class Multiscale_FlowNet(nn.Module):
     def __init__(self, img_sz, opt=None):
         super(Multiscale_FlowNet, self).__init__()
         self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
-        opt_multiscale_regnet = opt['tsk_set']['reg']['multiscale_net']
-        batch_sz = opt['tsk_set']['batch_sz']
+        opt_multiscale_regnet = opt['tsk_set']['reg'][('multiscale_net',{},"settings for the network")]
+        batch_sz = opt['tsk_set'][('batch_sz',1,"batch size ")]
         self.load_trained_affine_net = opt_multiscale_regnet[('load_trained_affine_net',False,'if true load_trained_affine_net; if false, the affine network is not initialized')]
-        self.using_affine_init = opt_multiscale_regnet[("using_affine_init",False, "deploy affine network before the nonparametric network")]
+        self.using_affine_init = opt_multiscale_regnet[("using_affine_init",True, "deploy affine network before the nonparametric network")]
         self.affine_init_path = opt_multiscale_regnet[('affine_init_path','',"the path of pretrained affine model")]
         self.affine_refine_step = opt_multiscale_regnet[('affine_refine_step', 5, "the multi-step num in affine refinement")]
         self.initial_reg_factor = opt_multiscale_regnet[('initial_reg_factor', 1., 'initial regularization factor')]
@@ -235,8 +235,6 @@ class Multiscale_FlowNet(nn.Module):
         self.double_spacing = self.spacing*2
         self.network = Multiscale_Flow(img_sz=self.img_sz, low_res_factor=self.low_res_factor,batch_sz=batch_sz)
         self.init_smoother(opt_multiscale_regnet)
-        self.input_channel = 2
-        self.output_channel = 3
         self.sim_fn = NCCLoss()
         self.epoch = -1
         self.print_count = 0
@@ -253,6 +251,19 @@ class Multiscale_FlowNet(nn.Module):
 
 
         # identity transform for computing displacement
+
+    def load_pretrained_model(self, pretrained_model_path):
+        checkpoint = torch.load(pretrained_model_path, map_location="cpu")
+        # cur_state = self.state_dict()
+        # for key in list(checkpoint["state_dict"].keys()):
+        #     if "network." in key:
+        #         replaced_key = key.replace("network.", "")
+        #         if replaced_key in cur_state:
+        #             cur_state[replaced_key] = checkpoint["state_dict"].pop(key)
+        #         else:
+        #             print("")
+        self.load_state_dict(checkpoint["state_dict"])
+        print("load pretrained model from {}".format(pretrained_model_path))
 
 
     def init_smoother(self, opt):
@@ -349,7 +360,7 @@ class Multiscale_FlowNet(nn.Module):
         self.source  = source
         if self.train:
             self.print_count += 1
-        return self.warped, composed_deformed, self.disp_field
+        return self.warped, composed_deformed, affine_img
 
     def get_extra_to_plot(self):
         return None, None

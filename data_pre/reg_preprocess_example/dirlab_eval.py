@@ -1,4 +1,5 @@
 import os
+import json
 import numpy as np
 import torch
 import mermaid.utils as py_utils
@@ -18,17 +19,28 @@ COPD_ID=[
    "copd_000010"
 ]
 
+resampled_image_json_info = "/playpen-raid1/zyshen/data/lung_resample_350/dirlab_350_sampled.json"
 dirlab_folder_path = "/playpen-raid1/zyshen/data/lung_resample_350/landmarks"
 org_image_sz = np.array([350,350,350])                 #physical spacing equals to 1
+with open(resampled_image_json_info) as f:
+    img_info = json.load(f)
+
+
 def read_index(index_path):
     index = np.load(index_path)
     return flip_coord(index)
+
+def get_spacing_and_origin(case_id):
+    return np.flip(img_info[case_id]["spacing"]), np.flip(img_info[case_id]["origin"])
 
 def flip_coord(coord):
     coord_flip = coord.copy()
     coord_flip[:,0] = coord[:,2]
     coord_flip[:,2] = coord[:,0]
     return coord_flip
+
+def transfer_into_itk_coord(points):
+    return flip_coord(points)
 
 def get_landmark(pair_name, resampled_image_sz):
     case_id = pair_name.split("_")
@@ -39,16 +51,21 @@ def get_landmark(pair_name, resampled_image_sz):
     tlandmark_index = read_index(tlandmark_index_path)
     slandmark_index = slandmark_index*(resampled_image_sz-1)/(org_image_sz-1)
     tlandmark_index = tlandmark_index*(resampled_image_sz-1)/(org_image_sz-1)
-    physical_spacing = (org_image_sz-1)/(resampled_image_sz-1)
-    return slandmark_index, tlandmark_index, physical_spacing
+    s_spacing, s_origin = get_spacing_and_origin(case_id+"_EXP")
+    t_spacing, t_origin= get_spacing_and_origin(case_id+"_INSP")
+    assert (s_spacing == t_spacing).all()
+    physical_spacing = (org_image_sz-1)*s_spacing/(resampled_image_sz-1) # we assume source and target has the same spacing
+    return slandmark_index, tlandmark_index, physical_spacing, s_origin, t_origin
 
 
 def eval_on_dirlab_per_case(forward_map,inv_map, pair_name,moving, target,record_path):
     transform_shape = np.array(forward_map.shape[2:])
-    slandmark_index,tlandmark_index, physical_spacing = get_landmark(pair_name,transform_shape)
+    slandmark_index,tlandmark_index, physical_spacing, s_origin, t_origin = get_landmark(pair_name,transform_shape)
     spacing = 1./(transform_shape-1)
     slandmark_img_coord = spacing*slandmark_index
     tlandmark_img_coord = spacing*tlandmark_index
+    slandmark_physical = physical_spacing*slandmark_index+s_origin
+    tlandmark_physical = physical_spacing*tlandmark_index+t_origin
     # target = target.squeeze().clone()
     # for coord in tlandmark_index:
     #     coord_int  = [int(c) for c in coord]
@@ -61,6 +78,7 @@ def eval_on_dirlab_per_case(forward_map,inv_map, pair_name,moving, target,record
     ts_landmark_img_coord = py_utils.compute_warped_image_multiNC(forward_map, tlandmark_img_coord_reshape*2-1, spacing, 1, zero_boundary=False,use_01_input=False)
     ts_landmark_img_coord = ts_landmark_img_coord.squeeze().transpose(1,0).detach().cpu().numpy()
     diff_ts = (slandmark_img_coord - ts_landmark_img_coord)/spacing*physical_spacing
+
 
     # target = target.squeeze().clone()
     # for coord in ts_landmark_img_coord:
@@ -75,10 +93,10 @@ def eval_on_dirlab_per_case(forward_map,inv_map, pair_name,moving, target,record
     st_landmark_img_coord = st_landmark_img_coord.squeeze().transpose(1, 0).detach().cpu().numpy()
     landmark_saving_folder = os.path.join(record_path,"landmarks")
     os.makedirs(landmark_saving_folder, exist_ok=True)
-    save_vtk(os.path.join(landmark_saving_folder,"{}_source.vtk".format(pair_name)),{"points":slandmark_img_coord})
-    save_vtk(os.path.join(landmark_saving_folder,"{}_target.vtk".format(pair_name)),{"points":tlandmark_img_coord})
-    save_vtk(os.path.join(landmark_saving_folder,"{}_target_warp_to_source.vtk".format(pair_name)),{"points":ts_landmark_img_coord})
-    save_vtk(os.path.join(landmark_saving_folder,"{}_source_warp_to_target.vtk".format(pair_name)),{"points":st_landmark_img_coord})
+    save_vtk(os.path.join(landmark_saving_folder,"{}_source.vtk".format(pair_name)),{"points":transfer_into_itk_coord(slandmark_physical)})
+    save_vtk(os.path.join(landmark_saving_folder,"{}_target.vtk".format(pair_name)),{"points":transfer_into_itk_coord(tlandmark_physical)})
+    save_vtk(os.path.join(landmark_saving_folder,"{}_target_warp_to_source.vtk".format(pair_name)),{"points":transfer_into_itk_coord(ts_landmark_img_coord / spacing*physical_spacing+s_origin)})
+    save_vtk(os.path.join(landmark_saving_folder,"{}_source_warp_to_target.vtk".format(pair_name)),{"points":transfer_into_itk_coord(st_landmark_img_coord / spacing*physical_spacing+t_origin)})
     diff_st = (tlandmark_img_coord - st_landmark_img_coord) / spacing * physical_spacing
 
     return np.linalg.norm(diff_ts,ord=2,axis=1).mean(), np.linalg.norm(diff_st,ord=2,axis=1).mean()
