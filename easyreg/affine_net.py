@@ -169,7 +169,7 @@ class AffineNetSym(nn.Module):
 
     def __get_inverse_map(self):
         sym_on = self.epoch>= self.epoch_activate_sym
-        affine_param  = self.affine_param[0] if sym_on else self.affine_param
+        affine_param  = self.affine_param[:self.n_batch] if sym_on else self.affine_param
         inverse_affine_param = self.get_inverse_affine_param(affine_param)
         inverse_map = self.gen_affine_map(inverse_affine_param)
         return inverse_map

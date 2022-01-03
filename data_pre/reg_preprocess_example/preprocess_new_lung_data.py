@@ -3,13 +3,14 @@ import SimpleITK as sitk
 import os, sys
 sys.path.insert(0,os.path.abspath('..'))
 sys.path.insert(0,os.path.abspath('.'))
-sys.path.insert(0,os.path.abspath('../easyreg'))
+sys.path.insert(0,os.path.abspath('../..'))
+sys.path.insert(0,os.path.abspath('../../easyreg'))
 import numpy as np
 import glob
 from  easyreg.reg_data_utils import write_list_into_txt
 from multiprocessing import Process
 h5_path = "/playpen-raid1/Data/UNC_Registration.h5"
-output_path = "/playpen-raid2/Data/Lung_Registration_clamp_normal_transposed"
+output_path = "/playpen-raid2/Data/Lung_Registration_transposed"
 os.makedirs(output_path,exist_ok=True)
 #['Expiration_CT', 'Expiration_CT.key', 'Expiration_CT.missing',
 # 'Expiration_CT.origin', 'Expiration_CT.spacing', 'Expiration_labelmap',
@@ -71,7 +72,7 @@ def process_lung_data(index_list):
         atr_spacing = mod + '.spacing'
         for i in index_list:
             img = f[mod][i]
-            img = process_image(img,f[atr_key][i][1],is_label[ind]) if is_label[ind] is not None else img
+            #img = process_image(img,f[atr_key][i][1],is_label[ind]) if is_label[ind] is not None else img
             folder_name = f[atr_key][i][0]
             fname = f[atr_key][i][1]
             origin = f[atr_origin][i].astype(np.float64)
@@ -116,10 +117,10 @@ for p in procs:
     p.join()
 
 #
-txt_output_path = "/playpen-raid2/zyshen/data/lung_new_reg"
-os.makedirs(txt_output_path,exist_ok=True)
-output_txt = os.path.join(txt_output_path,"pair_path_list.txt")
-get_input_file(txt_output_path,output_txt)
+# txt_output_path = "/playpen-raid2/zyshen/data/lung_new_reg"
+# os.makedirs(txt_output_path,exist_ok=True)
+# output_txt = os.path.join(txt_output_path,"pair_path_list.txt")
+# get_input_file(txt_output_path,output_txt)
 
 
 

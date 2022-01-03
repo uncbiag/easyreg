@@ -98,6 +98,9 @@ class MermaidNet(nn.Module):
         """if true, clamp_momentum"""
         self.clamp_thre =opt_mermaid[('clamp_thre',1.0,'clamp momentum into [-clamp_thre, clamp_thre]')]
         """clamp momentum into [-clamp_thre, clamp_thre]"""
+        self.mask_input_when_compute_loss = opt_mermaid[
+            ('mask_input_when_compute_loss', False, 'mask_input_when_compute_loss')]
+        """ mask input when compute loss"""
         self.use_adaptive_smoother = False
         self.print_loss_every_n_iter = 10 if self.is_train else 1
         self.using_sym_on = True if self.is_train else False
@@ -316,9 +319,14 @@ class MermaidNet(nn.Module):
         # todo the image is not necessary be normalized to [0,1] here, just keep -1,1 would be fine
         ISource = (ISource + 1.) / 2.
         ITarget = (ITarget + 1.) / 2.
+        low_moving = self.low_moving
+        if self.mask_input_when_compute_loss and self.moving_mask is not None and self.target_mask is not None:
+            ISource = ISource*self.moving_mask
+            ITarget = ITarget*self.target_mask
+            low_moving = low_moving*self.low_moving_mask
 
         loss_overall_energy, sim_energy, reg_energy = self.criterion(self.identityMap, self.rec_phiWarped, ISource,
-                                                                     ITarget, self.low_moving,
+                                                                     ITarget, low_moving,
                                                                      self.mermaid_unit_st.get_variables_to_transfer_to_loss_function(),
                                                                      None)
         if not self.using_sym_on:
@@ -425,7 +433,7 @@ class MermaidNet(nn.Module):
         else:
             return None
 
-    def do_mermaid_reg(self,mermaid_unit,criterion, s, t, m, phi,low_s=None,low_t=None,inv_map=None):
+    def do_mermaid_reg(self,mermaid_unit,criterion, s, t, m, phi,inv_map=None):
         """
         perform mermaid registrtion unit
 
@@ -439,6 +447,7 @@ class MermaidNet(nn.Module):
         :return:  warped image, transformation map
         """
         if self.mermaid_low_res_factor is not None:
+            low_s, low_t = self.low_moving, self.low_target
             self.set_mermaid_param(mermaid_unit,criterion,low_s, low_t, m,s)
             if not self.compute_inverse_map:
                 maps = mermaid_unit(self.lowRes_fn(phi), low_s, variables_from_optimizer={'epoch':self.epoch})
@@ -579,67 +588,7 @@ class MermaidNet(nn.Module):
         return affine_img, affine_map
 
 
-    def single_forward(self, moving, target=None):
-        """
-        single step mermaid registration
-
-        :param moving: moving image with intensity [-1,1]
-        :param target: target image with intensity [-1,1]
-        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
-        """
-        affine_img, affine_map = self.affine_forward(moving,target)
-        record_is_grad_enabled = torch.is_grad_enabled()
-        if not self.optimize_momentum_network or self.epoch in self.epoch_list_fixed_momentum_network:
-            torch.set_grad_enabled(False)
-        if self.print_every_epoch_flag:
-            if self.epoch in self.epoch_list_fixed_momentum_network:
-                print("In this epoch, the momentum network is fixed")
-            if self.epoch in self.epoch_list_fixed_deep_smoother_network:
-                print("In this epoch, the deep smoother deep network is fixed")
-            self.print_every_epoch_flag = False
-        input = torch.cat((affine_img, target), 1)
-        m = self.momentum_net(input)
-        if self.clamp_momentum:
-            m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
-        moving = (moving + 1) / 2.
-        target = (target + 1) / 2.
-        self.low_moving = self.init_mermaid_param(moving)
-        self.low_target = self.init_mermaid_param(target)
-        torch.set_grad_enabled(record_is_grad_enabled)
-        rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion,moving, target, m, affine_map,self.low_moving, self.low_target,self.inverse_map)
-        self.rec_phiWarped = rec_phiWarped
-        if self.using_physical_coord:
-            rec_phiWarped_tmp = rec_phiWarped.detach().clone()
-            for i in range(self.dim):
-                rec_phiWarped_tmp[:, i] = rec_phiWarped[:, i] * self.standard_spacing[i] / self.spacing[i]
-            rec_phiWarped = rec_phiWarped_tmp
-        self.overall_loss,_,_= self.do_criterion_cal(moving, target, cur_epoch=self.epoch)
-        return self.__transfer_return_var(rec_IWarped, rec_phiWarped, affine_img)
-
-
-
-
-
-    def sym_forward(self, moving, target=None):
-        """
-        symmetric single step mermaid registration
-        the "source" is concatenated by source and target, the "target" is concatenated by target and source
-        then the single_forward is called
-
-        :param moving: moving image with intensity [-1,1]
-        :param target: target image with intensity [-1,1]
-        :return: warped image with intensity[0,1], transformation map [-1,1], affined image [0,1] (if no affine trans used, return moving)
-        """
-        self.n_batch = moving.shape[0]
-        moving_sym = torch.cat((moving, target), 0)
-        target_sym = torch.cat((target, moving), 0)
-        rec_IWarped_st, rec_phiWarped_st, affine_img_st = self.single_forward(moving_sym, target_sym)
-        return rec_IWarped_st[:self.n_batch],rec_phiWarped_st[:self.n_batch], affine_img_st[:self.n_batch]
-
-
-
-
-    def mutli_step_forward(self, moving,target=None):
+    def mutli_step_forward(self, moving,target=None,moving_mask=None, target_mask=None):
         """
         mutli-step mermaid registration
 
@@ -655,8 +604,15 @@ class MermaidNet(nn.Module):
         rec_phiWarped = None
         moving_n = (moving + 1) / 2.  # [-1,1] ->[0,1]
         target_n = (target + 1) / 2.  # [-1,1] ->[0,1]
+
+
         self.low_moving = self.init_mermaid_param(moving_n)
         self.low_target = self.init_mermaid_param(target_n)
+        self.moving_mask, self.target_mask = moving_mask, target_mask
+        self.low_moving_mask, self.low_target_mask = None, None
+        if self.mask_input_when_compute_loss and moving_mask is not None and target_mask is not None:
+            self.low_moving_mask = self.init_mermaid_param(moving_mask)
+            self.low_target_mask = self.init_mermaid_param(target_mask)
 
         for i in range(self.step):
             self.cur_step = i
@@ -674,7 +630,7 @@ class MermaidNet(nn.Module):
             if self.clamp_momentum:
                 m=m.clamp(max=self.clamp_thre,min=-self.clamp_thre)
             torch.set_grad_enabled(record_is_grad_enabled)
-            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion,moving_n, target_n, m, init_map,self.low_moving, self.low_target, self.inverse_map)
+            rec_IWarped, rec_phiWarped = self.do_mermaid_reg(self.mermaid_unit_st,self.criterion,moving_n, target_n, m, init_map, self.inverse_map)
             warped_img = rec_IWarped * 2 - 1  # [0,1] -> [-1,1]
             init_map = rec_phiWarped  # [0,1]
             self.rec_phiWarped = rec_phiWarped
@@ -691,7 +647,7 @@ class MermaidNet(nn.Module):
 
 
 
-    def mutli_step_sym_forward(self,moving, target= None):
+    def mutli_step_sym_forward(self,moving, target=None,moving_mask=None, target_mask=None):
         """
          symmetric multi-step mermaid registration
          the "source" is concatenated by source and target, the "target" is concatenated by target and source
@@ -703,7 +659,11 @@ class MermaidNet(nn.Module):
          """
         moving_sym = torch.cat((moving, target), 0)
         target_sym = torch.cat((target, moving), 0)
-        rec_IWarped, rec_phiWarped, affine_img = self.mutli_step_forward(moving_sym, target_sym)
+        moving_mask_sym, target_mask_sym = None, None
+        if moving_mask is not None and target_mask is not None:
+            moving_mask_sym = torch.cat((moving_mask, target_mask), 0)
+            target_mask_sym = torch.cat((target_mask, moving_mask), 0)
+        rec_IWarped, rec_phiWarped, affine_img = self.mutli_step_forward(moving_sym, target_sym,moving_mask_sym,target_mask_sym)
         return rec_IWarped[:self.n_batch], rec_phiWarped[:self.n_batch], affine_img[:self.n_batch]
 
     def get_affine_map(self,moving, target):
@@ -731,7 +691,7 @@ class MermaidNet(nn.Module):
             self.using_sym_on = True if self.epoch> self.epoch_activate_sym else False
         else:
             self.step = self.multi_step
-            self.using_sym_on =  False
+            self.using_sym_on = False
 
     def forward(self, moving, target, moving_mask=None, target_mask=None):
         """
@@ -746,10 +706,10 @@ class MermaidNet(nn.Module):
         if self.using_sym_on:
             if not self.print_count:
                 print(" The mermaid network is in multi-step and symmetric mode, with step {}".format(self.step))
-            return self.mutli_step_sym_forward(moving,target)
+            return self.mutli_step_sym_forward(moving,target,moving_mask, target_mask)
         else:
             if not self.print_count:
                 print(" The mermaid network is in multi-step mode, with step {}".format(self.step))
-            return self.mutli_step_forward(moving, target)
+            return self.mutli_step_forward(moving, target,moving_mask, target_mask)
 
 

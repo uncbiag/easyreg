@@ -6,7 +6,7 @@ import pyvista as pv
 from easyreg.net_utils import gen_identity_map
 from tools.image_rescale import permute_trans
 from tools.module_parameters import ParameterDict
-from easyreg.multiscale_net import Multiscale_FlowNet
+from easyreg.lin_unpublic_net import model
 from easyreg.utils import resample_image, get_transform_with_itk_format, dfield2bspline
 from tools.visual_tools import save_3D_img_from_numpy
 import mermaid.utils as py_utils
@@ -45,7 +45,7 @@ def resize_img(img, img_after_resize=None, is_mask=False):
         if is_mask:
             resampler.SetInterpolator(sitk.sitkNearestNeighbor)
         else:
-            resampler.SetInterpolator(sitk.sitkBSpline)
+            resampler.SetInterpolator(sitk.sitkLinear)
         img_resampled = resampler.Execute(img)
     else:
         img_resampled = img
@@ -89,6 +89,8 @@ def resample_image_itk_by_spacing_and_size(
         ).astype(np.uint32)
         diff = ((output_size - real_output_size) * np.asarray(output_spacing)) / 2
         output_origin = np.asarray(image.GetOrigin()) - diff
+        # output_origin = output_origin - np.asarray(image.GetSpacing()) / 2 \
+        #                 + output_spacing / 2
     else:
         output_origin = np.asarray(image.GetOrigin())
 
@@ -104,9 +106,9 @@ def normalize_img(img, is_mask=False):
     """
     if not is_mask:
         img[img<-1000] = -1000
-        img[img>1000] = 1000
-        img = (img +1000) /2000
+        # img = (img - img.min())/(img.max()-img.min())
     else:
+        img[img>400]=0
         img[img != 0] = 1
     return img
 
@@ -115,7 +117,7 @@ def normalize_img(img, is_mask=False):
 def preprocess(img_sitk,is_mask=False):
     processed_img = resample_image_itk_by_spacing_and_size(img_sitk,      output_spacing=np.array([1., 1., 1.]),
                                                                           output_size=[350, 350, 350], output_type=None,
-                                                                          interpolator=sitk.sitkBSpline,
+                                                                          interpolator=sitk.sitkBSpline if not is_mask else sitk.sitkNearestNeighbor,
                                                                           padding_value=-1000 if not is_mask else 0, center_padding=True)
     img_np = sitk.GetArrayFromImage(processed_img)
     img_np = normalize_img(img_np.astype(np.float32),is_mask)
@@ -131,8 +133,6 @@ def convert_itk_to_support_deepnet(img_sitk, is_mask=False,device=torch.device("
     img_sitk = sitk.GetImageFromArray(sitk.GetArrayFromImage(img_sitk))
     img_after_resize,_ = resize_img(img_sitk,img_sz_after_resize, is_mask=is_mask)
     img_numpy = sitk.GetArrayFromImage(img_after_resize)
-    if not is_mask:
-        img_numpy = img_numpy*2-1
     return torch.Tensor(img_numpy.astype(np.float32))[None][None].to(device)
 
 
@@ -221,13 +221,13 @@ def convert_transform_into_itk_bspline(transform,spacing,moving_ref,target_ref):
     return bstx
 
 
-def convert_output_into_itk_support_format(source_itk,target_itk, l_source_path, l_target_path, phi,spacing):
+def convert_output_into_itk_support_format(source_itk,target_itk, l_source_itk, l_target_itk, phi,spacing):
     phi = (phi+1)/2 # here we assume the phi take the [-1,1] coordinate, usually used by deep network
     new_phi = None
     warped = None
     l_warped = None
     new_spacing = None
-    if source_path is not None:
+    if source_itk is not None:
         s =  sitk.GetArrayFromImage(source_itk)
         t =  sitk.GetArrayFromImage(target_itk)
         sz_t = [1, 1] + list(t.shape)
@@ -235,9 +235,9 @@ def convert_output_into_itk_support_format(source_itk,target_itk, l_source_path,
         new_phi, new_spacing = resample_image(phi, spacing, sz_t, 1, zero_boundary=True)
         warped = py_utils.compute_warped_image_multiNC(source, new_phi, new_spacing, 1, zero_boundary=True)
 
-    if l_source_path is not None:
-        ls = sitk.GetArrayFromImage(sitk.ReadImage(l_source_path)).astype(np.float32)
-        lt = sitk.GetArrayFromImage(sitk.ReadImage(l_target_path)).astype(np.float32)
+    if l_source_itk is not None:
+        ls = sitk.GetArrayFromImage(l_source_itk)
+        lt = sitk.GetArrayFromImage(l_target_itk)
         sz_lt = [1, 1] + list(lt.shape)
         l_source = torch.from_numpy(ls[None][None]).to(phi.device)
         if new_phi is None:
@@ -247,7 +247,7 @@ def convert_output_into_itk_support_format(source_itk,target_itk, l_source_path,
     id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
     id_map = (id_map[None] + 1) / 2.
     disp = new_phi - id_map
-    bspline_itk = convert_transform_into_itk_bspline(disp,new_spacing,source_itk, target_itk)
+    bspline_itk = None #convert_transform_into_itk_bspline(disp,new_spacing,source_itk, target_itk)
     return new_phi, warped,l_warped, new_spacing, bspline_itk
 
 
@@ -262,7 +262,7 @@ def predict(source_itk, target_itk,source_mask_itk=None, target_mask_itk=None, m
     target = convert_itk_to_support_deepnet(target_itk, device=device)
     source_mask = convert_itk_to_support_deepnet(source_mask_itk,is_mask=True) if source_mask_itk is not None else None
     target_mask = convert_itk_to_support_deepnet(target_mask_itk,is_mask=True) if target_mask_itk is not None else None
-    network = Multiscale_FlowNet(img_sz=[160,160,160],opt=opt)
+    network = model(img_sz=[160,160,160],opt=opt)
     network.load_pretrained_model(model_path)
     network.to(device)
     network.train(False)
@@ -271,12 +271,15 @@ def predict(source_itk, target_itk,source_mask_itk=None, target_mask_itk=None, m
         inv_warped, composed_inv_map, inv_affine_img = network.forward(target, source, target_mask, source_mask)
     spacing = 1./(np.array(warped.shape[2:])-1)
     del network
-    full_composed_map, full_warped,l_full_warped, _, bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk, source_mask, target_mask, composed_map,spacing)
+    full_composed_map, full_warped,l_full_warped, _, bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk, source_mask_itk, target_mask_itk, composed_map,spacing)
     full_composed_map = full_composed_map.detach().cpu().squeeze().numpy()
-    full_inv_composed_map, full_inv_warped,l_full_inv_warped, _, inv_bspline_itk = convert_output_into_itk_support_format(target_itk,source_itk, target_mask, source_mask, composed_inv_map,spacing)
+    full_inv_composed_map, full_inv_warped,l_full_inv_warped, _, inv_bspline_itk = convert_output_into_itk_support_format(target_itk,source_itk, target_mask_itk, source_mask_itk, composed_inv_map,spacing)
     full_inv_composed_map = full_inv_composed_map.detach().cpu().squeeze().numpy()
-    # save_3D_img_from_numpy(full_warped.squeeze().cpu().numpy(),"/playpen-raid1/zyshen/debug/debug_multiscale.nii.gz",
-    #                        target_itk.GetSpacing(), target_itk.GetOrigin(), target_itk.GetDirection())
+    # save_3D_img_from_numpy(full_inv_warped.squeeze().cpu().numpy(),"/playpen-raid1/zyshen/debug/debug_lin_model2.nii.gz",
+    #                        source_itk.GetSpacing(), source_itk.GetOrigin(), source_itk.GetDirection())
+    # save_3D_img_from_numpy(sitk.GetArrayFromImage(source_itk),
+    #                        "/playpen-raid1/zyshen/debug/debug_lin_source.nii.gz",
+    #                        source_itk.GetSpacing(), source_itk.GetOrigin(), source_itk.GetDirection())
     return {"phi": full_composed_map, "inv_phi": full_inv_composed_map,"bspline":bspline_itk, "inv_bspline":inv_bspline_itk}
 
 
@@ -358,12 +361,13 @@ def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
         target_origin = target_img.GetOrigin()
         target_origin = np.array(target_origin)
 
-        # moving = sitk.GetArrayFromImage(moving_img)
-        # slandmark_index = (points-moving_origin) / moving_origin
-        # for coord in slandmark_index:
-        #     coord_int  = [int(c) for c in coord]
-        #     moving[coord_int[2],coord_int[1],coord_int[0]] = 2000.
-        # save_3D_img_from_numpy(moving,"/playpen-raid2/zyshen/debug/{}_debug.nii.gz".format("name"))
+        moving = sitk.GetArrayFromImage(moving_img)
+        slandmark_index = (points-moving_origin) / moving_spacing
+        for coord in slandmark_index:
+            coord_int  = [int(c) for c in coord]
+            moving[coord_int[2],coord_int[1],coord_int[0]] = 2.
+        save_3D_img_from_numpy(moving,"/playpen-raid2/zyshen/debug/{}_padded.nii.gz".format(dirlab_id+"_moving"),
+                               spacing=moving_img.GetSpacing(), orgin=moving_img.GetOrigin(), direction=moving_img.GetDirection())
 
         points = (points - moving_origin) / moving_spacing * standard_spacing
         points = points * 2 - 1
@@ -378,6 +382,14 @@ def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
         points_wraped = points_wraped.detach().cpu().numpy()
         points_wraped = np.transpose(np.squeeze(points_wraped))
         points_wraped = np.flip(points_wraped, 1) / standard_spacing * target_spacing + target_origin
+
+        warp = sitk.GetArrayFromImage(target_img)
+        wlandmark_index = (points_wraped - target_origin) / target_spacing
+        for coord in wlandmark_index:
+            coord_int = [int(c) for c in coord]
+            warp[coord_int[2], coord_int[1], coord_int[0]] = 2.
+        save_3D_img_from_numpy(warp, "/playpen-raid2/zyshen/debug/{}_debug.nii.gz".format("warp"))
+
         return points_wraped
 
 
@@ -397,14 +409,26 @@ def get_file_name(img_path):
     return file_name
 
 if __name__ == "__main__":
-    source_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12109M_EXP_STD_USD_COPD.nrrd"
-    target_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12109M_INSP_STD_USD_COPD.nrrd"
-    model_path = "./lung_reg/model"
+    source_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12042G_EXP_STD_USD_COPD.nrrd"
+    target_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12042G_INSP_STD_USD_COPD.nrrd"
+    source_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd6/copd6_EXP_label.nrrd"
+    target_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd6/copd6_INSP_label.nrrd"
+    model_path = "./lung_reg/lin_modelv2"
     source_itk = sitk.ReadImage(source_path)
     target_itk = sitk.ReadImage(target_path)
+    source_mask_itk = sitk.ReadImage(source_mask_path) if len(source_mask_path) else None
+    target_mask_itk = sitk.ReadImage(target_mask_path) if len(target_mask_path) else None
     preprocessed_source_itk = preprocess(source_itk)
     preprocessed_target_itk = preprocess(target_itk)
-    output_dict = predict(preprocessed_source_itk, preprocessed_target_itk,model_path=model_path)
+    #sitk.WriteImage(preprocessed_source_itk,"/playpen-raid1/zyshen/debug/12042G_preprocessed.nii.gz")
+    if source_mask_itk is not None and target_mask_itk is not None:
+        preprocessed_source_mask_itk = preprocess(source_mask_itk,is_mask=True)
+        preprocessed_target_mask_itk = preprocess(target_mask_itk,is_mask=True)
+    else:
+        preprocessed_source_mask_itk = None
+        preprocessed_target_mask_itk = None
+    output_dict = predict(preprocessed_source_itk, preprocessed_target_itk,preprocessed_source_mask_itk,preprocessed_target_mask_itk,
+                          model_path=model_path)
 
     dirlab_id = get_file_name(source_path).split("_")[0]
     evaluate_on_dirlab(output_dict["inv_phi"], preprocessed_source_itk, preprocessed_target_itk, dirlab_id)
