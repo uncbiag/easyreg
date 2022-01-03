@@ -105,8 +105,9 @@ def normalize_img(img, is_mask=False):
     :return:
     """
     if not is_mask:
-        img[img<-1000] = -1000
-        # img = (img - img.min())/(img.max()-img.min())
+        img[img < -1000] = -1000
+        img[img > 1000] = 1000
+        img = (img + 1000) / 2000
     else:
         img[img>400]=0
         img[img != 0] = 1
@@ -133,6 +134,8 @@ def convert_itk_to_support_deepnet(img_sitk, is_mask=False,device=torch.device("
     img_sitk = sitk.GetImageFromArray(sitk.GetArrayFromImage(img_sitk))
     img_after_resize,_ = resize_img(img_sitk,img_sz_after_resize, is_mask=is_mask)
     img_numpy = sitk.GetArrayFromImage(img_after_resize)
+    if not is_mask:
+        img_numpy = img_numpy*2-1
     return torch.Tensor(img_numpy.astype(np.float32))[None][None].to(device)
 
 
@@ -247,7 +250,7 @@ def convert_output_into_itk_support_format(source_itk,target_itk, l_source_itk, 
     id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
     id_map = (id_map[None] + 1) / 2.
     disp = new_phi - id_map
-    bspline_itk = None #convert_transform_into_itk_bspline(disp,new_spacing,source_itk, target_itk)
+    bspline_itk = convert_transform_into_itk_bspline(disp,new_spacing,source_itk, target_itk)
     return new_phi, warped,l_warped, new_spacing, bspline_itk
 
 
@@ -267,20 +270,25 @@ def predict(source_itk, target_itk,source_mask_itk=None, target_mask_itk=None, m
     network.to(device)
     network.train(False)
     with torch.no_grad():
-        warped, composed_map, affine_img = network.forward(source, target, source_mask, target_mask)
-        inv_warped, composed_inv_map, inv_affine_img = network.forward(target, source, target_mask, source_mask)
+        warped, composed_map, affine_map = network.forward(source, target, source_mask, target_mask)
+        inv_warped, composed_inv_map, inv_affine_map = network.forward(target, source, target_mask, source_mask)
     spacing = 1./(np.array(warped.shape[2:])-1)
     del network
     full_composed_map, full_warped,l_full_warped, _, bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk, source_mask_itk, target_mask_itk, composed_map,spacing)
     full_composed_map = full_composed_map.detach().cpu().squeeze().numpy()
     full_inv_composed_map, full_inv_warped,l_full_inv_warped, _, inv_bspline_itk = convert_output_into_itk_support_format(target_itk,source_itk, target_mask_itk, source_mask_itk, composed_inv_map,spacing)
     full_inv_composed_map = full_inv_composed_map.detach().cpu().squeeze().numpy()
+    full_affine_map, full_affined, l_full_affined, _, affine_bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk,target_mask_itk,source_mask_itk, affine_map,spacing)
+    full_affine_map = full_affine_map.detach().cpu().squeeze().numpy()
+    full_inv_affine_map, full_inv_affined, l_full_inv_affined, _, affine_inv_bspline_itk = convert_output_into_itk_support_format(target_itk, source_itk, target_mask_itk, source_mask_itk, inv_affine_map, spacing)
+    full_inv_affine_map = full_inv_affine_map.detach().cpu().squeeze().numpy()
     # save_3D_img_from_numpy(full_inv_warped.squeeze().cpu().numpy(),"/playpen-raid1/zyshen/debug/debug_lin_model2.nii.gz",
     #                        source_itk.GetSpacing(), source_itk.GetOrigin(), source_itk.GetDirection())
     # save_3D_img_from_numpy(sitk.GetArrayFromImage(source_itk),
     #                        "/playpen-raid1/zyshen/debug/debug_lin_source.nii.gz",
     #                        source_itk.GetSpacing(), source_itk.GetOrigin(), source_itk.GetDirection())
-    return {"phi": full_composed_map, "inv_phi": full_inv_composed_map,"bspline":bspline_itk, "inv_bspline":inv_bspline_itk}
+    return {"phi": full_composed_map, "inv_phi": full_inv_composed_map,"bspline":bspline_itk, "inv_bspline":inv_bspline_itk,
+            "affine_phi": full_affine_map, "affine_inv_phi": full_inv_affine_map,"affine_bspline":affine_bspline_itk, "afffine_inv_bspline":affine_inv_bspline_itk}
 
 
 
