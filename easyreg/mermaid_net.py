@@ -53,7 +53,7 @@ class MermaidNet(nn.Module):
         opt_mermaid = opt['tsk_set']['reg']['mermaid_net']
         low_res_factor = opt['tsk_set']['reg'][('low_res_factor',1.,"factor of low-resolution map")]
         batch_sz = opt['tsk_set']['batch_sz']
-        self.record_path = opt['tsk_set']['path']['record_path']
+        self.record_path = opt['tsk_set']['path'][('record_path',"","record path")]
         """record path of the task"""
         self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
         """if is in train mode"""
@@ -137,7 +137,10 @@ class MermaidNet(nn.Module):
         self.n_batch = -1
         self.inverse_map = None
 
-
+    def load_pretrained_model(self, pretrained_model_path):
+        checkpoint = torch.load(pretrained_model_path, map_location="cpu")
+        self.load_state_dict(checkpoint["state_dict"])
+        print("load pretrained model from {}".format(pretrained_model_path))
 
     def check_if_update_lr(self):
         """
@@ -204,9 +207,10 @@ class MermaidNet(nn.Module):
         :param params:
         :return:
         """
-        saving_path = os.path.join(self.record_path,'nonp_setting.json')
-        params.write_JSON(saving_path, save_int=False)
-        params.write_JSON_comments(saving_path.replace('.json','_comment.json'))
+        if len(self.record_path):
+            saving_path = os.path.join(self.record_path,'nonp_setting.json')
+            params.write_JSON(saving_path, save_int=False)
+            params.write_JSON_comments(saving_path.replace('.json','_comment.json'))
 
 
     def init_mermaid_env(self):
