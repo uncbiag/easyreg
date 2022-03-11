@@ -10,7 +10,7 @@ import glob
 from  easyreg.reg_data_utils import write_list_into_txt
 from multiprocessing import Process
 h5_path = "/playpen-raid1/Data/UNC_Registration.h5"
-output_path = "/playpen-raid2/Data/Lung_Registration_transposed"
+output_path = "/playpen-raid2/Data/Lung_Registration_clamp_normal_transposed"
 os.makedirs(output_path,exist_ok=True)
 #['Expiration_CT', 'Expiration_CT.key', 'Expiration_CT.missing',
 # 'Expiration_CT.origin', 'Expiration_CT.spacing', 'Expiration_labelmap',
@@ -47,10 +47,11 @@ def process_image(img, fname, is_label=False):
     :return:
     """
     if not is_label:
-        img[img<-1000] = -1000
-        img[img>1000] = 1000
-        img = normalize_intensity(img)
+        img[img < -1000] = -1000
+        img[img > -200] = -200
+        # img = normalize_intensity(img)
     else:
+        img[img >400] =0
         img[img != 0] = 1
         # img[img==2]=1
         # img[img==3]=2
@@ -72,7 +73,7 @@ def process_lung_data(index_list):
         atr_spacing = mod + '.spacing'
         for i in index_list:
             img = f[mod][i]
-            #img = process_image(img,f[atr_key][i][1],is_label[ind]) if is_label[ind] is not None else img
+            img = process_image(img,f[atr_key][i][1],is_label[ind]) if is_label[ind] is not None else img
             folder_name = f[atr_key][i][0]
             fname = f[atr_key][i][1]
             origin = f[atr_origin][i].astype(np.float64)

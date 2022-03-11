@@ -33,6 +33,11 @@ class Loss(object):
             lncc =  LNCCLoss()
             lncc.initialize()
             self.criterion =lncc
+        elif cont_loss_type =='glncc':
+            glncc_opt = opt['tsk_set']['loss']['glncc']
+            glncc = GaussianLNCC()
+            glncc.initialize(glncc_opt)
+            self.criterion =glncc
         elif cont_loss_type =='empty':
             self.criterion = None
         elif cont_loss_type =='ce':
@@ -190,6 +195,7 @@ class LNCCLoss(nn.Module):
 
 
 
+
     def forward(self, input, target):
         self.__stepup(img_sz=list(input.shape[2:]))
         input_2 = input ** 2
@@ -233,6 +239,35 @@ class LNCCLoss(nn.Module):
             lncc_total += lncc * self.scale_weight[scale_id]
 
         return lncc_total*(input.shape[0])
+
+
+from mermaid.smoother_factory import SingleGaussianFourierSmoother
+class GaussianLNCC(nn.Module):
+    def initialize(self, params):
+        self.params = params
+        self.smoother_buffer = {}
+
+
+    def get_buffer_smoother(self, sz):
+        sz = tuple(sz)
+        if sz not in self.smoother_buffer:
+            spacing = 1./(np.array(sz)-1)
+            self.smoother_buffer[sz] =SingleGaussianFourierSmoother(sz, spacing, self.params)
+        self.smoother = self.smoother_buffer[sz]
+
+
+    def forward(self, input, target):
+        self.get_buffer_smoother(list(input.shape[2:]))
+        sm_input = self.smoother.smooth(input)
+        sm_inputsq = self.smoother.smooth(input**2)
+        sm_target =self.smoother.smooth(target)
+        sm_targetsq = self.smoother.smooth(target**2)
+        sm_inputtarget = self.smoother.smooth(input*target)
+        #lncc = ((sm_inputtarget - sm_input*sm_target)**2)/((sm_inputsq-sm_input**2)*(sm_targetsq-sm_target**2))
+        lncc = torch.exp(torch.log(sm_inputtarget - sm_input*sm_target) - 0.5*torch.log(sm_inputsq-sm_input**2)-0.5*torch.log(sm_targetsq-sm_target**2))
+        lncc = 1- lncc.mean()
+        return lncc
+
 
 
 

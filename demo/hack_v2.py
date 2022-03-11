@@ -8,12 +8,11 @@ from tools.image_rescale import permute_trans
 from tools.module_parameters import ParameterDict
 from easyreg.lin_unpublic_net import model
 from easyreg.utils import resample_image, get_transform_with_itk_format, dfield2bspline
-from tools.visual_tools import save_3D_img_from_numpy, save_3D_img_from_itk
+from tools.visual_tools import save_3D_img_from_numpy
 import mermaid.utils as py_utils
 
 
-#dirlab_landmarks_folder = "/playpen-raid1/zyshen/lung_reg/evaluate/dirlab_landmarks"
-dirlab_landmarks_folder = "./lung_reg/landmarks"
+dirlab_landmarks_folder = "/playpen-raid1/zyshen/lung_reg/evaluate/dirlab_landmarks"
 
 def resize_img(img, img_after_resize=None, is_mask=False):
     """
@@ -106,9 +105,8 @@ def normalize_img(img, is_mask=False):
     :return:
     """
     if not is_mask:
-        img[img < -1000] = -1000
-        img[img > 1000] = 1000
-        img = (img + 1000) / 2000
+        img[img<-1000] = -1000
+        # img = (img - img.min())/(img.max()-img.min())
     else:
         img[img>400]=0
         img[img != 0] = 1
@@ -117,17 +115,71 @@ def normalize_img(img, is_mask=False):
 
 
 def preprocess(img_sitk,is_mask=False):
-    processed_img = resample_image_itk_by_spacing_and_size(img_sitk,      output_spacing=np.array([1., 1., 1.]),
-                                                                          output_size=[350, 350, 350], output_type=None,
-                                                                          interpolator=sitk.sitkBSpline if not is_mask else sitk.sitkNearestNeighbor,
-                                                                          padding_value=-1000 if not is_mask else 0, center_padding=True)
-    img_np = sitk.GetArrayFromImage(processed_img)
-    img_np = normalize_img(img_np.astype(np.float32),is_mask)
-    sitk_img = sitk.GetImageFromArray(img_np)
-    sitk_img.SetOrigin(processed_img.GetOrigin())
-    sitk_img.SetSpacing(processed_img.GetSpacing())
-    sitk_img.SetDirection(processed_img.GetDirection())
+    ori_source, ori_spacing, _ = load_ITK(path_pair[0])
+    ori_source = np.flip(sitk.GetArrayFromImage(ori_source), axis=(0))
+    ori_target, ori_spacing, _ = load_ITK(path_pair[1])
+    ori_target = np.flip(sitk.GetArrayFromImage(ori_target), axis=(0))
+
+    # Pad the one with smaller size
+    pad_size = ori_target.shape[0] - ori_source.shape[0]
+    if pad_size > 0:
+        ori_source = np.pad(ori_source, ((0, pad_size), (0, 0), (0, 0)), mode='constant', constant_values=-1024)
+    else:
+        ori_target = np.pad(ori_target, ((0, -pad_size), (0, 0), (0, 0)), mode='constant', constant_values=-1024)
+
+    assert ori_source.shape == ori_target.shape, "The shape of source and target image should be the same!"
+
+    source, _, _ = resample(ori_source, ori_spacing, spacing)
+    source[source < -1024] = -1024
+    target, new_spacing, _ = resample(ori_target, ori_spacing, spacing)
+    target[target < -1024] = -1024
+
+    if seg_bg:
+        bg_hu = np.min(source)
+        source_bg_seg, source_bbox = seg_bg_mask(source)
+        source[source_bg_seg == 0] = bg_hu
+
+        bg_hu = np.min(target)
+        target_bg_seg, source_bbox = seg_bg_mask(target)
+        target[target_bg_seg == 0] = bg_hu
+        total_voxel = np.prod(target.shape)
+        print("##########Area percentage of ROI:{:.2f}, {:.2f}".format(float(np.sum(source_bg_seg)) / total_voxel,
+                                                                       float(np.sum(target_bg_seg)) / total_voxel))
+
+    source_seg, _ = seg_lung_mask(source)
+    target_seg, _ = seg_lung_mask(target)
+
+    # Pad 0 if shape is smaller than desired size.
+    new_origin = np.array((0, 0, 0))
+    sz_diff = sz - source.shape
+    sz_diff[sz_diff < 0] = 0
+    pad_width = [[int(sz_diff[0] / 2), sz_diff[0] - int(sz_diff[0] / 2)],
+                 [int(sz_diff[1] / 2), sz_diff[1] - int(sz_diff[1] / 2)],
+                 [int(sz_diff[2] / 2), sz_diff[2] - int(sz_diff[2] / 2)]]
+    source = np.pad(source, pad_width, constant_values=-1024)
+    target = np.pad(target, pad_width, constant_values=-1024)
+    source_seg = np.pad(source_seg, pad_width, constant_values=0)
+    target_seg = np.pad(target_seg, pad_width, constant_values=0)
+    new_origin[sz_diff > 0] = -np.array(pad_width)[sz_diff > 0, 0]
+
+    # Crop if shape is greater than desired size.
+    sz_diff = source.shape - sz
+    bbox = [[int(sz_diff[0] / 2), int(sz_diff[0] / 2) + sz[0]],
+            [int(sz_diff[1] / 2), int(sz_diff[1] / 2) + sz[1]],
+            [int(sz_diff[2] / 2), int(sz_diff[2] / 2) + sz[2]]]
+    source = source[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
+    target = target[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
+    source_seg = source_seg[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
+    target_seg = target_seg[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
+    new_origin[sz_diff > 0] = np.array(bbox)[sz_diff > 0, 0]
+
+    source = normalize_intensity(source)
+    target = normalize_intensity(target)
+    return source, target, source_seg, target_seg, new_origin, new_spacing
     return sitk_img
+
+
+
 
 
 def convert_itk_to_support_deepnet(img_sitk, is_mask=False,device=torch.device("cuda:0")):
@@ -135,8 +187,6 @@ def convert_itk_to_support_deepnet(img_sitk, is_mask=False,device=torch.device("
     img_sitk = sitk.GetImageFromArray(sitk.GetArrayFromImage(img_sitk))
     img_after_resize,_ = resize_img(img_sitk,img_sz_after_resize, is_mask=is_mask)
     img_numpy = sitk.GetArrayFromImage(img_after_resize)
-    if not is_mask:
-        img_numpy = img_numpy*2-1
     return torch.Tensor(img_numpy.astype(np.float32))[None][None].to(device)
 
 
@@ -216,13 +266,13 @@ def convert_transform_into_itk_bspline(transform,spacing,moving_ref,target_ref):
     bias = np.array(target_orig_ref)-np.array(moving_orig_ref)
     bias = -bias.reshape(3,1,1,1)
     transform_physic = cur_trans +bias
-    disp_itk = get_transform_with_itk_format(transform_physic,target_spacing_ref, target_orig_ref,target_direc_ref)
+    trans = get_transform_with_itk_format(transform_physic,target_spacing_ref, target_orig_ref,target_direc_ref)
     #sitk.WriteTransform(trans, saving_path)
     # Retrive the DField from the Transform
-    dfield = disp_itk.GetDisplacementField()
+    dfield = trans.GetDisplacementField()
     # Fitting a BSpline from the Deformation Field
     bstx = dfield2bspline(dfield, verbose=True)
-    return disp_itk, bstx
+    return bstx
 
 
 def convert_output_into_itk_support_format(source_itk,target_itk, l_source_itk, l_target_itk, phi,spacing):
@@ -251,8 +301,8 @@ def convert_output_into_itk_support_format(source_itk,target_itk, l_source_itk, 
     id_map = gen_identity_map(warped.shape[2:], resize_factor=1., normalized=True).cuda()
     id_map = (id_map[None] + 1) / 2.
     disp = new_phi - id_map
-    disp_itk, bspline_itk = None, None# convert_transform_into_itk_bspline(disp,new_spacing,source_itk, target_itk)
-    return new_phi, warped,l_warped, new_spacing, disp_itk, bspline_itk
+    bspline_itk = None #convert_transform_into_itk_bspline(disp,new_spacing,source_itk, target_itk)
+    return new_phi, warped,l_warped, new_spacing, bspline_itk
 
 
 
@@ -271,39 +321,20 @@ def predict(source_itk, target_itk,source_mask_itk=None, target_mask_itk=None, m
     network.to(device)
     network.train(False)
     with torch.no_grad():
-        warped, composed_map, affine_map = network.forward(source, target, source_mask, target_mask)
-        inv_warped, composed_inv_map, inv_affine_map = network.forward(target, source, target_mask, source_mask)
+        warped, composed_map, affine_img = network.forward(source, target, source_mask, target_mask)
+        inv_warped, composed_inv_map, inv_affine_img = network.forward(target, source, target_mask, source_mask)
     spacing = 1./(np.array(warped.shape[2:])-1)
     del network
-    full_composed_map, full_warped,l_full_warped, _,disp_itk, bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk, source_mask_itk, target_mask_itk, composed_map,spacing)
+    full_composed_map, full_warped,l_full_warped, _, bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk, source_mask_itk, target_mask_itk, composed_map,spacing)
     full_composed_map = full_composed_map.detach().cpu().squeeze().numpy()
-    full_inv_composed_map, full_inv_warped,l_full_inv_warped, _,inv_disp_itk, inv_bspline_itk = convert_output_into_itk_support_format(target_itk,source_itk, target_mask_itk, source_mask_itk, composed_inv_map,spacing)
+    full_inv_composed_map, full_inv_warped,l_full_inv_warped, _, inv_bspline_itk = convert_output_into_itk_support_format(target_itk,source_itk, target_mask_itk, source_mask_itk, composed_inv_map,spacing)
     full_inv_composed_map = full_inv_composed_map.detach().cpu().squeeze().numpy()
-    full_affine_map, full_affined, l_full_affined, _,affine_disp_itk, affine_bspline_itk = convert_output_into_itk_support_format(source_itk,target_itk,target_mask_itk,source_mask_itk, affine_map,spacing)
-    full_affine_map = full_affine_map.detach().cpu().squeeze().numpy()
-    full_inv_affine_map, full_inv_affined, l_full_inv_affined, _,affine_inv_disp_itk, affine_inv_bspline_itk = convert_output_into_itk_support_format(target_itk, source_itk, target_mask_itk, source_mask_itk, inv_affine_map, spacing)
-    full_inv_affine_map = full_inv_affine_map.detach().cpu().squeeze().numpy()
-
-
-
-
-
-    # from easyreg.demons_utils import sitk_grid_sampling
-    # save_3D_img_from_itk(sitk_grid_sampling(target_itk,source_itk, disp_itk),
-    #                        "/playpen-raid1/zyshen/debug/debug_lin_model_st_itk.nii.gz")
-    # save_3D_img_from_itk(sitk_grid_sampling(source_itk, target_itk, inv_disp_itk),
-    #                        "/playpen-raid1/zyshen/debug/debug_lin_model_ts_itk.nii.gz")
-    # save_3D_img_from_itk(source_itk, "/playpen-raid1/zyshen/debug/debug_lin_model_source_itk.nii.gz")
-    # save_3D_img_from_itk(target_itk, "/playpen-raid1/zyshen/debug/debug_lin_model_target_itk.nii.gz")
-    # save_3D_img_from_numpy(full_warped.squeeze().cpu().numpy(),
-    #                        "/playpen-raid1/zyshen/debug/debug_lin_model_st.nii.gz",
-    #                        target_itk.GetSpacing(), target_itk.GetOrigin(), target_itk.GetDirection())
-    # save_3D_img_from_numpy(full_inv_warped.squeeze().cpu().numpy(),"/playpen-raid1/zyshen/debug/debug_lin_model_ts.nii.gz",
+    # save_3D_img_from_numpy(full_inv_warped.squeeze().cpu().numpy(),"/playpen-raid1/zyshen/debug/debug_lin_model2.nii.gz",
     #                        source_itk.GetSpacing(), source_itk.GetOrigin(), source_itk.GetDirection())
-
-
-    return {"phi": full_composed_map, "inv_phi": full_inv_composed_map,"bspline":bspline_itk, "inv_bspline":inv_bspline_itk,
-            "affine_phi": full_affine_map, "affine_inv_phi": full_inv_affine_map,"affine_bspline":affine_bspline_itk, "afffine_inv_bspline":affine_inv_bspline_itk}
+    # save_3D_img_from_numpy(sitk.GetArrayFromImage(source_itk),
+    #                        "/playpen-raid1/zyshen/debug/debug_lin_source.nii.gz",
+    #                        source_itk.GetSpacing(), source_itk.GetOrigin(), source_itk.GetDirection())
+    return {"phi": full_composed_map, "inv_phi": full_inv_composed_map,"bspline":bspline_itk, "inv_bspline":inv_bspline_itk}
 
 
 
@@ -337,9 +368,9 @@ def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
 
 
     def get_dirlab_landmark(case_id):
-        # assert case_id in COPD_ID
-        exp_landmark_path = os.path.join(dirlab_landmarks_folder, case_id + "_EXP_STD_USD_COPD.vtk")
-        insp_landmark_path = os.path.join(dirlab_landmarks_folder, case_id + "_INSP_STD_USD_COPD.vtk")
+        assert case_id in COPD_ID
+        exp_landmark_path = os.path.join(dirlab_landmarks_folder, case_id + "_EXP.vtk")
+        insp_landmark_path = os.path.join(dirlab_landmarks_folder, case_id + "_INSP.vtk")
         exp_landmark = read_vtk(exp_landmark_path)["points"]
         insp_landmark = read_vtk(insp_landmark_path)["points"]
         return exp_landmark, insp_landmark
@@ -417,7 +448,7 @@ def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
 
 
     assert dirlab_id in MAPPING, "{} doesn't belong to ten dirlab cases:{}".format(dirlab_id, MAPPING.keys())
-    exp_landmark, insp_landmark = get_dirlab_landmark(dirlab_id)
+    exp_landmark, insp_landmark = get_dirlab_landmark(MAPPING[dirlab_id])
     warped_landmark = warp_points(exp_landmark, inv_map, moving_itk, target_itk)
     diff = warped_landmark - insp_landmark
     diff_norm = np.linalg.norm(diff, ord=2, axis=1)
@@ -436,7 +467,7 @@ if __name__ == "__main__":
     target_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12042G_INSP_STD_USD_COPD.nrrd"
     source_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd6/copd6_EXP_label.nrrd"
     target_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd6/copd6_INSP_label.nrrd"
-    model_path = "./lung_reg/lin_modelv2"
+    model_path = "./lung_reg/lin_model"
     source_itk = sitk.ReadImage(source_path)
     target_itk = sitk.ReadImage(target_path)
     source_mask_itk = sitk.ReadImage(source_mask_path) if len(source_mask_path) else None

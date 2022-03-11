@@ -35,6 +35,16 @@ def save_3D_img_from_numpy(input,file_path,spacing=None,orgin=None,direction=Non
     os.makedirs(os.path.split(file_path)[0], exist_ok=True)
     sitk.WriteImage(output, file_path)
 
+def save_3D_img_from_itk(output,file_path,spacing=None,orgin=None,direction=None):
+    if spacing is not None:
+        output.SetSpacing(spacing)
+    if orgin is not None:
+        output.SetOrigin(orgin)
+    if direction is not None:
+        output.SetDirection(direction)
+    os.makedirs(os.path.split(file_path)[0], exist_ok=True)
+    sitk.WriteImage(output, file_path)
+
 
 
 

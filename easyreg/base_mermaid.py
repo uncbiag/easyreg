@@ -105,7 +105,7 @@ class MermaidBase(RegModelBase):
             supported_metric = {"dirlab":eval_on_dirlab}
             phi = (self.phi + 1) / 2. if not self.use_01 else self.phi
             inverse_phi = (self.inverse_phi + 1) / 2. if not self.use_01 else self.inverse_phi
-            supported_metric[self.external_eval](phi, inverse_phi, self.fname_list, moving = self.moving, target=self.target, record_path= self.record_path)
+            supported_metric[self.external_eval](phi, inverse_phi, self.fname_list, self.pair_path,moving = self.moving, target=self.target, record_path= self.record_path)
 
 
 

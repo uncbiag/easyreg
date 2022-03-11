@@ -1,6 +1,8 @@
 """
 """
 import copy
+
+from tools.visual_tools import save_3D_img_from_numpy
 from .losses import NCCLoss, Loss
 from .net_utils import gen_identity_map
 import mermaid.finite_differences_multi_channel as fdt
@@ -126,6 +128,8 @@ class Multiscale_Flow(nn.Module):
             self.up_path_1_2 = conv_bn_rel(16+16+3, 8, 3, stride=1, active_unit='None', same_padding=True)
             self.up_path_1_3 = conv_bn_rel(8, 8, 3, stride=1, active_unit='None', same_padding=True)
             self.flow_conv_1 = conv_bn_rel(8, 3, 3, stride=1, active_unit='None', same_padding=True, bn=False)
+
+
 
     def forward(self, source,target, initial_map,smoother=None):
         input_cat = torch.cat((source, target), dim=1)
@@ -340,6 +344,7 @@ class Multiscale_FlowNet(nn.Module):
         return img
     def forward(self, source, target,source_mask=None, target_mask=None):
         #
+        source_cp, target_cp = source, target
         self.update_sim_fn()
         if self.using_affine_init:
             with torch.no_grad():
@@ -350,6 +355,9 @@ class Multiscale_FlowNet(nn.Module):
         affined_mask = Bilinear()(source_mask,affine_map)
         target = self.normalize((target + 1) * target_mask) * 2 - 1
         affine_img = self.normalize((affine_img + 1) * affined_mask) * 2 - 1
+        # save_3D_img_from_numpy((source*source_mask)[0][0].detach().cpu().numpy(),"/playpen-raid2/zyshen/debug/source_masked_image.nii.gz")
+        # save_3D_img_from_numpy(affine_img[0][0].detach().cpu().numpy(),"/playpen-raid2/zyshen/debug/affine_masked_image.nii.gz")
+        # save_3D_img_from_numpy(target[0][0].detach().cpu().numpy(),"/playpen-raid2/zyshen/debug/target_masked_image.nii.gz")
         disp_list, warp_list, target_list, phi = self.network(affine_img, target, affine_map, self.flow_smoother)
         sim_loss_list = [self.sim_fn(cur_warp, cur_targ) for cur_warp, cur_targ in zip(warp_list, target_list)]
         spacing_list = [2/(np.array(disp.shape[2:])-1) for disp in disp_list]
@@ -357,16 +365,18 @@ class Multiscale_FlowNet(nn.Module):
         sim_loss = sum([w*sim for w, sim in zip(self.scale_weight_list, sim_loss_list)])
         reg_loss = sum([w*reg for w, reg in zip(self.scale_weight_list, reg_loss_list)])
         if self.compute_grad_image_loss and self.epoch > self.activate_grad_image_after_epoch:
-            sim_loss = sim_loss + self.compute_derivative_image_similarity(warp_list[-1], target, target_mask,mode="grad")
+            sim_loss = sim_loss + self.compute_derivative_image_similarity(warp_list[-1], target, None,mode="grad")
         if self.compute_hess_image_loss and self.epoch > self.activate_hess_image_after_epoch:
-            sim_loss = sim_loss + self.compute_derivative_image_similarity(warp_list[-1], target, target_mask,mode="hess")
+            sim_loss = sim_loss + self.compute_derivative_image_similarity(warp_list[-1], target, None,mode="hess")
         composed_deformed = phi
         self.sim_loss = sim_loss
         self.reg_loss = reg_loss
         self.warped = warp_list[-1]
-        self.target = target_list[-1]
+        self.target = target_cp #target_list[-1]
+        self.source_mask=source_mask
+        self.target_mask=target_mask
         self.disp_field = disp_list[-1]
-        self.source  = source
+        self.source  = source_cp
         if self.train:
             self.print_count += 1
         return self.warped, composed_deformed, affine_img
@@ -416,6 +426,6 @@ class Multiscale_FlowNet(nn.Module):
         # TODO  not test yet
         print("VoxelMorph approach doesn't support analytical computation of inverse map")
         print("Instead, we compute it's numerical approximation")
-        _, inverse_map, _ = self.forward(self.target, self.source)
+        _, inverse_map, _ = self.forward(self.target, self.source,self.target_mask,self.source_mask)
         return inverse_map
 

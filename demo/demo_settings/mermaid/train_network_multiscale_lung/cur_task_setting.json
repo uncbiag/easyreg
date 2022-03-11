@@ -1,9 +1,9 @@
 {
     "dataset": {
         "img_after_resize": [
-            160,
-            160,
-            160
+            256,
+            256,
+            256
         ],
         "load_training_data_into_memory": true,
         "max_num_for_loading": [
@@ -20,23 +20,26 @@
         ]
     },
     "tsk_set": {
-        "batch_sz": 2,
+        "batch_sz": 1,
         "check_best_model_period": 5,
-        "continue_train": true,
+        "continue_train": false,
         "continue_train_lr":1e-4,
         "criticUpdates": 2,
-        "epoch": 300,
+        "epoch": 800,
         "gpu_ids": 0,
         "loss": {
-            "type": "ncc"
+            "type": "glncc",
+            "glncc": {
+                "gaussian_std": 0.3
+            }
         },
         "max_batch_num_per_epoch": [
-            400,
+            200,
             8,
             4
         ],
         "model": "reg_net",
-        "model_path": "/playpen-raid2/zyshen/data/lung_reg/train_multiscale_smooth_full_both_fixed/checkpoints/epoch_75_",
+        "model_path": "/playpen-raid2/zyshen/data/lung_reg/train_multiscale_inverse_consistency_complex_1000/checkpoints/epoch_120_",
         "n_in_channel": 1,
         "method_name": "multiscale_net",
         "external_eval": "dirlab",
@@ -48,7 +51,7 @@
             "lr_scheduler": {
                 "custom": {
                     "gamma": 0.5,
-                    "step_size": 60
+                    "step_size": 100
                 },
                 "type": "custom"
             },
@@ -79,7 +82,7 @@
             "compute_inverse_map": false,
             "low_res_factor": 0.5,
             "multiscale_net": {
-                "affine_init_path": "/playpen-raid2/zyshen/data/lung_reg/train_affine_continue2/checkpoints/epoch_205_",
+                "affine_init_path": "/playpen-raid2/zyshen/data/lung_reg/train_linmodel_1000/epoch_95_",
                 "affine_refine_step": 3,
                 "using_affine_init": true,
                 "load_trained_affine_net": true,
@@ -87,9 +90,10 @@
                 "min_reg_factor": 1,
                 "low_res_factor": 1,
                 "compute_grad_image_loss": true,
-                "compute_hess_image_loss": true,
+                "compute_hess_image_loss": false,
                 "deploy_mask_during_training": false,
-                "activate_lncc_after_epoch": 1000,
+                "activate_lncc_after_epoch": 600,
+                "compute_inverse": true,
                 "smoother": {
                     "multi_gaussian_stds": [
                         0.05,
@@ -124,7 +128,7 @@
         ],
         "train": true,
         "reset_train_epoch": true,
-        "load_model_but_train_from_epoch": 60,
+        "load_model_but_train_from_epoch": 100,
         "use_physical_coord": false,
         "val_period": 5,
         "warmming_up_epoch": 2
