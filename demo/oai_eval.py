@@ -8,9 +8,6 @@ from easyreg.utils import resample_image
 import mermaid.utils as py_utils
 
 
-#dirlab_landmarks_folder = "/playpen-raid1/zyshen/lung_reg/evaluate/dirlab_landmarks"
-dirlab_landmarks_folder = "./lung_reg/landmarks"
-
 def resize_img(img, img_after_resize=None, is_mask=False):
     """
     :param img: sitk input, factor is the outputs_ize/patched_sized
