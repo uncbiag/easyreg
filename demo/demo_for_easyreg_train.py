@@ -216,11 +216,12 @@ def do_registration_train(args):
 if __name__ == '__main__':
     """
         A training interface for learning methods.
-        The method support list :  mermaid-related methods
-        Assume there is three level folder, output_root_path/ data_task_folder/ task_folder 
+        The method support list :  mermaid-related methods (vSVF,LDDMM,RDMM), voxel-morph (cvpr and miccai)
+        Assume there is three level folder, output_root_path/ data_task_name/ task_name 
+        In data_task_folder, you must include train/val/test/debug folders, for details please refer to doc/source/notes/preapre_data.rst
         Arguments: 
-            --output_root_path/ -o: the path of output folder
-            --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task
+            --output_root_path/ -o: the path of easyreg output root folder
+            --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task,
             --task_name / -tn: task name i.e. run_training_vsvf_task, run_training_rdmm_task
             --setting_folder_path/ -ts: path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
             --train_affine_first: train affine network first, then train non-parametric network

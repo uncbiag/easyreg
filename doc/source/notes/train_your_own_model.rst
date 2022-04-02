@@ -9,40 +9,17 @@ ____________
 In this tutorial, we would show how to train your own model.
 
 
-About how to prepare the data, please refer to *prepare data* part  for :ref:`prepare-data-training-label`
+Please read *prepare data* part  for :ref:`prepare-data-training-label` first before moving ahead.
 
+We provide 5 interfaces in easyreg that aimed for training/evaluating registration tasks, for training/evaluating segmentation tasks, and for data augmentation task.
+All these 5 interfaces can be found at **demo** repository.
 
-The script *demo_for_easyreg_train.py* is for training new learning-based registration model.
-
-.. code:: shell
-
-        A training interface for learning methods.
-        The method support list :  mermaid-related methods
-        Assume there is three-level folder, output_root_path/ data_task_folder/ task_folder
-        Arguments:
-            --output_root_path/ -o: the path of output folder
-            --data_task_name/ -dtn: data task name i.e. lung_reg_task , oai_reg_task
-            --task_name / -tn: task name i.e. run_training_vsvf_task, run_training_rdmm_task
-            --setting_folder_path/ -ts: path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
-            --train_affine_first: train affine network first, then train non-parametric network
-            --gpu_id/ -g: on which gpu to run
-
-**An example**
-
-.. code:: shell
-
-    python demo_for_easyreg_train.py -o=./demo_training_reg_net -dtn=oai -tn=training_on_3_cases -ts=./demo_settings/mermaid/training_on_3_cases --train_affine_first -g=0  --is_demo
-
-* Since there are only three images in train, val, test and debug folder, the only propose of the demo is to show how to organize the data and run the training.
-
-**IMPORTANT**:
-*the current network structure is specific to the OAI dataset, so for input with different image sizes (other than 80 * 192 *192), the network structure needs to be adjusted; especially for the affine network, the final layer is a fully-connected layer which is sensitive to input size; We recommend the combination usage of resampling parameter ''img_after_resize'' in task setting json and adjusting the network structure.
-
+We recommand readers to take a glance at :ref:`work-through_demos-label` and pick up the example most close to your need and then run/modify your own task based on that.
 
 
 **Outputs**
 
-In the 'task_name' folder, three folders will be auto created, **log** for tensorboard, **checkpoints** for saving models,
+In the *task_name* folder, three folders will be auto created, **log** for tensorboard (not recommanded here as we have already saved informal intermediate 3d/2d results locally), **checkpoints** for saving models,
 **records** for saving running time results. Besides, two files will also be created: **task_settings.json** for recording settings of current tasks and **logfile.log** for terminal output.
 
 

@@ -1,5 +1,7 @@
 Walk through Demos
 ========================================
+.. _work-through_demos-label:
+
 
 Introduction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -16,7 +18,8 @@ In this tutorial, we would show how to run the following demos:
 5. Demos on training learning-based mermaid network
 6. Demos on training VoxelMorph (cvpr and miccai version)
 7. Demos on training `Brainstorm <https://arxiv.org/abs/1902.09383>`_
-8. Demos on data augmentation (optimization and learnt version)
+8. Demos on image segmentation
+9. Demos on data augmentation (optimization and learnt version)
 
 *Demos for RDMM on synthesis data is put in mermaid repository. if you are interested in that, please refer to mermaid tutorial.*
 
@@ -31,40 +34,6 @@ To run the demo, we first need to download examples and pretrained model for lea
     unzip demo.zip -d EASYREG_REPOSITORY_PATH
 
 Now we are ready to play with demos. The repository *demo* lists the scripts and settings for demos.
-
-
-
-The script *demo_for_easyreg_eval.py*  is for optimization-based or pretrained methods.
-
-Let's first go through the document of the *demo_for_easyreg_eval.py*.
-.. code:: shell
-
-    An evaluation interface for optimization methods or learning methods with pre-trained models.
-    Though the purpose of this script is to provide demo, it is a generalized interface for evaluating the following methods.
-    The method support list :  mermaid-related ( optimizing/pretrained) methods, ants, demons, niftyreg
-    The demo names supported by category are :
-        mermaid: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined
-        ants: ants
-        demons: demons
-        niftyreg: niftyreg
-    * eval_network_* refers to learning methods with pre-trained models
-    * opt_* : refers to optimization based methods
-    Arguments:
-        demo related:
-             --run_demo: run the demo
-             --demo_name: eval_network_rdmm/eval_network_vsvf/opt_vsvf/opt_rdmm/opt_rdmm_predefined/ants/demons/niftyreg
-        input related:two input styles are supported. For both cases, images should be first normalized into [0,1].
-            1. given txt
-             --pair_txt_path/-txt: the txt file list the pairs to be registered
-            2. given image
-            --source_list/ -s: the source path list,  s1 s2 s3..sn
-            --target_list/ -t: the target path list,  t1 t2 t3..tn
-            --lsource_list/ -ls: optional, the source label path list,  ls1 ls2 ls3..lsn
-            --ltarget_list/ -lt: optional, the target label path list,  lt1 lt2 lt3..ltn
-        other arguments:
-             --setting_folder_path/ -ts :path of the folder where settings are saved,should include cur_task_setting.json, mermaid_affine_settings.json(optional) and mermaid_nonp_settings(optional)
-             --task_output_path/ -o: the path of output folder
-             --gpu_id/ -g: on which gpu to run
 
 
 
@@ -145,8 +114,25 @@ Demos on training VoxelMorph
 
 .. code:: shell
 
-    python demo_for_easyreg_train.py  -dtn=oai -tn=training_vm_miccai -ts=./demo_settings/mermaid/training_on_3_cases_voxelmorph_miccai -g=0 -o=OUTPUT_PATH
+    python demo_for_easyreg_train.py  -dtn=oai -tn=training_vm_miccai -ts=./demo_settings/mermaid/training_on_3_cases_voxelvm_miccai -g=0 -o=OUTPUT_PATH
 
+
+Demos on training Segmentation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. Patched based segmentation on LPBA
+
+.. code:: shell
+
+  python demo_for_seg_train.py -o=./demo_training_seg_net  -dtn=lpba -tn=training_seg  -ts=./demo_settings/seg/lpba_seg_train -g=0
+
+
+Demos on evaluating Segmentation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. Patched based segmentation on LPBA
+
+.. code:: shell
+
+  python demo_for_seg_eval.py   -txt=./lpba_examples.txt -ts=./demo_settings/seg/lpba_seg_eval  -g=0 -o=OUTPUT_PATH
 
 
 Demos on data augmentation

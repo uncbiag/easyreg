@@ -1,6 +1,9 @@
 # EasyReg
 
-A friendly tutorial on fluid based registration and augmentation will come soon :)
+03.31.2019 we found some docs are broken and some are out-of-date, so we made a major clean up on docs. Please refer to the latest doc.
+we strongly recommend to pick up a "similar" demo example from our [demo list](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html)<sup>*</sup>), and modify your own task based on it.
+
+
 
 The EasyReg is a image processing package, that supports a series of mainstream methods.\
 We list a few properties:
@@ -118,8 +121,8 @@ pip install -r requirements.txt
 
 # ################download demo (optional)######
 cd demo
-gdown https://drive.google.com/uc?id=1m0dhCUYe3DTisHEV3FMy7LY0SIJlTjpa
-unzip demo.zip -d . 
+gdown https://drive.google.com/uc?id=1yAqks0KEK9pYMKc1W-1714cwN_PONrYU
+unzip demo.zip -d .
 cd ..
 # #############################################
 

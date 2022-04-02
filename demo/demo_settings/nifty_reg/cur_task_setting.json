@@ -12,7 +12,7 @@
         "reg": {
             "nifty_reg": {
                 "nifty_bin": "/playpen-raid/zyshen/package/niftyreg-git/niftyreg_install/bin",
-                "nifty_reg_cmd": " -sx -10 --lncc 40 -pad 0 -jl 0.01"
+                "nifty_reg_cmd": " -sx -10 --lncc 40 -pad 0 -jl 0.1"
             }
         },
         "save_running_resolution_3d_img": false,

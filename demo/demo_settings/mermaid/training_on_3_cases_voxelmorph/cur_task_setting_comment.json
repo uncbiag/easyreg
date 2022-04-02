@@ -49,7 +49,7 @@
                 "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                 "using_complex_net": "use complex version of affine net"
             },
-            "morph_cvpr": {
+            "vm_cvpr": {
                 "affine_init_path": "the path of pretrained affine model",
                 "initial_reg_factor": "initial regularization factor",
                 "min_reg_factor": "minimum of regularization factor",

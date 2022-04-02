@@ -37,7 +37,7 @@
         "model": "reg_net",
         "model_path": "",
         "n_in_channel": 1,
-        "method_name": "morph_cvpr",
+        "method_name": "vm_cvpr",
         "optim": {
             "adam": {
                 "beta": 0.9
@@ -75,7 +75,7 @@
                 "using_complex_net": true
             },
             "compute_inverse_map": false,
-            "morph_cvpr": {
+            "vm_cvpr": {
                 "affine_init_path": "",
                 "affine_refine_step": 5,
                 "using_affine_init": false,

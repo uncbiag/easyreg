@@ -54,7 +54,7 @@
             1
         ],
         "model": "seg_net",
-        "model_path": "",
+        "model_path": "./demo_saved_models/seg/eval_lpba/model",
         "n_in_channel": 1,
         "method_name": "seg_unet",
         "optim": {

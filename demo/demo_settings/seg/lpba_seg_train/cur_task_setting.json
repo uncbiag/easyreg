@@ -2,18 +2,18 @@
     "dataset": {
         "task_type": "seg",
         "max_num_for_loading": [
-            1,1,-1,1
+            1000,3,5,1
         ],
         "img_after_resize": [
-            196,
-            164,
-            196
+            -1,
+            -1,
+            -1
         ],
         "spacing_to_refer": [
             1.0,1.0,1.0
         ],
         "seg": {
-            "patch_size": [72,72,72],
+            "patch_size": [72, 72, 72],
             "interested_label_list": [-1],
             "use_whole_img_as_input": false,
             "num_crop_per_class_per_train_img": -1,
@@ -43,14 +43,14 @@
         "continue_train": false,
         "continue_train_lr": 5e-04,
         "criticUpdates": 2,
-        "epoch": 500,
+        "epoch": 400,
         "gpu_ids": 0,
         "loss": {
             "type": "ce"
         },
         "max_batch_num_per_epoch": [
             400,
-            1,
+            3,
             1
         ],
         "model": "seg_net",
@@ -82,10 +82,10 @@
           "class_num": 57,
           "use_bn": true
         },
-        "save_running_resolution_3d_img": true,
-        "save_extra_running_resolution_3d_img": true,
+        "save_running_resolution_3d_img": false,
+        "save_extra_running_resolution_3d_img": false,
         "save_fig_on": true,
-        "train": false,
+        "train": true,
         "use_physical_coord": false,
         "val_period": 10,
         "warmming_up_epoch": 2

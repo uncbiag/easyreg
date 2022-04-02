@@ -72,7 +72,7 @@ class VoxelMorphCVPR2018(nn.Module):
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphCVPR2018, self).__init__()
         self.is_train = opt['tsk_set'][('train',False,'if is in train mode')]
-        opt_voxelmorph = opt['tsk_set']['reg']['morph_cvpr']
+        opt_voxelmorph = opt['tsk_set']['reg']['vm_cvpr']
         self.load_trained_affine_net = opt_voxelmorph[('load_trained_affine_net',False,'if true load_trained_affine_net; if false, the affine network is not initialized')]
         self.using_affine_init = opt_voxelmorph[("using_affine_init",False, "deploy affine network before the nonparametric network")]
         self.affine_init_path = opt_voxelmorph[('affine_init_path','',"the path of pretrained affine model")]
@@ -277,7 +277,7 @@ class VoxelMorphMICCAI2019(nn.Module):
     def __init__(self, img_sz, opt=None):
         super(VoxelMorphMICCAI2019, self).__init__()
         self.is_train = opt['tsk_set'][('train', False, 'if is in train mode')]
-        opt_voxelmorph = opt['tsk_set']['reg']['morph_miccai']
+        opt_voxelmorph = opt['tsk_set']['reg']['vm_miccai']
         self.load_trained_affine_net = opt_voxelmorph[('load_trained_affine_net', False,
                                                        'if true load_trained_affine_net; if false, the affine network is not initialized')]
         self.affine_refine_step = opt_voxelmorph[('affine_refine_step', 5, "the multi-step num in affine refinement")]
@@ -588,20 +588,6 @@ class VoxelMorphMICCAI2019(nn.Module):
                     nn.init.xavier_normal_(m.weight.data)
                 if not m.bias is None:
                     m.bias.data.zero_()
-    # def cal_affine_loss(self,output=None,afimg_or_afparam=None,using_decay_factor=False):
-    #     factor = 1.0
-    #     if using_decay_factor:
-    #         factor = sigmoid_decay(self.cur_epoch,static=5, k=4)*factor
-    #     if self.loss_fn.criterion is not None:
-    #         sim_loss  = self.loss_fn.get_loss(output,self.target)
-    #     else:
-    #         sim_loss = self.network.get_sim_loss(output,self.target)
-    #     reg_loss = self.network.scale_reg_loss(afimg_or_afparam) if afimg_or_afparam is not None else 0.
-    #     if self.iter_count%10==0:
-    #         print('current sim loss is{}, current_reg_loss is {}, and reg_factor is {} '.format(sim_loss.item(), reg_loss.item(),factor))
-    #     return sim_loss+reg_loss*factor
-
-
 
 
 

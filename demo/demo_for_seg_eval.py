@@ -133,7 +133,7 @@ def do_segmentation_eval(args, segmentation_file_list):
     file_txt_path = ''
     if args.file_txt_path:
         file_txt_path = args.file_txt_path
-        fname_txt_path = file_txt_path.replace("file_path_list.txt", "file_name_list.txt")
+        fname_txt_path = os.path.join(os.path.split(file_txt_path)[0],"file_name_list.txt")
         fname_list = read_txt_into_list(fname_txt_path) if os.path.isfile(fname_txt_path) else None
     else:
         print(segmentation_file_list)
@@ -161,11 +161,12 @@ if __name__ == '__main__':
             1. given txt
              --file_txt_path/-txt: the txt file recording the paths of images to segmentation
             2. given image
-            --image_list/ -s: the image list,  s1 s2 s3..sn
-            --limage_list/ -ls: optional, the label list,  ls1,ls2,ls3..lsn
+            --image_list/ -i: the image list,  s1 s2 s3..sn
+            --limage_list/ -li: optional, the label list,  ls1,ls2,ls3..lsn
         other arguments:
              --setting_folder_path/-ts :path of the folder where settings are saved
              --task_output_path/ -o: the path of output folder
+             --model_path/ -m: the path of pretrained model, can be set here or set in setting file
              --gpu_id/ -g: gpu_id to use
 
 

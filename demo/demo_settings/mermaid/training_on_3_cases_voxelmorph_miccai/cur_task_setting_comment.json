@@ -49,7 +49,7 @@
                 "reset_lr_for_multi_step": "if True, reset learning rate when multi-step begins",
                 "using_complex_net": "use complex version of affine net"
             },
-             "morph_miccai": {
+             "vm_miccai": {
                 "affine_init_path": "the path of pretrained affine model",
                 "using_affine_init": "deploy affine network before the nonparametric network\",",
                 "affine_refine_step": "the multi-step num in affine refinement",

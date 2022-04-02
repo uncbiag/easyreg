@@ -6,8 +6,8 @@ import torch.optim.lr_scheduler as lr_scheduler
 from .utils import *
 from .mermaid_net import MermaidNet
 from .voxel_morph import VoxelMorphCVPR2018, VoxelMorphMICCAI2019
-from .multiscale_net_new2 import Multiscale_FlowNet
-from .lin_unpublic_net import model
+#from .multiscale_net_new2 import Multiscale_FlowNet
+#from .lin_unpublic_net import model
 from .brainstorm import TransformCVPR2019, AppearanceCVPR2019
 
 model_pool = {
@@ -15,8 +15,8 @@ model_pool = {
     'mermaid': MermaidNet,
     'vm_cvpr': VoxelMorphCVPR2018,
     'vm_miccai': VoxelMorphMICCAI2019,
-    'multiscale_net':Multiscale_FlowNet,
-    "unpublic_lin": model,
+    #'multiscale_net':Multiscale_FlowNet,
+    #"unpublic_lin": model,
     "bs_trans": TransformCVPR2019,
     'bs_ap': AppearanceCVPR2019
 }
@@ -211,6 +211,14 @@ class RegNet(MermaidBase):
         update_lr, lr = self.network.check_if_update_lr()
         if update_lr:
             self.update_learning_rate(lr)
+
+    def do_some_clean(self):
+        self.loss = None
+        self.gt = None
+        self.input = None
+        self.output = None
+        self.phi = None
+        self.afimg_or_afparam = None
 
     def get_current_errors(self):
         return self.loss

@@ -14,14 +14,11 @@ Author: Zhengyang Shen, zyshen@cs.unc.edu
    :maxdepth: 1
    :caption: Notes
 
-   notes/train_segmentation_model.rst
-   notes/prepare_data.rst
-   notes/train_lpba.rst
-   notes/train_oasis.rst
-
-   notes/get_results.rst
-   notes/train_reg_model.rst
    notes/install.rst
+   notes/prepare_data.rst
+   notes/train_your_own_model.rst
+   notes/work_through_demos.rst
+
 
 .. toctree::
    :maxdepth: 2

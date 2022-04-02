@@ -75,7 +75,7 @@
                 "using_complex_net": true
             },
             "compute_inverse_map": false,
-            "morph_miccai": {
+            "vm_miccai": {
                 "affine_init_path": "",
                 "using_affine_init": false,
                 "affine_refine_step": 5,
