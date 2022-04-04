@@ -1,7 +1,7 @@
 # EasyReg
 
-03.31.2019 we found some docs are broken and some are out-of-date, so we made a major clean up on docs. Please refer to the latest doc.
-we strongly recommend to pick up a "similar" demo example from our [demo list](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html)<sup>*</sup>), and modify your own task based on it.
+03.31.2021 we find some docs are broken and some are out-of-date, so we do a major clean on docs. Please refer to the latest doc.
+We strongly recommend picking up a demo example from our [demo list](https://easyreg-unc-biag.readthedocs.io/en/latest/notes/walk_through_demos.html)<sup>*</sup>, and modify your own task based on it.
 
 
 
