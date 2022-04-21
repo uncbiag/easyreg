@@ -39,7 +39,7 @@
             4
         ],
         "model": "reg_net",
-        "model_path": "/playpen-raid2/zyshen/data/lung_reg/train_linmodel_256_continue_complex_1000/checkpoints/epoch_325_",
+        "model_path": "/playpen-raid2/zyshen/data/lung_reg/train_linmodel_256_continue_complex_1000/checkpoints/epoch_500_",
         "n_in_channel": 1,
         "method_name": "multiscale_net",
         "external_eval": "dirlab",

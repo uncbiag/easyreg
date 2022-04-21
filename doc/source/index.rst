@@ -17,7 +17,8 @@ Author: Zhengyang Shen, zyshen@cs.unc.edu
    notes/install.rst
    notes/prepare_data.rst
    notes/train_your_own_model.rst
-   notes/work_through_demos.rst
+   notes/walk_through_demos.rst
+   notes/train_lpba.rst
 
 
 .. toctree::

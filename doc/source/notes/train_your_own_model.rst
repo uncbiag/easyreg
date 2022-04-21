@@ -9,7 +9,7 @@ ____________
 In this tutorial, we would show how to train your own model.
 
 
-Please read *prepare data* part  for :ref:`prepare-data-training-label` first before moving ahead.
+Please read *prepare data* part :ref:`prepare-data-training-label` first before moving ahead.
 
 We provide 5 interfaces in easyreg that aimed for training/evaluating registration tasks, for training/evaluating segmentation tasks, and for data augmentation task.
 All these 5 interfaces can be found at **demo** repository.

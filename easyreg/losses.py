@@ -20,8 +20,8 @@ class Loss(object):
     """
     def __init__(self,opt):
         super(Loss,self).__init__()
-        cont_loss_type = opt['tsk_set']['loss']['type']
-        class_num = opt['tsk_set']['seg']['class_num']
+        cont_loss_type = opt['tsk_set']['loss'][('type',"ncc","loss type")]
+        class_num = opt['tsk_set']['seg'][('class_num',-1,"num of classes")]
 
         if cont_loss_type == 'l1':
             self.criterion = nn.L1Loss()

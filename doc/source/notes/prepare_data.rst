@@ -1,3 +1,4 @@
+.. _prepare-data-reg-training-label:
 Prepare Data
 =============
 
@@ -6,7 +7,6 @@ For all methods, SimpleITK is used as the image IO and our test is based on "nii
 
 
 
-.. _prepare-data-reg-training-label:
 
 Training for registration tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

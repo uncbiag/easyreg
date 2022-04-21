@@ -217,7 +217,16 @@ class SegDatasetPool(object):
         return dataset
 
 if __name__ == "__main__":
-    pass
+    data_path = "../demo/lpba_examples/data"
+    label_path = "../demo/lpba_examples/label"
+    divided_ratio = (0.4, 0.4, 0.2)  # ratio for train val test
+    output_path = '/playpen-raid1/zyshen/debug/lpba_seg_split'
+    lpba = SegDatasetPool().create_dataset(dataset_name='lpba', file_type_list=['*nii.gz'])
+    lpba.set_data_path(data_path)
+    lpba.set_label_path(label_path)
+    lpba.set_output_path(output_path)
+    lpba.set_divided_ratio(divided_ratio)
+    lpba.prepare_data()
 
     # num_c_list = [5, 10, 15, 20, 25]
     #

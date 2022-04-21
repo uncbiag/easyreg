@@ -6,7 +6,7 @@ import pyvista as pv
 from easyreg.net_utils import gen_identity_map
 from tools.image_rescale import permute_trans
 from tools.module_parameters import ParameterDict
-from easyreg.lin_unpublic_net import model
+from easyreg.multiscale_net_new2_opt import Multiscale_FlowNet as model
 from easyreg.utils import resample_image, get_transform_with_itk_format, dfield2bspline
 from tools.visual_tools import save_3D_img_from_numpy, save_3D_img_from_itk
 import mermaid.utils as py_utils
@@ -105,12 +105,13 @@ def normalize_img(img, is_mask=False):
     :param img: numpy image
     :return:
     """
+
     if not is_mask:
         img[img < -1000] = -1000
-        img[img > 1000] = 1000
-        img = (img + 1000) / 2000
+        img[img > -200] = -200
+        img = (img+1000.)/800
     else:
-        img[img>400]=0
+        img[img > 400] = 0
         img[img != 0] = 1
     return img
 
@@ -131,7 +132,7 @@ def preprocess(img_sitk,is_mask=False):
 
 
 def convert_itk_to_support_deepnet(img_sitk, is_mask=False,device=torch.device("cuda:0")):
-    img_sz_after_resize = [160]*3
+    img_sz_after_resize = [256]*3
     img_sitk = sitk.GetImageFromArray(sitk.GetArrayFromImage(img_sitk))
     img_after_resize,_ = resize_img(img_sitk,img_sz_after_resize, is_mask=is_mask)
     img_numpy = sitk.GetArrayFromImage(img_after_resize)
@@ -266,7 +267,7 @@ def predict(source_itk, target_itk,source_mask_itk=None, target_mask_itk=None, m
     target = convert_itk_to_support_deepnet(target_itk, device=device)
     source_mask = convert_itk_to_support_deepnet(source_mask_itk,is_mask=True) if source_mask_itk is not None else None
     target_mask = convert_itk_to_support_deepnet(target_mask_itk,is_mask=True) if target_mask_itk is not None else None
-    network = model(img_sz=[160,160,160],opt=opt)
+    network = model(img_sz=[256,256,256],opt=opt)
     network.load_pretrained_model(model_path)
     network.to(device)
     network.train(False)
@@ -306,33 +307,33 @@ def predict(source_itk, target_itk,source_mask_itk=None, target_mask_itk=None, m
             "affine_phi": full_affine_map, "affine_inv_phi": full_inv_affine_map,"affine_bspline":affine_bspline_itk, "afffine_inv_bspline":affine_inv_bspline_itk}
 
 
+MAPPING = {
+    "12042G": "copd_000006",
+    "12105E": "copd_000007",
+    "12109M": "copd_000008",
+    "12239Z": "copd_000009",
+    "12829U": "copd_000010",
+    "13216S": "copd_000001",
+    "13528L": "copd_000002",
+    "13671Q": "copd_000003",
+    "13998W": "copd_000004",
+    "17441T": "copd_000005"
+}
 
+INV_MAPPING = {
+    "6": "12042G",
+    "7": "12105E",
+    "8": "12109M",
+    "9": "12239Z",
+    "10": "12829U",
+    "1": "13216S",
+    "2": "13528L",
+    "3": "13671Q",
+    "4": "13998W",
+    "5": "17441T"
+}
 def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
-    MAPPING = {
-        "12042G": "copd_000006",
-        "12105E": "copd_000007",
-        "12109M": "copd_000008",
-        "12239Z": "copd_000009",
-        "12829U": "copd_000010",
-        "13216S": "copd_000001",
-        "13528L": "copd_000002",
-        "13671Q": "copd_000003",
-        "13998W": "copd_000004",
-        "17441T": "copd_000005"
-    }
 
-    COPD_ID = [
-        "copd_000001",
-        "copd_000002",
-        "copd_000003",
-        "copd_000004",
-        "copd_000005",
-        "copd_000006",
-        "copd_000007",
-        "copd_000008",
-        "copd_000009",
-        "copd_000010"
-    ]
 
 
 
@@ -389,8 +390,8 @@ def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
         for coord in slandmark_index:
             coord_int  = [int(c) for c in coord]
             moving[coord_int[2],coord_int[1],coord_int[0]] = 2.
-        save_3D_img_from_numpy(moving,"/playpen-raid2/zyshen/debug/{}_padded.nii.gz".format(dirlab_id+"_moving"),
-                               spacing=moving_img.GetSpacing(), orgin=moving_img.GetOrigin(), direction=moving_img.GetDirection())
+        # save_3D_img_from_numpy(moving,"/playpen-raid2/zyshen/debug/{}_padded.nii.gz".format(dirlab_id+"_moving"),
+        #                        spacing=moving_img.GetSpacing(), orgin=moving_img.GetOrigin(), direction=moving_img.GetDirection())
 
         points = (points - moving_origin) / moving_spacing * standard_spacing
         points = points * 2 - 1
@@ -411,7 +412,7 @@ def evaluate_on_dirlab(inv_map,moving_itk, target_itk,dirlab_id):
         for coord in wlandmark_index:
             coord_int = [int(c) for c in coord]
             warp[coord_int[2], coord_int[1], coord_int[0]] = 2.
-        save_3D_img_from_numpy(warp, "/playpen-raid2/zyshen/debug/{}_debug.nii.gz".format("warp"))
+        # save_3D_img_from_numpy(warp, "/playpen-raid2/zyshen/debug/{}_debug.nii.gz".format("warp"))
 
         return points_wraped
 
@@ -432,26 +433,30 @@ def get_file_name(img_path):
     return file_name
 
 if __name__ == "__main__":
-    source_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12042G_EXP_STD_USD_COPD.nrrd"
-    target_path = "/playpen-raid1/Data/DIRLABCasesHighRes/12042G_INSP_STD_USD_COPD.nrrd"
-    source_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd6/copd6_EXP_label.nrrd"
-    target_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd6/copd6_INSP_label.nrrd"
-    model_path = "./lung_reg/lin_modelv2"
-    source_itk = sitk.ReadImage(source_path)
-    target_itk = sitk.ReadImage(target_path)
-    source_mask_itk = sitk.ReadImage(source_mask_path) if len(source_mask_path) else None
-    target_mask_itk = sitk.ReadImage(target_mask_path) if len(target_mask_path) else None
-    preprocessed_source_itk = preprocess(source_itk)
-    preprocessed_target_itk = preprocess(target_itk)
-    #sitk.WriteImage(preprocessed_source_itk,"/playpen-raid1/zyshen/debug/12042G_preprocessed.nii.gz")
-    if source_mask_itk is not None and target_mask_itk is not None:
-        preprocessed_source_mask_itk = preprocess(source_mask_itk,is_mask=True)
-        preprocessed_target_mask_itk = preprocess(target_mask_itk,is_mask=True)
-    else:
-        preprocessed_source_mask_itk = None
-        preprocessed_target_mask_itk = None
-    output_dict = predict(preprocessed_source_itk, preprocessed_target_itk,preprocessed_source_mask_itk,preprocessed_target_mask_itk,
-                          model_path=model_path)
+    case_id = "6"
+    for case_id in range(1,11):
+        case_id = str(case_id)
+        case_name = INV_MAPPING[case_id]
+        source_path = "/playpen-raid1/Data/DIRLABCasesHighRes/{}_EXP_STD_USD_COPD.nrrd".format(case_name)
+        target_path = "/playpen-raid1/Data/DIRLABCasesHighRes/{}_INSP_STD_USD_COPD.nrrd".format(case_name)
+        source_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd{}/copd{}_EXP_label.nrrd".format(case_id,case_id)
+        target_mask_path = "/playpen-raid1/lin.tian/data/raw/DIRLABCasesHighRes/copd{}/copd{}_INSP_label.nrrd".format(case_id,case_id)
+        model_path = "./lung_reg/model_256"
+        source_itk = sitk.ReadImage(source_path)
+        target_itk = sitk.ReadImage(target_path)
+        source_mask_itk = sitk.ReadImage(source_mask_path) if len(source_mask_path) else None
+        target_mask_itk = sitk.ReadImage(target_mask_path) if len(target_mask_path) else None
+        preprocessed_source_itk = preprocess(source_itk)
+        preprocessed_target_itk = preprocess(target_itk)
+        #sitk.WriteImage(preprocessed_source_itk,"/playpen-raid1/zyshen/debug/12042G_preprocessed.nii.gz")
+        if source_mask_itk is not None and target_mask_itk is not None:
+            preprocessed_source_mask_itk = preprocess(source_mask_itk,is_mask=True)
+            preprocessed_target_mask_itk = preprocess(target_mask_itk,is_mask=True)
+        else:
+            preprocessed_source_mask_itk = None
+            preprocessed_target_mask_itk = None
+        output_dict = predict(preprocessed_source_itk, preprocessed_target_itk,preprocessed_source_mask_itk,preprocessed_target_mask_itk,
+                              model_path=model_path)
 
-    dirlab_id = get_file_name(source_path).split("_")[0]
-    evaluate_on_dirlab(output_dict["inv_phi"], preprocessed_source_itk, preprocessed_target_itk, dirlab_id)
+        dirlab_id = get_file_name(source_path).split("_")[0]
+        evaluate_on_dirlab(output_dict["inv_phi"], preprocessed_source_itk, preprocessed_target_itk, dirlab_id)

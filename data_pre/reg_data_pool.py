@@ -256,8 +256,8 @@ class CustomDataSet(BaseRegDataSet):
         sub_path = {x: os.path.join(root_path, x) for x in ['train', 'val', 'test', 'debug']}
         nt = [make_dir(sub_path[key]) for key in sub_path]
         if sum(nt):
-            raise ValueError("the data has already exist, due to randomly assignment schedule, the program block\n"
-                             "manually delete the folder to reprepare the data")
+            raise ValueError("the data task has already exist and has been created via random strategy, to avoid running by accident, the program blocks\n"
+                             " To aovid blocking, you may need to manually delete the output folder and rerun the program")
 
         train_num = int(train_ratio * num_img)
         val_num = int(val_ratio * num_img)
@@ -481,7 +481,6 @@ class RegDatasetPool(object):
 
 class OaiDataSet(PatientStructureDataSet):
     def __init__(self,dataset_name, sched):
-        img_poster= ['*image.nii.gz']
         PatientStructureDataSet.__init__(self,dataset_name,sched)
 
 
@@ -489,8 +488,22 @@ class OaiDataSet(PatientStructureDataSet):
 
 
 if __name__ == "__main__":
-    # # print('debugging')
-    # ###########################       LPBA TESTING           ###################################
+    data_path = "../demo/lpba_examples/data"
+    label_path = "../demo/lpba_examples/label"
+    divided_ratio = (0.4, 0.4, 0.2)
+    file_type_list = ['*.nii.gz']
+    name = 'custom'
+    output_path = '../demo/demo_training_reg_net/lpba'
+    lpba = RegDatasetPool().create_dataset(name)
+    lpba.file_type_list = file_type_list
+    lpba.set_data_path(data_path)
+    lpba.set_output_path(output_path)
+    lpba.set_divided_ratio(divided_ratio)
+    lpba.set_label_path(label_path)
+    lpba.prepare_data()
+
+
+
     # path = '/playpen/data/quicksilver_data/testdata/LPBA40/brain_affine_icbm'
     # data_path = "/playpen-raid/zyshen/data/lpba_seg_resize/resized_img"
     # label_path = '/playpen-raid/zyshen/data/lpba_seg_resize/label_filtered'
@@ -543,26 +556,26 @@ if __name__ == "__main__":
     #     oai.prepare_data()
 
 
-    data_path = "/playpen-raid1/Data/Lung_Registration_clamp_normal"
-    source_image_path_list = glob(os.path.join(data_path, "**", "*EXP*img*"))
-    target_image_path_list = [path.replace("_EXP_", "_INSP_") for path in source_image_path_list]
-    coupled_pair_path_list = list(zip(source_image_path_list,target_image_path_list))
-    divided_ratio = (0.8, 0.05, 0.15)
-    name = 'custom'
-    output_path = '/playpen-raid1/zyshen/data/reg_new_lung'
-    #sever_switch = ('/playpen-raid', '/pine/scr/z/y')
-    label_switch = ('_img', '_label')
-
-    lung = RegDatasetPool().create_dataset(name)
-    lung.reg_coupled_pair=True
-    lung.coupled_pair_list = coupled_pair_path_list
-    lung.label_switch = label_switch
-    lung.set_data_path(data_path)
-    lung.set_output_path(output_path)
-    lung.set_divided_ratio(divided_ratio)
-    lung.prepare_data()
-
-
+    # data_path = "/playpen-raid1/Data/Lung_Registration_clamp_normal"
+    # source_image_path_list = glob(os.path.join(data_path, "**", "*EXP*img*"))
+    # target_image_path_list = [path.replace("_EXP_", "_INSP_") for path in source_image_path_list]
+    # coupled_pair_path_list = list(zip(source_image_path_list,target_image_path_list))
+    # divided_ratio = (0.8, 0.05, 0.15)
+    # name = 'custom'
+    # output_path = '/playpen-raid1/zyshen/data/reg_new_lung'
+    # #sever_switch = ('/playpen-raid', '/pine/scr/z/y')
+    # label_switch = ('_img', '_label')
+    #
+    # lung = RegDatasetPool().create_dataset(name)
+    # lung.reg_coupled_pair=True
+    # lung.coupled_pair_list = coupled_pair_path_list
+    # lung.label_switch = label_switch
+    # lung.set_data_path(data_path)
+    # lung.set_output_path(output_path)
+    # lung.set_divided_ratio(divided_ratio)
+    # lung.prepare_data()
+    #
+    #
 
 
 
