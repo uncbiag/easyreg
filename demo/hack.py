@@ -6,7 +6,7 @@ import pyvista as pv
 from easyreg.net_utils import gen_identity_map
 from tools.image_rescale import permute_trans
 from tools.module_parameters import ParameterDict
-from easyreg.multiscale_net_new2_opt import Multiscale_FlowNet as model
+from easyreg.multiscale_net_improved import Multiscale_FlowNet as model
 from easyreg.utils import resample_image, get_transform_with_itk_format, dfield2bspline
 from tools.visual_tools import save_3D_img_from_numpy, save_3D_img_from_itk
 import mermaid.utils as py_utils
@@ -433,7 +433,6 @@ def get_file_name(img_path):
     return file_name
 
 if __name__ == "__main__":
-    case_id = "6"
     for case_id in range(1,11):
         case_id = str(case_id)
         case_name = INV_MAPPING[case_id]
