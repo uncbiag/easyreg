@@ -118,7 +118,7 @@ def normalize_img(img, is_mask=False):
 
 
 def preprocess(img_sitk,is_mask=False):
-    processed_img = resample_image_itk_by_spacing_and_size(img_sitk,      output_spacing=np.array([1., 1., 1.]),
+    processed_img = resample_image_itk_by_spacing_and_size(img_sitk,  output_spacing=np.array([1., 1., 1.]),
                                                                           output_size=[350, 350, 350], output_type=None,
                                                                           interpolator=sitk.sitkBSpline if not is_mask else sitk.sitkNearestNeighbor,
                                                                           padding_value=-1000 if not is_mask else 0, center_padding=True)

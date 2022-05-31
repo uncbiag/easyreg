@@ -77,7 +77,7 @@ You can prepare the data accordingly or here we use the "RegDatasetPool" in scri
 
 We use the same setting file from our OAI registration demo to train the LPBA registration tasks, the setting can be found  at *demo/demo_settings/mermaid/training_on_3_cases_voxelmorph*.
 We need to manually set *img_after_resize* in setting to a desired/current value [196, 164, 196] (numpy convention, not itk convention).
-We then can train segmentation network on LPBA simply by
+We then can train registration network on LPBA simply by
 
 .. code:: shell
 
