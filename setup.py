@@ -46,7 +46,7 @@ REQUIRED = [
     "ants",
     "nibabel",
     "webcolors",
-    "sklearn",
+    "scikit-learn",
     "gdown"
 ]
 
